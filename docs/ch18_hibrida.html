@@ -28,7 +28,7 @@ apa yang ia kuasai, lalu memakai data untuk memperbaiki bagian yang ia
 kerjakan dengan buruk. Bab ini dirangkai dari kuliah metode numerik
 fluida, yang membahas model penutup turbulensi beserta kelemahannya, dan
 dari bacaan selama tugas akhir.</p>
-<h1 id="di-mana-solver-lemah">Di mana solver lemah</h1>
+<h2 id="di-mana-solver-lemah">Di mana solver lemah</h2>
 <p><a href="ch13_numerik_fluida.html">Bab 23</a> memperlihatkan bahwa
 simulasi praktis selalu memodelkan sesuatu yang tidak bisa diselesaikan:
 tegangan Reynolds di RANS, pusaran sub-grid di LES, gaya antara fluida
@@ -41,8 +41,8 @@ yang lebih teliti, seperti DNS dan LES, atau dari percobaan, bisa
 dipakai untuk mempelajari model yang lebih baik <span class="citation"
 data-cites="duraisamy2019">(Duraisamy, Iaccarino, dan Xiao
 2019)</span>.</p>
-<h1 id="model-penutup-yang-dipelajari">Model penutup yang
-dipelajari</h1>
+<h2 id="model-penutup-yang-dipelajari">Model penutup yang
+dipelajari</h2>
 <p>Pendekatan paling langsung adalah melatih jaringan untuk memprediksi
 besaran yang hilang dari besaran yang tersedia. Untuk RANS, targetnya
 tegangan Reynolds, dan inputnya gradien kecepatan rata-rata. Tetapi
@@ -75,7 +75,7 @@ hanya suku pertama, <span class="math inline">\(\boldsymbol
 T^{(1)}=\boldsymbol S\)</span>, dan koefisien tetap. Inilah contoh nyata
 inductive bias dari <a href="ch00_peta.html">Bab 0</a>: simetri tidak
 dipelajari dari data, tetapi dibangun ke dalam bentuk modelnya.</p>
-<h1 id="a-priori-dan-a-posteriori">A priori dan a posteriori</h1>
+<h2 id="a-priori-dan-a-posteriori">A priori dan a posteriori</h2>
 <p>Model penutup yang dipelajari sering tampak baik dalam uji <em>a
 priori</em>: ambil medan DNS, hitung input dan target, lalu ukur galat
 prediksi. Begitu model dimasukkan ke dalam solver dan simulasi
@@ -107,8 +107,8 @@ jaringan mempelajari cara menginterpolasi nilai di sisi sel pada grid
 yang jauh lebih kasar, dan simulasi yang dihasilkan setara akurasinya
 dengan solver klasik pada grid berkali-kali lebih halus, dengan
 percepatan puluhan kali.</p>
-<h1 id="ketidakpastian-dan-banyak-tingkat-ketelitian">Ketidakpastian dan
-banyak tingkat ketelitian</h1>
+<h2 id="ketidakpastian-dan-banyak-tingkat-ketelitian">Ketidakpastian dan
+banyak tingkat ketelitian</h2>
 <p>Model hibrida juga cocok untuk memanfaatkan data dari sumber yang
 berbeda-beda ketelitian dan harganya. Simulasi kasar murah dan banyak,
 simulasi teliti mahal dan sedikit, percobaan paling dipercaya tetapi
@@ -125,8 +125,8 @@ ketidakpastian masing-masing. Ketika model penutupnya sendiri tidak
 pasti, parameter model bisa ikut ditaksir dalam proses asimilasi,
 misalnya dengan menambahkannya ke vektor keadaan Kalman filter
 ensemble.</p>
-<h1 id="apa-yang-dipelajari-dan-apa-yang-tidak">Apa yang dipelajari, dan
-apa yang tidak</h1>
+<h2 id="apa-yang-dipelajari-dan-apa-yang-tidak">Apa yang dipelajari, dan
+apa yang tidak</h2>
 <p>Pola umum model hibrida bisa diringkas dalam satu kalimat: biarkan
 fisika menangani apa yang sudah diketahui pasti, terutama hukum
 kekekalan, dan biarkan data menangani apa yang dimodelkan dengan buruk.
@@ -140,7 +140,7 @@ class="citation" data-cites="vinuesa2022">Vinuesa dan Brunton
 data-cites="brunton2020">Brunton, Noack, dan Koumoutsakos (2020)</span>
 menempatkan pendekatan ini sebagai salah satu jalur yang paling
 menjanjikan untuk mekanika fluida komputasi.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini dirangkai dari kuliah Numerical Methods in Fluid Mechanics
 (model penutup turbulensi) dan bacaan selama tugas akhir. Rujukan utama:
 <span class="citation" data-cites="duraisamy2019">Duraisamy, Iaccarino,
@@ -150,7 +150,7 @@ data-cites="ling2016">Ling, Kurzawski, dan Templeton (2016)</span>,
 class="citation" data-cites="kochkov2021">Kochkov dkk. (2021)</span>,
 dan <span class="citation" data-cites="thuerey2021">Thuerey dkk.
 (2021)</span>.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-brunton2020" class="csl-entry" role="listitem">

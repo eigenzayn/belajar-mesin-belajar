@@ -37,7 +37,7 @@ href="ch31_kendali.html">Bab 15</a>), dan memutuskan apa yang dilakukan
 href="ch02b_ai_klasik.html">Bab 3</a>). Bab ini melihat dua jenis robot:
 lengan industri yang bekerja di tempat, dan kendaraan yang bergerak di
 dunia terbuka.</p>
-<h1 id="koordinat-dan-kinematika">Koordinat dan kinematika</h1>
+<h2 id="koordinat-dan-kinematika">Koordinat dan kinematika</h2>
 <p>Robot hidup di antara banyak kerangka koordinat: dunia, dasar robot,
 setiap sendi, ujung lengan, kamera. Posisi dan orientasi sebuah kerangka
 relatif terhadap kerangka lain dinyatakan dengan matriks rotasi dan
@@ -74,7 +74,7 @@ class="math inline">\(\sin q_2=0\)</span> dan Jacobian kehilangan
 pangkat. Di konfigurasi <em>singular</em> seperti ini, ada arah gerak
 yang tidak bisa dicapai sama sekali, dan kecepatan sendi yang dibutuhkan
 untuk bergerak di dekatnya membengkak.</p>
-<h1 id="dinamika">Dinamika</h1>
+<h2 id="dinamika">Dinamika</h2>
 <p>Kinematika tidak peduli pada massa dan gaya. Untuk mengendalikan
 lengan yang sebenarnya, kita perlu tahu torsi apa yang menghasilkan
 gerak tertentu. Kuliah menurunkannya dengan prinsip Hamilton dan
@@ -96,7 +96,7 @@ sistem linear yang mudah dikendalikan. Deskripsi robot untuk perangkat
 lunak, seperti format URDF, menyimpan semua massa, inersia, dan geometri
 yang dibutuhkan untuk perhitungan ini <span class="citation"
 data-cites="lynch2017">(Lynch dan Park 2017)</span>.</p>
-<h1 id="melihat-dan-merencanakan">Melihat dan merencanakan</h1>
+<h2 id="melihat-dan-merencanakan">Melihat dan merencanakan</h2>
 <p>Visual servoing mengendalikan robot dengan umpan balik dari kamera.
 Model kamera dan kalibrasinya sama dengan di <a
 href="ch05_computer_vision.html">Bab 7</a>. Pada visual servoing
@@ -114,8 +114,8 @@ menghindarinya dengan mencari secara global. Gerak sepanjang jalur
 kemudian diberi profil kecepatan yang halus, misalnya trapesium dengan
 fase percepatan, kecepatan tetap, dan perlambatan, supaya motor tidak
 dihentak.</p>
-<h1 id="di-mana-aku-berada-lokalisasi">Di mana aku berada:
-lokalisasi</h1>
+<h2 id="di-mana-aku-berada-lokalisasi">Di mana aku berada:
+lokalisasi</h2>
 <p>Mobil otonom harus tahu posisinya dengan ketelitian beberapa
 sentimeter, jauh lebih teliti dari GPS biasa. Kuliah membahas tiga
 pendekatan. <em>Markov localization</em> adalah filter Bayes dari <a
@@ -140,8 +140,8 @@ titik-titik di setiap sel dengan sebuah distribusi Gauss. Pindaian baru
 dicocokkan dengan memaksimalkan likelihood titik-titiknya di bawah
 campuran Gauss itu, yang lebih mulus dan lebih tahan terhadap tebakan
 awal yang kurang tepat.</p>
-<h1 id="melihat-jalan-persepsi-dan-pelacakan">Melihat jalan: persepsi
-dan pelacakan</h1>
+<h2 id="melihat-jalan-persepsi-dan-pelacakan">Melihat jalan: persepsi
+dan pelacakan</h2>
 <p>Lidar memancarkan pulsa laser dan mengukur waktu tempuhnya, sehingga
 menghasilkan awan titik tiga dimensi dengan jarak yang akurat. Kamera
 memberi warna dan tekstur, dan radar (<a href="ch30_sinyal.html">Bab
@@ -171,8 +171,8 @@ menyelesaikannya secara eksak. Deteksi yang tidak punya pasangan bisa
 menjadi jejak baru, dan jejak yang lama tidak mendapat deteksi dihapus.
 Setiap jejak yang terpasang diperbarui dengan langkah koreksi
 Kalman.</p>
-<h1 id="di-mana-machine-learning-masuk">Di mana machine learning
-masuk</h1>
+<h2 id="di-mana-machine-learning-masuk">Di mana machine learning
+masuk</h2>
 <p>Robotika klasik dibangun dari model yang diturunkan: kinematika,
 dinamika, model sensor. Machine learning masuk di tempat model sulit
 ditulis. Persepsi hampir seluruhnya dikuasai deep learning. Dinamika
@@ -186,7 +186,7 @@ perintah robot dengan kalimat biasa (<a href="ch52_terbaru.html">Bab
 32</a>). Tetapi untuk bagian yang menyangkut keselamatan, seperti
 lokalisasi, pelacakan, dan kendali tingkat rendah, metode klasik dengan
 jaminan yang bisa dianalisis tetap menjadi tulang punggung.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti kuliah Introduction to Robotic Systems
 (transformasi kerangka, kecepatan benda kaku, Denavit–Hartenberg,
 kinematika maju dan balik, Jacobian dan singularitas, persamaan
@@ -197,7 +197,7 @@ pelacakan banyak objek). Buku rujukan: <span class="citation"
 data-cites="lynch2017">Lynch dan Park (2017)</span> dan <span
 class="citation" data-cites="thrun2005">Thrun, Burgard, dan Fox
 (2005)</span>.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-besl1992" class="csl-entry" role="listitem">

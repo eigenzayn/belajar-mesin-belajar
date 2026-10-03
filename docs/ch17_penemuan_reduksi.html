@@ -37,8 +37,8 @@ Pertanyaannya bukan “bisakah jaringan meniru simulasi?”, melainkan
 ini?”. Jawabannya sering mengejutkan: medan aliran dengan jutaan derajat
 kebebasan kadang bisa dijelaskan oleh beberapa mode saja, dan
 dinamikanya oleh persamaan dengan beberapa suku.</p>
-<h1 id="proper-orthogonal-decomposition">Proper orthogonal
-decomposition</h1>
+<h2 id="proper-orthogonal-decomposition">Proper orthogonal
+decomposition</h2>
 <p>Simpan <span class="math inline">\(m\)</span> potret medan aliran,
 masing-masing dengan <span class="math inline">\(n\)</span> nilai,
 sebagai kolom-kolom matriks <span
@@ -74,7 +74,7 @@ karena pelepasan pusaran adalah gelombang yang berjalan, dan gelombang
 berjalan butuh dua mode yang bergeser seperempat periode.</p>
 <p>Mode POD bisa dipakai untuk membangun <em>reduced-order model</em>.
 Tuliskan <span
-class="math inline">\(\boldsymbol{u}(\boldsymbol{x},t)\approx\bar\boldsymbol{u}(\boldsymbol{x})+\sum_{k=1}^ra_k(t)\boldsymbol\varphi_k(\boldsymbol{x})\)</span>,
+class="math inline">\(\boldsymbol{u}(\boldsymbol{x},t)\approx\bar{\boldsymbol{u}}(\boldsymbol{x})+\sum_{k=1}^ra_k(t)\boldsymbol\varphi_k(\boldsymbol{x})\)</span>,
 masukkan ke persamaan Navier–Stokes, lalu proyeksikan ke setiap mode.
 Proyeksi Galerkin ini menghasilkan sistem ODE kecil untuk koefisien
 <span class="math inline">\(a_k(t)\)</span>, dengan suku linear dari
@@ -87,7 +87,7 @@ yang hilang, atau model deret seperti LSTM pada koefisien <span
 class="math inline">\(a_k\)</span> (<a
 href="ch04_lstm_transformer.html">Bab 6</a>), dipakai untuk
 memperbaikinya.</p>
-<h1 id="dynamic-mode-decomposition">Dynamic mode decomposition</h1>
+<h2 id="dynamic-mode-decomposition">Dynamic mode decomposition</h2>
 <p>POD memilih mode menurut energi, tanpa peduli dinamikanya.
 <em>Dynamic mode decomposition</em> <span class="citation"
 data-cites="schmid2010">(SCHMID 2010)</span> memilih mode menurut
@@ -129,8 +129,8 @@ detik dan frekuensi sudut 10 radian per detik.</p>
 nada mana yang dimainkan, seberapa keras, dan apakah ia menguat atau
 memudar. POD, sebaliknya, hanya mencatat alat musik mana yang paling
 banyak bersuara.</p>
-<h1 id="koopman-linear-di-ruang-yang-lebih-besar">Koopman: linear di
-ruang yang lebih besar</h1>
+<h2 id="koopman-linear-di-ruang-yang-lebih-besar">Koopman: linear di
+ruang yang lebih besar</h2>
 <p>DMD mendekati dinamika dengan operator linear, padahal kebanyakan
 sistem nonlinear. Teori operator Koopman <span class="citation"
 data-cites="koopman1931">(Koopman 1931)</span> memberi pembenarannya.
@@ -159,7 +159,7 @@ memetakan keadaan ke koordinat di mana dinamikanya adalah perkalian
 matriks, dan decoder mengembalikannya. Kalau berhasil, semua alat
 kendali linear dari <a href="ch31_kendali.html">Bab 15</a> bisa dipakai
 pada sistem nonlinear.</p>
-<h1 id="menemukan-persamaan-sindy">Menemukan persamaan: SINDy</h1>
+<h2 id="menemukan-persamaan-sindy">Menemukan persamaan: SINDy</h2>
 <p>Kadang kita ingin lebih dari model yang meniru: kita ingin
 persamaannya. <em>Sparse identification of nonlinear dynamics</em> <span
 class="citation" data-cites="brunton2016">(Brunton, Proctor, dan Kutz
@@ -202,7 +202,7 @@ autoencoder bersama SINDy, sehingga koordinat dan persamaan ditemukan
 bersamaan. PDE-FIND <span class="citation" data-cites="rudy2017">(Rudy
 dkk. 2017)</span> memperluas gagasan ini ke persamaan diferensial
 parsial dengan memasukkan turunan ruang ke dalam pustaka.</p>
-<h1 id="memilih-alat">Memilih alat</h1>
+<h2 id="memilih-alat">Memilih alat</h2>
 <p>Ketiga keluarga ini mengisi tempat yang berbeda. POD dan model
 tereduksi cocok ketika kita punya persamaan dan ingin mempercepatnya.
 DMD dan Koopman cocok untuk menganalisis dan meramalkan dinamika yang
@@ -212,7 +212,7 @@ menghasilkan model yang jauh lebih kecil dan lebih mudah ditafsirkan
 daripada jaringan dalam, dan karena itulah mereka masih dipakai
 berdampingan dengan neural operator di <a href="ch16_operator.html">Bab
 26</a>, sering sebagai lapisan di dalamnya.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini dirangkai dari kuliah Machine Learning: Unsupervised
 Techniques (PCA), Control Systems (sistem linear dan nilai eigen),
 Computational Physics I (SVD dan masalah nilai eigen), dan bacaan selama
@@ -222,7 +222,7 @@ class="citation" data-cites="taira2017">Taira dkk. (2017)</span>, <span
 class="citation" data-cites="schmid2010">SCHMID (2010)</span>, dan <span
 class="citation" data-cites="brunton2016">Brunton, Proctor, dan Kutz
 (2016)</span>.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-berkooz1993" class="csl-entry" role="listitem">

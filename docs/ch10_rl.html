@@ -36,7 +36,7 @@ benar, melainkan angka ganjaran yang sering datang terlambat. Seekor
 anjing yang belajar duduk tidak diberi tahu gerakan otot apa yang harus
 dilakukan. Ia mencoba sesuatu, dan kadang mendapat camilan. Tugasnya
 adalah mencari tahu tindakan mana yang membuat camilan itu datang.</p>
-<h1 id="proses-keputusan-markov">Proses keputusan Markov</h1>
+<h2 id="proses-keputusan-markov">Proses keputusan Markov</h2>
 <p>Kerangka formalnya adalah <em>Markov decision process</em> (MDP):
 himpunan keadaan <span class="math inline">\(\mathcal S\)</span>,
 himpunan aksi <span class="math inline">\(\mathcal A\)</span>, dinamika
@@ -91,7 +91,7 @@ class="math inline">\(\gamma=0{,}9\)</span>, nilainya 10. Faktor diskon
 bisa dibaca sebagai cakrawala efektif: dengan <span
 class="math inline">\(\gamma=0{,}9\)</span>, agen kira-kira peduli pada
 sepuluh langkah ke depan.</p>
-<h1 id="dynamic-programming">Dynamic programming</h1>
+<h2 id="dynamic-programming">Dynamic programming</h2>
 <p>Kalau dinamika MDP diketahui, persamaan Bellman bisa diselesaikan
 dengan dynamic programming <span class="citation"
 data-cites="bellman1957">(Bellman 1957)</span>. <em>Policy
@@ -114,7 +114,7 @@ sudut. Setelah policy evaluation untuk policy acak, nilai setiap petak
 mencerminkan rata-rata jumlah langkah yang dibutuhkan untuk mencapai
 sudut dengan berjalan acak. Policy yang serakah terhadap nilai-nilai itu
 sudah langsung menunjuk jalur terpendek.</p>
-<h1 id="belajar-dari-pengalaman">Belajar dari pengalaman</h1>
+<h2 id="belajar-dari-pengalaman">Belajar dari pengalaman</h2>
 <p>Di dunia nyata, dinamika jarang diketahui. Agen harus belajar dari
 sampel.</p>
 <p>Metode <em>Monte Carlo</em> menunggu sampai satu episode selesai,
@@ -160,7 +160,7 @@ hampir selalu, tetapi dengan peluang kecil <span
 class="math inline">\(\epsilon\)</span> pilih aksi acak. Ini mirip
 memilih tempat makan. Kalau selalu ke warung langganan, kita tidak
 pernah tahu ada warung yang lebih enak di gang sebelah.</p>
-<h1 id="deep-q-network">Deep Q-network</h1>
+<h2 id="deep-q-network">Deep Q-network</h2>
 <p>Untuk keadaan yang amat banyak, seperti piksel layar permainan, tabel
 <span class="math inline">\(Q\)</span> diganti jaringan saraf <span
 class="math inline">\(Q_\theta(s,a)\)</span>. Gabungan ini ternyata
@@ -177,7 +177,7 @@ permainan Atari dari piksel. Operator maksimum dalam target Q-learning
 cenderung melebih-lebihkan nilai, dan varian-varian DQN selanjutnya
 memisahkan pemilihan aksi dari penilaian aksinya untuk mengurangi bias
 itu.</p>
-<h1 id="policy-gradient">Policy gradient</h1>
+<h2 id="policy-gradient">Policy gradient</h2>
 <p>Pendekatan lain melewati fungsi nilai dan langsung mengoptimalkan
 policy berparameter <span class="math inline">\(\pi_\theta(a\mid
 s)\)</span>. Teorema policy gradient memberi gradien return harapan
@@ -246,8 +246,8 @@ soft actor-critic <span class="citation"
 data-cites="haarnoja2018">(Haarnoja dkk. 2018)</span> menambahkan
 entropi policy ke dalam tujuan, sehingga agen dihargai karena tetap acak
 selama hal itu tidak terlalu merugikan.</p>
-<h1 id="meniru-dan-memberi-kredit">Meniru dan memberi kredit</h1>
-<h2 id="imitation-learning">Imitation learning</h2>
+<h2 id="meniru-dan-memberi-kredit">Meniru dan memberi kredit</h2>
+<h3 id="imitation-learning">Imitation learning</h3>
 <p>Kadang lebih mudah menunjukkan cara melakukan sesuatu daripada
 menulis fungsi ganjarannya. <em>Behavioral cloning</em> memperlakukan
 demonstrasi ahli sebagai data supervised: input keadaan, target aksi.
@@ -262,7 +262,7 @@ demonstrasi (<em>inverse reinforcement learning</em>), atau
 mempertandingkan agen dengan diskriminator yang membedakan perilakunya
 dari perilaku ahli, seperti pada GAIL <span class="citation"
 data-cites="ho2016">(Ho dan Ermon 2016)</span>.</p>
-<h2 id="credit-assignment">Credit assignment</h2>
+<h3 id="credit-assignment">Credit assignment</h3>
 <p>Masalah tersulit RL adalah ganjaran yang tertunda. Dalam sebuah
 pertandingan sepak bola, gol terjadi di menit ke-80, tetapi umpan yang
 menentukan mungkin terjadi lima menit sebelumnya, dan kesalahan lawan
@@ -278,7 +278,7 @@ yang benar-benar berkontribusi. Ganjaran yang tertunda diubah menjadi
 ganjaran langsung, dan nilai harapan yang tersisa untuk dipelajari
 menjadi hampir nol. Kuliah deep RL di Linz membahas topik ini dengan
 nama direct credit assignment.</p>
-<h2 id="kendali-sebagai-inferensi">Kendali sebagai inferensi</h2>
+<h3 id="kendali-sebagai-inferensi">Kendali sebagai inferensi</h3>
 <p>Kuliah juga membahas cara pandang yang menyatukan RL dengan inferensi
 probabilistik (<a href="ch08_probabilistik.html">Bab 10</a>). Kalau kita
 memperkenalkan variabel “optimalitas” yang peluangnya sebanding dengan
@@ -287,8 +287,8 @@ posterior atas lintasan, dengan syarat bahwa lintasan itu optimal. Hasil
 dari cara pandang ini adalah RL dengan entropi maksimum, yang
 menjelaskan mengapa soft actor-critic menambahkan entropi ke dalam
 tujuannya.</p>
-<h1 id="model-permainan-dan-banyak-agen">Model, permainan, dan banyak
-agen</h1>
+<h2 id="model-permainan-dan-banyak-agen">Model, permainan, dan banyak
+agen</h2>
 <p>Buku <span class="citation" data-cites="plaat2022">Plaat
 (2022)</span>, yang menjadi bacaan kuliah, menyusun deep RL menjadi
 beberapa keluarga. Metode berbasis model mempelajari dinamika lingkungan
@@ -299,8 +299,8 @@ data-cites="silver2018">(Silver dkk. 2018)</span>. RL multi-agen
 menghadapi lingkungan yang berubah karena agen lain juga belajar. RL
 hierarkis memecah tugas panjang menjadi subtugas, dan meta-learning
 melatih agen untuk cepat beradaptasi ke tugas baru.</p>
-<h1 id="reinforcement-learning-di-dunia-nyata">Reinforcement learning di
-dunia nyata</h1>
+<h2 id="reinforcement-learning-di-dunia-nyata">Reinforcement learning di
+dunia nyata</h2>
 <p>Di luar permainan, RL dipakai untuk masalah kendali yang sulit
 dimodelkan secara analitis. <span class="citation"
 data-cites="rabault2019">Rabault dkk. (2019)</span> melatih agen untuk
@@ -322,7 +322,7 @@ bahasa dioptimasi dengan PPO terhadap model ganjaran tersebut <span
 class="citation" data-cites="ouyang2022">(Ouyang dkk. 2022)</span>.
 Perkembangan ini kita bahas lagi di <a href="ch52_terbaru.html">Bab
 32</a>.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini menggabungkan kuliah Reinforcement Learning (MDP, dynamic
 programming, Monte Carlo, temporal difference, policy gradient, PPO) dan
 kuliah serta latihan Deep Reinforcement Learning (imitation learning,
@@ -330,7 +330,7 @@ policy gradient, direct credit assignment, kendali dan inferensi, proyek
 DQN dan PPO). Bacaan utama: <span class="citation"
 data-cites="sutton2018">Sutton dan Barto (2018)</span> dan <span
 class="citation" data-cites="plaat2022">Plaat (2022)</span>.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-arjonamedina2019" class="csl-entry" role="listitem">

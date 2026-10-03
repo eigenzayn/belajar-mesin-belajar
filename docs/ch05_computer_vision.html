@@ -32,7 +32,7 @@ lensa sampai mesin yang bisa merekonstruksi dunia tiga dimensi. Di
 sepanjang jalan akan terlihat bahwa banyak alat klasik, seperti
 konvolusi, transformasi Fourier, dan kuadrat terkecil, tetap hidup di
 dalam jaringan saraf modern.</p>
-<h1 id="dari-cahaya-ke-piksel">Dari cahaya ke piksel</h1>
+<h2 id="dari-cahaya-ke-piksel">Dari cahaya ke piksel</h2>
 <p>Kamera paling sederhana adalah kotak gelap dengan lubang kecil.
 Setiap titik di dunia memancarkan cahaya ke segala arah, dan hanya satu
 berkas yang lolos lewat lubang itu, sehingga terbentuk gambar terbalik
@@ -80,7 +80,7 @@ elektronik, ada kuantisasi ke delapan atau dua belas bit, dan ada filter
 warna Bayer yang membuat setiap piksel hanya mengukur satu warna. Dua
 warna lainnya ditebak dari piksel tetangga dalam proses yang disebut
 <em>demosaicing</em>.</p>
-<h1 id="pengolahan-citra">Pengolahan citra</h1>
+<h2 id="pengolahan-citra">Pengolahan citra</h2>
 <p>Gambar bisa diperlakukan sebagai fungsi <span
 class="math inline">\(I(x,y)\)</span>, dan banyak operasi dasarnya
 berupa konvolusi dengan kernel kecil (<a href="ch03_dl_basic.html">Bab
@@ -114,7 +114,7 @@ setengahnya, sehingga algoritme yang bekerja pada satu ukuran bisa
 dijalankan di setiap tingkat piramida untuk menangkap semua skala.
 Piramida akan muncul lagi di optical flow, di U-Net, dan di solver
 multigrid.</p>
-<h1 id="machine-learning-untuk-visi">Machine learning untuk visi</h1>
+<h2 id="machine-learning-untuk-visi">Machine learning untuk visi</h2>
 <p>Gambar wajah berukuran <span
 class="math inline">\(100\times100\)</span> piksel adalah sebuah titik
 di ruang berdimensi sepuluh ribu, tetapi wajah tidak memenuhi seluruh
@@ -156,7 +156,7 @@ detektor tepi dan warna, dan lapisan yang lebih dalam menjadi detektor
 bagian-bagian objek. Fitur dari jaringan terlatih seperti VGG atau
 ResNet ternyata berguna jauh di luar klasifikasi. Kuliah menunjukkan
 contohnya untuk fusi gambar dan estimasi kedalaman dari fokus.</p>
-<h1 id="segmentasi">Segmentasi</h1>
+<h2 id="segmentasi">Segmentasi</h2>
 <p>Segmentasi memberi label pada setiap piksel. <em>Semantic
 segmentation</em> memberi kelas seperti jalan, mobil, atau pohon,
 sedangkan <em>instance segmentation</em> juga membedakan mobil yang satu
@@ -189,7 +189,7 @@ klik.</p>
 memperbesarnya lagi, dan skip connection membawa detail dari setiap
 tingkat encoder ke decoder.</figcaption>
 </figure>
-<h1 id="optical-flow">Optical flow</h1>
+<h2 id="optical-flow">Optical flow</h2>
 <p>Video adalah deret gambar. <em>Optical flow</em> adalah medan vektor
 <span class="math inline">\((u,v)\)</span> yang menyatakan ke mana
 setiap piksel bergerak dari satu bingkai ke bingkai berikutnya. Asumsi
@@ -279,7 +279,7 @@ video konsentrasi zat pewarna saja, sebuah PINN menyimpulkan medan
 kecepatan dan tekanan yang tidak pernah diukur, dengan memaksakan
 persamaan Navier–Stokes di dalam loss (<a href="ch15_pinn.html">Bab
 25</a>).</p>
-<h1 id="deteksi-objek">Deteksi objek</h1>
+<h2 id="deteksi-objek">Deteksi objek</h2>
 <p>Deteksi menjawab dua pertanyaan sekaligus: apa, dan di mana.
 Keluarannya berupa kotak pembatas beserta kelasnya. Tumpang tindih
 antara kotak tebakan <span class="math inline">\(A\)</span> dan kotak
@@ -305,7 +305,7 @@ tertinggi, buang kotak lain yang tumpang tindihnya dengan kotak itu
 melewati ambang. Kinerja diukur dengan kurva presisi terhadap recall,
 dan luas di bawahnya, <em>average precision</em>, dirata-ratakan atas
 semua kelas.</p>
-<h1 id="geometri-banyak-pandang">Geometri banyak pandang</h1>
+<h2 id="geometri-banyak-pandang">Geometri banyak pandang</h2>
 <p>Satu kamera kehilangan kedalaman, tetapi dua kamera bisa
 mendapatkannya kembali, persis seperti dua mata kita <span
 class="citation" data-cites="hartley2004">(Hartley dan Zisserman
@@ -350,7 +350,7 @@ kedalamannya.</p>
 dari kamera yang bergerak: cocokkan fitur antar foto, perkirakan pose
 kamera, triangulasi titik-titik tiga dimensi, lalu perhalus semuanya
 bersama-sama.</p>
-<h1 id="visi-tiga-dimensi">Visi tiga dimensi</h1>
+<h2 id="visi-tiga-dimensi">Visi tiga dimensi</h2>
 <p>Dunia tiga dimensi bisa direpresentasikan dengan banyak cara. Peta
 kedalaman memberi satu angka per piksel. Grid voxel sederhana, tetapi
 memorinya tumbuh kubik. Awan titik hemat, tetapi tidak punya permukaan.
@@ -398,7 +398,7 @@ Grad-CAM <span class="citation" data-cites="selvaraju2017">(Selvaraju
 dkk. 2016)</span> membantu melihat bagian gambar mana yang dipakai model
 untuk memutuskan, topik yang kembali di <a href="ch11_xai.html">Bab
 13</a>.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti sebelas kuliah Computer Vision beserta
 praktikumnya: pembentukan citra, pengolahan citra, machine learning
 untuk visi, ekstraksi fitur, segmentasi, optical flow, deteksi objek,
@@ -407,7 +407,7 @@ direkomendasikan adalah <span class="citation"
 data-cites="szeliski2022">Szeliski (2022)</span> dan <span
 class="citation" data-cites="hartley2004">Hartley dan Zisserman
 (2004)</span>.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-dosovitskiy2021" class="csl-entry" role="listitem">

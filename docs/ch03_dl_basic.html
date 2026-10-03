@@ -29,7 +29,7 @@ konvolusi. Empat pertanyaan menjadi benang merahnya: apa yang bisa
 dihitung oleh sebuah jaringan, bagaimana gradiennya dihitung, bagaimana
 sinyal dijaga agar tidak mati atau meledak di jaringan yang dalam, dan
 bagaimana mencegah jaringan sekadar menghafal.</p>
-<h1 id="sejarah-singkat">Sejarah singkat</h1>
+<h2 id="sejarah-singkat">Sejarah singkat</h2>
 <p><span class="citation" data-cites="mcculloch1943">McCulloch dan Pitts
 (1943)</span> memodelkan neuron sebagai unit ambang: jumlahkan input
 yang berbobot, lalu keluarkan satu kalau jumlahnya melewati ambang.
@@ -49,8 +49,8 @@ data-cites="krizhevsky2017">(Krizhevsky, Sutskever, dan Hinton
 2017)</span>. Sejarah yang lebih lengkap, termasuk peran Linz melalui
 LSTM, ditulis oleh <span class="citation"
 data-cites="schmidhuber2015">Schmidhuber (2015)</span>.</p>
-<h1 id="dari-satu-neuron-ke-jaringan-berlapis">Dari satu neuron ke
-jaringan berlapis</h1>
+<h2 id="dari-satu-neuron-ke-jaringan-berlapis">Dari satu neuron ke
+jaringan berlapis</h2>
 <p>Satu neuron menghitung <em>pre-activation</em> <span
 class="math inline">\(s=\boldsymbol{w}^\top\boldsymbol{x}+b\)</span>,
 lalu <em>activation</em> <span class="math inline">\(a=f(s)\)</span>.
@@ -103,7 +103,7 @@ berikutnya melipat hasil lipatan itu sekali lagi. Dengan beberapa kali
 lipatan, selembar kertas bisa berubah menjadi bentuk yang rumit, dan
 jumlah bagian datar yang terbentuk bertambah jauh lebih cepat dengan
 menambah lipatan baru daripada dengan memperlebar kertas.</p>
-<h1 id="backpropagation">Backpropagation</h1>
+<h2 id="backpropagation">Backpropagation</h2>
 <p>Untuk melatih jaringan dengan gradient descent, kita membutuhkan
 <span
 class="math inline">\(\partial\mathcal{L}/\partial\boldsymbol{W}^{(l)}\)</span>
@@ -192,7 +192,7 @@ mengukur kelengkungan loss dan menentukan condition number masalah
 optimasi (<a href="ch02_optimasi.html">Bab 2</a>). Hasil kali Hessian
 dengan sebuah vektor bisa dihitung tanpa pernah membentuk Hessian, cukup
 dengan dua lintasan autodiff.</p>
-<h1 id="fungsi-aktivasi">Fungsi aktivasi</h1>
+<h2 id="fungsi-aktivasi">Fungsi aktivasi</h2>
 <p>Sigmoid dan tanh adalah fungsi aktivasi klasik, tetapi keduanya jenuh
 di kedua sisi: untuk input yang besar, turunannya hampir nol, dan
 turunan sigmoid tidak pernah melebihi seperempat. ReLU, <span
@@ -232,7 +232,7 @@ class="math inline">\(\hat{\boldsymbol{y}}=(0{,}7;\ 0{,}2;\
 class="math inline">\((-0{,}3;\ 0{,}2;\ 0{,}1)\)</span>: skor kelas yang
 benar didorong naik, skor kelas lain didorong turun sebanding dengan
 peluang yang keliru diberikan kepadanya.</p>
-<h1 id="menjaga-sinyal-tetap-hidup">Menjaga sinyal tetap hidup</h1>
+<h2 id="menjaga-sinyal-tetap-hidup">Menjaga sinyal tetap hidup</h2>
 <p>Di jaringan yang dalam, sinyal maju dan gradien mundur melewati
 banyak perkalian matriks. Kalau setiap lapisan sedikit mengecilkan
 sinyal, setelah lima puluh lapisan sinyalnya hilang. Kalau setiap
@@ -301,7 +301,7 @@ dirinya sendiri tanpa lapisan normalisasi tambahan, dan konstanta <span
 class="math inline">\(\lambda\)</span> serta <span
 class="math inline">\(\alpha\)</span> pada SELU dipilih tepat agar titik
 tetap itu ada.</p>
-<h1 id="regularisasi">Regularisasi</h1>
+<h2 id="regularisasi">Regularisasi</h2>
 <p>Jaringan modern punya parameter jauh lebih banyak daripada jumlah
 contoh. Tanpa pengekangan, ia bisa menghafal. Kuliah membahas beberapa
 cara mengekangnya. Weight decay, suku <span
@@ -333,7 +333,7 @@ adalah augmentasi yang diam-diam mengubah label. Membalik angka 6 bisa
 menjadikannya 9. Pada data fisika, memutar medan kecepatan tanpa ikut
 memutar arah vektor-vektor kecepatannya juga menghasilkan data yang
 salah.</p>
-<h1 id="jaringan-konvolusi">Jaringan konvolusi</h1>
+<h2 id="jaringan-konvolusi">Jaringan konvolusi</h2>
 <p>Gambar berukuran <span class="math inline">\(256\times256\)</span>
 dengan tiga kanal punya hampir dua ratus ribu input. Lapisan
 fully-connected ke seribu neuron akan membutuhkan dua ratus juta bobot.
@@ -410,7 +410,7 @@ equivariance</em>. Pooling global di ujung jaringan mengubahnya menjadi
 href="ch07_geometric.html">Bab 9</a> akan menunjukkan bahwa konvolusi
 adalah satu-satunya operator linear yang punya sifat ini, lalu
 menggeneralisasikannya ke rotasi, permutasi, dan graf.</p>
-<h1 id="konvolusi-di-mana-mana">Konvolusi di mana-mana</h1>
+<h2 id="konvolusi-di-mana-mana">Konvolusi di mana-mana</h2>
 <p>Konvolusi jauh lebih tua dari jaringan saraf, dan hampir setiap
 bidang di buku ini punya versinya sendiri. Dalam pemrosesan sinyal,
 filter FIR yang meratakan atau menajamkan sinyal adalah konvolusi satu
@@ -439,7 +439,7 @@ CNN dan U-Net menjadi pilihan pertama untuk model pengganti pada grid
 teratur, dan mengapa mesh yang tidak teratur membutuhkan jaringan graf
 (<a href="ch07_geometric.html">Bab 9</a> dan <a
 href="ch16_operator.html">Bab 26</a>).</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti naskah kuliah Deep Learning and Neural Nets I, yang
 kini bernama Deep Learning: Basic Techniques: sejarah, notasi,
 arsitektur dasar, generalisasi, jaringan konvolusi, metode belajar,
@@ -449,7 +449,7 @@ Courville (2016)</span>, <span class="citation"
 data-cites="prince2023">Prince (2023)</span>, dan ulasan <span
 class="citation" data-cites="lecun2015">LeCun, Bengio, dan Hinton
 (2015)</span>.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-baydin2018" class="csl-entry" role="listitem">

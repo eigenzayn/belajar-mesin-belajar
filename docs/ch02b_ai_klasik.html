@@ -36,7 +36,7 @@ langkah demi langkah, dan menarik kesimpulan dari fakta. Bab ini
 membahas gagasan-gagasan itu, karena tanpa mereka sulit memahami mengapa
 sistem AI paling kuat hari ini menggabungkan pembelajaran dengan
 pencarian.</p>
-<h1 id="dari-turing-ke-dartmouth">Dari Turing ke Dartmouth</h1>
+<h2 id="dari-turing-ke-dartmouth">Dari Turing ke Dartmouth</h2>
 <p><span class="citation" data-cites="turing1950">TURING (1950)</span>
 mengganti pertanyaan “bisakah mesin berpikir?” dengan permainan tiruan:
 kalau seorang penanya tidak bisa membedakan mesin dari manusia lewat
@@ -59,7 +59,7 @@ memanipulasi simbol tidak sama dengan memahami. Perdebatan antara AI
 lemah, yang hanya meniru perilaku cerdas, dan AI kuat, yang sungguh
 memahami, belum selesai sampai sekarang, dan model bahasa besar
 membuatnya kembali hangat.</p>
-<h1 id="pencarian">Pencarian</h1>
+<h2 id="pencarian">Pencarian</h2>
 <p>Banyak masalah bisa dirumuskan sebagai pencarian: ada keadaan awal,
 sekumpulan aksi, fungsi transisi yang mengatakan ke mana sebuah aksi
 membawa kita, uji tujuan, dan biaya setiap langkah. Teka-teki geser
@@ -104,7 +104,7 @@ atomnya menemukan susunan berenergi rendah. Tabu search <span
 class="citation" data-cites="glover1989">(Glover 1989)</span> mengingat
 langkah-langkah terakhir dan melarang kembali ke sana, sehingga tidak
 berputar-putar di sekitar puncak yang sama.</p>
-<h1 id="bermain-melawan-lawan">Bermain melawan lawan</h1>
+<h2 id="bermain-melawan-lawan">Bermain melawan lawan</h2>
 <p>Dalam permainan dua pemain, keadaan berikutnya juga ditentukan oleh
 lawan yang berusaha mengalahkan kita. Algoritme <em>minimax</em>
 mengasumsikan lawan bermain sempurna: di giliran kita pilih langkah
@@ -140,7 +140,7 @@ data-cites="silver2018">(Silver dkk. 2018)</span> mempelajari catur,
 shogi, dan Go hanya dari bermain melawan dirinya sendiri. Kuliah
 menekankan pelajaran yang lebih umum: pembelajaran memberi intuisi,
 pencarian memberi ketelitian, dan sistem terkuat memakai keduanya.</p>
-<h1 id="perencanaan">Perencanaan</h1>
+<h2 id="perencanaan">Perencanaan</h2>
 <p>Perencanaan adalah pencarian dengan bahasa yang lebih kaya. Alih-alih
 keadaan sebagai kotak hitam, keadaan dijelaskan dengan fakta-fakta
 logis, dan setiap aksi punya prasyarat dan efek. Bahasa STRIPS <span
@@ -152,7 +152,7 @@ umum yang tidak bergantung pada domain, misalnya dengan menyelesaikan
 versi masalah yang dilonggarkan, di mana efek negatif aksi diabaikan.
 Panjang rencana untuk masalah yang dilonggarkan memberi perkiraan biaya
 untuk masalah aslinya.</p>
-<h1 id="pengetahuan-dan-logika">Pengetahuan dan logika</h1>
+<h2 id="pengetahuan-dan-logika">Pengetahuan dan logika</h2>
 <p>Representasi pengetahuan menyimpan fakta tentang dunia dalam bentuk
 yang bisa dipakai untuk bernalar. Logika proposisi bekerja dengan
 pernyataan benar atau salah, sedangkan logika predikat orde pertama
@@ -165,8 +165,8 @@ pertanyaan faktual secara langsung. Kekuatan pendekatan simbolik adalah
 ketelitian dan kemampuan menjelaskan penalarannya. Kelemahannya adalah
 kerapuhan di hadapan dunia nyata yang berisik dan tidak lengkap, persis
 di tempat machine learning unggul.</p>
-<h1 id="keputusan-optimal-operations-research">Keputusan optimal:
-operations research</h1>
+<h2 id="keputusan-optimal-operations-research">Keputusan optimal:
+operations research</h2>
 <p>Kuliah operations research membahas keputusan yang bisa dirumuskan
 sebagai optimasi dengan kendala. Bentuk paling penting adalah <em>linear
 programming</em>: maksimalkan fungsi linear dengan kendala
@@ -201,8 +201,8 @@ reinforcement learning (<a href="ch10_rl.html">Bab 12</a>). Untuk
 masalah yang terlalu besar, heuristik seperti simulated annealing dan
 tabu search kembali menjadi pilihan, dan analisis keputusan menambahkan
 ketidakpastian dengan pohon keputusan dan nilai harapan.</p>
-<h1 id="mengapa-semua-ini-masih-penting">Mengapa semua ini masih
-penting</h1>
+<h2 id="mengapa-semua-ini-masih-penting">Mengapa semua ini masih
+penting</h2>
 <p>Sistem AI modern jarang murni simbolik atau murni statistik.
 AlphaZero adalah pencarian pohon yang dipandu jaringan saraf. Model
 bahasa yang menyelesaikan soal matematika sering menghasilkan beberapa
@@ -212,7 +212,7 @@ Dalam simulasi teknik, keputusan tentang desain dan jadwal operasi
 sering diselesaikan dengan program linear atau integer yang dibangun di
 atas prediksi dari model pengganti. Pembelajaran dan penalaran tidak
 bersaing. Keduanya saling melengkapi.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti kuliah Introduction to AI (sejarah, search, game
 playing, planning, representasi pengetahuan, machine learning untuk
 permainan, filsafat AI) dan kuliah KS Operations Research (linear
@@ -221,7 +221,7 @@ heuristik, analisis keputusan). Buku rujukan utamanya adalah <span
 class="citation" data-cites="russell2021">Russell dan Norvig
 (2021)</span> dan <span class="citation"
 data-cites="hillier2015">Hillier dan Lieberman (2015)</span>.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-bellman1957" class="csl-entry" role="listitem">

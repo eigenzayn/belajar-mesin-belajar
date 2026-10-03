@@ -32,7 +32,7 @@ bata-bata dasarnya. Bab ini membahas dua hal yang membuat deep learning
 modern berbeda: arsitektur yang memungkinkan jaringan amat dalam dilatih
 dengan stabil, dan model yang tidak hanya mengenali data tetapi juga
 membangkitkan data baru.</p>
-<h1 id="dari-lenet-ke-resnet">Dari LeNet ke ResNet</h1>
+<h2 id="dari-lenet-ke-resnet">Dari LeNet ke ResNet</h2>
 <p>LeNet <span class="citation" data-cites="lecun1998">(Lecun dkk.
 1998)</span> dan AlexNet <span class="citation"
 data-cites="krizhevsky2017">(Krizhevsky, Sutskever, dan Hinton
@@ -105,27 +105,27 @@ learning</em> memakai jaringan yang sudah dilatih pada ImageNet,
 membekukan sebagian besar lapisannya, lalu melatih ulang kepala
 klasifikasinya saja. Fitur umum seperti tepi dan tekstur sudah
 dipelajari, sehingga data yang sedikit pun cukup untuk tugas baru.</p>
-<h1 id="dari-mengenali-ke-membangkitkan">Dari mengenali ke
-membangkitkan</h1>
+<h2 id="dari-mengenali-ke-membangkitkan">Dari mengenali ke
+membangkitkan</h2>
 <p>Model diskriminatif mempelajari <span
 class="math inline">\(p(y\mid\boldsymbol{x})\)</span>. Model generatif
 mempelajari <span class="math inline">\(p(\boldsymbol{x})\)</span> itu
 sendiri, sehingga bisa membangkitkan contoh baru, mengisi bagian yang
 hilang, atau menilai seberapa wajar sebuah data. Kuliah membahas lima
 keluarga.</p>
-<h2 id="autoencoder">Autoencoder</h2>
+<h3 id="autoencoder">Autoencoder</h3>
 <p>Autoencoder memampatkan <span
 class="math inline">\(\boldsymbol{x}\)</span> menjadi kode <span
 class="math inline">\(\boldsymbol{z}=e(\boldsymbol{x})\)</span> yang
 berdimensi kecil, lalu merekonstruksinya menjadi <span
-class="math inline">\(\hat\boldsymbol{x}=d(\boldsymbol{z})\)</span>.
+class="math inline">\(\hat{\boldsymbol{x}}=d(\boldsymbol{z})\)</span>.
 Loss rekonstruksinya mengikuti asumsi noise (Tabel 1.1): MSE untuk data
 kontinu yang dianggap Gauss, binary cross-entropy dengan keluaran
 sigmoid untuk data di antara nol dan satu. Autoencoder linear dengan
 loss kuadrat menemukan subruang yang sama dengan PCA. Kelemahannya,
 autoencoder biasa tidak menjamin ruang kode yang rapi. Titik acak di
 ruang kode bisa didekode menjadi sesuatu yang tidak bermakna.</p>
-<h2 id="variational-autoencoder">Variational autoencoder</h2>
+<h3 id="variational-autoencoder">Variational autoencoder</h3>
 <p>VAE <span class="citation" data-cites="kingma2014">(Diederik P.
 Kingma dan Welling 2013)</span> memperbaiki hal itu dengan memberi
 struktur probabilistik. Encoder mengeluarkan distribusi <span
@@ -189,8 +189,8 @@ dan ruang laten tidak terpakai. Bobot yang terlalu kecil membuat VAE
 kembali menjadi autoencoder biasa. Penurunan ELBO yang lebih teliti,
 termasuk versi hierarkis yang mengarah ke model difusi, ada di <a
 href="ch09_ml_advanced.html">Bab 11</a>.</p>
-<h2 id="generative-adversarial-networks">Generative adversarial
-networks</h2>
+<h3 id="generative-adversarial-networks">Generative adversarial
+networks</h3>
 <p>GAN <span class="citation" data-cites="goodfellow2014">(I. J.
 Goodfellow dkk. 2014)</span> mempertandingkan dua jaringan. Generator
 <span class="math inline">\(G\)</span> mengubah noise <span
@@ -236,7 +236,7 @@ GAN adalah <em>mode collapse</em>, ketika generator menemukan beberapa
 sampel yang selalu lolos lalu berhenti menghasilkan variasi lain.
 Pelatihannya juga tidak stabil, karena tidak ada satu fungsi loss yang
 turun secara monoton.</p>
-<h2 id="normalizing-flows">Normalizing flows</h2>
+<h3 id="normalizing-flows">Normalizing flows</h3>
 <p>Flow membangun distribusi yang rumit dengan mengubah distribusi
 sederhana melalui fungsi yang bisa dibalik <span class="citation"
 data-cites="rezende2015">(Rezende dan Mohamed 2015)</span>. Kalau <span
@@ -268,8 +268,8 @@ class="math inline">\(\boldsymbol{x}_2&#39;=\boldsymbol{x}_2+t(\boldsymbol{x}_1)
 determinannya bernilai satu dan inversnya analitis. Syarat bijeksi
 berarti dimensi tidak boleh berubah. Imbalannya, flow memberi likelihood
 yang eksak, bukan batas bawah seperti ELBO.</p>
-<h2 id="model-difusi-dan-model-energi">Model difusi dan model
-energi</h2>
+<h3 id="model-difusi-dan-model-energi">Model difusi dan model
+energi</h3>
 <p>Model difusi <span class="citation"
 data-cites="sohldickstein2015 ho2020">(Sohl-Dickstein dkk. 2015; Ho,
 Jain, dan Abbeel 2020)</span> merusak data perlahan-lahan dengan noise
@@ -328,7 +328,7 @@ adalah integral atas seluruh ruang.</p>
 </tbody>
 </table>
 </div>
-<h1 id="contoh-adversarial">Contoh adversarial</h1>
+<h2 id="contoh-adversarial">Contoh adversarial</h2>
 <p>Jaringan yang akurat bisa dibohongi dengan perubahan yang tidak
 terlihat oleh mata. <em>Fast gradient sign method</em> menggeser input
 ke arah yang paling menaikkan loss, <span
@@ -341,7 +341,7 @@ dunia fisik <span class="citation" data-cites="eykholt2018">(Eykholt
 dkk. 2017)</span>. Melatih model dengan contoh adversarial membuatnya
 lebih tahan, dengan harga akurasi yang sedikit turun pada data
 bersih.</p>
-<h1 id="sedikit-teori">Sedikit teori</h1>
+<h2 id="sedikit-teori">Sedikit teori</h2>
 <p>Naskah kuliah ditutup dengan beberapa hasil teoretis yang menjelaskan
 mengapa semua ini bekerja. Jaringan dalam paling mudah dilatih kalau
 nilai singular Jacobian input–output mendekati satu, sehingga sinyal
@@ -366,7 +366,7 @@ Deep ensembles melatih beberapa jaringan dari inisialisasi yang berbeda
 dan melihat seberapa jauh mereka berbeda pendapat <span class="citation"
 data-cites="lakshminarayanan2017">(Lakshminarayanan, Pritzel, dan
 Blundell 2016)</span>.</p>
-<h1 id="di-luar-kelas">Di luar kelas</h1>
+<h2 id="di-luar-kelas">Di luar kelas</h2>
 <p>Arsitektur dan model generatif di bab ini menyebar ke hampir semua
 bidang. U-Net lahir untuk citra biomedis dan tetap menjadi standar
 segmentasi organ dan tumor (<a href="ch43_medis.html">Bab 21</a>).
@@ -400,7 +400,7 @@ data-cites="kohl2023">(Kohl, Chen, dan Thuerey 2023)</span>. Model
 pengganti yang dipakai untuk keputusan teknik juga harus bisa mengatakan
 bahwa ia tidak yakin, dan ensemble serta model generatif memberi
 kemampuan itu.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti bagian kedua naskah kuliah Deep Learning and Neural
 Nets II, yang kini bernama Deep Learning: Architectures and Generative
 Techniques (arsitektur lanjut, model generatif, teori deep learning,
@@ -411,7 +411,7 @@ data-cites="goodfellow2016">I. Goodfellow, Bengio, dan Courville
 (2023)</span>, dan <span class="citation"
 data-cites="kingma2019">Diederik P. Kingma dan Welling
 (2019)</span>.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-dosovitskiy2021" class="csl-entry" role="listitem">

@@ -31,7 +31,7 @@ juga berlaku untuk contoh yang belum pernah dilihat. Bab ini membahas
 gagasan itu secara jujur. Apa yang sebenarnya kita minimalkan? Mengapa
 model yang sempurna di data latih bisa gagal di data baru? Dan mengapa
 dimensi tinggi membuat semuanya lebih sulit?</p>
-<h1 id="tiga-cara-belajar">Tiga cara belajar</h1>
+<h2 id="tiga-cara-belajar">Tiga cara belajar</h2>
 <p>Bayangkan tiga murid. Murid pertama belajar dengan kunci jawaban:
 setiap soal latihan punya jawaban benar, dan ia menyesuaikan cara
 berpikirnya sampai jawabannya cocok. Murid kedua hanya diberi setumpuk
@@ -53,7 +53,7 @@ misalnya, membuat target dari data itu sendiri, seperti menebak kata
 yang ditutup dalam sebuah kalimat. Hampir semua model bahasa besar
 dilatih dengan cara ini. Bab ini berfokus pada murid pertama, karena
 kerangka berpikirnya dipakai di mana-mana.</p>
-<h1 id="kerangka-supervised-learning">Kerangka supervised learning</h1>
+<h2 id="kerangka-supervised-learning">Kerangka supervised learning</h2>
 <p>Kita menganggap data berasal dari sebuah distribusi gabungan <span
 class="math inline">\(p(\boldsymbol{x},y)\)</span> yang tidak kita
 ketahui. Yang kita miliki hanyalah sampel <span
@@ -107,8 +107,8 @@ dengan loss 0–1, prediktor Bayes memilih kelas dengan peluang bersyarat
 terbesar. Bayes risk umumnya tidak nol, karena data sendiri berisik: dua
 pasien dengan hasil laboratorium yang sama bisa saja punya diagnosis
 yang berbeda.</p>
-<h1 id="dari-asumsi-noise-ke-fungsi-loss">Dari asumsi noise ke fungsi
-loss</h1>
+<h2 id="dari-asumsi-noise-ke-fungsi-loss">Dari asumsi noise ke fungsi
+loss</h2>
 <p>Kuliah dasar-dasar machine learning menekankan satu hal yang sering
 terlewat: fungsi loss bukan pilihan sembarang. Ia lahir dari asumsi
 tentang bagaimana data dibangkitkan. Misalkan <span
@@ -201,7 +201,7 @@ satu hasil bisa meleset jauh sekali. Rata-rata akan ikut tertarik oleh
 angka itu, sedangkan median tidak. Noise berekor tebal seperti Laplace
 menghasilkan loss mutlak, yang tidak terlalu peduli pada satu
 pencilan.</p>
-<h1 id="prior-sebagai-regularisasi">Prior sebagai regularisasi</h1>
+<h2 id="prior-sebagai-regularisasi">Prior sebagai regularisasi</h2>
 <p>Maximum likelihood hanya mendengarkan data. Kalau datanya sedikit,
 model mudah percaya pada kebetulan. Pendekatan Bayesian menambahkan
 <em>prior</em> <span class="math inline">\(p(\boldsymbol{w})\)</span>,
@@ -210,7 +210,7 @@ Bayes kemudian memberi <em>posterior</em> <span
 class="math display">\[p(\boldsymbol{w}\mid\mathcal{D})=\frac{p(\mathcal{D}\mid\boldsymbol{w})\,p(\boldsymbol{w})}{p(\mathcal{D})},\]</span>
 dan estimasi <em>maximum a posteriori</em> (MAP) memaksimalkannya. Dalam
 bentuk logaritma, <span
-class="math display">\[\hat\boldsymbol{w}_{\mathrm{MAP}}=\operatorname*{arg\,min}_{\boldsymbol{w}}\Big[-\log
+class="math display">\[\hat{\boldsymbol{w}}_{\mathrm{MAP}}=\operatorname*{arg\,min}_{\boldsymbol{w}}\Big[-\log
 p(\mathcal{D}\mid\boldsymbol{w})-\log p(\boldsymbol{w})\Big].\]</span>
 Dengan prior Gauss <span
 class="math inline">\(\boldsymbol{w}\sim\mathcal{N}(\boldsymbol
@@ -232,7 +232,7 @@ dibaca sebagai prior yang kuat. PINN (<a href="ch15_pinn.html">Bab
 mirip suku <span class="math inline">\(-\log p(\boldsymbol{w})\)</span>
 di atas, hanya saja “prior”-nya menyangkut fungsi keluaran, bukan
 bobot.</p>
-<h1 id="mengukur-generalisasi">Mengukur generalisasi</h1>
+<h2 id="mengukur-generalisasi">Mengukur generalisasi</h2>
 <p>Risiko sejati Persamaan (1.1) tidak bisa dihitung, jadi kita
 memperkirakannya. Cara paling sederhana adalah menyisihkan sebagian data
 yang tidak pernah disentuh selama pelatihan, lalu menghitung loss
@@ -262,8 +262,8 @@ simulasi yang berurutan, membagi data secara acak juga menyesatkan.
 Titik-titik yang berdekatan dalam waktu hampir identik, sehingga ujian
 menjadi terlalu mudah. Data seperti ini sebaiknya dibagi menurut waktu
 atau menurut kasus simulasi.</p>
-<h1 id="bias-varians-dan-dua-bentuk-kurva">Bias, varians, dan dua bentuk
-kurva</h1>
+<h2 id="bias-varians-dan-dua-bentuk-kurva">Bias, varians, dan dua bentuk
+kurva</h2>
 <p>Ambil loss kuadrat dan anggap <span
 class="math inline">\(y=g(\boldsymbol{x})+\varepsilon\)</span> dengan
 <span class="math inline">\(\mathbb{E}[\varepsilon]=0\)</span> dan <span
@@ -368,7 +368,7 @@ class yang lebih besar mengecilkan galat aproksimasi, tetapi bisa
 membesarkan galat estimasi, karena semakin banyak fungsi yang kebetulan
 cocok dengan data. Galat optimasi muncul karena kita hampir tidak pernah
 benar-benar menemukan minimum global.</p>
-<h1 id="kutukan-dimensi">Kutukan dimensi</h1>
+<h2 id="kutukan-dimensi">Kutukan dimensi</h2>
 <p>Ada satu hal yang membuat machine learning di dimensi tinggi berbeda
 secara mendasar dari intuisi kita di dimensi rendah. Namanya <em>curse
 of dimensionality</em>. Ambil kubus satuan <span
@@ -412,7 +412,7 @@ terhadap simetri seperti ini, ruang hipotesis menyusut drastis tanpa
 membuang solusi yang benar. Itulah gagasan pokok <span class="citation"
 data-cites="bronstein2021">Bronstein dkk. (2021)</span>, yang kita bahas
 di <a href="ch07_geometric.html">Bab 9</a>.</p>
-<h1 id="tidak-ada-makan-siang-gratis">Tidak ada makan siang gratis</h1>
+<h2 id="tidak-ada-makan-siang-gratis">Tidak ada makan siang gratis</h2>
 <p>Teorema <em>no free lunch</em> <span class="citation"
 data-cites="wolpert1996">(Wolpert 1996)</span> menyatakan bahwa kalau
 dirata-ratakan atas semua kemungkinan masalah, tidak ada algoritme
@@ -421,7 +421,7 @@ pesannya praktis: keberhasilan selalu datang dari asumsi yang cocok
 dengan masalahnya. Konvolusi bekerja untuk gambar karena gambar punya
 struktur lokal dan simetri geser. PINN bekerja untuk masalah yang
 persamaannya kita ketahui. Tanpa asumsi, tidak ada generalisasi.</p>
-<h1 id="mengukur-kinerja-klasifikasi">Mengukur kinerja klasifikasi</h1>
+<h2 id="mengukur-kinerja-klasifikasi">Mengukur kinerja klasifikasi</h2>
 <p>Untuk klasifikasi dua kelas, hasil prediksi disusun dalam
 <em>confusion matrix</em> yang berisi <em>true positive</em> (TP),
 <em>false positive</em> (FP), <em>true negative</em> (TN), dan <em>false
@@ -450,7 +450,7 @@ akurasi 99 persen dan recall nol. Kurva ROC memplot recall terhadap
 ambang keputusan. Luas di bawahnya, AUC, sama dengan peluang model
 memberi skor lebih tinggi pada satu contoh positif acak dibanding satu
 contoh negatif acak.</p>
-<h1 id="generalisasi-di-luar-kelas">Generalisasi di luar kelas</h1>
+<h2 id="generalisasi-di-luar-kelas">Generalisasi di luar kelas</h2>
 <p>Pertanyaan-pertanyaan di bab ini akan muncul lagi di setiap bidang
 yang dibahas buku ini, dengan wajah yang berbeda-beda.</p>
 <p>Yang pertama adalah <em>distribution shift</em>: data saat model
@@ -476,7 +476,7 @@ biaya besar. Di sinilah prior, dalam bentuk simetri, pengetahuan domain,
 atau hukum fisika, menjadi berharga: ia mengurangi data yang dibutuhkan
 dan menjaga model tetap masuk akal di luar daerah yang pernah
 dilihatnya.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini merangkai materi dari Machine Learning: Basic Techniques,
 Supervised dan Unsupervised Techniques, Statistical Learning Theory,
 serta bagian pembuka Deep Learning: Geometric Techniques. Bacaan
@@ -484,7 +484,7 @@ pendamping yang baik adalah <span class="citation"
 data-cites="bishop2006">Bishop (2006)</span>, <span class="citation"
 data-cites="hastie2009">Hastie, Tibshirani, dan Friedman (2009)</span>,
 dan <span class="citation" data-cites="bach2024">Bach (2024)</span>.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-bach2024" class="csl-entry" role="listitem">

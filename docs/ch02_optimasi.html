@@ -38,8 +38,8 @@ gradient descent. Persoalannya ada pada panjang langkah. Langkah yang
 terlalu kecil membuat Anda baru sampai besok pagi. Langkah yang terlalu
 besar membuat Anda melompati lembah dan mendarat di lereng seberang,
 bahkan lebih tinggi dari tempat semula.</p>
-<h1 id="masalah-dan-syarat-optimalitas">Masalah dan syarat
-optimalitas</h1>
+<h2 id="masalah-dan-syarat-optimalitas">Masalah dan syarat
+optimalitas</h2>
 <p>Kita mencari <span
 class="math inline">\(\boldsymbol{x}^*=\operatorname*{arg\,min}_{\boldsymbol{x}\in\mathbb{R}^N}f(\boldsymbol{x})\)</span>
 untuk fungsi <span class="math inline">\(f\)</span> yang cukup mulus.
@@ -73,7 +73,7 @@ Minimumnya di <span class="math inline">\((1,1)\)</span>, tersembunyi di
 dasar lembah sempit berbentuk pisang. Menemukan lembahnya mudah. Yang
 sulit adalah berjalan menyusuri lembah itu sampai ke titik
 terendahnya.</p>
-<h1 id="gradient-descent">Gradient descent</h1>
+<h2 id="gradient-descent">Gradient descent</h2>
 <p>Aturan dasarnya adalah <span
 class="math display">\[\boldsymbol{x}_{k+1}=\boldsymbol{x}_k-\alpha_k\,\nabla
 f(\boldsymbol{x}_k),\]</span> dengan <span
@@ -155,7 +155,7 @@ menyeberangi lembah alih-alih berjalan menyusurinya (Gambar 2.1).</p>
 meredam gerak bolak-balik dan mempercepat gerak sepanjang lembah. Gambar
 skematik.</figcaption>
 </figure>
-<h1 id="line-search">Line search</h1>
+<h2 id="line-search">Line search</h2>
 <p>Daripada menebak <span class="math inline">\(\alpha\)</span> sekali
 untuk selamanya, kita bisa mencarinya di setiap iterasi. <em>Line
 search</em> mencoba beberapa panjang langkah sepanjang arah turun <span
@@ -174,7 +174,7 @@ sebuah faktor <span class="math inline">\(\beta\in(0,1)\)</span> sampai
 syarat itu terpenuhi. Di deep learning, line search jarang dipakai,
 karena setiap evaluasi <span class="math inline">\(f\)</span> berarti
 melewati seluruh data. Gagasannya muncul kembali dalam L-BFGS.</p>
-<h1 id="metode-newton-dan-kerabatnya">Metode Newton dan kerabatnya</h1>
+<h2 id="metode-newton-dan-kerabatnya">Metode Newton dan kerabatnya</h2>
 <p>Metode Newton memanfaatkan kelengkungan. Ia meminimalkan model
 kuadrat lokal <span class="math inline">\(f(\boldsymbol{x}_k)+\nabla
 f^\top\boldsymbol h+\tfrac12\boldsymbol h^\top\nabla^2f\,\boldsymbol
@@ -197,7 +197,7 @@ iterasi terakhir <span class="citation"
 data-cites="nocedal2006">(Nocedal dan Wright 2006)</span>. L-BFGS
 populer untuk masalah deterministik berukuran sedang, termasuk tahap
 akhir pelatihan PINN.</p>
-<h1 id="stochastic-gradient-descent">Stochastic gradient descent</h1>
+<h2 id="stochastic-gradient-descent">Stochastic gradient descent</h2>
 <p>Dalam machine learning, <span class="math inline">\(f\)</span> adalah
 rata-rata loss atas <span class="math inline">\(N\)</span> contoh, jadi
 menghitung gradien penuh berarti melewati seluruh data. <em>Stochastic
@@ -232,7 +232,7 @@ class="citation" data-cites="keskar2017">Keskar dkk. (2016)</span>
 mengamati bahwa batch yang besar cenderung berakhir di minimum tajam
 dengan generalisasi lebih buruk. Kuliah deep learning menyebut efek ini
 <em>self-regularization</em> oleh SGD.</p>
-<h1 id="momentum-dan-metode-adaptif">Momentum dan metode adaptif</h1>
+<h2 id="momentum-dan-metode-adaptif">Momentum dan metode adaptif</h2>
 <p>Metode <em>heavy ball</em> dari <span class="citation"
 data-cites="polyak1964">Polyak (1964)</span> menambahkan ingatan tentang
 arah sebelumnya, <span class="math display">\[\boldsymbol
@@ -305,7 +305,7 @@ data-cites="loshchilov2019">(Loshchilov dan Hutter 2017)</span>.</p>
 langkah, lalu menurun perlahan, misalnya mengikuti kurva kosinus.
 Warm-up mencegah langkah awal yang terlalu agresif ketika statistik Adam
 belum stabil.</p>
-<h1 id="lanskap-loss-jaringan-dalam">Lanskap loss jaringan dalam</h1>
+<h2 id="lanskap-loss-jaringan-dalam">Lanskap loss jaringan dalam</h2>
 <p>Lanskap loss jaringan dalam ternyata berbeda dari intuisi dimensi
 rendah. Untuk fungsi acak di dimensi tinggi, sebagian besar titik kritis
 dengan loss tinggi adalah saddle point, dan minimum lokal cenderung
@@ -315,7 +315,7 @@ hampir nol, dan solusi-solusi itu sering terhubung oleh lembah dengan
 loss rendah. Pertanyaan pentingnya pun bergeser, dari “apakah kita
 menemukan minimum global?” menjadi “minimum mana yang dipilih, dan
 apakah ia generalisasi?”.</p>
-<h1 id="optimasi-di-luar-kelas">Optimasi di luar kelas</h1>
+<h2 id="optimasi-di-luar-kelas">Optimasi di luar kelas</h2>
 <p>Contoh mangkuk lonjong di atas bukan sekadar latihan. Masalah
 condition number yang sama muncul di banyak tempat dalam buku ini dengan
 nama yang berbeda. Filter adaptif LMS dalam pemrosesan sinyal adalah SGD
@@ -337,7 +337,7 @@ syarat batasnya. Resep yang sering dipakai adalah memulai dengan Adam
 untuk keluar dari daerah awal yang buruk, melanjutkan dengan L-BFGS
 untuk turun tajam ke minimum, dan menyeimbangkan bobot suku-suku loss
 secara adaptif (<a href="ch15_pinn.html">Bab 25</a>).</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Teori konvergensi, line search, dan metode Newton mengikuti naskah
 kuliah Numerical Optimization for AI. Bagian SGD, momentum, dan
 optimizer adaptif mengikuti bab metode belajar di kuliah deep learning
@@ -346,7 +346,7 @@ data-cites="nocedal2006">Nocedal dan Wright (2006)</span> untuk optimasi
 klasik dan <span class="citation" data-cites="bottou2018">Bottou,
 Curtis, dan Nocedal (2018)</span> untuk optimasi skala besar dalam
 machine learning.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-armijo1966" class="csl-entry" role="listitem">

@@ -37,7 +37,7 @@ Likas, dan Fotiadis 1998)</span>, dan dipopulerkan kembali dengan nama
 physics-informed neural networks oleh <span class="citation"
 data-cites="raissi2019">M. Raissi, Perdikaris, dan Karniadakis
 (2019)</span>, setelah autodiff dan GPU membuatnya praktis.</p>
-<h1 id="resep-dasar">Resep dasar</h1>
+<h2 id="resep-dasar">Resep dasar</h2>
 <p>Ambil persamaan panas satu dimensi, <span
 class="math inline">\(\partial_tu=\kappa\,\partial_{xx}u\)</span> pada
 <span class="math inline">\(x\in[0,1]\)</span> dan <span
@@ -71,8 +71,8 @@ href="ch09_ml_advanced.html">Bab 11</a>, <span
 class="math inline">\(u_\theta\)</span> adalah neural field, dan
 persamaan diferensial adalah aturan yang ditegakkan pada field itu,
 persis seperti persamaan Eikonal pada signed distance field.</p>
-<h1 id="contoh-kecil-yang-bisa-dihitung-tangan">Contoh kecil yang bisa
-dihitung tangan</h1>
+<h2 id="contoh-kecil-yang-bisa-dihitung-tangan">Contoh kecil yang bisa
+dihitung tangan</h2>
 <p>Supaya terasa konkret, ambil persamaan peluruhan <span
 class="math inline">\(\dot u=-ku\)</span> dengan <span
 class="math inline">\(u(0)=1\)</span> dan <span
@@ -104,7 +104,7 @@ mendekati lengkungan eksponensial dengan jauh lebih baik. Contoh ini
 memperlihatkan inti PINN: tidak ada data solusi sama sekali, hanya
 persamaan dan syarat awal, dan meminimalkan residual sudah cukup untuk
 menemukan solusi yang masuk akal.</p>
-<h1 id="masalah-invers">Masalah invers</h1>
+<h2 id="masalah-invers">Masalah invers</h2>
 <p>Kekuatan PINN yang paling meyakinkan terletak pada masalah invers.
 Misalkan konduktivitas <span class="math inline">\(\kappa\)</span> tidak
 diketahui, tetapi kita punya beberapa pengukuran temperatur. Cukup
@@ -125,7 +125,7 @@ href="ch05_computer_vision.html">Bab 7</a>. Dari video konsentrasi zat
 pewarna di sekitar sebuah benda, PINN memulihkan medan kecepatan dan
 tekanan yang tidak pernah diukur, karena persamaan transport zat pewarna
 dan persamaan Navier–Stokes menghubungkan ketiganya.</p>
-<h1 id="mengapa-pinn-sulit-dilatih">Mengapa PINN sulit dilatih</h1>
+<h2 id="mengapa-pinn-sulit-dilatih">Mengapa PINN sulit dilatih</h2>
 <p>Kalau PINN begitu sederhana, mengapa tidak menggantikan semua solver?
 Pengalaman komunitas selama beberapa tahun memperlihatkan sejumlah
 kesulitan yang serius <span class="citation"
@@ -168,7 +168,7 @@ suku batas tidak lagi dibutuhkan; pemilihan titik collocation secara
 adaptif, dengan menambah titik di tempat residualnya besar; dan resep
 optimasi Adam lalu L-BFGS dari <a href="ch02_optimasi.html">Bab
 2</a>.</p>
-<h1 id="penilaian-yang-jujur">Penilaian yang jujur</h1>
+<h2 id="penilaian-yang-jujur">Penilaian yang jujur</h2>
 <p>Untuk masalah maju yang tipikal, misalnya aliran di sekitar benda
 pada bilangan Reynolds menengah, PINN umumnya lebih lambat dan kurang
 akurat daripada solver klasik yang sudah matang. Setiap kasus baru juga
@@ -181,7 +181,7 @@ data-cites="karniadakis2021">(Karniadakis dkk. 2021)</span>. Untuk
 mempelajari cara menyelesaikan sebuah keluarga persamaan sekaligus, kita
 butuh pendekatan lain: neural operator dan simulator yang dipelajari,
 tema bab berikutnya.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini dirangkai dari kuliah Machine Learning: Advanced Techniques
 (neural field dan loss yang diinformasikan fisika), kuliah deep learning
 dasar (autodiff), dan bacaan selama tugas akhir. Bacaan utama: <span
@@ -194,7 +194,7 @@ data-cites="wang2021">Wang, Teng, dan Perdikaris (2021)</span>, <span
 class="citation" data-cites="wang2022">Wang, Yu, dan Perdikaris
 (2022)</span>, dan <span class="citation"
 data-cites="krishnapriyan2021">Krishnapriyan dkk. (2021)</span>.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-cuomo2022" class="csl-entry" role="listitem">

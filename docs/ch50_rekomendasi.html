@@ -35,7 +35,7 @@ produk yang “mungkin juga Anda suka”. Datanya adalah jejak yang
 ditinggalkan jutaan pengguna, berupa rating, klik, putaran lagu, dan
 waktu menonton, dan tugasnya adalah menebak apa yang akan disukai
 seseorang dari apa yang disukai orang-orang lain.</p>
-<h1 id="collaborative-filtering">Collaborative filtering</h1>
+<h2 id="collaborative-filtering">Collaborative filtering</h2>
 <p>Data dasarnya adalah matriks pengguna terhadap item, dengan rating di
 sel yang diketahui dan kosong di sebagian besar sel lainnya.
 <em>Collaborative filtering</em> berbasis pengguna mengikuti logika
@@ -58,7 +58,7 @@ mirip, dan kita merekomendasikan item yang mirip dengan yang sudah kamu
 sukai. Karena jumlah item biasanya lebih stabil daripada jumlah
 pengguna, kemiripan antar item bisa dihitung lebih jarang dan dipakai
 ulang, sehingga pendekatan ini lebih mudah diskalakan.</p>
-<h1 id="faktor-laten">Faktor laten</h1>
+<h2 id="faktor-laten">Faktor laten</h2>
 <p>Pendekatan yang menjadi inti solusi-solusi terbaik dalam kompetisi
 Netflix Prize adalah faktorisasi matriks <span class="citation"
 data-cites="koren2009">(Koren, Bell, dan Volinsky 2009)</span>. Setiap
@@ -111,8 +111,8 @@ seperti LightGCN <span class="citation" data-cites="he2020">(He dkk.
 2020)</span> memandang pengguna dan item sebagai simpul graf bipartit
 dan menyebarkan embedding lewat message passing (<a
 href="ch07_geometric.html">Bab 9</a>).</p>
-<h1 id="mengukur-rekomendasi-yang-baik">Mengukur rekomendasi yang
-baik</h1>
+<h2 id="mengukur-rekomendasi-yang-baik">Mengukur rekomendasi yang
+baik</h2>
 <p>Galat rating seperti RMSE kurang relevan kalau yang ditampilkan
 adalah daftar sepuluh teratas. Ukuran yang peka peringkat lebih cocok.
 Precision dan recall pada <span class="math inline">\(k\)</span> teratas
@@ -138,7 +138,7 @@ kejutan yang menyenangkan. Evaluasi offline pada data historis juga
 berbeda dari evaluasi online dengan pengguna sungguhan, dan studi dengan
 pengguna sering memperlihatkan bahwa yang dirasakan pengguna tidak
 selalu sejalan dengan angka offline.</p>
-<h1 id="konten-konteks-dan-hibrida">Konten, konteks, dan hibrida</h1>
+<h2 id="konten-konteks-dan-hibrida">Konten, konteks, dan hibrida</h2>
 <p>Collaborative filtering gagal untuk item baru yang belum pernah
 dipakai siapa pun dan pengguna baru yang belum punya riwayat, masalah
 yang disebut <em>cold start</em>. Rekomendasi berbasis konten mengisi
@@ -156,7 +156,7 @@ musik yang memperhitungkan lokasi dan aktivitas, dengan memetakan tempat
 dan lagu ke tag yang sama. Rekomendasi berbasis graf pengetahuan
 menyebarkan preferensi pengguna lewat relasi antar item, seperti
 penyanyi, genre, dan label rekaman.</p>
-<h1 id="bias-keadilan-dan-psikologi">Bias, keadilan, dan psikologi</h1>
+<h2 id="bias-keadilan-dan-psikologi">Bias, keadilan, dan psikologi</h2>
 <p>Sistem rekomendasi tidak hanya mencerminkan selera, tetapi juga
 membentuknya. <em>Popularity bias</em> membuat item yang sudah populer
 semakin sering direkomendasikan, sehingga semakin populer lagi. Kinerja
@@ -177,7 +177,7 @@ dengan menimbang seberapa sering dan seberapa baru ia mendengarkannya.
 Sistem rekomendasi yang diilhami psikologi ini juga lebih mudah
 dijelaskan, karena alasannya bisa diungkapkan dengan bahasa yang
 dipahami manusia.</p>
-<h1 id="di-luar-layar">Di luar layar</h1>
+<h2 id="di-luar-layar">Di luar layar</h2>
 <p>Rekomendasi adalah masalah keputusan berurutan, sehingga
 reinforcement learning (<a href="ch10_rl.html">Bab 12</a>) mulai dipakai
 untuk mengoptimalkan kepuasan jangka panjang, bukan klik berikutnya.
@@ -187,12 +187,12 @@ terhadap target di penemuan obat (<a href="ch41_molekul.html">Bab
 yang belajar dari banyak target sekaligus memakai logika yang sama
 dengan collaborative filtering. Dan pertanyaan tentang bias serta dampak
 sosial rekomendasi membawa kita ke bab berikutnya.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti kuliah dan latihan Learning from User-generated
 Data: collaborative filtering, faktor laten, evaluasi, data konten dan
 implisit, rekomendasi berbasis graf, hibrida, konteks, bias dan
 keadilan, serta sistem rekomendasi yang diilhami psikologi.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-he2020" class="csl-entry" role="listitem">

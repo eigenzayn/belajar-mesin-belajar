@@ -34,8 +34,8 @@ penyakit, atau menyetujui desain sebuah reaktor, kita perlu tahu alasan
 di balik keputusan. Bab ini membahas dua arah hubungan antara AI dan
 visualisasi: visualisasi untuk memahami AI, dan AI untuk membuat
 visualisasi.</p>
-<h1 id="siapa-yang-butuh-penjelasan-dan-untuk-apa">Siapa yang butuh
-penjelasan, dan untuk apa</h1>
+<h2 id="siapa-yang-butuh-penjelasan-dan-untuk-apa">Siapa yang butuh
+penjelasan, dan untuk apa</h2>
 <p>Penjelasan yang dibutuhkan pengembang model berbeda dari yang
 dibutuhkan dokter, regulator, atau orang yang permohonan kreditnya
 ditolak. Pengembang ingin menemukan bug dan bias. Pengguna ahli ingin
@@ -57,7 +57,7 @@ untuk memahami, men-debug, dan membandingkan model. <em>ML for Vis</em>
 memakai machine learning untuk membantu membuat visualisasi, misalnya
 merekomendasikan jenis grafik atau menghasilkan dashboard dari
 permintaan dalam bahasa biasa.</p>
-<h1 id="dasar-dasar-visualisasi">Dasar-dasar visualisasi</h1>
+<h2 id="dasar-dasar-visualisasi">Dasar-dasar visualisasi</h2>
 <p>Visualisasi bekerja karena sistem visual manusia memproses pola
 dengan cepat. Tetapi tidak semua saluran visual sama kuatnya. <span
 class="citation" data-cites="munzner2014">Munzner (2014)</span> menyusun
@@ -85,7 +85,7 @@ mendapat hasil positif palsu. Peluang benar-benar sakit setelah hasil
 positif hanya <span class="math inline">\(9/(9+89)\approx9\)</span>
 persen. Banyak orang, termasuk dokter, menebak jauh lebih tinggi. Gambar
 seratus kotak kecil membuat hasil ini langsung terasa masuk akal.</p>
-<h1 id="menjelaskan-lewat-proyeksi">Menjelaskan lewat proyeksi</h1>
+<h2 id="menjelaskan-lewat-proyeksi">Menjelaskan lewat proyeksi</h2>
 <p>Data berdimensi tinggi, termasuk aktivasi di dalam jaringan saraf,
 bisa diproyeksikan ke dua dimensi untuk dilihat. PCA (<a
 href="ch02c_unsupervised.html">Bab 4</a>) mempertahankan varians global,
@@ -106,8 +106,8 @@ apakah keduanya menempuh jalan yang mirip, atau satu berputar-putar
 sebelum menemukan solusi. Kelompok visualisasi di Linz juga
 mengembangkan alat seperti ini untuk kimia, sehingga ahli kimia bisa
 menjelajahi ruang molekul yang dilihat oleh model prediksi mereka.</p>
-<h1 id="menjelaskan-dalam-ruang-input">Menjelaskan dalam ruang
-input</h1>
+<h2 id="menjelaskan-dalam-ruang-input">Menjelaskan dalam ruang
+input</h2>
 <p>Sekelompok teknik menjelaskan model dengan melihat bagaimana
 keluarannya berubah terhadap input. <em>Partial dependence plot</em>
 menampilkan efek rata-rata satu fitur terhadap prediksi, dengan
@@ -138,7 +138,7 @@ kontribusinya 20. Rata-ratanya 15. Dengan cara yang sama, B mendapat
 data-cites="lundberg2017">(Lundberg dan Lee 2017)</span> membuat
 perhitungan ini praktis untuk model dengan banyak fitur, karena jumlah
 urutan yang mungkin tumbuh secara faktorial.</p>
-<h1 id="menjelaskan-lewat-gradien">Menjelaskan lewat gradien</h1>
+<h2 id="menjelaskan-lewat-gradien">Menjelaskan lewat gradien</h2>
 <p>Untuk jaringan saraf, gradien keluaran terhadap input memberi peta
 kepekaan langsung: piksel mana yang paling mengubah skor kelas kalau
 digeser sedikit. <em>Saliency map</em> vanila <span class="citation"
@@ -162,8 +162,8 @@ penting secara biologis, seperti tudung dan bilah, tetapi kadang juga
 latar belakang, misalnya rumput atau tangan yang memegang jamur. Peta
 seperti ini tidak membuktikan bahwa model benar, tetapi amat berguna
 untuk menemukan jalan pintas yang tidak diinginkan.</p>
-<h1 id="menjelaskan-lewat-contoh-dan-konsep">Menjelaskan lewat contoh
-dan konsep</h1>
+<h2 id="menjelaskan-lewat-contoh-dan-konsep">Menjelaskan lewat contoh
+dan konsep</h2>
 <p>Manusia sering menjelaskan dengan contoh: “ini mirip kasus yang
 kemarin”. Model pun bisa menjelaskan prediksinya dengan menunjukkan
 contoh data latih yang paling mirip di ruang fiturnya.
@@ -183,8 +183,8 @@ terhadap arah itu. Jenis temuan yang dicari mirip contoh terkenal dari
 Guestrin (2016)</span>, di mana penjelasan LIME mengungkap bahwa sebuah
 pengklasifikasi serigala dan anjing husky sebenarnya terutama melihat
 salju di latar belakang.</p>
-<h1 id="visualisasi-di-era-ai-generatif">Visualisasi di era AI
-generatif</h1>
+<h2 id="visualisasi-di-era-ai-generatif">Visualisasi di era AI
+generatif</h2>
 <p>Pertemuan terakhir membahas arah sebaliknya: AI yang membuat
 visualisasi. Model bahasa bisa menulis kode grafik dari permintaan dalam
 bahasa biasa, menyusun dashboard, atau membuat penjelasan bagi pengguna
@@ -194,7 +194,7 @@ pengguna yang tidak pernah diucapkan. Dan jawabannya bergantung pada
 gambaran yang dibentuk model tentang siapa penggunanya. Kuliah
 mengusulkan antarmuka yang membuat asumsi-asumsi itu terlihat dan bisa
 dikoreksi pengguna.</p>
-<h1 id="di-luar-kelas">Di luar kelas</h1>
+<h2 id="di-luar-kelas">Di luar kelas</h2>
 <p>Keterjelasan penting di setiap bidang yang dibahas buku ini, dengan
 alasan yang berbeda-beda. Dalam kedokteran, peta Grad-CAM pada citra
 rontgen bisa mengungkap model yang melihat penanda rumah sakit di sudut
@@ -207,7 +207,7 @@ href="ch17_penemuan_reduksi.html">Bab 27</a>) tidak menjelaskan model
 kotak hitam, melainkan menghasilkan persamaan yang bisa dibaca langsung.
 Itu barangkali bentuk penjelasan yang paling disukai <span
 class="citation" data-cites="rudin2019">Rudin (2019)</span>.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti enam kuliah AI and Visualization beserta labnya:
 dasar visualisasi, menjelaskan algoritme, proyeksi, teknik penjelasan
 visual (PDP, ICE, LIME, Shapley, saliency, Grad-CAM, contoh, konsep),
@@ -215,7 +215,7 @@ dan AI generatif untuk visualisasi. Bacaan pendamping: <span
 class="citation" data-cites="molnar2022">Molnar (2022)</span> untuk
 interpretable machine learning dan <span class="citation"
 data-cites="munzner2014">Munzner (2014)</span> untuk visualisasi.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-bach2015" class="csl-entry" role="listitem">

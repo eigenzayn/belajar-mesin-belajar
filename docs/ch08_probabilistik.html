@@ -32,7 +32,7 @@ variabel acak yang saling bergantung. Kita tidak lagi bertanya “apa
 jawabannya?”, tetapi “seberapa yakin kita pada setiap kemungkinan
 jawaban, dan bagaimana keyakinan itu berubah ketika ada bukti
 baru?”.</p>
-<h1 id="mengapa-butuh-struktur">Mengapa butuh struktur</h1>
+<h2 id="mengapa-butuh-struktur">Mengapa butuh struktur</h2>
 <p>Distribusi gabungan atas <span class="math inline">\(n\)</span>
 variabel biner butuh <span class="math inline">\(2^n-1\)</span> angka.
 Untuk dua puluh variabel, itu sekitar sejuta angka, dan untuk tiga puluh
@@ -52,7 +52,7 @@ guntur tidak menambah informasi tentang kilatnya.</p>
 class="math inline">\(p(x_1,\dots,x_n)=\prod_ip(x_i\mid
 x_1,\dots,x_{i-1})\)</span>. Independensi bersyarat memangkas setiap
 faktor sehingga hanya bergantung pada beberapa variabel.</p>
-<h1 id="bayesian-network">Bayesian network</h1>
+<h2 id="bayesian-network">Bayesian network</h2>
 <p><em>Bayesian network</em> adalah graf berarah tanpa siklus yang
 setiap simpulnya adalah variabel acak. Setiap variabel diberi distribusi
 bersyarat terhadap induk-induknya, dan distribusi gabungannya adalah
@@ -83,8 +83,8 @@ kecerdasan mahasiswa naik kembali. Pola ini disebut <em>explaining
 away</em>. Bayesian network menangani semua pola ini dengan satu
 algoritme inferensi yang sama, tanpa aturan khusus untuk
 masing-masing.</p>
-<h2 id="membaca-independensi-dari-graf">Membaca independensi dari
-graf</h2>
+<h3 id="membaca-independensi-dari-graf">Membaca independensi dari
+graf</h3>
 <p>Kapan dua variabel independen bersyarat bisa dibaca langsung dari
 bentuk graf. Ada tiga pola dasar untuk jalur <span
 class="math inline">\(X-Z-Y\)</span>. Pada rantai <span
@@ -105,7 +105,7 @@ itu mereka pasti independen bersyarat.</p>
 variabel: induknya, anaknya, dan induk lain dari anak-anaknya. Kalau
 Markov blanket diketahui, variabel itu independen dari seluruh sisa
 jaringan. Sifat ini nanti menjadi kunci Gibbs sampling.</p>
-<h1 id="inferensi-eksak">Inferensi eksak</h1>
+<h2 id="inferensi-eksak">Inferensi eksak</h2>
 <p>Inferensi berarti menghitung distribusi sebuah variabel kueri setelah
 sebagian variabel lain diamati, misalnya <span
 class="math inline">\(p(I\mid G=\text{buruk})\)</span>. Cara naif adalah
@@ -120,7 +120,7 @@ sebesar tabel gabungan. Untuk graf berbentuk pohon, biayanya linear.
 Untuk graf umum, inferensi eksak termasuk masalah NP-hard, dan biayanya
 bergantung secara eksponensial pada ukuran faktor terbesar yang tidak
 bisa dihindari.</p>
-<h1 id="inferensi-dengan-sampel">Inferensi dengan sampel</h1>
+<h2 id="inferensi-dengan-sampel">Inferensi dengan sampel</h2>
 <p>Kalau inferensi eksak terlalu mahal, kita bisa memperkirakan peluang
 dengan menarik sampel. Cara paling sederhana adalah <em>forward
 sampling</em>: tarik setiap variabel mengikuti urutan graf, dari induk
@@ -156,8 +156,8 @@ terang setiap sudut ruangan. Langkah-langkah awal sebelum rantai
 mencapai keseimbangan biasanya dibuang, dan sampel yang berurutan saling
 berkorelasi, sehingga jumlah sampel efektifnya lebih kecil dari jumlah
 sampel mentah.</p>
-<h1 id="belajar-parameter-dan-struktur">Belajar parameter dan
-struktur</h1>
+<h2 id="belajar-parameter-dan-struktur">Belajar parameter dan
+struktur</h2>
 <p>Kalau struktur graf diketahui dan datanya lengkap, belajar parameter
 ternyata hanya menghitung. Maximum likelihood untuk <span
 class="math inline">\(p(x_i\mid\mathrm{pa}(x_i))\)</span> adalah
@@ -197,8 +197,8 @@ sisi pada satu waktu, atau tabu search yang melarang kembali ke langkah
 yang baru saja diambil. Pendekatan ketiga, Bayesian model averaging,
 tidak memilih satu graf, tetapi merata-ratakan prediksi atas banyak graf
 yang diberi bobot posterior.</p>
-<h1 id="model-yang-berjalan-dalam-waktu">Model yang berjalan dalam
-waktu</h1>
+<h2 id="model-yang-berjalan-dalam-waktu">Model yang berjalan dalam
+waktu</h2>
 <p>Banyak sistem berubah dari waktu ke waktu. <em>Dynamic Bayesian
 network</em> memodelkannya dengan mengulang struktur yang sama di setiap
 langkah waktu, dengan dua asumsi: keadaan sekarang hanya bergantung pada
@@ -213,7 +213,7 @@ sampai sekarang. <em>Prediction</em> menghitung keadaan masa depan.
 pengamatan yang datang belakangan. Dan <em>most likely explanation</em>
 mencari urutan keadaan yang paling mungkin menjelaskan semua
 pengamatan.</p>
-<h2 id="hidden-markov-model">Hidden Markov model</h2>
+<h3 id="hidden-markov-model">Hidden Markov model</h3>
 <p>Hidden Markov model <span class="citation"
 data-cites="rabiner1989">(Rabiner 1989)</span> adalah DBN dengan satu
 variabel keadaan diskret yang tersembunyi dan satu pengamatan di setiap
@@ -251,7 +251,7 @@ class="math inline">\(0{,}818\times0{,}7+0{,}182\times0{,}3\approx0{,}627\)</spa
 dan pengamatan payung kedua menaikkannya menjadi sekitar <span
 class="math inline">\(0{,}883\)</span>. Setiap hari, keyakinan mengalir
 lewat dua langkah yang sama: ramalkan, lalu koreksi dengan bukti.</p>
-<h2 id="kalman-filter">Kalman filter</h2>
+<h3 id="kalman-filter">Kalman filter</h3>
 <p>Kalau keadaannya kontinu dan semua hubungan linear dengan noise
 Gauss, filtering bisa dikerjakan secara eksak dengan Kalman filter <span
 class="citation" data-cites="kalman1960">(Kalman 1960)</span>. Modelnya
@@ -265,14 +265,14 @@ pengukuran <span class="math inline">\(\boldsymbol
 v_t\sim\mathcal{N}(\boldsymbol0,\boldsymbol R)\)</span>. Karena Gauss
 tetap Gauss di bawah transformasi linear, cukup melacak rata-rata dan
 kovarians: <span class="math display">\[\begin{aligned}
-\hat\boldsymbol{x}^-_t&amp;=\boldsymbol{A}\hat\boldsymbol{x}_{t-1},
+\hat{\boldsymbol{x}}^-_t&amp;=\boldsymbol{A}\hat{\boldsymbol{x}}_{t-1},
 &amp; \boldsymbol P^-_t&amp;=\boldsymbol{A}\boldsymbol
 P_{t-1}\boldsymbol{A}^\top+\boldsymbol Q,\\
 \boldsymbol K_t&amp;=\boldsymbol P^-_t\boldsymbol H^\top\big(\boldsymbol
 H\boldsymbol P^-_t\boldsymbol H^\top+\boldsymbol R\big)^{-1},
 &amp;&amp;\\
-\hat\boldsymbol{x}_t&amp;=\hat\boldsymbol{x}^-_t+\boldsymbol
-K_t\big(\boldsymbol z_t-\boldsymbol H\hat\boldsymbol{x}^-_t\big), &amp;
+\hat{\boldsymbol{x}}_t&amp;=\hat{\boldsymbol{x}}^-_t+\boldsymbol
+K_t\big(\boldsymbol z_t-\boldsymbol H\hat{\boldsymbol{x}}^-_t\big), &amp;
 \boldsymbol P_t&amp;=(\boldsymbol I-\boldsymbol K_t\boldsymbol
 H)\boldsymbol P^-_t.
 \end{aligned}\]</span> Baris pertama adalah prediksi, dan baris terakhir
@@ -317,7 +317,7 @@ melinearkan model di sekitar perkiraan saat ini (<em>extended Kalman
 filter</em>), atau diganti dengan <em>particle filter</em> yang mewakili
 distribusi dengan sekumpulan sampel berbobot. Keduanya dipakai di
 kendaraan otonom untuk melacak posisi dari GPS, odometri, dan lidar.</p>
-<h1 id="di-luar-kelas">Di luar kelas</h1>
+<h2 id="di-luar-kelas">Di luar kelas</h2>
 <p>Model-model di bab ini bekerja di belakang banyak sistem yang kita
 temui di bagian-bagian berikutnya. Kendaraan otonom melacak posisinya
 dengan filter Bayes dan melacak mobil di sekitarnya dengan Kalman filter
@@ -356,7 +356,7 @@ bukan satu angka, melainkan sebuah distribusi posterior. MCMC, inferensi
 variasional, dan model generatif dari <a
 href="ch09_ml_advanced.html">Bab 11</a> adalah alat untuk
 menghitungnya.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti kuliah Probabilistic Models (Bayesian network,
 inferensi eksak dan aproksimasi, pembelajaran parameter dan struktur,
 DBN, HMM, Kalman filter) beserta latihannya. Slide kuliah bersandar pada
@@ -365,7 +365,7 @@ DBN, HMM, Kalman filter) beserta latihannya. Slide kuliah bersandar pada
 data-cites="russell2021">Russell dan Norvig (2021)</span>, yang juga
 menjadi bacaan pendamping terbaik. Bagian Kalman filter dan particle
 filter juga muncul di kuliah kendaraan otonom.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-dempster1977" class="csl-entry" role="listitem">

@@ -28,7 +28,7 @@ masalah nilai batas, masalah nilai eigen, persamaan diferensial parsial
 yang bergantung waktu, metode split-operator, lalu Monte Carlo.
 Alat-alat ini tersembunyi di dalam hampir setiap simulasi, dan juga di
 dalam banyak algoritme machine learning.</p>
-<h1 id="interpolasi-dan-fourier">Interpolasi dan Fourier</h1>
+<h2 id="interpolasi-dan-fourier">Interpolasi dan Fourier</h2>
 <p>Interpolasi mencari fungsi mulus yang melewati titik-titik data yang
 diketahui. Polinomial interpolasi Lagrange berderajat <span
 class="math inline">\(n-1\)</span> melewati <span
@@ -52,7 +52,7 @@ ke <span class="math inline">\(2\times10^7\)</span> operasi. FFT menjadi
 tulang punggung pemrosesan sinyal, pengolahan citra, solver spektral
 untuk PDE, dan neural operator berbasis Fourier di <a
 href="ch16_operator.html">Bab 26</a>.</p>
-<h1 id="mencari-akar">Mencari akar</h1>
+<h2 id="mencari-akar">Mencari akar</h2>
 <p>Banyak masalah berujung pada mencari <span
 class="math inline">\(x\)</span> yang memenuhi <span
 class="math inline">\(f(x)=0\)</span>. Metode bagi dua mulai dari selang
@@ -67,7 +67,7 @@ kalau tebakan awalnya buruk atau turunannya hampir nol. Dalam banyak
 dimensi, Newton menjadi penyelesaian sistem linear dengan Jacobian di
 setiap langkah, dan itulah yang terjadi di dalam setiap solver
 implisit.</p>
-<h1 id="persamaan-diferensial-biasa">Persamaan diferensial biasa</h1>
+<h2 id="persamaan-diferensial-biasa">Persamaan diferensial biasa</h2>
 <p>Masalah nilai awal <span class="math inline">\(\dot{\boldsymbol
 y}=\boldsymbol f(\boldsymbol y,t)\)</span> dengan <span
 class="math inline">\(\boldsymbol y(0)\)</span> diketahui diselesaikan
@@ -100,7 +100,7 @@ seberapa jauh hasilnya meleset di ujung lain, lalu memperbaiki tebakan
 dengan pencarian akar. Alternatifnya, turunan diganti beda hingga di
 grid, sehingga masalahnya menjadi sistem persamaan linear
 tridiagonal.</p>
-<h1 id="nilai-eigen">Nilai eigen</h1>
+<h2 id="nilai-eigen">Nilai eigen</h2>
 <p>Persamaan Schrödinger stasioner dalam satu dimensi adalah masalah
 nilai eigen: cari energi <span class="math inline">\(E\)</span> dan
 fungsi gelombang <span class="math inline">\(\psi\)</span> yang memenuhi
@@ -117,7 +117,7 @@ kolom.</p>
 <p>Nilai eigen muncul di mana-mana di buku ini: arah utama PCA,
 kestabilan sistem linear, frekuensi getaran struktur, dan mode-mode
 aliran pada dekomposisi POD.</p>
-<h1 id="pde-yang-bergantung-waktu">PDE yang bergantung waktu</h1>
+<h2 id="pde-yang-bergantung-waktu">PDE yang bergantung waktu</h2>
 <p>Persamaan difusi <span
 class="math inline">\(\partial_tu=D\,\partial_{xx}u\)</span> yang
 didiskretisasi dengan beda maju dalam waktu dan beda pusat dalam ruang
@@ -147,7 +147,7 @@ lalu setengah langkah potensial lagi setelah FFT balik. Gagasan memecah
 operator menjadi bagian-bagian yang masing-masing mudah juga dipakai di
 banyak solver fluida, misalnya untuk memisahkan konveksi dari
 difusi.</p>
-<h1 id="monte-carlo">Monte Carlo</h1>
+<h2 id="monte-carlo">Monte Carlo</h2>
 <p>Integral berdimensi tinggi tidak bisa dihitung dengan grid, karena
 jumlah titiknya tumbuh eksponensial. Integrasi Monte Carlo
 merata-ratakan fungsi pada titik-titik acak. Galatnya turun seperti
@@ -169,7 +169,7 @@ class="math inline">\(\exp(-\Delta H/k_BT)\)</span>. Rantai Markov yang
 dihasilkan mengunjungi konfigurasi dengan frekuensi sesuai distribusi
 Boltzmann. Ini adalah MCMC yang sama dengan di <a
 href="ch08_probabilistik.html">Bab 10</a>, di tempat kelahirannya.</p>
-<h1 id="simulasi-partikel">Simulasi partikel</h1>
+<h2 id="simulasi-partikel">Simulasi partikel</h2>
 <p>Fisika komputasi juga membawa kita ke simulasi partikel. Dinamika
 molekul <span class="citation" data-cites="alder1959">(Alder dan
 Wainwright 1959)</span> mengintegrasikan persamaan Newton untuk setiap
@@ -191,14 +191,14 @@ graf, dan simulator berbasis jaringan graf di <a
 href="ch16_operator.html">Bab 26</a> belajar meniru simulasi partikel
 seperti ini dengan memperlakukan partikel sebagai simpul dan interaksi
 sebagai sisi.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti tiga belas catatan kuliah Computational Physics I
 yang ditulis tangan. Salah satu buku yang disebut di awal kuliah adalah
 Numerical Recipes <span class="citation" data-cites="press2007">(Press
 dkk. 2007)</span>. Untuk simulasi partikel, <span class="citation"
 data-cites="frenkel2002">Frenkel dan Smit (2002)</span> adalah pengantar
 yang baik.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-alder1959" class="csl-entry" role="listitem">

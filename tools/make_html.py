@@ -170,6 +170,16 @@ def simplify(s):
     s = re.sub(r"\\(small|centering|footnotesize|medskip|bigskip|smallskip|hfill|noindent)\b", "", s)
     return s
 
+ACCENT = re.compile(r"\\(hat|bar|tilde|dot|ddot|vec|widehat|widetilde|overline|underline)"
+                    r"\s*(\\[A-Za-z]+\{[^{}]*\})")
+
+def fix_math(path):
+    """LaTeX accepts \\hat\\boldsymbol{w}; MathJax needs \\hat{\\boldsymbol{w}}. Brace such accent arguments."""
+    t = open(path, encoding="utf-8").read()
+    new = ACCENT.sub(lambda m: "\\" + m.group(1) + "{" + m.group(2) + "}", t)
+    if new != t:
+        open(path, "w", encoding="utf-8").write(new)
+
 # ------------------------------------------------------------------ book structure
 def structure():
     main = open(os.path.join(BOOK, "main.tex"), encoding="utf-8").read()
@@ -225,9 +235,11 @@ def main():
             args += ["--variable", f"prev={prev_n}.html", "--variable", f"prevtitle={titles[prev_n][0]}"]
         if next_n:
             args += ["--variable", f"next={next_n}.html", "--variable", f"nexttitle={titles[next_n][0]}"]
+        args.insert(1, "--shift-heading-level-by=1")
         r = subprocess.run(args, capture_output=True, text=True, errors="replace")
         if r.returncode != 0:
             print("pandoc failed", n, r.stderr[-800:]); sys.exit(1)
+        fix_math(os.path.join(OUT, n + ".html"))
         warn = [l for l in r.stderr.splitlines() if "WARNING" in l or "Could not" in l]
         print(f"{n}: ok" + (f"  ({len(warn)} warnings)" if warn else ""))
     # index

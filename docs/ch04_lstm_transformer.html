@@ -34,7 +34,7 @@ model harus punya ingatan. Bab ini mengikuti evolusi ingatan buatan,
 dari jaringan rekuren sederhana yang cepat lupa, ke LSTM yang menjaga
 ingatan dengan gerbang, ke transformer yang melihat seluruh masa lalu
 sekaligus, lalu kembali lagi ke ingatan rekuren versi modern.</p>
-<h1 id="jaringan-rekuren">Jaringan rekuren</h1>
+<h2 id="jaringan-rekuren">Jaringan rekuren</h2>
 <p>Jaringan feed-forward memproses setiap input sendiri-sendiri.
 <em>Recurrent neural network</em> (RNN) membawa sebuah keadaan
 tersembunyi <span class="math inline">\(\boldsymbol{h}_t\)</span> dari
@@ -71,8 +71,8 @@ masa lalu, tetapi harganya mahal: untuk jaringan rekuren penuh dengan
 <span class="math inline">\(n^4\)</span> per langkah. Dalam bahasa <a
 href="ch03_dl_basic.html">Bab 5</a>, RTRL adalah forward mode, sedangkan
 BPTT adalah reverse mode.</p>
-<h1 id="gradien-yang-hilang-dan-meledak">Gradien yang hilang dan
-meledak</h1>
+<h2 id="gradien-yang-hilang-dan-meledak">Gradien yang hilang dan
+meledak</h2>
 <p>Masalah berikut mengubah sejarah jaringan saraf. Delta di langkah
 <span class="math inline">\(t-k\)</span> bergantung pada delta di
 langkah <span class="math inline">\(t\)</span> melalui perkalian <span
@@ -102,7 +102,7 @@ linearnya, faktor yang sama bisa mencapai sekitar 3300.</p>
 clipping</em>: kalau norma gradien melewati batas tertentu, skalakan
 turun. Gradien yang hilang lebih sulit, karena tidak ada sinyal yang
 bisa diperbesar. Solusinya harus datang dari arsitektur.</p>
-<h1 id="lstm">LSTM</h1>
+<h2 id="lstm">LSTM</h2>
 <p><span class="citation" data-cites="hochreiter1997">Hochreiter dan
 Schmidhuber (1997)</span> memecahkan masalah ini dengan dua gagasan yang
 di kuliah disebut sebagai inti LSTM: <em>constant error carousel</em>
@@ -166,7 +166,7 @@ input sel memakai tanh karena isinya boleh positif atau negatif.</p>
 suara di ponsel sampai terjemahan mesin. Kuliah juga menampilkan contoh
 di luar bahasa, seperti klasifikasi protein dari urutan asam amino dan
 analisis interval detak jantung.</p>
-<h1 id="attention-dan-transformer">Attention dan transformer</h1>
+<h2 id="attention-dan-transformer">Attention dan transformer</h2>
 <p>LSTM memampatkan seluruh masa lalu ke dalam vektor berukuran tetap.
 Untuk menerjemahkan kalimat yang panjang, pemampatan ini menjadi leher
 botol. <span class="citation" data-cites="bahdanau2015">Bahdanau, Cho,
@@ -251,7 +251,7 @@ dan <span class="math inline">\(\boldsymbol\xi\)</span> adalah query.
 Biasanya satu langkah update sudah cukup untuk mengambil pola yang
 paling mirip. Dari sudut pandang ini, attention adalah cara membaca dari
 sebuah ingatan asosiatif yang kapasitasnya sangat besar.</p>
-<h1 id="dari-bahasa-ke-vektor">Dari bahasa ke vektor</h1>
+<h2 id="dari-bahasa-ke-vektor">Dari bahasa ke vektor</h2>
 <p>Kuliah NLP mengisi sisi datanya. Kata harus diubah menjadi angka
 sebelum masuk ke jaringan. Cara paling sederhana adalah <em>bag of
 words</em>, yang menghitung frekuensi kata dalam dokumen dan mengabaikan
@@ -275,7 +275,7 @@ kanan. GPT-3 <span class="citation" data-cites="brown2020">(Brown dkk.
 2020)</span> dilatih menebak kata berikutnya, dan menunjukkan bahwa
 dengan skala yang cukup, sebuah model bisa mengerjakan tugas baru hanya
 dari beberapa contoh di dalam prompt.</p>
-<h1 id="rekurensi-yang-kembali">Rekurensi yang kembali</h1>
+<h2 id="rekurensi-yang-kembali">Rekurensi yang kembali</h2>
 <p>Biaya kuadratik transformer mendorong pencarian arsitektur dengan
 biaya linear. <em>State space model</em> memakai rekurensi linear <span
 class="math display">\[\boldsymbol{h}_t=\bar{\boldsymbol{A}}\,\boldsymbol{h}_{t-1}+\bar{\boldsymbol
@@ -325,7 +325,7 @@ kemudian ditumpuk dengan koneksi residual. Hasil yang dilaporkan
 menunjukkan xLSTM bersaing dengan transformer dan state space model
 dalam pemodelan bahasa, dengan biaya inferensi yang linear terhadap
 panjang deret.</p>
-<h1 id="deret-di-luar-bahasa">Deret di luar bahasa</h1>
+<h2 id="deret-di-luar-bahasa">Deret di luar bahasa</h2>
 <p>Model deret yang lahir dari bahasa dipakai jauh di luar teks. Kuliah
 LSTM sendiri sudah menunjukkan klasifikasi protein dari urutan asam
 amino dan analisis detak jantung. Dalam genomik, urutan DNA dibaca oleh
@@ -357,7 +357,7 @@ grid (<a href="ch16_operator.html">Bab 26</a>). Di semua pendekatan itu,
 masalah yang selalu muncul adalah galat yang menumpuk ketika model
 menebak berulang-ulang dari tebakannya sendiri. Masalah ini kita bahas
 di <a href="ch16_operator.html">Bab 26</a>.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti slide LSTM and Recurrent Neural Nets dari Sepp
 Hochreiter (RNN, BPTT, RTRL, vanishing gradient, LSTM, attention, Mamba,
 xLSTM) dan slide Natural Language Processing (representasi kata, n-gram,
@@ -367,7 +367,7 @@ data-cites="hochreiter1997">Hochreiter dan Schmidhuber (1997)</span>,
 (2017)</span>, <span class="citation" data-cites="beck2024">Beck dkk.
 (2024)</span>, dan <span class="citation" data-cites="gu2023">Gu dan Dao
 (2023)</span>.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-alkin2024" class="csl-entry" role="listitem">

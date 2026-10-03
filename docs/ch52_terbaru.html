@@ -28,8 +28,8 @@ serbaguna, aturan itu sudah berlaku. Bab penutup ini mencoba merangkum
 perkembangan besar beberapa tahun terakhir dan menghubungkannya kembali
 dengan fondasi di bab-bab sebelumnya. Isinya pasti cepat usang, dan
 memang itulah intinya.</p>
-<h1 id="model-fondasi-dan-hukum-penskalaan">Model fondasi dan hukum
-penskalaan</h1>
+<h2 id="model-fondasi-dan-hukum-penskalaan">Model fondasi dan hukum
+penskalaan</h2>
 <p>Istilah <em>foundation model</em> <span class="citation"
 data-cites="bommasani2021">(Bommasani dkk. 2021)</span> menamai
 pergeseran cara membangun AI. Alih-alih melatih model khusus untuk
@@ -87,8 +87,8 @@ class="math inline">\(r=8\)</span>, satu matriks penuh punya sekitar
 16,8 juta parameter, sedangkan koreksinya hanya <span
 class="math inline">\(2\times4096\times8=65\,536\)</span>, kurang dari
 setengah persen.</p>
-<h1 id="menyelaraskan-model-dengan-manusia">Menyelaraskan model dengan
-manusia</h1>
+<h2 id="menyelaraskan-model-dengan-manusia">Menyelaraskan model dengan
+manusia</h2>
 <p>Model bahasa yang hanya dilatih menebak kata berikutnya belum tentu
 membantu, jujur, atau aman. InstructGPT <span class="citation"
 data-cites="ouyang2022">(Ouyang dkk. 2022)</span> memperkenalkan resep
@@ -125,7 +125,7 @@ x)}{\pi_{\mathrm{ref}}(y_w\mid x)}-\beta\log\frac{\pi_\theta(y_l\mid
 x)}{\pi_{\mathrm{ref}}(y_l\mid x)}\Big),\]</span> sebuah binary
 cross-entropy biasa, tanpa model ganjaran terpisah dan tanpa sampling
 selama pelatihan.</p>
-<h1 id="model-yang-bernalar">Model yang bernalar</h1>
+<h2 id="model-yang-bernalar">Model yang bernalar</h2>
 <p><span class="citation" data-cites="wei2022">Wei dkk. (2022)</span>
 menunjukkan bahwa meminta model menuliskan langkah-langkah penalarannya
 sebelum menjawab, <em>chain-of-thought</em>, memperbaiki kinerja pada
@@ -148,7 +148,7 @@ Internasional Juli 2025, sebuah versi Gemini Deep Think dari Google
 DeepMind menyelesaikan lima dari enam soal dalam bahasa alami dan diakui
 panitia mencapai standar medali emas<a href="#fn1" class="footnote-ref"
 id="fnref1" role="doc-noteref"><sup>1</sup></a>.</p>
-<h1 id="agen">Agen</h1>
+<h2 id="agen">Agen</h2>
 <p>Model bahasa yang bisa memakai alat berubah dari penjawab pertanyaan
 menjadi agen. ReAct <span class="citation" data-cites="yao2023">(Yao
 dkk. 2022)</span> merangkai penalaran dan tindakan secara bergantian:
@@ -165,8 +165,8 @@ href="ch10_rl.html">Bab 12</a>), galat yang menumpuk sepanjang banyak
 langkah seperti pada rollout simulator (<a href="ch16_operator.html">Bab
 26</a>), dan pertanyaan siapa yang bertanggung jawab ketika agen
 bertindak (<a href="ch51_ai_manusia.html">Bab 31</a>).</p>
-<h1 id="gambar-video-dan-model-dunia">Gambar, video, dan model
-dunia</h1>
+<h2 id="gambar-video-dan-model-dunia">Gambar, video, dan model
+dunia</h2>
 <p>Model difusi dari <a href="ch09_ml_advanced.html">Bab 11</a> menjadi
 mesin di balik generator gambar modern. Latent diffusion <span
 class="citation" data-cites="rombach2022">(Rombach dkk. 2021)</span>
@@ -184,7 +184,7 @@ dalam “mimpi”-nya sendiri. Apakah model video benar-benar memahami
 fisika atau hanya meniru penampilannya adalah pertanyaan terbuka, dan
 alat dari Bagian V, seperti uji kekekalan dan ekstrapolasi, adalah cara
 yang baik untuk mengujinya.</p>
-<h1 id="ai-untuk-sains">AI untuk sains</h1>
+<h2 id="ai-untuk-sains">AI untuk sains</h2>
 <p>Tahun 2024 memberi penanda simbolis. Hadiah Nobel Fisika diberikan
 kepada John Hopfield dan Geoffrey Hinton untuk penemuan dasar yang
 memungkinkan machine learning dengan jaringan saraf tiruan, dan setengah
@@ -208,7 +208,7 @@ dkk. 2024)</span> memperluas prediksi struktur ke interaksi antar
 molekul. Pola yang sama muncul di semua bidang ini: data simulasi dan
 pengukuran yang terkumpul selama puluhan tahun menjadi bahan bakar, dan
 struktur fisika, seperti simetri dan kekekalan, menjadi kemudi.</p>
-<h1 id="yang-tidak-berubah">Yang tidak berubah</h1>
+<h2 id="yang-tidak-berubah">Yang tidak berubah</h2>
 <p>Di tengah semua perubahan ini, pelajaran dari kuliah-kuliah dasar
 tetap berlaku, bahkan semakin penting. Generalisasi di luar data latih
 tetap sulit (<a href="ch01_belajar_dari_data.html">Bab 1</a>). Model
@@ -228,13 +228,13 @@ gagasan yang benar. Konvolusi bertahan karena simetri geser adalah sifat
 dunia. Persamaan Navier–Stokes tidak berhenti berlaku karena ada
 jaringan saraf. Model terbaik adalah yang belajar dari data sambil
 menghormati apa yang sudah kita ketahui tentang dunia.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini disusun dari bacaan, bukan dari satu mata kuliah. Sebagian
 topiknya disinggung di kuliah LSTM (xLSTM dan Mamba), NLP (model bahasa
 besar), AI and Law (model AI serbaguna), dan AI in Life Sciences (model
 bahasa untuk kimia). Perkembangan yang baru diperiksa dengan pengumuman
 resminya pada saat penulisan, Oktober 2026.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-abramson2024" class="csl-entry" role="listitem">

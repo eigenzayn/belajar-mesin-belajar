@@ -30,8 +30,8 @@ algoritme SIMPLE menyelesaikan persamaan Navier–Stokes: tebakan yang
 tidak sempurna, lalu koreksi berbasis fisika. Dan begitulah juga rCFD
 dikembangkan. Bab ini mengikuti alur kuliah itu, lalu menceritakan
 sedikit tentang apa yang saya kerjakan dalam tugas akhir.</p>
-<h1 id="aliran-yang-mengulang-dirinya">Aliran yang mengulang
-dirinya</h1>
+<h2 id="aliran-yang-mengulang-dirinya">Aliran yang mengulang
+dirinya</h2>
 <p>Banyak aliran yang menarik bagi industri berjalan lama sekali.
 Peleburan baja di dalam ladle, pencampuran di tangki berpengaduk, dan
 gelembung yang naik di kolom gelembung bisa berlangsung menit sampai
@@ -57,7 +57,7 @@ waktu tetapi mirip satu sama lain. Dalam bahasa machine learning, <span
 class="math inline">\(\boldsymbol R\)</span> adalah matriks jarak antar
 sampel, dan pasangan dengan jarak kecil adalah tetangga terdekat di
 ruang keadaan aliran.</p>
-<h1 id="rcfd-berbasis-aliran">rCFD berbasis aliran</h1>
+<h2 id="rcfd-berbasis-aliran">rCFD berbasis aliran</h2>
 <p>Gagasan pertama, yang diterbitkan <span class="citation"
 data-cites="lichtenegger2016">Lichtenegger dan Pirker (2016)</span>
 untuk kolom gelembung, berbunyi seperti kalimat yang berulang di slide:
@@ -82,7 +82,7 @@ potongan-potongan hari yang mirip: setelah Senin pagi yang macet
 biasanya datang siang yang agak sepi. Kalau yang kita pedulikan adalah
 ke mana sebuah paket akan sampai, rekaman lalu lintas yang dijahit sudah
 cukup.</p>
-<h1 id="rcfd-berbasis-transport">rCFD berbasis transport</h1>
+<h2 id="rcfd-berbasis-transport">rCFD berbasis transport</h2>
 <p>Langkah kedua, dari <span class="citation"
 data-cites="pirker2018">Pirker dan Lichtenegger (2018)</span>, bahkan
 melewati persamaan transport. Kuliah menjelaskannya dengan sungai Danube
@@ -117,8 +117,8 @@ baja, slide kuliah membandingkan CFD penuh yang membutuhkan 26 jam
 dengan rCFD berbasis transport yang selesai dalam 1,6 detik pada
 perangkat keras yang sama, dengan histogram konsentrasi yang cocok di
 beberapa titik waktu.</p>
-<h1 id="tiga-kegagalan-berani-dan-koreksinya">Tiga kegagalan berani dan
-koreksinya</h1>
+<h2 id="tiga-kegagalan-berani-dan-koreksinya">Tiga kegagalan berani dan
+koreksinya</h2>
 <p>Bagian paling jujur dari kuliah adalah tiga “kegagalan berani” rCFD
 dan cara memperbaikinya.</p>
 <p>Kegagalan pertama adalah ketidakseimbangan massa. Untuk simulasi yang
@@ -147,7 +147,7 @@ gedung, tidak mirip sama sekali. Usulan koreksinya adalah memecah domain
 menjadi “pulau-pulau” dengan pengulangan yang kuat dan “laut” latar
 dengan pengulangan yang lemah, masing-masing dengan recurrence matrix
 sendiri.</p>
-<h1 id="menuju-kembaran-digital">Menuju kembaran digital</h1>
+<h2 id="menuju-kembaran-digital">Menuju kembaran digital</h2>
 <p>Kuliah ditutup dengan visi yang lebih besar. Kalau rCFD begitu cepat,
 ia bisa berjalan bersamaan dengan proses industri yang sebenarnya,
 sebagai kembaran digital. Masalahnya, proses nyata punya lebih dari satu
@@ -161,7 +161,7 @@ temperatur vertikal. Model tangki ideal yang tercampur sempurna terlalu
 sederhana karena mengabaikan perbedaan di dalam tangki, sedangkan CFD
 tanpa validasi rawan galat. rCFD yang diturunkan dari CFD dan dikoreksi
 dengan data sensor menempati tempat di antara keduanya.</p>
-<h1 id="tugas-akhir-saya">Tugas akhir saya</h1>
+<h2 id="tugas-akhir-saya">Tugas akhir saya</h2>
 <p>Tugas akhir saya menerapkan rCFD berbasis transport pada pancaran
 apung (<em>buoyant jet</em>) di dalam sebuah tangki: air hangat yang
 masuk dan naik karena lebih ringan, lalu bercampur dengan air di
@@ -184,8 +184,8 @@ kuantitatifnya ada di laporan tugas akhir. Yang ingin saya sampaikan di
 sini lebih sederhana: setiap perbaikan mengikuti pola yang sama dengan
 yang diajarkan di kuliah, yaitu tebakan yang berani diikuti koreksi
 berbasis fisika.</p>
-<h1 id="rcfd-dari-sudut-pandang-machine-learning">rCFD dari sudut
-pandang machine learning</h1>
+<h2 id="rcfd-dari-sudut-pandang-machine-learning">rCFD dari sudut
+pandang machine learning</h2>
 <p>Setelah membaca bab-bab sebelumnya, rCFD bisa dilihat dengan mata
 machine learning. Basis data bingkai adalah ingatan, recurrence matrix
 adalah ukuran kemiripan antar keadaan, dan penjahitan adalah mencari
@@ -210,7 +210,7 @@ diangkat kuliah tentang proses nyata yang punya lebih dari satu keadaan
 operasi. Di sinilah rCFD dan model pengganti berbasis jaringan saraf,
 seperti yang disinggung di slide terakhir kuliah, mungkin akan saling
 melengkapi.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti pertemuan tentang recurrence CFD dalam kuliah
 Numerical Methods in Fluid Mechanics dan pengalaman selama tugas akhir.
 Makalah utamanya: <span class="citation"
@@ -220,7 +220,7 @@ data-cites="pirker2018">Pirker dan Lichtenegger (2018)</span> untuk rCFD
 berbasis transport, dan <span class="citation" data-cites="du2020">Du,
 Blocken, dan Pirker (2020)</span> untuk penerapan pada lingkungan
 bangunan.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-du2020" class="csl-entry" role="listitem">

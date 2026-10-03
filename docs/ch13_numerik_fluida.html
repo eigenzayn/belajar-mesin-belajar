@@ -26,7 +26,7 @@ dan kecepatan, turbulensi dalam tiga pertemuan, perpindahan panas dan
 spesies, aliran multifase, dan satu pertemuan khusus tentang recurrence
 CFD. Bab ini merangkum semuanya kecuali yang terakhir, yang mendapat
 babnya sendiri di <a href="ch19_rcfd.html">Bab 29</a>.</p>
-<h1 id="metode-volume-hingga">Metode volume hingga</h1>
+<h2 id="metode-volume-hingga">Metode volume hingga</h2>
 <p>Metode volume hingga membagi domain menjadi sel-sel kecil dan
 menegakkan neraca Persamaan (22.2) untuk setiap sel. Mengintegrasikan
 persamaan atas volume sebuah sel, lalu memakai teorema divergensi Gauss,
@@ -64,7 +64,7 @@ x}\le C_{\max},\]</span> yang secara intuitif berarti informasi tidak
 boleh melompati lebih dari sekitar satu sel dalam satu langkah. Metode
 implisit menyelesaikan sistem persamaan untuk keadaan baru. Mahal per
 langkah, tetapi stabil untuk langkah yang jauh lebih besar.</p>
-<h1 id="tekanan-dan-kecepatan">Tekanan dan kecepatan</h1>
+<h2 id="tekanan-dan-kecepatan">Tekanan dan kecepatan</h2>
 <p>Untuk aliran tak termampatkan, tekanan tidak punya persamaannya
 sendiri. Ia harus diatur sedemikian rupa sehingga medan kecepatan yang
 dihasilkan persamaan momentum memenuhi kekekalan massa. Algoritme SIMPLE
@@ -87,8 +87,8 @@ yang kita pedulikan, misalnya gaya hambat atau temperatur di sebuah
 titik, sudah tidak berubah lagi, apalagi bahwa hasilnya benar secara
 fisis. Memantau besaran fisis dan menguji kebebasan hasil terhadap
 ukuran grid adalah bagian wajib setiap simulasi.</p>
-<h1 id="turbulensi">Turbulensi</h1>
-<h2 id="rata-rata-reynolds">Rata-rata Reynolds</h2>
+<h2 id="turbulensi">Turbulensi</h2>
+<h3 id="rata-rata-reynolds">Rata-rata Reynolds</h3>
 <p>Aliran turbulen penuh dengan fluktuasi acak di semua skala. Untuk
 teknik, biasanya cukup mengetahui rata-ratanya. Dekomposisi Reynolds
 menulis setiap besaran sebagai rata-rata ditambah fluktuasi, <span
@@ -131,7 +131,7 @@ viskositas menjadi panas. Seperti air terjun bertingkat, energi mengalir
 dari kolam besar ke kolam-kolam yang semakin kecil, dan model turbulensi
 hanya perlu tahu berapa banyak air yang jatuh ke dasar, bukan bentuk
 setiap riaknya.</p>
-<h2 id="large-eddy-simulation">Large eddy simulation</h2>
+<h3 id="large-eddy-simulation">Large eddy simulation</h3>
 <p><em>Large eddy simulation</em> (LES) menyelesaikan pusaran besar
 secara langsung dan hanya memodelkan pusaran yang lebih kecil dari
 ukuran grid. Model Smagorinsky <span class="citation"
@@ -142,7 +142,7 @@ S}|\)</span>, sebanding dengan kuadrat ukuran grid dan laju deformasi
 yang terselesaikan. LES jauh lebih mahal dari RANS karena harus berjalan
 dalam waktu dengan grid halus, tetapi jauh lebih murah dari DNS, dan ia
 menangkap struktur aliran tak tunak yang hilang dalam rata-rata.</p>
-<h1 id="panas-spesies-dan-reaksi">Panas, spesies, dan reaksi</h1>
+<h2 id="panas-spesies-dan-reaksi">Panas, spesies, dan reaksi</h2>
 <p>Dalam aliran turbulen, panas dan zat terlarut juga diaduk oleh
 pusaran. Konduktivitas efektif menjadi jumlah konduktivitas molekuler
 dan sumbangan turbulen, <span
@@ -153,7 +153,7 @@ sumber dalam persamaan spesies dan energi sekaligus. Kuliah menyinggung
 contoh-contoh industri, dari nosel Laval sampai pemanasan logam cair,
 untuk menunjukkan bahwa sebagian besar kerja pemodelan ada pada
 suku-suku sumber ini, bukan pada solvernya.</p>
-<h1 id="aliran-multifase">Aliran multifase</h1>
+<h2 id="aliran-multifase">Aliran multifase</h2>
 <p>Banyak aliran industri melibatkan lebih dari satu fase: gelembung gas
 di dalam cairan, butiran di dalam gas, tetesan di dalam udara. Kuliah
 membahas beberapa keluarga pendekatan.</p>
@@ -179,8 +179,8 @@ untuk unggun terfluidisasi dan pengangkutan pneumatik. Ketika partikel
 terlalu banyak untuk dilacak satu per satu, model dua fluida
 memperlakukan kedua fase sebagai kontinum yang saling menembus,
 digandeng oleh fraksi volume dan pertukaran momentum.</p>
-<h1 id="di-mana-machine-learning-masuk">Di mana machine learning
-masuk</h1>
+<h2 id="di-mana-machine-learning-masuk">Di mana machine learning
+masuk</h2>
 <p>Bab ini memperlihatkan tiga titik lemah simulasi aliran. Model
 penutup, seperti viskositas turbulen dan model sub-grid, dibangun dari
 asumsi yang sering tidak berlaku. Simulasi yang cukup teliti mahal
@@ -192,7 +192,7 @@ menggantikan solver (<a href="ch15_pinn.html">Bab 25</a> dan <a
 href="ch16_operator.html">Bab 26</a>), dan metode yang memanfaatkan pola
 berulang agar simulasi panjang bisa diekstrapolasi dengan murah (<a
 href="ch19_rcfd.html">Bab 29</a>).</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti kuliah Numerical Methods in Fluid Mechanics bagian
 volume hingga, kopling tekanan dan kecepatan, turbulensi, panas dan
 spesies, serta multifase. Bacaan pendamping: <span class="citation"
@@ -201,7 +201,7 @@ class="citation" data-cites="ferziger2020">Ferziger, Perić, dan Street
 (2020)</span>, <span class="citation" data-cites="patankar1980">Suhas V.
 Patankar (1980)</span>, dan <span class="citation"
 data-cites="pope2000">Pope (2000)</span>.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-courant1928" class="csl-entry" role="listitem">

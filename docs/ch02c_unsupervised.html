@@ -34,7 +34,7 @@ seperti itu: arah-arah yang penting, sumber-sumber tersembunyi,
 kelompok-kelompok alami, atau peta berdimensi rendah yang mempertahankan
 tetangga. Hasilnya sering menjadi langkah pertama sebelum model
 supervised dibangun.</p>
-<h1 id="dua-cara-melihat-pca">Dua cara melihat PCA</h1>
+<h2 id="dua-cara-melihat-pca">Dua cara melihat PCA</h2>
 <p>PCA sudah muncul di <a href="ch05_computer_vision.html">Bab 7</a>
 sebagai eigenfaces. Kuliah unsupervised menekankan bahwa ada dua cara
 setara untuk menurunkannya. Cara pertama mencari arah <span
@@ -56,7 +56,7 @@ Smola, dan Müller 1998)</span> memetakan data secara implisit ke ruang
 fitur berdimensi tinggi lewat sebuah kernel, lalu menjalankan PCA di
 sana. Yang dibutuhkan hanya matriks kernel antar titik data, bukan
 pemetaannya secara eksplisit.</p>
-<h1 id="memisahkan-sumber-ica">Memisahkan sumber: ICA</h1>
+<h2 id="memisahkan-sumber-ica">Memisahkan sumber: ICA</h2>
 <p>Di sebuah pesta, dua orang berbicara bersamaan, dan dua mikrofon di
 sudut ruangan merekam campuran suara keduanya dengan proporsi yang
 berbeda. Bisakah kita mendapatkan kembali suara masing-masing orang
@@ -87,7 +87,7 @@ Gauss, karena campuran Gauss yang diputar tetap Gauss.</p>
 arah varians terbesar, yang biasanya masih campuran kedua pembicara. ICA
 menemukan arah yang membuat setiap keluaran terdengar seperti satu
 orang.</p>
-<h1 id="analisis-faktor">Analisis faktor</h1>
+<h2 id="analisis-faktor">Analisis faktor</h2>
 <p>Analisis faktor mirip probabilistic PCA (<a
 href="ch09_ml_advanced.html">Bab 11</a>), <span
 class="math inline">\(\boldsymbol{x}=\boldsymbol{W}\boldsymbol{z}+\boldsymbol\mu+\boldsymbol\varepsilon\)</span>,
@@ -101,7 +101,7 @@ antara mereka. Model ini tidak punya solusi tertutup, sehingga dilatih
 dengan EM. Dalam data biologis, di mana setiap gen atau setiap probe
 punya tingkat noise yang berbeda, asumsi ini jauh lebih masuk akal
 daripada noise yang sama untuk semua.</p>
-<h1 id="peta-berdimensi-rendah">Peta berdimensi rendah</h1>
+<h2 id="peta-berdimensi-rendah">Peta berdimensi rendah</h2>
 <p>Kadang yang dicari bukan sumber, melainkan peta: gambaran dua dimensi
 dari data berdimensi tinggi yang mempertahankan sebanyak mungkin
 hubungan kedekatan. Kuliah membahas sederet metode dengan filosofi yang
@@ -132,8 +132,8 @@ Jarak antar kelompok di peta t-SNE tidak bermakna kuantitatif, dan
 ukuran kelompok bisa diperbesar atau diperkecil oleh algoritmenya.
 Kuliah AI and Visualization kembali ke masalah ini di <a
 href="ch11_xai.html">Bab 13</a>.</p>
-<h1 id="pengelompokan">Pengelompokan</h1>
-<h2 id="k-means">k-means</h2>
+<h2 id="pengelompokan">Pengelompokan</h2>
+<h3 id="k-means">k-means</h3>
 <p>Algoritme <span class="math inline">\(k\)</span>-means <span
 class="citation" data-cites="lloyd1982">(Lloyd 1982)</span> bergantian
 antara dua langkah: tetapkan setiap titik ke pusat terdekat, lalu
@@ -152,7 +152,7 @@ class="math inline">\(10{,}5\)</span>. Langkah berikutnya tidak mengubah
 apa pun. Kalau pusat awalnya buruk, hasil akhirnya bisa buruk juga,
 sehingga <span class="math inline">\(k\)</span>-means biasanya
 dijalankan beberapa kali dari awal acak yang berbeda.</p>
-<h2 id="model-campuran-dan-em">Model campuran dan EM</h2>
+<h3 id="model-campuran-dan-em">Model campuran dan EM</h3>
 <p><span class="math inline">\(k\)</span>-means adalah versi keras dari
 model campuran Gauss. Pada model campuran, setiap titik punya peluang
 menjadi anggota setiap kelompok, dan kelompoknya boleh lonjong dengan
@@ -162,7 +162,7 @@ setiap komponen dengan rata-rata berbobot (langkah M). Ketika kovarians
 semua komponen dibuat sama dan kecil sekali, keanggotaan menjadi nol
 atau satu, dan EM berubah menjadi <span
 class="math inline">\(k\)</span>-means.</p>
-<h2 id="hierarki-dan-kemiripan">Hierarki dan kemiripan</h2>
+<h3 id="hierarki-dan-kemiripan">Hierarki dan kemiripan</h3>
 <p>Pengelompokan hierarkis tidak memilih jumlah kelompok di awal. Versi
 aglomeratif mulai dengan setiap titik sebagai kelompoknya sendiri, lalu
 berulang kali menggabungkan dua kelompok terdekat. Arti “terdekat”
@@ -174,7 +174,7 @@ dendrogram yang bisa dipotong di ketinggian mana pun. Metode berbasis
 kemiripan, termasuk pengelompokan spektral, memandang data sebagai graf
 kemiripan dan memotongnya di tempat ikatan paling lemah, sebuah ide yang
 sudah kita temui pada segmentasi gambar.</p>
-<h2 id="biclustering">Biclustering</h2>
+<h3 id="biclustering">Biclustering</h3>
 <p>Data ekspresi gen berbentuk matriks: baris adalah gen, kolom adalah
 sampel jaringan atau kondisi. Sekelompok gen sering hanya bekerja sama
 di sebagian sampel, misalnya hanya di jaringan tumor tertentu.
@@ -188,8 +188,8 @@ setiap faktor hanya melibatkan sedikit gen dan sedikit sampel. Inilah
 salah satu titik pertemuan pertama antara machine learning dan ilmu
 hayati di buku ini, dan kita akan kembali ke data seperti ini di <a
 href="ch41_molekul.html">Bab 19</a>.</p>
-<h1 id="dari-fitur-ke-pengklasifikasi">Dari fitur ke
-pengklasifikasi</h1>
+<h2 id="dari-fitur-ke-pengklasifikasi">Dari fitur ke
+pengklasifikasi</h2>
 <p>Kuliah pattern classification membahas jalur lengkap sebuah sistem
 pengenal pola: ambil sinyal mentah, ubah menjadi fitur, pilih fitur yang
 berguna, latih pengklasifikasi, lalu evaluasi dengan jujur. Contoh yang
@@ -222,7 +222,7 @@ Kuliah juga memperkenalkan jaringan saraf dengan cara pandang praktis:
 kapan lapisan dense cukup, kapan konvolusi lebih cocok, dan bagaimana
 transfer learning serta pretraining self-supervised mengurangi kebutuhan
 data berlabel.</p>
-<h1 id="di-luar-kelas">Di luar kelas</h1>
+<h2 id="di-luar-kelas">Di luar kelas</h2>
 <p>Metode tanpa label muncul di hampir setiap bidang yang disentuh buku
 ini. Dalam ilmu hayati, pengelompokan profil ekspresi gen memisahkan
 subtipe kanker yang tidak terlihat di bawah mikroskop, dan biclustering
@@ -236,7 +236,7 @@ analisis faktor menemukan selera tersembunyi pengguna (<a
 href="ch50_rekomendasi.html">Bab 30</a>). Di semua tempat itu,
 pertanyaannya sama: struktur apa yang tersembunyi di balik angka-angka
 ini?</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti naskah kuliah Machine Learning: Unsupervised
 Techniques (PCA dan kernel PCA, ICA, analisis faktor, metode proyeksi,
 clustering, biclustering) dan kuliah Machine Learning and Pattern
@@ -246,7 +246,7 @@ data-cites="bishop2006">Bishop (2006)</span>, <span class="citation"
 data-cites="hastie2009">Hastie, Tibshirani, dan Friedman (2009)</span>,
 dan <span class="citation" data-cites="duda2001">Duda, Hart, dan Stork
 (2001)</span>.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-bishop2006" class="csl-entry" role="listitem">

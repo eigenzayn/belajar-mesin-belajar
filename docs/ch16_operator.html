@@ -33,7 +33,7 @@ mengambil tujuan yang lebih ambisius: belajar <em>cara</em>
 menyelesaikan sebuah keluarga persamaan, sehingga solusi untuk syarat
 awal, parameter, atau geometri baru bisa diperoleh dalam satu lintasan
 maju, sering ribuan kali lebih cepat dari solver klasik.</p>
-<h1 id="dari-fungsi-ke-fungsi">Dari fungsi ke fungsi</h1>
+<h2 id="dari-fungsi-ke-fungsi">Dari fungsi ke fungsi</h2>
 <p>Solver numerik pada dasarnya adalah sebuah <em>operator</em>: ia
 memetakan satu fungsi, misalnya medan temperatur awal atau distribusi
 konduktivitas, ke fungsi lain, yaitu solusinya. Jaringan saraf biasa
@@ -43,7 +43,7 @@ belajar pemetaan antar ruang fungsi itu sendiri, sehingga model yang
 dilatih pada grid kasar bisa dievaluasi pada grid yang lebih halus <span
 class="citation" data-cites="kovachki2023">(Kovachki dkk.
 2021)</span>.</p>
-<h2 id="deeponet">DeepONet</h2>
+<h3 id="deeponet">DeepONet</h3>
 <p>DeepONet <span class="citation" data-cites="lu2021">(Lu dkk.
 2021)</span> bertumpu pada teorema aproksimasi universal untuk operator.
 Operator <span class="math inline">\(G\)</span> yang memetakan fungsi
@@ -61,7 +61,7 @@ ekspansi deret seperti Fourier atau POD (<a
 href="ch17_penemuan_reduksi.html">Bab 27</a>), dengan perbedaan bahwa
 basis dan koefisiennya sama-sama dipelajari. Karena trunk menerima
 koordinat kontinu, keluarannya bisa dievaluasi di titik mana pun.</p>
-<h2 id="fourier-neural-operator">Fourier neural operator</h2>
+<h3 id="fourier-neural-operator">Fourier neural operator</h3>
 <p>Fourier neural operator <span class="citation"
 data-cites="li2021">(Li dkk. 2020)</span> berangkat dari bentuk solusi
 banyak PDE linear: konvolusi syarat awal dengan sebuah kernel, seperti
@@ -85,7 +85,7 @@ didefinisikan per frekuensi, bukan per titik grid, model yang sama bisa
 dijalankan pada resolusi yang berbeda. Pemotongan frekuensi juga punya
 sisi buruk: struktur yang tajam, seperti gelombang kejut, sulit diwakili
 oleh sedikit mode Fourier.</p>
-<h1 id="simulator-berbasis-graf">Simulator berbasis graf</h1>
+<h2 id="simulator-berbasis-graf">Simulator berbasis graf</h2>
 <p>Grid teratur jarang ditemui dalam simulasi teknik. Mesh menyesuaikan
 diri dengan geometri, dan partikel bergerak bebas. Di sini jaringan graf
 (<a href="ch07_geometric.html">Bab 9</a>) menjadi alat alami. Graph
@@ -112,7 +112,7 @@ menunjukkan bahwa ia mencakup skema numerik klasik seperti beda hingga
 dan volume hingga sebagai kasus khusus. Hubungan ini sudah kita lihat di
 <a href="ch13_numerik_fluida.html">Bab 23</a>: volume hingga adalah
 message passing fluks.</p>
-<h1 id="masalah-rollout">Masalah rollout</h1>
+<h2 id="masalah-rollout">Masalah rollout</h2>
 <p>Hampir semua simulator yang dipelajari bekerja secara autoregresif:
 tebak langkah berikutnya, lalu pakai tebakan itu sebagai input untuk
 langkah selanjutnya. Galat kecil di setiap langkah tidak hanya menumpuk,
@@ -147,8 +147,8 @@ denoising mirip model difusi, supaya komponen frekuensi tinggi dengan
 amplitudo kecil tidak diabaikan. Analisis spektrum sering menunjukkan
 bahwa model kehilangan detail halus lebih dulu, dan detail itulah yang
 kemudian merusak stabilitas.</p>
-<h1 id="model-fondasi-untuk-fisika-dan-cuaca">Model fondasi untuk fisika
-dan cuaca</h1>
+<h2 id="model-fondasi-untuk-fisika-dan-cuaca">Model fondasi untuk fisika
+dan cuaca</h2>
 <p>Keberhasilan paling mencolok terjadi di prakiraan cuaca, di mana data
 reanalisis global berpuluh tahun tersedia. FourCastNet <span
 class="citation" data-cites="pathak2022">(Pathak dkk. 2022)</span>
@@ -177,8 +177,8 @@ ditanya di titik mana pun. <span class="citation"
 data-cites="gupta2022">Gupta dan Brandstetter (2022)</span>
 membandingkan arsitektur secara sistematis pada berbagai skala ruang dan
 waktu.</p>
-<h1 id="pertanyaan-yang-tetap-harus-diajukan">Pertanyaan yang tetap
-harus diajukan</h1>
+<h2 id="pertanyaan-yang-tetap-harus-diajukan">Pertanyaan yang tetap
+harus diajukan</h2>
 <p>Kembali ke tiga pertanyaan di <a href="ch00_peta.html">Bab 0</a>.
 Fisika masuk ke model-model ini terutama lewat data dan arsitektur:
 simulasi yang benar sebagai data latih, dan ekuivariansi, lokalitas,
@@ -193,7 +193,7 @@ data-cites="lino2023">Lino dkk. (2023)</span> dan <span class="citation"
 data-cites="vinuesa2022">Vinuesa dan Brunton (2022)</span> memberi
 gambaran yang seimbang tentang kekuatan dan batas pendekatan ini dalam
 mekanika fluida.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini dirangkai dari kuliah Deep Learning: Geometric Techniques,
 Machine Learning: Advanced Techniques, dan bacaan selama tugas akhir.
 Makalah utamanya: <span class="citation" data-cites="lu2021">Lu dkk.
@@ -206,7 +206,7 @@ class="citation" data-cites="brandstetter2022">Brandstetter, Worrall,
 dan Welling (2022)</span>, <span class="citation"
 data-cites="lippe2023">Lippe dkk. (2023)</span>, dan <span
 class="citation" data-cites="lam2023">Lam dkk. (2023)</span>.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-alkin2024" class="csl-entry" role="listitem">

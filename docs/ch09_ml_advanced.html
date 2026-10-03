@@ -36,7 +36,7 @@ mundur. Flow matching adalah persamaan transport. Neural field adalah
 fungsi kontinu yang bisa diatur oleh persamaan fisika. Untuk sampai ke
 sana, kita mulai dari pertanyaan yang paling dasar: seberapa baik kita
 bisa menaksir sesuatu dari data.</p>
-<h1 id="teori-estimasi">Teori estimasi</h1>
+<h2 id="teori-estimasi">Teori estimasi</h2>
 <p>Misalkan data <span class="math inline">\(\mathcal D\)</span>
 dibangkitkan oleh distribusi dengan parameter <span
 class="math inline">\(\theta\)</span> yang tidak diketahui, dan kita
@@ -77,7 +77,7 @@ mengatakan apakah percobaan kita cukup informatif. Kalau log-likelihood
 hampir datar terhadap parameter itu, tidak ada metode pintar yang bisa
 menaksirnya dengan baik. Masalahnya ada pada desain percobaan, bukan
 pada algoritmenya.</p>
-<h1 id="cara-pandang-bayesian">Cara pandang Bayesian</h1>
+<h2 id="cara-pandang-bayesian">Cara pandang Bayesian</h2>
 <p>Pendekatan frekuentis menganggap <span
 class="math inline">\(\theta\)</span> tetap dan datanya acak. Pendekatan
 Bayesian menganggap <span class="math inline">\(\theta\)</span> sendiri
@@ -110,8 +110,8 @@ D\mid\theta)p(\theta)\,\mathrm{d}\theta\)</span>, disebut
 model yang terlalu sederhana tidak bisa menjelaskan data, sedangkan
 model yang terlalu fleksibel menyebar peluangnya ke terlalu banyak
 kemungkinan data, sehingga keduanya mendapat evidence yang rendah.</p>
-<h1 id="variabel-laten-dan-probabilistic-pca">Variabel laten dan
-probabilistic PCA</h1>
+<h2 id="variabel-laten-dan-probabilistic-pca">Variabel laten dan
+probabilistic PCA</h2>
 <p>Banyak data lebih mudah dijelaskan kalau kita membayangkan ada sebab
 tersembunyi di baliknya. <em>Latent variable model</em> menulis <span
 class="math inline">\(p(\boldsymbol{x})=\int
@@ -142,8 +142,8 @@ lagi linear, misalnya berupa jaringan saraf, integral marginal tidak
 bisa dihitung lagi, dan posterior <span
 class="math inline">\(p(\boldsymbol{z}\mid\boldsymbol{x})\)</span> pun
 tidak. Dari sinilah VAE lahir.</p>
-<h1 id="elbo-sekali-lagi-dan-lebih-teliti">ELBO, sekali lagi dan lebih
-teliti</h1>
+<h2 id="elbo-sekali-lagi-dan-lebih-teliti">ELBO, sekali lagi dan lebih
+teliti</h2>
 <p><a href="ch06_arsitektur_generatif.html">Bab 8</a> memperkenalkan VAE
 secara intuitif. Kuliah ini menurunkannya. Ambil sembarang distribusi
 <span
@@ -206,11 +206,11 @@ dimensi setiap laten sama dengan dimensi data, dan encoder-nya tidak
 dipelajari, melainkan ditetapkan sebagai penambahan noise Gauss sedikit
 demi sedikit <span class="citation" data-cites="luo2022">(Luo
 2022)</span>.</p>
-<h1 id="persamaan-diferensial-biasa-parsial-dan-stokastik">Persamaan
-diferensial biasa, parsial, dan stokastik</h1>
+<h2 id="persamaan-diferensial-biasa-parsial-dan-stokastik">Persamaan
+diferensial biasa, parsial, dan stokastik</h2>
 <p>Sebelum masuk ke model difusi, kuliah berhenti sejenak untuk
 mengulang matematika yang akan dipakai.</p>
-<h2 id="ode">ODE</h2>
+<h3 id="ode">ODE</h3>
 <p>Persamaan diferensial biasa, <span
 class="math inline">\(\dot{\boldsymbol{x}}=f(\boldsymbol{x},t)\)</span>
 dengan <span
@@ -237,7 +237,7 @@ sekali dan lambat sekaligus, metode eksplisit terpaksa memakai langkah
 kecil sekali agar stabil, dan metode implisit atau langkah adaptif
 menjadi pilihan yang lebih baik. Topik ini dibahas lebih dalam di <a
 href="ch14_fisika_komputasi.html">Bab 24</a>.</p>
-<h2 id="pde-dan-persamaan-panas">PDE dan persamaan panas</h2>
+<h3 id="pde-dan-persamaan-panas">PDE dan persamaan panas</h3>
 <p>Persamaan diferensial parsial melibatkan turunan terhadap lebih dari
 satu variabel. Contoh yang dibahas panjang lebar di kuliah adalah
 persamaan panas pada selang <span class="math inline">\((0,1)\)</span>,
@@ -255,7 +255,7 @@ k^2t}\)</span>, yang di ruang posisi berarti konvolusi dengan kernel
 Gauss yang semakin lebar. Pengamatan ini akan berguna sebentar lagi:
 menambahkan noise Gauss pada data sama dengan menjalankan persamaan
 panas pada distribusinya.</p>
-<h2 id="gerak-brown-dan-sde">Gerak Brown dan SDE</h2>
+<h3 id="gerak-brown-dan-sde">Gerak Brown dan SDE</h3>
 <p>Gerak Brown <span class="math inline">\(W_t\)</span> adalah batas
 acak dari jalan acak dengan langkah yang semakin kecil. Kenaikannya
 independen dan berdistribusi normal, <span
@@ -310,7 +310,7 @@ p.\]</span> Suku pertama adalah transport oleh drift, suku kedua adalah
 difusi. Untuk <span class="math inline">\(f=0\)</span>, ini persis
 persamaan panas. Sebuah SDE yang bekerja pada partikel-partikel menjadi
 PDE yang bekerja pada kerapatannya.</p>
-<h1 id="neural-ode">Neural ODE</h1>
+<h2 id="neural-ode">Neural ODE</h2>
 <p>Blok residual, <span
 class="math inline">\(\boldsymbol{h}_{l+1}=\boldsymbol{h}_l+F(\boldsymbol{h}_l)\)</span>,
 terlihat seperti satu langkah Euler. Kalau jumlah lapisan dibuat tak
@@ -341,7 +341,7 @@ secara kontinu. Data yang diambil pada waktu tidak teratur bisa langsung
 dipakai, dan model dinamika yang dipelajari bisa dijalankan dengan
 solver standar. Hubungan dengan model difusi juga erat: sampling
 deterministik dari model difusi adalah menyelesaikan sebuah ODE.</p>
-<h1 id="model-difusi">Model difusi</h1>
+<h2 id="model-difusi">Model difusi</h2>
 <p>Model difusi denoising <span class="citation"
 data-cites="sohldickstein2015 ho2020">(Sohl-Dickstein dkk. 2015; Ho,
 Jain, dan Abbeel 2020)</span> menetapkan proses maju yang merusak data
@@ -397,8 +397,8 @@ data-cites="kingma2021">(Diederik P. Kingma dkk. 2021)</span> merumuskan
 jadwal noise sebagai rasio sinyal terhadap noise yang bisa dipelajari
 dan menunjukkan bahwa ELBO model difusi hanya bergantung pada jadwal itu
 melalui nilai ujung-ujungnya.</p>
-<h1 id="score-dan-persamaan-diferensial-stokastik">Score dan persamaan
-diferensial stokastik</h1>
+<h2 id="score-dan-persamaan-diferensial-stokastik">Score dan persamaan
+diferensial stokastik</h2>
 <p><span class="citation" data-cites="song2021">Y. Song dkk.
 (2020)</span> menyatukan model difusi dalam bahasa SDE. Proses maju
 adalah SDE <span
@@ -419,11 +419,11 @@ class="math inline">\(s_\theta(\boldsymbol{x},t)\)</span> dilatih untuk
 menebak score ini. Melatihnya ternyata mudah berkat <em>denoising score
 matching</em> <span class="citation" data-cites="vincent2011">(Vincent
 2011)</span>: kalau <span
-class="math inline">\(\tilde\boldsymbol{x}=\boldsymbol{x}+\sigma\boldsymbol\epsilon\)</span>,
+class="math inline">\(\tilde{\boldsymbol{x}}=\boldsymbol{x}+\sigma\boldsymbol\epsilon\)</span>,
 score dari distribusi bersyarat <span
-class="math inline">\(p(\tilde\boldsymbol{x}\mid\boldsymbol{x})\)</span>
+class="math inline">\(p(\tilde{\boldsymbol{x}}\mid\boldsymbol{x})\)</span>
 adalah <span
-class="math inline">\(-(\tilde\boldsymbol{x}-\boldsymbol{x})/\sigma^2=-\boldsymbol\epsilon/\sigma\)</span>,
+class="math inline">\(-(\tilde{\boldsymbol{x}}-\boldsymbol{x})/\sigma^2=-\boldsymbol\epsilon/\sigma\)</span>,
 sehingga menebak score sama dengan menebak noise, persis seperti
 DDPM.</p>
 <p>Ada juga ODE yang menghasilkan distribusi marginal yang sama di
@@ -444,7 +444,7 @@ menebak score, setara sampai faktor skala. Untuk membangkitkan sampel
 bersyarat, misalnya gambar dari teks, score ditambah dengan gradien
 sebuah penilai syarat, atau syarat langsung diberikan sebagai input ke
 jaringan.</p>
-<h1 id="flow-matching">Flow matching</h1>
+<h2 id="flow-matching">Flow matching</h2>
 <p>Kalau ujung-ujungnya kita menyelesaikan sebuah ODE, mengapa tidak
 langsung belajar ODE-nya? Flow matching <span class="citation"
 data-cites="lipman2023">(Lipman dkk. 2022)</span> melakukan hal itu.
@@ -486,7 +486,7 @@ kontinuitas yang mengatur probability path, <span
 class="math inline">\(\partial_tp_t+\nabla\cdot(p_tv_t)=0\)</span>,
 adalah persamaan kekekalan massa yang sama dengan di mekanika
 fluida.</p>
-<h1 id="neural-field">Neural field</h1>
+<h2 id="neural-field">Neural field</h2>
 <p>Unit terakhir kuliah meninggalkan model generatif dan membahas cara
 lain merepresentasikan data. Dalam fisika, medan adalah besaran yang
 punya nilai di setiap titik ruang dan waktu: temperatur, tekanan,
@@ -531,7 +531,7 @@ memakai fungsi sinus sebagai aktivasi seperti pada SIREN <span
 class="citation" data-cites="sitzmann2020">(Sitzmann dkk. 2020)</span>.
 Spectral bias juga menjadi salah satu alasan PINN sulit mempelajari
 solusi yang berosilasi cepat (<a href="ch15_pinn.html">Bab 25</a>).</p>
-<h1 id="di-luar-kelas">Di luar kelas</h1>
+<h2 id="di-luar-kelas">Di luar kelas</h2>
 <p>Alat-alat dari bab ini menyebar jauh. Model difusi membangkitkan
 gambar dan video (<a href="ch52_terbaru.html">Bab 32</a>), dan modul
 struktur AlphaFold3 adalah model difusi yang membangkitkan koordinat
@@ -555,7 +555,7 @@ distribusi, dan flow matching adalah persamaan kontinuitas. Batas
 Cramér–Rao mengingatkan bahwa ketika kita mencoba menyimpulkan parameter
 fisika dari data, informasi yang terkandung di dalam data membatasi apa
 yang bisa dicapai oleh metode mana pun.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti delapan unit kuliah Machine Learning: Advanced
 Techniques: teori estimasi, statistik Bayesian, probabilistic PCA, VAE
 dan ELBO, ODE, PDE, dan SDE, neural ODE, model difusi (DDPM, DDIM),
@@ -569,7 +569,7 @@ Abbeel (2020)</span>, <span class="citation" data-cites="song2021">Y.
 Song dkk. (2020)</span>, <span class="citation"
 data-cites="lipman2023">Lipman dkk. (2022)</span>, dan ulasan <span
 class="citation" data-cites="luo2022">Luo (2022)</span>.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-anderson1982" class="csl-entry" role="listitem">

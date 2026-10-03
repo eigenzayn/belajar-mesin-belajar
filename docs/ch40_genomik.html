@@ -35,7 +35,7 @@ ratusan juta potongan bacaan, dan satu pengukuran ekspresi gen mencatat
 aktivitas puluhan ribu gen sekaligus. Hampir setiap langkah dari sampel
 ke kesimpulan melibatkan algoritme, statistik, dan semakin sering
 machine learning.</p>
-<h1 id="dogma-sentral">Dogma sentral</h1>
+<h2 id="dogma-sentral">Dogma sentral</h2>
 <p>Informasi genetik tersimpan dalam DNA, rantai ganda yang tersusun
 dari empat basa: adenin, sitosin, guanin, dan timin. Basa pada satu
 untai berpasangan dengan basa pada untai lain, A dengan T dan C dengan
@@ -62,7 +62,7 @@ membawa perpustakaan yang sama, tetapi memfotokopi halaman yang berbeda.
 Itulah sebabnya sel otot dan sel saraf begitu berbeda meski DNA-nya
 identik, dan itulah sebabnya mengukur RNA, yaitu fotokopi yang sedang
 beredar, memberi tahu apa yang sedang dikerjakan sebuah sel.</p>
-<h1 id="variasi-genetik">Variasi genetik</h1>
+<h2 id="variasi-genetik">Variasi genetik</h2>
 <p>Dua manusia berbeda di sekitar satu dari setiap seribu basa. Variasi
 yang paling umum adalah <em>single nucleotide polymorphism</em> (SNP),
 satu posisi tempat sebagian orang punya satu basa dan sebagian lain
@@ -85,7 +85,7 @@ mengukur ratusan ribu SNP pada ribuan orang dan mencari varian yang
 frekuensinya berbeda antara penderita dan bukan penderita sebuah
 penyakit. Karena jumlah uji statistiknya banyak sekali, ambang
 signifikansinya harus ketat sekali.</p>
-<h1 id="mengukur-ekspresi-gen">Mengukur ekspresi gen</h1>
+<h2 id="mengukur-ekspresi-gen">Mengukur ekspresi gen</h2>
 <p>Microarray DNA adalah kaca kecil yang ditempeli jutaan potongan DNA
 pendek yang dikenal, yang disebut probe. RNA dari sampel diubah menjadi
 DNA berlabel fluoresen, lalu dibiarkan menempel pada probe yang cocok.
@@ -98,7 +98,7 @@ metode berbasis analisis faktor (<a href="ch02c_unsupervised.html">Bab
 4</a>) dari kelompok Sepp Hochreiter, yang memperlakukan sinyal bersama
 antar probe sebagai faktor laten dan noise pribadi setiap probe sebagai
 noise analisis faktor.</p>
-<h1 id="pengurutan-dna">Pengurutan DNA</h1>
+<h2 id="pengurutan-dna">Pengurutan DNA</h2>
 <p>Pengurutan Sanger, generasi pertama, membaca satu potongan DNA
 sepanjang beberapa ratus basa dengan akurasi tinggi, dan dipakai dalam
 Proyek Genom Manusia. Generasi kedua, yang dipelopori platform Illumina,
@@ -122,7 +122,7 @@ class="math inline">\(L\)</span> panjang bacaan, dan <span
 class="math inline">\(G\)</span> panjang genom. Untuk genom manusia
 sepanjang tiga miliar basa, cakupan tiga puluh kali dengan bacaan 150
 basa membutuhkan sekitar 600 juta bacaan.</p>
-<h1 id="dari-bacaan-ke-genom">Dari bacaan ke genom</h1>
+<h2 id="dari-bacaan-ke-genom">Dari bacaan ke genom</h2>
 <p>Kalau genom acuan sudah ada, setiap bacaan dipetakan ke posisinya di
 acuan. Mencocokkan ratusan juta bacaan pendek ke tiga miliar huruf
 dengan toleransi terhadap galat membutuhkan indeks yang cerdas.
@@ -154,7 +154,7 @@ keduanya, karena potongan dari dua tempat berbeda tampak identik. Bacaan
 panjang membantu justru karena mereka bisa melompati pengulangan. Kuliah
 juga menunjukkan bahwa jaringan graf (<a href="ch07_geometric.html">Bab
 9</a>) mulai dipakai untuk menyederhanakan graf rakitan.</p>
-<h1 id="rna-seq">RNA-seq</h1>
+<h2 id="rna-seq">RNA-seq</h2>
 <p>Pengurutan juga bisa mengukur ekspresi gen. RNA diubah menjadi DNA,
 diurutkan, lalu jumlah bacaan yang jatuh pada setiap gen dihitung.
 Hitungan ini harus dinormalisasi karena sampel yang berbeda diurutkan
@@ -168,8 +168,8 @@ dispersi dan perubahan lipat dari banyak gen “dipinjamkan” satu sama
 lain dan ditarik ke arah tren bersama, sebuah bentuk prior Bayesian
 empiris. Dengan puluhan ribu gen yang diuji sekaligus, nilai p dikoreksi
 untuk mengendalikan proporsi temuan palsu.</p>
-<h1 id="di-mana-machine-learning-masuk">Di mana machine learning
-masuk</h1>
+<h2 id="di-mana-machine-learning-masuk">Di mana machine learning
+masuk</h2>
 <p>Genomik adalah salah satu medan tempat machine learning paling banyak
 dipakai di ilmu hayati. Jaringan saraf memanggil basa dari sinyal
 nanopore, memanggil varian dari tumpukan bacaan, dan memprediksi dari
@@ -184,14 +184,14 @@ ribu dengan jumlah sampel puluhan, batch percobaan yang meninggalkan
 jejak sistematis, dan korelasi antar sampel dari pasien atau keluarga
 yang sama, semua sumber kebocoran yang dibahas di <a
 href="ch01_belajar_dari_data.html">Bab 1</a>.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti kuliah Genome Analysis and Transcriptomics (dasar
 biologi molekuler, genetika populasi, microarray dan pemrosesannya,
 pengurutan DNA, pemetaan bacaan, pemanggilan varian, perakitan genom,
 RNA-seq) dan Introduction to Genetics. Untuk analisis urutan secara
 probabilistik, <span class="citation" data-cites="durbin1998">Durbin
 dkk. (1998)</span> tetap menjadi rujukan klasik.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-durbin1998" class="csl-entry" role="listitem">

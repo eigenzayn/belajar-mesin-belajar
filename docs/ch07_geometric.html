@@ -36,7 +36,7 @@ tidak mengubah jawaban. Kucing yang digeser tetap kucing. Molekul yang
 diputar tetap molekul yang sama. Urutan penomoran atom dalam berkas
 tidak mengubah sifat kimianya. Kalau pengetahuan seperti ini ditanamkan
 ke dalam arsitektur, ruang yang harus dicari menyusut drastis.</p>
-<h1 id="sinyal-domain-dan-grup">Sinyal, domain, dan grup</h1>
+<h2 id="sinyal-domain-dan-grup">Sinyal, domain, dan grup</h2>
 <p>Bahasa geometric deep learning dimulai dengan memisahkan dua hal:
 domain dan sinyal. Domain <span class="math inline">\(\Omega\)</span>
 adalah tempat data hidup, misalnya grid piksel, himpunan titik, graf,
@@ -80,7 +80,7 @@ bukan hiasan. Untuk menggeser sebuah gambar ke kanan, nilai piksel di
 posisi baru diambil dari posisi lama di sebelah kirinya. Tanpa invers,
 komposisi dua pergeseran akan keluar dengan urutan terbalik, dan <span
 class="math inline">\(\rho\)</span> tidak lagi menjadi homomorfisme.</p>
-<h1 id="invariansi-dan-ekuivariansi">Invariansi dan ekuivariansi</h1>
+<h2 id="invariansi-dan-ekuivariansi">Invariansi dan ekuivariansi</h2>
 <p>Misalkan <span class="math inline">\(\rho\)</span> dan <span
 class="math inline">\(\rho&#39;\)</span> representasi grup yang sama
 pada ruang input dan ruang output. Fungsi <span
@@ -112,7 +112,7 @@ Galat estimasi justru bisa turun, karena setiap contoh data kini
 “mewakili” seluruh orbitnya. Hanya saja, kalau grupnya kecil dibanding
 dimensi masalah, galat estimasi tetap bisa terkena kutukan dimensi.
 Simetri membantu, tetapi tidak membebaskan sepenuhnya.</p>
-<h1 id="skala-dan-cetak-biru">Skala dan cetak biru</h1>
+<h2 id="skala-dan-cetak-biru">Skala dan cetak biru</h2>
 <p>Simetri saja belum cukup. Prior kedua adalah <em>scale
 separation</em>: banyak sinyal bisa dipahami secara bertingkat. Detail
 lokal memengaruhi detail lokal di sekitarnya, dan struktur besar bisa
@@ -145,7 +145,7 @@ dengan seberapa jauh deformasi itu dari transformasi grup. Sifat ini
 disebut stabilitas terhadap deformasi, dan ia menjadi ukuran kualitas
 representasi yang akan muncul lagi pada wavelet dan pada filter
 spektral.</p>
-<h1 id="himpunan">Himpunan</h1>
+<h2 id="himpunan">Himpunan</h2>
 <p>Domain paling sederhana adalah himpunan tanpa struktur. Simetrinya
 adalah grup permutasi: penomoran elemen tidak boleh berpengaruh. Sinyal
 pada himpunan <span class="math inline">\(n\)</span> elemen bisa ditulis
@@ -171,7 +171,7 @@ setiap elemen dan bersifat ekuivarian, penjumlahan adalah pooling yang
 invarian, dan <span class="math inline">\(\phi\)</span> bekerja pada
 ringkasan global. Kedua fungsi dipelajari, sedangkan penjumlahannya
 tetap.</p>
-<h1 id="graf">Graf</h1>
+<h2 id="graf">Graf</h2>
 <p>Graf menambahkan satu bahan ke himpunan: hubungan antar elemen. Graf
 tak berarah dengan atribut simpul bisa ditulis sebagai matriks fitur
 <span class="math inline">\(\boldsymbol{X}\)</span> dan matriks
@@ -189,7 +189,7 @@ P^\top)=f(\boldsymbol{X},\boldsymbol A)\)</span>, dan fungsi tingkat
 simpul harus ekuivarian, <span class="math inline">\(F(\boldsymbol
 P\boldsymbol{X},\boldsymbol P\boldsymbol A\boldsymbol
 P^\top)=\boldsymbol P\,F(\boldsymbol{X},\boldsymbol A)\)</span>.</p>
-<h2 id="message-passing">Message passing</h2>
+<h3 id="message-passing">Message passing</h3>
 <p>Graph neural network modern hampir semuanya mengikuti pola
 <em>message passing</em> <span class="citation"
 data-cites="gilmer2017 battaglia2018">(Gilmer dkk. 2017; Battaglia dkk.
@@ -249,7 +249,7 @@ rumahnya dan memperbarui pengetahuannya. Setelah satu pagi, kabar dari
 rumah sebelah sudah sampai. Setelah tiga pagi, kabar dari rumah yang
 berjarak tiga sudah sampai. Satu lapisan message passing adalah satu
 pagi.</p>
-<h2 id="seberapa-kuat-jaringan-graf">Seberapa kuat jaringan graf?</h2>
+<h3 id="seberapa-kuat-jaringan-graf">Seberapa kuat jaringan graf?</h3>
 <p>Bisakah jaringan graf membedakan dua graf yang tidak isomorfik?
 Pertanyaan ini terhubung dengan uji klasik <em>Weisfeiler–Leman</em>
 (WL). Uji ini mewarnai setiap simpul, lalu berulang kali memberi warna
@@ -287,7 +287,7 @@ semua simpul lain dengan bobot attention. Tanpa positional encoding,
 attention memang ekuivarian terhadap permutasi. Dengan positional
 encoding seperti yang dipakai dalam praktik, sifat itu sengaja dilepas,
 karena urutan kata memang bermakna.</p>
-<h2 id="oversquashing">Oversquashing</h2>
+<h3 id="oversquashing">Oversquashing</h3>
 <p>Untuk menangkap interaksi jarak jauh, kita menambah lapisan. Tetapi
 jumlah simpul dalam radius <span class="math inline">\(r\)</span> bisa
 tumbuh secara eksponensial, sementara semua informasinya harus
@@ -308,7 +308,7 @@ kelengkungan negatif <span class="citation"
 data-cites="topping2022">(Topping dkk. 2021)</span>. Kabar dari desa
 sebelah harus lewat satu jembatan sempit, dan di jembatan itu sebagian
 besar berita hilang.</p>
-<h1 id="grid">Grid</h1>
+<h2 id="grid">Grid</h2>
 <p>Grid adalah kasus yang paling kita kenal. Grid satu dimensi bisa
 dilihat sebagai graf berbentuk lingkaran, kalau tepinya disambung secara
 periodik. Grup simetrinya adalah pergeseran siklik. Gambar <span
@@ -357,7 +357,7 @@ rata-rata. Hasilnya adalah representasi yang invarian terhadap
 pergeseran dan stabil terhadap deformasi, sebuah CNN yang filternya
 tidak dipelajari tetapi dirancang, dan dalam banyak hal menjadi model
 teoretis untuk memahami CNN.</p>
-<h1 id="konvolusi-grup">Konvolusi grup</h1>
+<h2 id="konvolusi-grup">Konvolusi grup</h2>
 <p>Konvolusi bisa dipandang sebagai “transformasikan lalu cocokkan”:
 geser filter ke setiap posisi, lalu ukur kecocokannya dengan sinyal.
 Kalau grupnya lebih besar dari pergeseran, misalnya pergeseran ditambah
@@ -381,7 +381,7 @@ contoh homogeneous space, dan stabilizer kutub utaranya adalah rotasi di
 sekitar sumbu yang melewati kutub. Bidang di bawah gerak kaku, yaitu
 pergeseran dan rotasi, adalah contoh lainnya, dengan stabilizer setiap
 titik berupa rotasi di sekitar titik itu.</p>
-<h1 id="manifold-dan-mesh">Manifold dan mesh</h1>
+<h2 id="manifold-dan-mesh">Manifold dan mesh</h2>
 <p>Banyak data hidup di permukaan melengkung: tubuh manusia, sayap
 pesawat, permukaan bumi. Manifold adalah model matematisnya. Secara
 informal, manifold adalah ruang yang di sekitar setiap titik tampak
@@ -441,7 +441,7 @@ memperlihatkan bahwa Laplacian adalah sebuah langkah message passing:
 setiap simpul menjumlahkan selisih dirinya dengan tetangganya. Konvolusi
 spektral, jaringan graf, dan operator diferensial pada permukaan
 ternyata adalah satu keluarga.</p>
-<h1 id="simetri-di-luar-kelas">Simetri di luar kelas</h1>
+<h2 id="simetri-di-luar-kelas">Simetri di luar kelas</h2>
 <p>Cetak biru ini muncul di banyak bidang dengan nama yang berbeda.
 Molekul adalah graf atom, dan sifatnya tidak berubah kalau molekul
 diputar atau atom-atomnya dinomori ulang, sehingga jaringan graf dan
@@ -493,7 +493,7 @@ adalah satu lapisan message passing dengan bobot yang sudah ditentukan.
 Pandangan ini juga menjelaskan gejala <em>oversmoothing</em> pada
 jaringan graf yang terlalu dalam: seperti panas yang lama-lama merata,
 fitur semua simpul menjadi semakin mirip.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti kuliah Deep Learning: Geometric Techniques, yang
 memakai materi kursus Geometric Deep Learning dari Oxford dan daftar
 topik ujiannya: kutukan dimensi, prior geometris, himpunan, graf, grid,
@@ -501,7 +501,7 @@ konvolusi grup, manifold, dan konvolusi spektral. Acuan utama adalah
 <span class="citation" data-cites="bronstein2021">Bronstein dkk.
 (2021)</span>, dengan latar belakang di <span class="citation"
 data-cites="bronstein2017">Bronstein dkk. (2017)</span>.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-alon2021" class="csl-entry" role="listitem">

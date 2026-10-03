@@ -36,8 +36,8 @@ mengoptimalkan sifat-sifatnya, lalu menguji pada hewan dan manusia.
 Machine learning tidak bisa menggantikan uji klinis, tetapi bisa membuat
 langkah-langkah awal jauh lebih murah, misalnya dengan menyaring jutaan
 molekul di komputer sebelum satu pun disintesis.</p>
-<h1 id="bagaimana-mesin-melihat-molekul">Bagaimana mesin melihat
-molekul</h1>
+<h2 id="bagaimana-mesin-melihat-molekul">Bagaimana mesin melihat
+molekul</h2>
 <p>Molekul organik kecil adalah atom-atom yang dihubungkan ikatan kimia.
 Representasi paling alami adalah graf: atom sebagai simpul, ikatan
 sebagai sisi, masing-masing dengan atribut seperti jenis unsur, muatan,
@@ -87,7 +87,7 @@ praktik, nilai di atas sekitar <span
 class="math inline">\(0{,}7\)</span> untuk ECFP sering dianggap tanda
 dua molekul cukup mirip untuk kemungkinan punya aktivitas serupa, tetapi
 ambang ini bergantung pada jenis fingerprint.</p>
-<h1 id="aktivitas-biologis">Aktivitas biologis</h1>
+<h2 id="aktivitas-biologis">Aktivitas biologis</h2>
 <p>Seberapa kuat sebuah senyawa memengaruhi targetnya diukur dalam
 percobaan yang disebut <em>assay</em>. Pada konsentrasi yang semakin
 tinggi, efeknya biasanya naik mengikuti kurva berbentuk S. Bentuk ini
@@ -132,7 +132,7 @@ matriks ini jarang: sebagian besar pasangan tidak pernah diukur. Datanya
 juga tidak seimbang, karena senyawa aktif jauh lebih sedikit dari yang
 tidak aktif, dan berisik, karena laboratorium berbeda memberi angka
 berbeda untuk pengukuran yang sama.</p>
-<h1 id="qsar-dan-virtual-screening">QSAR dan virtual screening</h1>
+<h2 id="qsar-dan-virtual-screening">QSAR dan virtual screening</h2>
 <p><em>Quantitative structure–activity relationship</em> (QSAR) adalah
 nama lama untuk apa yang kini kita sebut supervised learning pada
 molekul: memprediksi aktivitas dari struktur. Pipeline-nya mengikuti <a
@@ -168,8 +168,8 @@ dirancang. Untuk sifat yang bergantung pada bentuk tiga dimensi,
 jaringan ekuivarian seperti EGNN <span class="citation"
 data-cites="satorras2021">(Satorras, Hoogeboom, dan Welling 2021)</span>
 menjamin bahwa prediksi tidak berubah kalau molekul diputar.</p>
-<h1 id="belajar-dari-banyak-modalitas">Belajar dari banyak
-modalitas</h1>
+<h2 id="belajar-dari-banyak-modalitas">Belajar dari banyak
+modalitas</h2>
 <p>Data ilmu hayati datang dalam banyak bentuk: struktur molekul,
 deskripsi teks sebuah assay, gambar mikroskop sel, urutan protein.
 Kuliah membahas cara menghubungkannya dengan <em>contrastive
@@ -209,7 +209,7 @@ molekul kueri dengan contoh-contoh yang ada dan dengan konteks dari
 molekul lain. <em>Active learning</em> memilih molekul berikutnya yang
 paling informatif untuk diukur, biasanya yang prediksinya paling tidak
 pasti.</p>
-<h1 id="merancang-molekul-baru">Merancang molekul baru</h1>
+<h2 id="merancang-molekul-baru">Merancang molekul baru</h2>
 <p>Model generatif membalik arah QSAR: bukan dari struktur ke sifat,
 melainkan dari sifat yang diinginkan ke struktur. Pendekatan paling
 sederhana memperlakukan SMILES sebagai teks dan melatih LSTM untuk
@@ -244,7 +244,7 @@ selisih rata-rata ditambah selisih lebar sebaran. Kuliah juga
 mengingatkan bahwa metrik ini menangkap banyak bias dari jaringan yang
 dipakainya, sehingga angka FCD yang baik belum menjamin molekul yang
 baik.</p>
-<h1 id="data-medis">Data medis</h1>
+<h2 id="data-medis">Data medis</h2>
 <p>Satu bagian kuliah membahas data klinis. Catatan kesehatan elektronik
 berisi data tabular dengan campuran variabel kontinu, kategorikal, dan
 waktu, dengan banyak nilai yang hilang. Nilai yang hilang jarang hilang
@@ -262,7 +262,7 @@ tanpa pelatihan ulang. Data medis juga tersebar di banyak rumah sakit
 yang tidak boleh saling berbagi data pasien. <em>Federated learning</em>
 melatih model bersama dengan hanya bertukar pembaruan parameter, bukan
 data mentahnya.</p>
-<h1 id="merencanakan-sintesis">Merencanakan sintesis</h1>
+<h2 id="merencanakan-sintesis">Merencanakan sintesis</h2>
 <p>Molekul yang dirancang komputer tidak berguna kalau tidak bisa
 dibuat. <em>Retrosynthesis</em> bekerja mundur: dari molekul target,
 cari reaksi yang bisa menghasilkannya dari bahan yang lebih sederhana,
@@ -279,7 +279,7 @@ bahan yang tersedia. <span class="citation"
 data-cites="segler2018">Segler, Preuss, dan Waller (2018)</span> memakai
 Monte Carlo tree search yang dipandu jaringan saraf, gagasan yang sama
 dengan AlphaGo (<a href="ch02b_ai_klasik.html">Bab 3</a>).</p>
-<h1 id="benang-merah">Benang merah</h1>
+<h2 id="benang-merah">Benang merah</h2>
 <p>Bab ini memperlihatkan bahwa hampir semua alat dari bagian-bagian
 sebelumnya menemukan tempatnya di kimia dan kedokteran. Message passing
 dan ekuivariansi untuk molekul, LSTM dan transformer untuk SMILES dan
@@ -289,13 +289,13 @@ jaringan Hopfield untuk belajar dari sedikit contoh. Yang membedakan
 bidang ini adalah datanya: sedikit, berisik, tidak seimbang, dan penuh
 struktur tersembunyi yang bisa membocorkan jawaban. Di sini, cara
 mengevaluasi sering lebih menentukan daripada arsitektur model.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti kuliah AI in Life Sciences: penemuan obat,
 representasi molekul, aktivitas biologis dan ADME, QSAR dan virtual
 screening, evaluasi dan pembagian data, geometric deep learning untuk
 molekul, model multimodal dan few-shot, model generatif, data medis, dan
 perencanaan sintesis.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-gaulton2012" class="csl-entry" role="listitem">

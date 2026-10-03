@@ -30,7 +30,7 @@ terdistribusi. Belakangan terlihat bahwa teori kendali adalah saudara
 kandung reinforcement learning, dan bahwa model ruang keadaan adalah
 bahasa yang sama yang dipakai Kalman filter, state space model seperti
 Mamba, dan penemuan persamaan dari data.</p>
-<h1 id="sistem-dan-model">Sistem dan model</h1>
+<h2 id="sistem-dan-model">Sistem dan model</h2>
 <p>Sebuah sistem dinamis dijelaskan oleh keadaannya, yaitu sekumpulan
 besaran yang cukup untuk menentukan masa depannya kalau input diketahui.
 Untuk rangkaian listrik RC, keadaannya tegangan kapasitor. Untuk kaskade
@@ -63,7 +63,7 @@ ketika semua nilai eigen punya bagian real negatif. Bentuk Jordan
 menguraikan sistem menjadi mode-mode independen, sehingga setiap nilai
 eigen bisa dibaca sebagai satu cara sistem meluruh, tumbuh, atau
 berosilasi.</p>
-<h1 id="bisa-dicapai-bisa-diamati">Bisa dicapai, bisa diamati</h1>
+<h2 id="bisa-dicapai-bisa-diamati">Bisa dicapai, bisa diamati</h2>
 <p>Dua pertanyaan menentukan apakah sebuah sistem bisa dikendalikan
 dengan baik. Pertama, apakah input bisa membawa keadaan ke mana saja?
 Untuk sistem linear, jawabannya ya tepat ketika matriks <span
@@ -78,7 +78,7 @@ memisahkan keadaan menjadi bagian yang bisa dicapai dan diamati, bagian
 yang hanya salah satunya, dan bagian yang tidak keduanya. Bagian yang
 tidak terjangkau dan tidak stabil adalah kabar buruk, karena tidak ada
 pengendali yang bisa menyelamatkannya.</p>
-<h1 id="pengendali-dan-pengamat">Pengendali dan pengamat</h1>
+<h2 id="pengendali-dan-pengamat">Pengendali dan pengamat</h2>
 <p>Dengan umpan balik keadaan <span class="math inline">\(\boldsymbol
 u=-\boldsymbol K\boldsymbol{x}\)</span>, sistem tertutup menjadi <span
 class="math inline">\(\dot{\boldsymbol{x}}=(\boldsymbol{A}-\boldsymbol
@@ -97,9 +97,9 @@ melakukan perhitungan yang sama untuk sistem dengan satu input berukuran
 berapa pun.</p>
 <p>Kalau keadaan tidak diukur seluruhnya, kita membangun pengamat yang
 menirukan sistem dan mengoreksi dirinya dengan galat keluaran, <span
-class="math display">\[\dot{\hat\boldsymbol{x}}=\boldsymbol{A}\hat\boldsymbol{x}+\boldsymbol
+class="math display">\[\dot{\hat{\boldsymbol{x}}}=\boldsymbol{A}\hat{\boldsymbol{x}}+\boldsymbol
 B\boldsymbol u+\boldsymbol L\big(\boldsymbol{y}-\boldsymbol
-C\hat\boldsymbol{x}\big).\]</span> Prinsip pemisahan menyatakan bahwa
+C\hat{\boldsymbol{x}}\big).\]</span> Prinsip pemisahan menyatakan bahwa
 pengendali dan pengamat bisa dirancang terpisah lalu digabung, dan
 kutub-kutub sistem gabungan adalah gabungan kutub keduanya.</p>
 <p>Alih-alih memilih kutub, kita juga bisa meminta pengendali terbaik
@@ -117,7 +117,7 @@ href="ch10_rl.html">Bab 12</a>, LQR adalah masalah reinforcement
 learning yang modelnya diketahui sempurna, dinamikanya linear, dan
 biayanya kuadratik, sehingga persamaan Bellman bisa diselesaikan secara
 tertutup.</p>
-<h1 id="domain-frekuensi">Domain frekuensi</h1>
+<h2 id="domain-frekuensi">Domain frekuensi</h2>
 <p>Transformasi Laplace mengubah persamaan diferensial linear menjadi
 persamaan aljabar. Hubungan antara input dan keluaran menjadi fungsi
 alih, <span class="math inline">\(G(s)=\boldsymbol C(s\boldsymbol
@@ -143,7 +143,7 @@ komputer bekerja pada sampel, dan pemetaan <span
 class="math inline">\(z=e^{sT}\)</span> menghubungkan domain kontinu
 dengan domain diskret. Transformasi Tustin memberi cara praktis untuk
 mengubah pengendali kontinu menjadi algoritme diskret.</p>
-<h1 id="otomasi-di-pabrik">Otomasi di pabrik</h1>
+<h2 id="otomasi-di-pabrik">Otomasi di pabrik</h2>
 <p>Teori kendali bertemu kenyataan di lantai pabrik. Kuliah production
 automation memperlihatkan lapisan-lapisan yang menjalankan kendali itu.
 <em>Programmable logic controller</em> (PLC) membaca semua input,
@@ -158,7 +158,7 @@ komunikasi yang waktunya bisa dipastikan. Standar IEC 61499 memecah
 aplikasi otomasi menjadi blok fungsi yang digerakkan oleh kejadian dan
 bisa disebar ke banyak perangkat, sebuah langkah menuju pabrik yang bisa
 dikonfigurasi ulang dengan cepat, tema utama gerakan Industri 4.0.</p>
-<h1 id="kendali-dan-machine-learning">Kendali dan machine learning</h1>
+<h2 id="kendali-dan-machine-learning">Kendali dan machine learning</h2>
 <p>Hubungan antara kendali dan machine learning berjalan ke dua arah.
 Dari kendali ke machine learning: model ruang keadaan menjadi state
 space model di deep learning (<a href="ch04_lstm_transformer.html">Bab
@@ -177,7 +177,7 @@ href="ch17_penemuan_reduksi.html">Bab 27</a>. Reinforcement learning
 sendiri bisa dipandang sebagai kendali optimal tanpa model, dan pada
 sistem nyata keduanya sering digabung: model fisika memberi dasar,
 pembelajaran mengoreksi apa yang tidak dimodelkan.</p>
-<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti naskah kuliah Control Systems (sistem dan model,
 sifat sistem, sistem LTI, keterjangkauan dan keteramatan, pengendali dan
 pengamat keadaan, LQR dan LQG, transformasi Laplace, desain pengendali,
@@ -185,7 +185,7 @@ sistem diskret) dan kuliah Production Automation Systems (perangkat
 otomasi, sistem waktu nyata, PLC, fieldbus, IEC 61499). Bacaan lanjut
 tentang hubungan kendali dan data: <span class="citation"
 data-cites="brunton2022">Brunton dan Kutz (2022)</span>.</p>
-<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-brunton2022" class="csl-entry" role="listitem">
