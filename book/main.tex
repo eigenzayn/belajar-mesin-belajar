@@ -1,0 +1,67 @@
+\documentclass[11pt,a4paper,oneside,openany,parskip=false,bibliography=totoc,numbers=noenddot]{scrbook}
+\input{preamble}
+
+\newcommand{\bab}[1]{\IfFileExists{chapters/#1.tex}{\input{chapters/#1}}{}}
+
+\begin{document}
+\frontmatter
+\input{chapters/judul}
+\input{chapters/prakata}
+\setcounter{tocdepth}{0}
+\tableofcontents
+
+\mainmatter
+\setcounter{chapter}{-1}
+\bab{ch00_peta}
+
+\part{Fondasi}
+\bab{ch01_belajar_dari_data}
+\bab{ch02_optimasi}
+\bab{ch02b_ai_klasik}
+\bab{ch02c_unsupervised}
+
+\part{Deep Learning dan Persepsi}
+\bab{ch03_dl_basic}
+\bab{ch04_lstm_transformer}
+\bab{ch05_computer_vision}
+\bab{ch06_arsitektur_generatif}
+\bab{ch07_geometric}
+\bab{ch08_probabilistik}
+\bab{ch09_ml_advanced}
+\bab{ch10_rl}
+\bab{ch11_xai}
+
+\part{Sinyal, Sensor, dan Sistem}
+\bab{ch30_sinyal}
+\bab{ch31_kendali}
+\bab{ch32_pervasif}
+\bab{ch33_robot}
+
+\part{AI untuk Ilmu Hayati}
+\bab{ch40_genomik}
+\bab{ch41_molekul}
+\bab{ch42_protein}
+\bab{ch43_medis}
+
+\part{AI untuk Simulasi}
+\bab{ch12_persamaan_fluida}
+\bab{ch13_numerik_fluida}
+\bab{ch14_fisika_komputasi}
+\bab{ch15_pinn}
+\bab{ch16_operator}
+\bab{ch17_penemuan_reduksi}
+\bab{ch18_hibrida}
+\bab{ch19_rcfd}
+
+\part{AI, Manusia, dan Masa Depan}
+\bab{ch50_rekomendasi}
+\bab{ch51_ai_manusia}
+\bab{ch52_terbaru}
+
+\appendix
+\bab{lampA_glosarium}
+
+\backmatter
+\bibliographystyle{plainnat}
+\bibliography{refs}
+\end{document}

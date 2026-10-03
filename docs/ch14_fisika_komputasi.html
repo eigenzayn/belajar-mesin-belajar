@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fisika Komputasi · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 24</p>
+<h1>Fisika Komputasi</h1>
+<p><span id="ch:fiskom" data-label="ch:fiskom"></span></p>
+<p>Kuliah fisika komputasi saya ikuti pada musim dingin 2025/26. Catatan
+kuliahnya berupa tulisan tangan, tiga belas pertemuan yang masing-masing
+membahas satu alat numerik dasar: interpolasi, transformasi Fourier dan
+FFT, mencari akar, persamaan diferensial biasa, metode simplektik,
+masalah nilai batas, masalah nilai eigen, persamaan diferensial parsial
+yang bergantung waktu, metode split-operator, lalu Monte Carlo.
+Alat-alat ini tersembunyi di dalam hampir setiap simulasi, dan juga di
+dalam banyak algoritme machine learning.</p>
+<h1 id="interpolasi-dan-fourier">Interpolasi dan Fourier</h1>
+<p>Interpolasi mencari fungsi mulus yang melewati titik-titik data yang
+diketahui. Polinomial interpolasi Lagrange berderajat <span
+class="math inline">\(n-1\)</span> melewati <span
+class="math inline">\(n\)</span> titik dengan tepat, tetapi untuk
+derajat tinggi pada titik berjarak sama, ia berosilasi liar di dekat
+tepi selang. Spline kubik memakai polinomial derajat tiga per potongan
+yang disambung mulus, dan biasanya jauh lebih jinak. Interpolasi dengan
+polinomial trigonometri, yaitu jumlah sinus dan kosinus, cocok untuk
+data periodik, dan koefisiennya tidak lain adalah transformasi Fourier
+diskret.</p>
+<p>Menghitung transformasi Fourier diskret dari <span
+class="math inline">\(N\)</span> titik secara langsung membutuhkan
+sekitar <span class="math inline">\(N^2\)</span> operasi. FFT <span
+class="citation" data-cites="cooley1965">(Cooley dan Tukey 1965)</span>
+memecah jumlah itu menjadi dua jumlah setengah ukuran, satu untuk indeks
+genap dan satu untuk indeks ganjil, lalu mengulang pemecahan itu secara
+rekursif. Biayanya turun menjadi sekitar <span
+class="math inline">\(N\log_2N\)</span>. Untuk satu juta titik,
+selisihnya kira-kira dari <span class="math inline">\(10^{12}\)</span>
+ke <span class="math inline">\(2\times10^7\)</span> operasi. FFT menjadi
+tulang punggung pemrosesan sinyal, pengolahan citra, solver spektral
+untuk PDE, dan neural operator berbasis Fourier di <a
+href="ch16_operator.html">Bab 26</a>.</p>
+<h1 id="mencari-akar">Mencari akar</h1>
+<p>Banyak masalah berujung pada mencari <span
+class="math inline">\(x\)</span> yang memenuhi <span
+class="math inline">\(f(x)=0\)</span>. Metode bagi dua mulai dari selang
+tempat <span class="math inline">\(f\)</span> berganti tanda, lalu terus
+membagi selang menjadi dua dan mempertahankan separuh yang masih
+mengandung pergantian tanda. Lambat tetapi pasti: setiap langkah memberi
+tambahan satu bit ketelitian. Metode Newton–Raphson memakai garis
+singgung, <span
+class="math inline">\(x_{n+1}=x_n-f(x_n)/f&#39;(x_n)\)</span>, dan
+konvergen secara kuadratik di dekat akar, tetapi bisa melompat jauh
+kalau tebakan awalnya buruk atau turunannya hampir nol. Dalam banyak
+dimensi, Newton menjadi penyelesaian sistem linear dengan Jacobian di
+setiap langkah, dan itulah yang terjadi di dalam setiap solver
+implisit.</p>
+<h1 id="persamaan-diferensial-biasa">Persamaan diferensial biasa</h1>
+<p>Masalah nilai awal <span class="math inline">\(\dot{\boldsymbol
+y}=\boldsymbol f(\boldsymbol y,t)\)</span> dengan <span
+class="math inline">\(\boldsymbol y(0)\)</span> diketahui diselesaikan
+selangkah demi selangkah. Metode Euler eksplisit, <span
+class="math inline">\(\boldsymbol y_{n+1}=\boldsymbol y_n+h\boldsymbol
+f(\boldsymbol y_n,t_n)\)</span>, hanya akurat orde satu. Runge–Kutta
+orde empat mengevaluasi <span class="math inline">\(\boldsymbol
+f\)</span> empat kali per langkah dan galat globalnya sebanding dengan
+<span class="math inline">\(h^4\)</span>, sehingga memperkecil langkah
+setengah kali mengurangi galat enam belas kali.</p>
+<p>Osilator harmonik memperlihatkan bahwa akurasi saja tidak cukup.
+Persamaan Newton <span class="math inline">\(\ddot x=-\omega^2x\)</span>
+punya energi yang kekal, dan di ruang fase posisi dan kecepatan,
+lintasannya adalah elips tertutup. Euler eksplisit membuat lintasan
+berputar keluar, karena energinya bertambah sedikit di setiap langkah.
+Runge–Kutta orde empat jauh lebih akurat, tetapi untuk simulasi yang
+panjang sekali energinya tetap perlahan bergeser. Metode
+<em>simplektik</em> seperti velocity Verlet <span class="citation"
+data-cites="verlet1967">(Verlet 1967)</span> tidak menjaga energi
+persis, tetapi galat energinya berosilasi dalam batas yang tetap dan
+tidak menumpuk, karena metode ini menjaga struktur geometris ruang fase,
+yaitu volume ruang fase, sesuai teorema Liouville. Untuk dinamika
+molekul dan mekanika benda langit yang berjalan jutaan langkah, sifat
+ini jauh lebih penting daripada orde akurasi.</p>
+<p>Masalah nilai batas berbeda. Syaratnya diberikan di dua ujung,
+misalnya <span class="math inline">\(u(a)=u_a\)</span> dan <span
+class="math inline">\(u(b)=u_b\)</span>. Metode <em>shooting</em>
+menebak kemiringan awal, menyelesaikan masalah nilai awal, melihat
+seberapa jauh hasilnya meleset di ujung lain, lalu memperbaiki tebakan
+dengan pencarian akar. Alternatifnya, turunan diganti beda hingga di
+grid, sehingga masalahnya menjadi sistem persamaan linear
+tridiagonal.</p>
+<h1 id="nilai-eigen">Nilai eigen</h1>
+<p>Persamaan Schrödinger stasioner dalam satu dimensi adalah masalah
+nilai eigen: cari energi <span class="math inline">\(E\)</span> dan
+fungsi gelombang <span class="math inline">\(\psi\)</span> yang memenuhi
+<span
+class="math inline">\(-\tfrac{\hbar^2}{2m}\psi&#39;&#39;+V\psi=E\psi\)</span>.
+Dengan beda hingga, operator turunan kedua menjadi matriks tridiagonal,
+dan masalahnya menjadi mencari nilai eigen sebuah matriks. Algoritme QR
+melakukan ini secara iteratif. Matriks diuraikan menjadi hasil kali
+matriks ortogonal dan matriks segitiga atas, dikalikan dalam urutan
+terbalik, lalu diulang. Untuk matriks simetris, iterasinya konvergen ke
+matriks diagonal yang berisi nilai-nilai eigen. Penguraian QR sendiri
+dibangun dengan refleksi Householder yang mengenolkan kolom demi
+kolom.</p>
+<p>Nilai eigen muncul di mana-mana di buku ini: arah utama PCA,
+kestabilan sistem linear, frekuensi getaran struktur, dan mode-mode
+aliran pada dekomposisi POD.</p>
+<h1 id="pde-yang-bergantung-waktu">PDE yang bergantung waktu</h1>
+<p>Persamaan difusi <span
+class="math inline">\(\partial_tu=D\,\partial_{xx}u\)</span> yang
+didiskretisasi dengan beda maju dalam waktu dan beda pusat dalam ruang
+memberi skema eksplisit <span
+class="math display">\[u_j^{n+1}=u_j^n+\frac{D\Delta t}{\Delta
+x^2}\big(u_{j+1}^n-2u_j^n+u_{j-1}^n\big).\]</span> Analisis kestabilan
+von Neumann memasukkan satu gelombang Fourier <span
+class="math inline">\(u_j^n=g^ne^{ikj\Delta x}\)</span> ke dalam skema
+dan menghitung faktor penguat <span
+class="math inline">\(g=1-4r\sin^2(k\Delta x/2)\)</span> dengan <span
+class="math inline">\(r=D\Delta t/\Delta x^2\)</span>. Supaya tidak ada
+gelombang yang tumbuh, <span class="math inline">\(|g|\le1\)</span>
+untuk semua <span class="math inline">\(k\)</span>, yang berarti <span
+class="math inline">\(r\le1/2\)</span>. Dengan <span
+class="math inline">\(D=1\)</span> dan <span
+class="math inline">\(\Delta x=0{,}01\)</span>, langkah waktu tidak
+boleh melebihi <span class="math inline">\(5\times10^{-5}\)</span>.
+Memperhalus grid dua kali memaksa langkah waktu empat kali lebih kecil.
+Skema implisit menghapus batas ini dengan harga menyelesaikan sistem
+linear di setiap langkah.</p>
+<p>Untuk persamaan Schrödinger yang bergantung waktu, kuliah membahas
+metode <em>split-operator</em>. Operator Hamilton terdiri atas energi
+kinetik, yang sederhana di ruang momentum, dan energi potensial, yang
+sederhana di ruang posisi. Satu langkah waktu dipecah menjadi setengah
+langkah potensial, satu langkah kinetik setelah FFT ke ruang momentum,
+lalu setengah langkah potensial lagi setelah FFT balik. Gagasan memecah
+operator menjadi bagian-bagian yang masing-masing mudah juga dipakai di
+banyak solver fluida, misalnya untuk memisahkan konveksi dari
+difusi.</p>
+<h1 id="monte-carlo">Monte Carlo</h1>
+<p>Integral berdimensi tinggi tidak bisa dihitung dengan grid, karena
+jumlah titiknya tumbuh eksponensial. Integrasi Monte Carlo
+merata-ratakan fungsi pada titik-titik acak. Galatnya turun seperti
+<span class="math inline">\(1/\sqrt N\)</span>, lambat, tetapi tidak
+bergantung pada dimensi sama sekali. Itulah sebabnya Monte Carlo menang
+untuk masalah berdimensi tinggi, dan itulah juga hubungannya dengan
+kutukan dimensi di <a href="ch01_belajar_dari_data.html">Bab 1</a>.</p>
+<p>Dalam fisika statistik, kita ingin rata-rata besaran atas distribusi
+Boltzmann <span class="math inline">\(p(\boldsymbol
+X)\propto\exp\big(-H(\boldsymbol X)/k_BT\big)\)</span>, dengan <span
+class="math inline">\(H\)</span> energi total sistem banyak partikel.
+Konstanta normalisasinya, fungsi partisi, mustahil dihitung. Algoritme
+Metropolis <span class="citation"
+data-cites="metropolis1953">(Metropolis dkk. 1953)</span> tidak
+membutuhkannya. Usulkan gerakan kecil acak sebuah partikel. Kalau
+energinya turun, terima. Kalau naik sebesar <span
+class="math inline">\(\Delta H\)</span>, terima dengan peluang <span
+class="math inline">\(\exp(-\Delta H/k_BT)\)</span>. Rantai Markov yang
+dihasilkan mengunjungi konfigurasi dengan frekuensi sesuai distribusi
+Boltzmann. Ini adalah MCMC yang sama dengan di <a
+href="ch08_probabilistik.html">Bab 10</a>, di tempat kelahirannya.</p>
+<h1 id="simulasi-partikel">Simulasi partikel</h1>
+<p>Fisika komputasi juga membawa kita ke simulasi partikel. Dinamika
+molekul <span class="citation" data-cites="alder1959">(Alder dan
+Wainwright 1959)</span> mengintegrasikan persamaan Newton untuk setiap
+atom dengan gaya dari potensial antaratom, biasanya dengan velocity
+Verlet, dan menghitung sifat makroskopis seperti tekanan dan temperatur
+sebagai rata-rata <span class="citation"
+data-cites="frenkel2002">(Frenkel dan Smit 2002)</span>. Metode elemen
+diskret melakukan hal serupa untuk butiran yang bertumbukan (<a
+href="ch13_numerik_fluida.html">Bab 23</a>). <em>Smoothed particle
+hydrodynamics</em> <span class="citation"
+data-cites="gingold1977 monaghan1992">(Gingold dan Monaghan 1977;
+Monaghan 1992)</span> memakai partikel untuk mewakili fluida itu
+sendiri, dengan besaran di setiap titik diperoleh dengan merata-ratakan
+partikel tetangga menggunakan kernel penghalus. Tanpa grid, metode ini
+nyaman untuk permukaan bebas dan percikan.</p>
+<p>Semua simulasi partikel punya struktur yang sama: setiap partikel
+berinteraksi dengan tetangga di dekatnya. Struktur ini persis struktur
+graf, dan simulator berbasis jaringan graf di <a
+href="ch16_operator.html">Bab 26</a> belajar meniru simulasi partikel
+seperti ini dengan memperlakukan partikel sebagai simpul dan interaksi
+sebagai sisi.</p>
+<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<p>Bab ini mengikuti tiga belas catatan kuliah Computational Physics I
+yang ditulis tangan. Salah satu buku yang disebut di awal kuliah adalah
+Numerical Recipes <span class="citation" data-cites="press2007">(Press
+dkk. 2007)</span>. Untuk simulasi partikel, <span class="citation"
+data-cites="frenkel2002">Frenkel dan Smit (2002)</span> adalah pengantar
+yang baik.</p>
+<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-alder1959" class="csl-entry" role="listitem">
+Alder, B. J., dan T. E. Wainwright. 1959. <span>“Studies in Molecular
+Dynamics. I. General Method.”</span> <em>The Journal of Chemical
+Physics</em> 31 (2): 459–66. <a
+href="https://doi.org/10.1063/1.1730376">https://doi.org/10.1063/1.1730376</a>.
+</div>
+<div id="ref-cooley1965" class="csl-entry" role="listitem">
+Cooley, James W., dan John W. Tukey. 1965. <span>“An algorithm for the
+machine calculation of complex Fourier series.”</span> <em>Mathematics
+of Computation</em> 19 (90): 297–301. <a
+href="https://doi.org/10.1090/S0025-5718-1965-0178586-1">https://doi.org/10.1090/S0025-5718-1965-0178586-1</a>.
+</div>
+<div id="ref-frenkel2002" class="csl-entry" role="listitem">
+Frenkel, Daan, dan Berend Smit. 2002. <em>Understanding Molecular
+Simulation: From Algorithms to Applications</em>. 2 ed. Academic Press.
+</div>
+<div id="ref-gingold1977" class="csl-entry" role="listitem">
+Gingold, R. A., dan J. J. Monaghan. 1977. <span>“Smoothed particle
+hydrodynamics: theory and application to non-spherical stars.”</span>
+<em>Monthly Notices of the Royal Astronomical Society</em> 181 (3):
+375–89. <a
+href="https://doi.org/10.1093/mnras/181.3.375">https://doi.org/10.1093/mnras/181.3.375</a>.
+</div>
+<div id="ref-metropolis1953" class="csl-entry" role="listitem">
+Metropolis, Nicholas, Arianna W. Rosenbluth, Marshall N. Rosenbluth,
+Augusta H. Teller, dan Edward Teller. 1953. <span>“Equation of State
+Calculations by Fast Computing Machines.”</span> <em>The Journal of
+Chemical Physics</em> 21 (6): 1087–92. <a
+href="https://doi.org/10.1063/1.1699114">https://doi.org/10.1063/1.1699114</a>.
+</div>
+<div id="ref-monaghan1992" class="csl-entry" role="listitem">
+Monaghan, J. J. 1992. <span>“Smoothed Particle Hydrodynamics.”</span>
+<em>Annual Review of Astronomy and Astrophysics</em> 30 (1): 543–74. <a
+href="https://doi.org/10.1146/annurev.aa.30.090192.002551">https://doi.org/10.1146/annurev.aa.30.090192.002551</a>.
+</div>
+<div id="ref-press2007" class="csl-entry" role="listitem">
+Press, William H., Saul A. Teukolsky, William T. Vetterling, dan Brian
+P. Flannery. 2007. <em>Numerical Recipes: The Art of Scientific
+Computing</em>. 3 ed. Cambridge University Press.
+</div>
+<div id="ref-verlet1967" class="csl-entry" role="listitem">
+Verlet, Loup. 1967. <span>“Computer "Experiments" on Classical Fluids.
+I. Thermodynamical Properties of Lennard-Jones Molecules.”</span>
+<em>Physical Review</em> 159 (1): 98–103. <a
+href="https://doi.org/10.1103/PhysRev.159.98">https://doi.org/10.1103/PhysRev.159.98</a>.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch13_numerik_fluida.html"><span>Sebelumnya</span>Dari Persamaan ke Solver</a>
+  <a class="next" href="ch15_pinn.html"><span>Berikutnya</span>Physics-Informed Neural Networks</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

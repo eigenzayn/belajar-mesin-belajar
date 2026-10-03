@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Belajar Tanpa Label · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 4</p>
+<h1>Belajar Tanpa Label</h1>
+<p><span id="ch:unsup" data-label="ch:unsup"></span></p>
+<p>Pada musim panas 2025 saya mengikuti dua kuliah yang saling
+melengkapi. Kuliah unsupervised learning dari Sepp Hochreiter memakai
+naskah panjang yang bergerak dari PCA dan ICA sampai biclustering,
+metode yang lahir dari analisis data ekspresi gen. Kuliah machine
+learning and pattern classification memberi sisi praktisnya:
+pengklasifikasi dasar, seleksi fitur, dan cara membangun sistem pengenal
+pola dari awal sampai akhir.</p>
+<p>Sebagian besar data di dunia tidak berlabel. Rekaman sensor, foto di
+ponsel, dan hasil pengukuran ekspresi ribuan gen datang tanpa keterangan
+tentang apa isinya. Unsupervised learning mencari struktur di dalam data
+seperti itu: arah-arah yang penting, sumber-sumber tersembunyi,
+kelompok-kelompok alami, atau peta berdimensi rendah yang mempertahankan
+tetangga. Hasilnya sering menjadi langkah pertama sebelum model
+supervised dibangun.</p>
+<h1 id="dua-cara-melihat-pca">Dua cara melihat PCA</h1>
+<p>PCA sudah muncul di <a href="ch05_computer_vision.html">Bab 7</a>
+sebagai eigenfaces. Kuliah unsupervised menekankan bahwa ada dua cara
+setara untuk menurunkannya. Cara pertama mencari arah <span
+class="math inline">\(\boldsymbol v\)</span> dengan varians proyeksi
+terbesar, <span class="math inline">\(\max_{\|\boldsymbol
+v\|=1}\boldsymbol v^\top\boldsymbol\Sigma\boldsymbol v\)</span>, yang
+jawabannya vektor eigen kovarians dengan nilai eigen terbesar. Cara
+kedua mencari subruang berdimensi <span class="math inline">\(q\)</span>
+yang meminimalkan galat rekonstruksi kuadrat rata-rata ketika data
+diproyeksikan ke subruang itu lalu dikembalikan. Kedua masalah punya
+jawaban yang sama, karena varians total tetap, dan varians yang tidak
+tertangkap oleh proyeksi adalah tepat galat rekonstruksinya.</p>
+<p>PCA unik hanya sampai tanda setiap komponen, dan kalau dua nilai
+eigen sama, arah-arahnya bisa diputar bebas di dalam subruang mereka.
+Komponen utama tidak berkorelasi satu sama lain, tetapi tidak berarti
+independen. PCA juga linear. Untuk struktur yang melengkung, <em>kernel
+PCA</em> <span class="citation" data-cites="scholkopf1998">(Schölkopf,
+Smola, dan Müller 1998)</span> memetakan data secara implisit ke ruang
+fitur berdimensi tinggi lewat sebuah kernel, lalu menjalankan PCA di
+sana. Yang dibutuhkan hanya matriks kernel antar titik data, bukan
+pemetaannya secara eksplisit.</p>
+<h1 id="memisahkan-sumber-ica">Memisahkan sumber: ICA</h1>
+<p>Di sebuah pesta, dua orang berbicara bersamaan, dan dua mikrofon di
+sudut ruangan merekam campuran suara keduanya dengan proporsi yang
+berbeda. Bisakah kita mendapatkan kembali suara masing-masing orang
+tanpa tahu proporsi campurannya? Inilah <em>cocktail party problem</em>,
+dan <em>independent component analysis</em> <span class="citation"
+data-cites="hyvarinen2000">(Hyvärinen dan Oja 2000)</span> menjawabnya.
+Modelnya <span
+class="math inline">\(\boldsymbol{x}=\boldsymbol{A}\boldsymbol
+s\)</span>, dengan <span class="math inline">\(\boldsymbol s\)</span>
+sumber yang saling independen dan <span
+class="math inline">\(\boldsymbol{A}\)</span> matriks campuran yang
+tidak diketahui. Kita mencari matriks pemisah <span
+class="math inline">\(\boldsymbol{W}\)</span> sehingga <span
+class="math inline">\(\boldsymbol
+y=\boldsymbol{W}\boldsymbol{x}\)</span> sedekat mungkin dengan
+independen.</p>
+<p>Kuncinya adalah teorema limit pusat. Campuran dari beberapa sumber
+independen cenderung lebih mirip Gauss daripada sumber-sumber aslinya.
+Jadi kita bisa membalik logikanya: cari arah proyeksi yang hasilnya
+paling <em>tidak</em> Gauss. Ketidak-Gaussan diukur dengan kurtosis atau
+negentropi. Langkah praktisnya dimulai dengan <em>whitening</em>, yaitu
+mentransformasi data agar kovariansnya menjadi matriks identitas.
+Setelah itu, yang tersisa hanya mencari rotasi, dan algoritme seperti
+FastICA atau Infomax menemukannya. ICA tidak bisa memulihkan urutan dan
+skala sumber, dan ia gagal kalau lebih dari satu sumber berdistribusi
+Gauss, karena campuran Gauss yang diputar tetap Gauss.</p>
+<p>Perbedaan dengan PCA mudah dilihat pada sinyal suara. PCA menemukan
+arah varians terbesar, yang biasanya masih campuran kedua pembicara. ICA
+menemukan arah yang membuat setiap keluaran terdengar seperti satu
+orang.</p>
+<h1 id="analisis-faktor">Analisis faktor</h1>
+<p>Analisis faktor mirip probabilistic PCA (<a
+href="ch09_ml_advanced.html">Bab 11</a>), <span
+class="math inline">\(\boldsymbol{x}=\boldsymbol{W}\boldsymbol{z}+\boldsymbol\mu+\boldsymbol\varepsilon\)</span>,
+dengan satu perbedaan penting: noise <span
+class="math inline">\(\boldsymbol\varepsilon\)</span> punya kovarians
+diagonal <span class="math inline">\(\boldsymbol\Psi\)</span> yang boleh
+berbeda untuk setiap variabel. Setiap variabel teramati punya “noise
+pribadinya” sendiri, dan faktor laten <span
+class="math inline">\(\boldsymbol{z}\)</span> menjelaskan korelasi di
+antara mereka. Model ini tidak punya solusi tertutup, sehingga dilatih
+dengan EM. Dalam data biologis, di mana setiap gen atau setiap probe
+punya tingkat noise yang berbeda, asumsi ini jauh lebih masuk akal
+daripada noise yang sama untuk semua.</p>
+<h1 id="peta-berdimensi-rendah">Peta berdimensi rendah</h1>
+<p>Kadang yang dicari bukan sumber, melainkan peta: gambaran dua dimensi
+dari data berdimensi tinggi yang mempertahankan sebanyak mungkin
+hubungan kedekatan. Kuliah membahas sederet metode dengan filosofi yang
+berbeda.</p>
+<p><em>Multidimensional scaling</em> mencari titik-titik di bidang yang
+jarak-jaraknya sedekat mungkin dengan jarak asli. <em>Non-negative
+matrix factorization</em> menguraikan data menjadi bagian-bagian yang
+hanya boleh dijumlahkan, tidak boleh dikurangkan, sehingga komponennya
+sering bisa ditafsirkan sebagai bagian-bagian nyata, misalnya bagian
+wajah atau topik dalam teks. <em>Locally linear embedding</em> <span
+class="citation" data-cites="roweis2000">(Roweis dan Saul 2000)</span>
+menganggap setiap titik bisa direkonstruksi secara linear dari
+tetangganya, lalu mencari koordinat rendah dimensi yang mempertahankan
+bobot rekonstruksi itu. Isomap <span class="citation"
+data-cites="tenenbaum2000">(Tenenbaum, Silva, dan Langford 2000)</span>
+mengganti jarak lurus dengan jarak di sepanjang graf tetangga, sebuah
+pendekatan jarak geodesik, sehingga data yang tergulung seperti gulungan
+kue bisa dibentangkan. <em>Self-organizing map</em> <span
+class="citation" data-cites="kohonen1982">(Kohonen 1982)</span>
+menempatkan grid neuron di ruang data dan menariknya ke arah data sambil
+menjaga neuron yang bertetangga di grid tetap berdekatan. Metode yang
+paling populer untuk visualisasi saat ini adalah t-SNE dan UMAP <span
+class="citation" data-cites="mcinnes2018">(McInnes, Healy, dan Melville
+2018)</span>, yang mencocokkan peluang ketetanggaan di ruang asli dengan
+di ruang peta.</p>
+<p>Peta seperti ini menyenangkan dilihat, tetapi mudah disalahbaca.
+Jarak antar kelompok di peta t-SNE tidak bermakna kuantitatif, dan
+ukuran kelompok bisa diperbesar atau diperkecil oleh algoritmenya.
+Kuliah AI and Visualization kembali ke masalah ini di <a
+href="ch11_xai.html">Bab 13</a>.</p>
+<h1 id="pengelompokan">Pengelompokan</h1>
+<h2 id="k-means">k-means</h2>
+<p>Algoritme <span class="math inline">\(k\)</span>-means <span
+class="citation" data-cites="lloyd1982">(Lloyd 1982)</span> bergantian
+antara dua langkah: tetapkan setiap titik ke pusat terdekat, lalu
+pindahkan setiap pusat ke rata-rata titik-titik anggotanya. Setiap
+langkah tidak menaikkan jumlah kuadrat jarak titik ke pusatnya, sehingga
+algoritme pasti berhenti, meski belum tentu di solusi terbaik. Ambil
+empat titik di garis bilangan, 1, 2, 10, dan 11, dengan pusat awal 1 dan
+2. Pada langkah pertama, titik 1 masuk ke pusat pertama, sedangkan 2,
+10, dan 11 masuk ke pusat kedua, yang lalu pindah ke rata-ratanya, <span
+class="math inline">\(23/3\approx7{,}67\)</span>. Pada langkah kedua,
+titik 2 sekarang lebih dekat ke pusat pertama, sehingga kelompoknya
+menjadi <span class="math inline">\(\{1,2\}\)</span> dan <span
+class="math inline">\(\{10,11\}\)</span>, dengan pusat <span
+class="math inline">\(1{,}5\)</span> dan <span
+class="math inline">\(10{,}5\)</span>. Langkah berikutnya tidak mengubah
+apa pun. Kalau pusat awalnya buruk, hasil akhirnya bisa buruk juga,
+sehingga <span class="math inline">\(k\)</span>-means biasanya
+dijalankan beberapa kali dari awal acak yang berbeda.</p>
+<h2 id="model-campuran-dan-em">Model campuran dan EM</h2>
+<p><span class="math inline">\(k\)</span>-means adalah versi keras dari
+model campuran Gauss. Pada model campuran, setiap titik punya peluang
+menjadi anggota setiap kelompok, dan kelompoknya boleh lonjong dengan
+kovarians sendiri. Algoritme EM bergantian antara menghitung peluang
+keanggotaan (langkah E) dan memperbarui rata-rata, kovarians, dan bobot
+setiap komponen dengan rata-rata berbobot (langkah M). Ketika kovarians
+semua komponen dibuat sama dan kecil sekali, keanggotaan menjadi nol
+atau satu, dan EM berubah menjadi <span
+class="math inline">\(k\)</span>-means.</p>
+<h2 id="hierarki-dan-kemiripan">Hierarki dan kemiripan</h2>
+<p>Pengelompokan hierarkis tidak memilih jumlah kelompok di awal. Versi
+aglomeratif mulai dengan setiap titik sebagai kelompoknya sendiri, lalu
+berulang kali menggabungkan dua kelompok terdekat. Arti “terdekat”
+menentukan bentuk hasilnya. <em>Single linkage</em> memakai pasangan
+titik terdekat dan cenderung menghasilkan rantai panjang, <em>complete
+linkage</em> memakai pasangan terjauh dan menghasilkan kelompok yang
+padat, dan <em>average linkage</em> berada di antaranya. Hasilnya adalah
+dendrogram yang bisa dipotong di ketinggian mana pun. Metode berbasis
+kemiripan, termasuk pengelompokan spektral, memandang data sebagai graf
+kemiripan dan memotongnya di tempat ikatan paling lemah, sebuah ide yang
+sudah kita temui pada segmentasi gambar.</p>
+<h2 id="biclustering">Biclustering</h2>
+<p>Data ekspresi gen berbentuk matriks: baris adalah gen, kolom adalah
+sampel jaringan atau kondisi. Sekelompok gen sering hanya bekerja sama
+di sebagian sampel, misalnya hanya di jaringan tumor tertentu.
+Mengelompokkan seluruh baris atau seluruh kolom akan melewatkan pola
+ini. <em>Biclustering</em> mencari submatriks, yaitu sekelompok baris
+yang berperilaku mirip pada sekelompok kolom. FABIA <span
+class="citation" data-cites="hochreiter2010">(Hochreiter dkk.
+2010)</span>, yang dikembangkan di Linz, merumuskannya sebagai model
+faktor dengan prior yang jarang sekali (<em>sparse</em>), sehingga
+setiap faktor hanya melibatkan sedikit gen dan sedikit sampel. Inilah
+salah satu titik pertemuan pertama antara machine learning dan ilmu
+hayati di buku ini, dan kita akan kembali ke data seperti ini di <a
+href="ch41_molekul.html">Bab 19</a>.</p>
+<h1 id="dari-fitur-ke-pengklasifikasi">Dari fitur ke
+pengklasifikasi</h1>
+<p>Kuliah pattern classification membahas jalur lengkap sebuah sistem
+pengenal pola: ambil sinyal mentah, ubah menjadi fitur, pilih fitur yang
+berguna, latih pengklasifikasi, lalu evaluasi dengan jujur. Contoh yang
+dipakai banyak berasal dari audio, seperti mendeteksi kejadian akustik
+dalam rekaman.</p>
+<p>Pengklasifikasi dasar yang dibahas punya karakter yang berbeda-beda.
+<span class="math inline">\(k\)</span>-nearest neighbour tidak belajar
+apa pun dan hanya mengingat data latih, lalu meminjam label tetangga
+terdekat. Naive Bayes menganggap semua fitur independen bersyarat
+terhadap kelas, asumsi yang hampir selalu salah tetapi sering bekerja
+dengan baik. Analisis diskriminan linear <span class="citation"
+data-cites="fisher1936">(FISHER 1936)</span> mencari arah proyeksi yang
+memisahkan rata-rata kelas sejauh mungkin relatif terhadap sebaran di
+dalam kelas. Pohon keputusan memotong ruang fitur dengan pertanyaan ya
+atau tidak yang berurutan, dan random forest <span class="citation"
+data-cites="breiman2001">(Breiman 2001)</span> merata-ratakan banyak
+pohon yang dilatih pada sampel dan fitur acak. Support vector machine
+<span class="citation" data-cites="cortes1995">(Cortes dan Vapnik
+1995)</span> mencari bidang pemisah dengan margin terlebar, dan dengan
+kernel ia bisa memisahkan kelas yang tidak terpisah secara linear. Ide
+marginnya adalah regularisasi dalam bentuk geometris: di antara semua
+bidang yang memisahkan data latih, pilih yang paling jauh dari titik
+mana pun.</p>
+<p>Seleksi fitur bisa dilakukan dengan tiga cara. Metode filter menilai
+setiap fitur sendiri-sendiri, misalnya dari korelasinya dengan label.
+Metode wrapper mencoba berbagai himpunan fitur dengan melatih model
+sungguhan. Metode embedded memilih fitur sebagai bagian dari pelatihan,
+seperti lasso yang mendorong bobot fitur yang tidak berguna ke nol.
+Kuliah juga memperkenalkan jaringan saraf dengan cara pandang praktis:
+kapan lapisan dense cukup, kapan konvolusi lebih cocok, dan bagaimana
+transfer learning serta pretraining self-supervised mengurangi kebutuhan
+data berlabel.</p>
+<h1 id="di-luar-kelas">Di luar kelas</h1>
+<p>Metode tanpa label muncul di hampir setiap bidang yang disentuh buku
+ini. Dalam ilmu hayati, pengelompokan profil ekspresi gen memisahkan
+subtipe kanker yang tidak terlihat di bawah mikroskop, dan biclustering
+menemukan modul gen yang aktif bersama. Dalam pemrosesan sinyal, ICA
+memisahkan sinyal jantung ibu dan janin dari elektroda yang sama, dan
+PCA memampatkan data sensor sebelum dikirim. Dalam simulasi, PCA dengan
+nama proper orthogonal decomposition mereduksi medan aliran berjuta sel
+menjadi beberapa puluh mode (<a href="ch17_penemuan_reduksi.html">Bab
+27</a>). Dalam sistem rekomendasi, faktorisasi matriks yang mirip
+analisis faktor menemukan selera tersembunyi pengguna (<a
+href="ch50_rekomendasi.html">Bab 30</a>). Di semua tempat itu,
+pertanyaannya sama: struktur apa yang tersembunyi di balik angka-angka
+ini?</p>
+<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<p>Bab ini mengikuti naskah kuliah Machine Learning: Unsupervised
+Techniques (PCA dan kernel PCA, ICA, analisis faktor, metode proyeksi,
+clustering, biclustering) dan kuliah Machine Learning and Pattern
+Classification (pengklasifikasi dasar, seleksi dan konstruksi fitur,
+jaringan saraf dalam praktik). Bacaan pendamping: <span class="citation"
+data-cites="bishop2006">Bishop (2006)</span>, <span class="citation"
+data-cites="hastie2009">Hastie, Tibshirani, dan Friedman (2009)</span>,
+dan <span class="citation" data-cites="duda2001">Duda, Hart, dan Stork
+(2001)</span>.</p>
+<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-bishop2006" class="csl-entry" role="listitem">
+Bishop, Christopher M. 2006. <em>Pattern Recognition and Machine
+Learning</em>. Springer.
+</div>
+<div id="ref-breiman2001" class="csl-entry" role="listitem">
+Breiman, Leo. 2001. <span>“Random Forests.”</span> <em>Machine
+Learning</em> 45 (1): 5–32. <a
+href="https://doi.org/10.1023/A:1010933404324">https://doi.org/10.1023/A:1010933404324</a>.
+</div>
+<div id="ref-cortes1995" class="csl-entry" role="listitem">
+Cortes, Corinna, dan Vladimir Vapnik. 1995. <span>“Support-vector
+networks.”</span> <em>Machine Learning</em> 20 (3): 273–97. <a
+href="https://doi.org/10.1007/BF00994018">https://doi.org/10.1007/BF00994018</a>.
+</div>
+<div id="ref-duda2001" class="csl-entry" role="listitem">
+Duda, Richard O., Peter E. Hart, dan David G. Stork. 2001. <em>Pattern
+Classification</em>. 2 ed. Wiley.
+</div>
+<div id="ref-fisher1936" class="csl-entry" role="listitem">
+FISHER, R. A. 1936. <span>“THE USE OF MULTIPLE MEASUREMENTS IN TAXONOMIC
+PROBLEMS.”</span> <em>Annals of Eugenics</em> 7 (2): 179–88. <a
+href="https://doi.org/10.1111/j.1469-1809.1936.tb02137.x">https://doi.org/10.1111/j.1469-1809.1936.tb02137.x</a>.
+</div>
+<div id="ref-hastie2009" class="csl-entry" role="listitem">
+Hastie, Trevor, Robert Tibshirani, dan Jerome Friedman. 2009. <em>The
+Elements of Statistical Learning</em>. 2 ed. Springer.
+</div>
+<div id="ref-hochreiter2010" class="csl-entry" role="listitem">
+Hochreiter, Sepp, Ulrich Bodenhofer, Martin Heusel, Andreas Mayr,
+Andreas Mitterecker, Adetayo Kasim, Tatsiana Khamiakova, dkk. 2010.
+<span>“FABIA: factor analysis for bicluster acquisition.”</span>
+<em>Bioinformatics</em> 26 (12): 1520–27. <a
+href="https://doi.org/10.1093/bioinformatics/btq227">https://doi.org/10.1093/bioinformatics/btq227</a>.
+</div>
+<div id="ref-hyvarinen2000" class="csl-entry" role="listitem">
+Hyvärinen, A., dan E. Oja. 2000. <span>“Independent component analysis:
+algorithms and applications.”</span> <em>Neural Networks</em> 13 (4–5):
+411–30. <a
+href="https://doi.org/10.1016/S0893-6080(00)00026-5">https://doi.org/10.1016/S0893-6080(00)00026-5</a>.
+</div>
+<div id="ref-kohonen1982" class="csl-entry" role="listitem">
+Kohonen, Teuvo. 1982. <span>“Self-organized formation of topologically
+correct feature maps.”</span> <em>Biological Cybernetics</em> 43 (1):
+59–69. <a
+href="https://doi.org/10.1007/BF00337288">https://doi.org/10.1007/BF00337288</a>.
+</div>
+<div id="ref-lloyd1982" class="csl-entry" role="listitem">
+Lloyd, S. 1982. <span>“Least squares quantization in PCM.”</span>
+<em>IEEE Transactions on Information Theory</em> 28 (2): 129–37. <a
+href="https://doi.org/10.1109/TIT.1982.1056489">https://doi.org/10.1109/TIT.1982.1056489</a>.
+</div>
+<div id="ref-mcinnes2018" class="csl-entry" role="listitem">
+McInnes, Leland, John Healy, dan James Melville. 2018. <span>“UMAP:
+Uniform Manifold Approximation and Projection for Dimension
+Reduction.”</span> arXiv:1802.03426. <a
+href="https://arxiv.org/abs/1802.03426">https://arxiv.org/abs/1802.03426</a>.
+</div>
+<div id="ref-roweis2000" class="csl-entry" role="listitem">
+Roweis, Sam T., dan Lawrence K. Saul. 2000. <span>“Nonlinear
+Dimensionality Reduction by Locally Linear Embedding.”</span>
+<em>Science</em> 290 (5500): 2323–26. <a
+href="https://doi.org/10.1126/science.290.5500.2323">https://doi.org/10.1126/science.290.5500.2323</a>.
+</div>
+<div id="ref-scholkopf1998" class="csl-entry" role="listitem">
+Schölkopf, Bernhard, Alexander Smola, dan Klaus-Robert Müller. 1998.
+<span>“Nonlinear Component Analysis as a Kernel Eigenvalue
+Problem.”</span> <em>Neural Computation</em> 10 (5): 1299–319. <a
+href="https://doi.org/10.1162/089976698300017467">https://doi.org/10.1162/089976698300017467</a>.
+</div>
+<div id="ref-tenenbaum2000" class="csl-entry" role="listitem">
+Tenenbaum, Joshua B., Vin de Silva, dan John C. Langford. 2000. <span>“A
+Global Geometric Framework for Nonlinear Dimensionality
+Reduction.”</span> <em>Science</em> 290 (5500): 2319–23. <a
+href="https://doi.org/10.1126/science.290.5500.2319">https://doi.org/10.1126/science.290.5500.2319</a>.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch02b_ai_klasik.html"><span>Sebelumnya</span>AI Klasik: Mencari, Merencanakan, Memutuskan</a>
+  <a class="next" href="ch03_dl_basic.html"><span>Berikutnya</span>Deep Learning: Teknik Dasar</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

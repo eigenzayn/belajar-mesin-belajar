@@ -1,0 +1,137 @@
+\chapter{Membaca Kode Kehidupan}
+\label{ch:genomik}
+
+Pada musim panas 2025 saya membuka pintu ke ilmu hayati lewat beberapa kuliah sekaligus: pengantar
+genetika, analisis genom dan transkriptomik, bioinformatika struktural, dan AI dalam ilmu hayati.
+Kuliah genom dimulai dari dasar sekali, dari apa itu kehidupan dan bagaimana DNA disusun, lalu
+bergerak ke teknologi microarray, pengurutan DNA generasi demi generasi, perakitan genom, pemetaan
+bacaan, pemanggilan varian, dan analisis RNA-seq. Bagi pembaca yang datang dari teknik atau ilmu
+komputer, seperti saya, bab ini adalah perkenalan dengan bahasa yang dipakai bab-bab berikutnya.
+
+Biologi molekuler modern adalah ilmu data. Satu genom manusia berisi sekitar tiga miliar huruf,
+satu percobaan pengurutan menghasilkan ratusan juta potongan bacaan, dan satu pengukuran ekspresi
+gen mencatat aktivitas puluhan ribu gen sekaligus. Hampir setiap langkah dari sampel ke kesimpulan
+melibatkan algoritme, statistik, dan semakin sering machine learning.
+
+\section{Dogma sentral}
+
+Informasi genetik tersimpan dalam DNA, rantai ganda yang tersusun dari empat basa: adenin, sitosin,
+guanin, dan timin. Basa pada satu untai berpasangan dengan basa pada untai lain, A dengan T dan C
+dengan G, sehingga setiap untai menyimpan salinan lengkap informasi untai pasangannya. Struktur
+heliks ganda ini diusulkan Watson dan Crick pada 1953, dengan bantuan penting dari foto difraksi
+sinar-X yang dibuat Rosalind Franklin, sebuah kisah yang juga disinggung di kuliah.
+
+Dogma sentral biologi molekuler menggambarkan aliran informasi. DNA disalin menjadi RNA dalam proses
+transkripsi, lalu RNA pembawa pesan diterjemahkan menjadi protein di ribosom. Setiap tiga basa, satu
+kodon, menyandikan satu asam amino. Ada $4^3=64$ kodon untuk dua puluh asam amino dan sinyal berhenti,
+sehingga kodenya berlebih: beberapa kodon berbeda menyandikan asam amino yang sama. Pada sel eukariot,
+bagian-bagian RNA dipotong dan disambung ulang sebelum diterjemahkan, dan penyambungan alternatif
+memungkinkan satu gen menghasilkan beberapa protein berbeda. Protein lalu melipat menjadi bentuk tiga
+dimensi yang menentukan fungsinya, topik \cref{ch:protein}.
+
+Bayangkan perpustakaan besar yang buku-bukunya tidak boleh dibawa keluar. Untuk membangun sesuatu,
+seseorang memfotokopi satu halaman resep (transkripsi), membawa fotokopinya ke dapur (ribosom), lalu
+memasak sesuai resep itu (translasi). Sel yang berbeda di tubuh kita membawa perpustakaan yang sama,
+tetapi memfotokopi halaman yang berbeda. Itulah sebabnya sel otot dan sel saraf begitu berbeda
+meski DNA-nya identik, dan itulah sebabnya mengukur RNA, yaitu fotokopi yang sedang beredar, memberi
+tahu apa yang sedang dikerjakan sebuah sel.
+
+\section{Variasi genetik}
+
+Dua manusia berbeda di sekitar satu dari setiap seribu basa. Variasi yang paling umum adalah
+\istilah{single nucleotide polymorphism} (SNP), satu posisi tempat sebagian orang punya satu basa dan
+sebagian lain punya basa berbeda. Genetika populasi mempelajari bagaimana frekuensi varian berubah.
+Hukum Hardy--Weinberg menyatakan bahwa dalam populasi besar yang kawin acak tanpa seleksi, kalau
+frekuensi dua alel adalah $p$ dan $q=1-p$, maka frekuensi genotipenya $p^2$, $2pq$, dan $q^2$. Dengan
+$p=0{,}7$, sekitar 49 persen individu homozigot untuk alel pertama, 42 persen heterozigot, dan 9 persen
+homozigot untuk alel kedua. Penyimpangan dari proporsi ini menjadi petunjuk adanya seleksi, migrasi,
+atau kesalahan pengukuran.
+
+Varian yang letaknya berdekatan di kromosom cenderung diwariskan bersama, sebuah keadaan yang disebut
+\istilah{linkage disequilibrium}. Studi asosiasi seluruh genom (GWAS) memanfaatkan hal ini: mereka mengukur
+ratusan ribu SNP pada ribuan orang dan mencari varian yang frekuensinya berbeda antara penderita dan
+bukan penderita sebuah penyakit. Karena jumlah uji statistiknya banyak sekali, ambang signifikansinya
+harus ketat sekali.
+
+\section{Mengukur ekspresi gen}
+
+Microarray DNA adalah kaca kecil yang ditempeli jutaan potongan DNA pendek yang dikenal, yang disebut
+probe. RNA dari sampel diubah menjadi DNA berlabel fluoresen, lalu dibiarkan menempel pada probe yang
+cocok. Semakin terang sebuah titik, semakin banyak RNA dari gen itu. Jalan dari gambar ke angka
+ternyata panjang: koreksi latar belakang, normalisasi antar chip agar distribusinya sebanding,
+misalnya dengan normalisasi kuantil, lalu meringkas banyak probe dari satu gen menjadi satu nilai
+ekspresi. Kuliah membahas metode ringkasan seperti RMA, dan FARMS, metode berbasis analisis faktor
+(\cref{ch:unsup}) dari kelompok Sepp Hochreiter, yang memperlakukan sinyal bersama antar probe sebagai faktor
+laten dan noise pribadi setiap probe sebagai noise analisis faktor.
+
+\section{Pengurutan DNA}
+
+Pengurutan Sanger, generasi pertama, membaca satu potongan DNA sepanjang beberapa ratus basa dengan
+akurasi tinggi, dan dipakai dalam Proyek Genom Manusia. Generasi kedua, yang dipelopori platform
+Illumina, membaca ratusan juta potongan pendek secara paralel, sering berpasangan dari kedua ujung
+sebuah fragmen. Generasi ketiga dan keempat membaca satu molekul DNA secara langsung, dengan bacaan
+yang jauh lebih panjang, dari puluhan ribu sampai jutaan basa, meski dulu dengan galat yang lebih tinggi.
+Pada pengurutan nanopore, DNA ditarik melewati pori kecil dan setiap kombinasi basa mengubah arus
+listrik dengan cara yang khas. Mengubah sinyal arus menjadi urutan basa, \istilah{base calling}, kini
+dikerjakan jaringan saraf rekuren dan konvolusi yang dilatih dengan loss connectionist temporal
+classification, karena panjang keluaran tidak diketahui sebelumnya.
+
+Setiap basa yang dibaca diberi skor kualitas PHRED, $Q=-10\log_{10}P_{\mathrm{galat}}$. Skor 30 berarti
+peluang salah satu per seribu. Kedalaman cakupan, $C=NL/G$, menyatakan berapa kali rata-rata setiap
+posisi genom dibaca, dengan $N$ jumlah bacaan, $L$ panjang bacaan, dan $G$ panjang genom. Untuk genom
+manusia sepanjang tiga miliar basa, cakupan tiga puluh kali dengan bacaan 150 basa membutuhkan sekitar
+600 juta bacaan.
+
+\section{Dari bacaan ke genom}
+
+Kalau genom acuan sudah ada, setiap bacaan dipetakan ke posisinya di acuan. Mencocokkan ratusan juta
+bacaan pendek ke tiga miliar huruf dengan toleransi terhadap galat membutuhkan indeks yang cerdas.
+Transformasi Burrows--Wheeler, yang juga dipakai dalam kompresi data, memungkinkan pencarian pola yang
+amat cepat dengan memori kecil \citep{li2009}. Strategi umumnya adalah \istilah{seed and extend}: cari
+potongan pendek yang cocok persis, lalu perluas dengan penjajaran yang toleran terhadap galat. Untuk
+bacaan panjang, potongan-potongan yang cocok dirangkai dulu menjadi rantai yang konsisten sebelum
+penjajaran rinci.
+
+Setelah bacaan dipetakan, \istilah{variant calling} memutuskan di posisi mana sampel berbeda dari acuan.
+Tantangannya membedakan varian sungguhan dari galat pengurutan dan galat pemetaan. DeepVariant
+\citep{poplin2018} mengubah tumpukan bacaan di sekitar sebuah posisi menjadi gambar dan memakai jaringan
+konvolusi untuk mengklasifikasikan genotipenya, sebuah contoh menarik dari visi komputer yang dipinjam
+oleh genomik.
+
+Kalau tidak ada acuan, genom harus dirakit dari nol, seperti menyusun teka-teki jigsaw raksasa dari
+potongan-potongan yang saling tumpang tindih. Pendekatan \istilah{overlap--layout--consensus} membangun graf
+yang simpulnya bacaan dan sisinya tumpang tindih, lalu mencari jalur yang melewati setiap simpul tepat
+sekali, sebuah jalur Hamilton yang sulit dicari secara umum. Graf de Bruijn membalik sudut pandangnya:
+bacaan dipotong menjadi semua kata sepanjang $k$, dan rakitan menjadi jalur yang melewati setiap sisi
+tepat sekali, sebuah jalur Euler yang bisa dicari dengan efisien. Bagian yang berulang di genom adalah
+musuh utama keduanya, karena potongan dari dua tempat berbeda tampak identik. Bacaan panjang membantu
+justru karena mereka bisa melompati pengulangan. Kuliah juga menunjukkan bahwa jaringan graf
+(\cref{ch:gdl}) mulai dipakai untuk menyederhanakan graf rakitan.
+
+\section{RNA-seq}
+
+Pengurutan juga bisa mengukur ekspresi gen. RNA diubah menjadi DNA, diurutkan, lalu jumlah bacaan
+yang jatuh pada setiap gen dihitung. Hitungan ini harus dinormalisasi karena sampel yang berbeda
+diurutkan dengan kedalaman berbeda. Untuk mencari gen yang ekspresinya berubah antara dua kondisi,
+DESeq2 \citep{love2014} memodelkan hitungan dengan distribusi binomial negatif, yang mengizinkan varians
+lebih besar dari rata-rata seperti yang selalu terlihat pada data biologis. Karena setiap gen hanya
+punya sedikit ulangan, perkiraan dispersi dan perubahan lipat dari banyak gen ``dipinjamkan'' satu sama
+lain dan ditarik ke arah tren bersama, sebuah bentuk prior Bayesian empiris. Dengan puluhan ribu gen
+yang diuji sekaligus, nilai p dikoreksi untuk mengendalikan proporsi temuan palsu.
+
+\section{Di mana machine learning masuk}
+
+Genomik adalah salah satu medan tempat machine learning paling banyak dipakai di ilmu hayati. Jaringan
+saraf memanggil basa dari sinyal nanopore, memanggil varian dari tumpukan bacaan, dan memprediksi dari
+urutan DNA saja di mana protein akan menempel atau seberapa kuat sebuah gen diekspresikan. Model bahasa
+yang dilatih pada urutan DNA dan protein meniru resep model bahasa manusia di \cref{ch:lstm}.
+Metode tanpa label seperti biclustering dan analisis faktor (\cref{ch:unsup}) menemukan modul gen yang
+bekerja bersama dalam data ekspresi. Karakter datanya menuntut kehati-hatian khusus: jumlah fitur
+puluhan ribu dengan jumlah sampel puluhan, batch percobaan yang meninggalkan jejak sistematis, dan
+korelasi antar sampel dari pasien atau keluarga yang sama, semua sumber kebocoran yang dibahas di
+\cref{ch:data}.
+
+\sumberbab{Bab ini mengikuti kuliah Genome Analysis and Transcriptomics (dasar biologi molekuler,
+genetika populasi, microarray dan pemrosesannya, pengurutan DNA, pemetaan bacaan, pemanggilan varian,
+perakitan genom, RNA-seq) dan Introduction to Genetics. Untuk analisis urutan secara probabilistik,
+\citet{durbin1998} tetap menjadi rujukan klasik.}

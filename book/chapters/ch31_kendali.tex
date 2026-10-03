@@ -1,0 +1,128 @@
+\chapter{Mengendalikan Sistem}
+\label{ch:kendali}
+
+Di semester pertama saya mengambil dua mata kuliah yang sekilas tidak ada hubungannya dengan
+machine learning. Control systems membahas sistem dinamis linear dari model ruang keadaan sampai
+pengendali diskret, dengan latihan dan ujian berbasis MATLAB. Production automation systems membahas
+dunia pabrik: perangkat otomasi, sistem waktu nyata, pemrograman PLC, fieldbus, dan standar IEC
+61499 untuk sistem otomasi terdistribusi. Belakangan terlihat bahwa teori kendali adalah saudara
+kandung reinforcement learning, dan bahwa model ruang keadaan adalah bahasa yang sama yang dipakai
+Kalman filter, state space model seperti Mamba, dan penemuan persamaan dari data.
+
+\section{Sistem dan model}
+
+Sebuah sistem dinamis dijelaskan oleh keadaannya, yaitu sekumpulan besaran yang cukup untuk
+menentukan masa depannya kalau input diketahui. Untuk rangkaian listrik RC, keadaannya tegangan
+kapasitor. Untuk kaskade tangki air yang saling mengalirkan, keadaannya ketinggian air di setiap
+tangki. Untuk populasi pemangsa dan mangsa, keadaannya jumlah masing-masing hewan, dan persamaan
+Lotka--Volterra menggambarkan siklus naik turun yang khas: mangsa berlimpah membuat pemangsa
+bertambah, pemangsa yang banyak membuat mangsa berkurang, dan seterusnya. Bentuk umumnya adalah
+\begin{equation}
+\dot{\vx}=\bm f(\vx,\bm u),\qquad \vy=\bm h(\vx,\bm u),
+\end{equation}
+dengan $\bm u$ input yang bisa kita atur dan $\vy$ keluaran yang bisa kita ukur.
+
+Sebagian besar teori dibangun untuk sistem linear yang tidak berubah terhadap waktu,
+\begin{equation}
+\dot{\vx}=\mA\vx+\bm B\bm u,\qquad \vy=\bm C\vx+\bm D\bm u.
+\end{equation}
+Sistem nonlinear dilinearkan di sekitar titik kesetimbangan dengan mengganti $\bm f$ dengan
+matriks Jacobiannya. Solusi sistem linear adalah
+$\vx(t)=e^{\mA t}\vx_0+\int_0^te^{\mA(t-\tau)}\bm B\bm u(\tau)\dd\tau$, dan perilakunya ditentukan oleh nilai
+eigen $\mA$. Sistem stabil secara asimtotik, artinya kembali ke kesetimbangan dari gangguan apa pun,
+tepat ketika semua nilai eigen punya bagian real negatif. Bentuk Jordan menguraikan sistem menjadi
+mode-mode independen, sehingga setiap nilai eigen bisa dibaca sebagai satu cara sistem meluruh,
+tumbuh, atau berosilasi.
+
+\section{Bisa dicapai, bisa diamati}
+
+Dua pertanyaan menentukan apakah sebuah sistem bisa dikendalikan dengan baik. Pertama, apakah input
+bisa membawa keadaan ke mana saja? Untuk sistem linear, jawabannya ya tepat ketika matriks
+\begin{equation}
+\mathcal R=\big[\bm B\ \ \mA\bm B\ \ \mA^2\bm B\ \cdots\ \mA^{n-1}\bm B\big]
+\end{equation}
+berpangkat penuh. Kedua, apakah keadaan bisa direkonstruksi dari keluaran? Jawabannya ya tepat ketika
+matriks yang disusun dari $\bm C,\bm C\mA,\dots,\bm C\mA^{n-1}$ berpangkat penuh. Dekomposisi Kalman
+memisahkan keadaan menjadi bagian yang bisa dicapai dan diamati, bagian yang hanya salah satunya,
+dan bagian yang tidak keduanya. Bagian yang tidak terjangkau dan tidak stabil adalah kabar buruk,
+karena tidak ada pengendali yang bisa menyelamatkannya.
+
+\section{Pengendali dan pengamat}
+
+Dengan umpan balik keadaan $\bm u=-\bm K\vx$, sistem tertutup menjadi $\dot{\vx}=(\mA-\bm B\bm K)\vx$, dan
+kita bisa memilih $\bm K$ agar nilai eigen sistem tertutup berada di tempat yang kita inginkan, selama
+sistemnya bisa dicapai. Ambil contoh paling sederhana, sebuah massa tanpa gesekan, $\ddot x=u$. Dengan
+keadaan posisi dan kecepatan serta $u=-k_1x-k_2\dot x$, persamaan karakteristiknya $s^2+k_2s+k_1=0$.
+Kalau kita menginginkan kedua kutub di $-2$, polinomialnya harus $(s+2)^2=s^2+4s+4$, sehingga
+$k_1=k_2=4$. Rumus Ackermann melakukan perhitungan yang sama untuk sistem dengan satu input
+berukuran berapa pun.
+
+Kalau keadaan tidak diukur seluruhnya, kita membangun pengamat yang menirukan sistem dan mengoreksi
+dirinya dengan galat keluaran,
+\begin{equation}
+\dot{\hat\vx}=\mA\hat\vx+\bm B\bm u+\bm L\big(\vy-\bm C\hat\vx\big).
+\end{equation}
+Prinsip pemisahan menyatakan bahwa pengendali dan pengamat bisa dirancang terpisah lalu digabung,
+dan kutub-kutub sistem gabungan adalah gabungan kutub keduanya.
+
+Alih-alih memilih kutub, kita juga bisa meminta pengendali terbaik menurut sebuah biaya. Linear
+quadratic regulator meminimalkan
+\begin{equation}
+J=\int_0^\infty\big(\vx^\top\bm Q\vx+\bm u^\top\bm R\bm u\big)\dd t,
+\end{equation}
+yang menimbang seberapa jauh keadaan menyimpang terhadap seberapa besar tenaga kendali yang
+dipakai. Jawabannya tetap berupa umpan balik linear, dengan $\bm K$ dari persamaan Riccati. Ketika
+pengukurannya berisik, pengamat optimalnya adalah Kalman filter \citep{kalman1960}, dan gabungan
+LQR dengan Kalman filter disebut LQG. Dari sudut pandang \cref{ch:rl}, LQR adalah masalah
+reinforcement learning yang modelnya diketahui sempurna, dinamikanya linear, dan biayanya kuadratik,
+sehingga persamaan Bellman bisa diselesaikan secara tertutup.
+
+\section{Domain frekuensi}
+
+Transformasi Laplace mengubah persamaan diferensial linear menjadi persamaan aljabar. Hubungan
+antara input dan keluaran menjadi fungsi alih, $G(s)=\bm C(s\bm I-\mA)^{-1}\bm B+\bm D$. Sistem stabil
+dalam arti BIBO, yaitu input terbatas selalu menghasilkan keluaran terbatas, kalau semua kutub $G(s)$
+berada di setengah bidang kiri. Respons frekuensi $G(i\omega)$ menyatakan bagaimana sinyal sinus
+diperkuat dan digeser fasenya, dan diagram Bode menggambarnya dalam skala logaritmik.
+
+Dalam lingkar umpan balik, pengendali $R(s)$ dan proses $G(s)$ membentuk fungsi lingkar terbuka
+$L(s)=R(s)G(s)$, dan banyak sifat sistem tertutup bisa dibaca dari bentuk $L$. Pengendali
+proporsional-integral menambahkan suku integral yang menghapus galat keadaan tunak, karena selama
+galat masih ada, integralnya terus tumbuh dan mendorong input. Kuliah merancang pengendali seperti ini
+dengan membentuk respons langkah yang diinginkan, lalu memeriksa kestabilannya dengan kriteria
+grafis. Bagian terakhir kuliah membawa semuanya ke dunia digital. Pengendali di komputer bekerja
+pada sampel, dan pemetaan $z=e^{sT}$ menghubungkan domain kontinu dengan domain diskret. Transformasi
+Tustin memberi cara praktis untuk mengubah pengendali kontinu menjadi algoritme diskret.
+
+\section{Otomasi di pabrik}
+
+Teori kendali bertemu kenyataan di lantai pabrik. Kuliah production automation memperlihatkan
+lapisan-lapisan yang menjalankan kendali itu. \istilah{Programmable logic controller} (PLC) membaca
+semua input, menjalankan programnya, lalu menulis semua output, dalam siklus yang berulang setiap
+beberapa milidetik. Programnya ditulis dalam bahasa standar IEC 61131-3, seperti diagram tangga yang
+meniru rangkaian relai, diagram blok fungsi, atau teks terstruktur. Sistem waktu nyata membedakan
+tenggat keras, yang tidak boleh terlewat sama sekali karena akibatnya berbahaya, dari tenggat lunak,
+yang sesekali boleh terlewat. Fieldbus menghubungkan sensor, aktuator, dan pengendali dengan
+komunikasi yang waktunya bisa dipastikan. Standar IEC 61499 memecah aplikasi otomasi menjadi blok fungsi
+yang digerakkan oleh kejadian dan bisa disebar ke banyak perangkat, sebuah langkah menuju pabrik yang
+bisa dikonfigurasi ulang dengan cepat, tema utama gerakan Industri 4.0.
+
+\section{Kendali dan machine learning}
+
+Hubungan antara kendali dan machine learning berjalan ke dua arah. Dari kendali ke machine learning:
+model ruang keadaan menjadi state space model di deep learning (\cref{ch:lstm}), metode adjoint dari
+kendali optimal menjadi cara melatih neural ODE (\cref{ch:mlat}), dan Kalman filter menjadi kerangka
+data assimilation (\cref{ch:prob}). Dari machine learning ke kendali: model dinamika bisa dipelajari
+dari data alih-alih diturunkan dari hukum fisika, lalu dipakai dalam pengendali prediktif yang
+mengoptimalkan beberapa langkah ke depan di setiap saat. Teori operator Koopman \citep{koopman1931}
+menawarkan cara melihat sistem nonlinear sebagai sistem linear di ruang fungsi yang lebih besar,
+sehingga alat-alat kendali linear bisa dipakai kembali, sebuah gagasan yang kita temui lagi di
+\cref{ch:penemuan}. Reinforcement learning sendiri bisa dipandang sebagai kendali optimal tanpa model,
+dan pada sistem nyata keduanya sering digabung: model fisika memberi dasar, pembelajaran mengoreksi
+apa yang tidak dimodelkan.
+
+\sumberbab{Bab ini mengikuti naskah kuliah Control Systems (sistem dan model, sifat sistem, sistem LTI,
+keterjangkauan dan keteramatan, pengendali dan pengamat keadaan, LQR dan LQG, transformasi Laplace,
+desain pengendali, sistem diskret) dan kuliah Production Automation Systems (perangkat otomasi, sistem
+waktu nyata, PLC, fieldbus, IEC 61499). Bacaan lanjut tentang hubungan kendali dan data:
+\citet{brunton2022}.}

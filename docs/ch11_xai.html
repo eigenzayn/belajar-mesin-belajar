@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Membuka Kotak Hitam: AI dan
+Visualisasi · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 13</p>
+<h1>Membuka Kotak Hitam: AI dan Visualisasi</h1>
+<p><span id="ch:xai" data-label="ch:xai"></span></p>
+<p>Kuliah AI and visualization saya ikuti pada musim dingin 2025/26,
+diberikan oleh kelompok Visual Data Science di Linz. Kuliahnya bertumpu
+pada satu rumus yang muncul sejak pertemuan pertama: AI ditambah
+visualisasi ditambah manusia sama dengan explainable AI. Penjelasan
+bukan sesuatu yang dikeluarkan mesin begitu saja. Ia harus dirancang
+untuk seseorang, dan visualisasi adalah salah satu alat terbaik untuk
+menyampaikannya.</p>
+<p>Model yang paling akurat sering yang paling sulit dipahami. Untuk
+menyarankan film, itu tidak masalah. Untuk menolak kredit, mendiagnosis
+penyakit, atau menyetujui desain sebuah reaktor, kita perlu tahu alasan
+di balik keputusan. Bab ini membahas dua arah hubungan antara AI dan
+visualisasi: visualisasi untuk memahami AI, dan AI untuk membuat
+visualisasi.</p>
+<h1 id="siapa-yang-butuh-penjelasan-dan-untuk-apa">Siapa yang butuh
+penjelasan, dan untuk apa</h1>
+<p>Penjelasan yang dibutuhkan pengembang model berbeda dari yang
+dibutuhkan dokter, regulator, atau orang yang permohonan kreditnya
+ditolak. Pengembang ingin menemukan bug dan bias. Pengguna ahli ingin
+tahu kapan model bisa dipercaya. Orang yang terdampak ingin tahu apa
+yang harus diubah agar keputusannya berbeda. Kuliah menyusun
+teknik-teknik XAI menurut pertanyaan pengguna: mengapa prediksi ini,
+mengapa bukan yang lain, bagaimana kalau input diubah, dan contoh mana
+yang mirip.</p>
+<p>Ada juga pertukaran yang sering digambarkan antara kinerja dan
+keterjelasan. Regresi linear dan pohon keputusan kecil mudah dibaca,
+jaringan dalam tidak. <span class="citation"
+data-cites="rudin2019">Rudin (2019)</span> berpendapat bahwa untuk
+keputusan berisiko tinggi, kita sebaiknya memakai model yang bisa
+ditafsirkan sejak awal daripada menjelaskan kotak hitam setelah jadi,
+karena penjelasan sesudahnya bisa saja tidak setia pada apa yang
+sebenarnya dilakukan model.</p>
+<p>Kuliah membedakan dua arah. <em>Vis for ML</em> memakai visualisasi
+untuk memahami, men-debug, dan membandingkan model. <em>ML for Vis</em>
+memakai machine learning untuk membantu membuat visualisasi, misalnya
+merekomendasikan jenis grafik atau menghasilkan dashboard dari
+permintaan dalam bahasa biasa.</p>
+<h1 id="dasar-dasar-visualisasi">Dasar-dasar visualisasi</h1>
+<p>Visualisasi bekerja karena sistem visual manusia memproses pola
+dengan cepat. Tetapi tidak semua saluran visual sama kuatnya. <span
+class="citation" data-cites="munzner2014">Munzner (2014)</span> menyusun
+peringkat untuk data kuantitatif: posisi pada sumbu yang sama paling
+akurat dibaca, disusul panjang, sudut, luas, lalu kecerahan dan saturasi
+warna. Itulah sebabnya grafik batang biasanya lebih jujur daripada
+diagram lingkaran, dan mengapa grafik tiga dimensi yang memiringkan
+sumbu sering menyesatkan. Prinsip Gestalt menjelaskan bagaimana mata
+mengelompokkan objek: berdekatan, mirip warna atau bentuk, terhubung
+garis, atau berada di dalam wadah yang sama.</p>
+<p>Visualisasi juga bisa bercerita. Cerita yang digerakkan penulis
+membawa pembaca melalui urutan yang sudah ditentukan, seperti artikel
+berita. Cerita yang digerakkan pembaca membiarkan orang menjelajah
+sendiri. Banyak visualisasi terbaik memakai bentuk campuran: dimulai
+dengan narasi, lalu membuka ruang untuk dijelajahi.</p>
+<p>Kuliah memakai visualisasi untuk menjelaskan algoritme. Algoritme
+pengurutan bisa digambar sebagai garis-garis yang bertukar tempat dari
+langkah ke langkah. <span class="math inline">\(k\)</span>-means bisa
+dianimasikan sebagai pusat yang bergeser. Teorema Bayes bisa dijelaskan
+dengan kotak berisi seratus orang. Contoh yang dibahas adalah tes
+penyakit dengan sensitivitas 90 persen, tingkat positif palsu 9 persen,
+dan prevalensi 1 persen. Dari seribu orang, sepuluh sakit dan sembilan
+di antaranya terdeteksi, sedangkan dari 990 orang sehat, sekitar 89
+mendapat hasil positif palsu. Peluang benar-benar sakit setelah hasil
+positif hanya <span class="math inline">\(9/(9+89)\approx9\)</span>
+persen. Banyak orang, termasuk dokter, menebak jauh lebih tinggi. Gambar
+seratus kotak kecil membuat hasil ini langsung terasa masuk akal.</p>
+<h1 id="menjelaskan-lewat-proyeksi">Menjelaskan lewat proyeksi</h1>
+<p>Data berdimensi tinggi, termasuk aktivasi di dalam jaringan saraf,
+bisa diproyeksikan ke dua dimensi untuk dilihat. PCA (<a
+href="ch02c_unsupervised.html">Bab 4</a>) mempertahankan varians global,
+t-SNE mempertahankan tetangga lokal, dan UMAP <span class="citation"
+data-cites="mcinnes2018">(McInnes, Healy, dan Melville 2018)</span>
+berusaha menjaga keduanya. Kuliah meluangkan waktu khusus untuk salah
+baca yang umum pada t-SNE: hyperparameter seperti perplexity amat
+menentukan, ukuran kelompok di peta tidak berarti apa-apa, jarak antar
+kelompok bisa menipu, noise acak kadang tampak berpola, dan untuk
+melihat topologi kita mungkin butuh beberapa peta dengan setelan
+berbeda.</p>
+<p>Proyeksi juga bisa menunjukkan proses yang berjalan dalam waktu.
+Kalau setiap keadaan sebuah proses, misalnya setiap langkah algoritme,
+setiap posisi permainan catur, atau setiap epoch pelatihan jaringan,
+diproyeksikan sebagai satu titik, lalu titik-titik itu dihubungkan, kita
+mendapat lintasan. Lintasan pelatihan dua jaringan bisa dibandingkan:
+apakah keduanya menempuh jalan yang mirip, atau satu berputar-putar
+sebelum menemukan solusi. Kelompok visualisasi di Linz juga
+mengembangkan alat seperti ini untuk kimia, sehingga ahli kimia bisa
+menjelajahi ruang molekul yang dilihat oleh model prediksi mereka.</p>
+<h1 id="menjelaskan-dalam-ruang-input">Menjelaskan dalam ruang
+input</h1>
+<p>Sekelompok teknik menjelaskan model dengan melihat bagaimana
+keluarannya berubah terhadap input. <em>Partial dependence plot</em>
+menampilkan efek rata-rata satu fitur terhadap prediksi, dengan
+merata-ratakan atas nilai fitur-fitur lain. <em>Individual conditional
+expectation</em> menampilkan kurva yang sama untuk setiap contoh secara
+terpisah, sehingga interaksi antar fitur yang tersembunyi di balik
+rata-rata menjadi terlihat.</p>
+<p>LIME <span class="citation" data-cites="ribeiro2016">(Ribeiro, Singh,
+dan Guestrin 2016)</span> menjelaskan satu prediksi dengan membangun
+model sederhana yang hanya berlaku di sekitar contoh itu. Contoh
+diganggu sedikit demi sedikit, misalnya dengan menyembunyikan
+potongan-potongan gambar (<em>superpixel</em>), model asli ditanya untuk
+setiap versi, lalu model linear dilatih untuk meniru jawabannya secara
+lokal. Bobot model linear itu menjadi penjelasan. Model surrogate global
+melakukan hal serupa untuk seluruh data, dengan risiko bahwa model
+sederhana itu tidak cukup setia.</p>
+<p>Nilai Shapley berasal dari teori permainan kooperatif. Pertanyaannya:
+kalau sekelompok pemain bersama menghasilkan keuntungan, berapa bagian
+yang adil untuk setiap pemain? Jawaban Shapley adalah rata-rata
+kontribusi marginal pemain itu atas semua urutan kedatangan pemain.
+Dalam XAI, pemainnya adalah fitur dan keuntungannya adalah prediksi.
+Ambil contoh dua fitur, A dan B. Tanpa fitur apa pun, prediksi model 0.
+Dengan A saja 10, dengan B saja 20, dan dengan keduanya 40. Kalau A
+datang lebih dulu, kontribusinya 10, dan kalau datang setelah B,
+kontribusinya 20. Rata-ratanya 15. Dengan cara yang sama, B mendapat
+<span class="math inline">\((20+30)/2=25\)</span>. Jumlah keduanya tepat
+40, prediksi penuh. SHAP <span class="citation"
+data-cites="lundberg2017">(Lundberg dan Lee 2017)</span> membuat
+perhitungan ini praktis untuk model dengan banyak fitur, karena jumlah
+urutan yang mungkin tumbuh secara faktorial.</p>
+<h1 id="menjelaskan-lewat-gradien">Menjelaskan lewat gradien</h1>
+<p>Untuk jaringan saraf, gradien keluaran terhadap input memberi peta
+kepekaan langsung: piksel mana yang paling mengubah skor kelas kalau
+digeser sedikit. <em>Saliency map</em> vanila <span class="citation"
+data-cites="simonyan2014">(Simonyan, Vedaldi, dan Zisserman 2013)</span>
+menampilkan besar gradien ini. Hasilnya sering berbintik dan berisik.
+Integrated gradients <span class="citation"
+data-cites="sundararajan2017">(Sundararajan, Taly, dan Yan 2017)</span>
+menjumlahkan gradien sepanjang jalur dari gambar acuan, misalnya gambar
+hitam, ke gambar asli, dan memenuhi sifat bahwa jumlah atribusinya sama
+dengan selisih keluaran. Grad-CAM <span class="citation"
+data-cites="selvaraju2017">(Selvaraju dkk. 2016)</span> memakai gradien
+terhadap peta fitur lapisan konvolusi terakhir untuk menimbang peta-peta
+itu, sehingga menghasilkan peta panas kasar yang menunjukkan daerah
+gambar yang dipakai model. Layer-wise relevance propagation <span
+class="citation" data-cites="bach2015">(Bach dkk. 2015)</span> membagi
+skor keluaran mundur ke input lapisan demi lapisan dengan aturan
+kekekalan relevansi.</p>
+<p>Kuliah memakai contoh dari sebuah studi klasifikasi jamur. Peta
+Grad-CAM kadang menunjukkan bahwa model melihat bagian yang memang
+penting secara biologis, seperti tudung dan bilah, tetapi kadang juga
+latar belakang, misalnya rumput atau tangan yang memegang jamur. Peta
+seperti ini tidak membuktikan bahwa model benar, tetapi amat berguna
+untuk menemukan jalan pintas yang tidak diinginkan.</p>
+<h1 id="menjelaskan-lewat-contoh-dan-konsep">Menjelaskan lewat contoh
+dan konsep</h1>
+<p>Manusia sering menjelaskan dengan contoh: “ini mirip kasus yang
+kemarin”. Model pun bisa menjelaskan prediksinya dengan menunjukkan
+contoh data latih yang paling mirip di ruang fiturnya.
+<em>Prototype</em> adalah contoh yang mewakili sebuah kelompok, dan
+<em>criticism</em> adalah contoh yang tidak terwakili dengan baik oleh
+prototype mana pun. Keduanya bersama memberi gambaran lebih jujur
+tentang data.</p>
+<p>Penjelasan berbasis konsep bertanya apakah sebuah konsep yang
+bermakna bagi manusia, misalnya “bergaris” atau “berlatar salju”,
+tersimpan di dalam jaringan. <em>Network dissection</em> mencocokkan
+unit-unit di dalam jaringan dengan konsep yang dianotasi. TCAV <span
+class="citation" data-cites="kim2018">(Kim dkk. 2017)</span> mempelajari
+arah di ruang aktivasi yang mewakili sebuah konsep dari
+contoh-contohnya, lalu mengukur seberapa peka prediksi sebuah kelas
+terhadap arah itu. Jenis temuan yang dicari mirip contoh terkenal dari
+<span class="citation" data-cites="ribeiro2016">Ribeiro, Singh, dan
+Guestrin (2016)</span>, di mana penjelasan LIME mengungkap bahwa sebuah
+pengklasifikasi serigala dan anjing husky sebenarnya terutama melihat
+salju di latar belakang.</p>
+<h1 id="visualisasi-di-era-ai-generatif">Visualisasi di era AI
+generatif</h1>
+<p>Pertemuan terakhir membahas arah sebaliknya: AI yang membuat
+visualisasi. Model bahasa bisa menulis kode grafik dari permintaan dalam
+bahasa biasa, menyusun dashboard, atau membuat penjelasan bagi pengguna
+baru. Kuliah menyoroti risikonya. Gambar yang dihasilkan bisa tampak
+meyakinkan tetapi salah secara data. Model membuat asumsi tentang maksud
+pengguna yang tidak pernah diucapkan. Dan jawabannya bergantung pada
+gambaran yang dibentuk model tentang siapa penggunanya. Kuliah
+mengusulkan antarmuka yang membuat asumsi-asumsi itu terlihat dan bisa
+dikoreksi pengguna.</p>
+<h1 id="di-luar-kelas">Di luar kelas</h1>
+<p>Keterjelasan penting di setiap bidang yang dibahas buku ini, dengan
+alasan yang berbeda-beda. Dalam kedokteran, peta Grad-CAM pada citra
+rontgen bisa mengungkap model yang melihat penanda rumah sakit di sudut
+gambar alih-alih paru-paru. Dalam penemuan obat, atribusi pada atom-atom
+molekul membantu ahli kimia memutuskan bagian mana yang perlu diubah.
+Dalam pemrosesan sinyal dan sistem tertanam, kita perlu tahu sensor mana
+yang paling menentukan sebuah keputusan. Dalam simulasi, keterjelasan
+bisa diambil sejauh-jauhnya: metode seperti SINDy (<a
+href="ch17_penemuan_reduksi.html">Bab 27</a>) tidak menjelaskan model
+kotak hitam, melainkan menghasilkan persamaan yang bisa dibaca langsung.
+Itu barangkali bentuk penjelasan yang paling disukai <span
+class="citation" data-cites="rudin2019">Rudin (2019)</span>.</p>
+<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<p>Bab ini mengikuti enam kuliah AI and Visualization beserta labnya:
+dasar visualisasi, menjelaskan algoritme, proyeksi, teknik penjelasan
+visual (PDP, ICE, LIME, Shapley, saliency, Grad-CAM, contoh, konsep),
+dan AI generatif untuk visualisasi. Bacaan pendamping: <span
+class="citation" data-cites="molnar2022">Molnar (2022)</span> untuk
+interpretable machine learning dan <span class="citation"
+data-cites="munzner2014">Munzner (2014)</span> untuk visualisasi.</p>
+<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-bach2015" class="csl-entry" role="listitem">
+Bach, Sebastian, Alexander Binder, Grégoire Montavon, Frederick
+Klauschen, Klaus-Robert Müller, dan Wojciech Samek. 2015. <span>“On
+Pixel-Wise Explanations for Non-Linear Classifier Decisions by
+Layer-Wise Relevance Propagation.”</span> <em>PLOS ONE</em> 10 (7):
+e0130140. <a
+href="https://doi.org/10.1371/journal.pone.0130140">https://doi.org/10.1371/journal.pone.0130140</a>.
+</div>
+<div id="ref-kim2018" class="csl-entry" role="listitem">
+Kim, Been, Martin Wattenberg, Justin Gilmer, Carrie Cai, James Wexler,
+Fernanda Viegas, dan Rory Sayres. 2017. <span>“Interpretability Beyond
+Feature Attribution: Quantitative Testing with Concept Activation
+Vectors (TCAV).”</span> arXiv:1711.11279. <a
+href="https://arxiv.org/abs/1711.11279">https://arxiv.org/abs/1711.11279</a>.
+</div>
+<div id="ref-lundberg2017" class="csl-entry" role="listitem">
+Lundberg, Scott, dan Su-In Lee. 2017. <span>“A Unified Approach to
+Interpreting Model Predictions.”</span> arXiv:1705.07874. <a
+href="https://arxiv.org/abs/1705.07874">https://arxiv.org/abs/1705.07874</a>.
+</div>
+<div id="ref-mcinnes2018" class="csl-entry" role="listitem">
+McInnes, Leland, John Healy, dan James Melville. 2018. <span>“UMAP:
+Uniform Manifold Approximation and Projection for Dimension
+Reduction.”</span> arXiv:1802.03426. <a
+href="https://arxiv.org/abs/1802.03426">https://arxiv.org/abs/1802.03426</a>.
+</div>
+<div id="ref-molnar2022" class="csl-entry" role="listitem">
+Molnar, Christoph. 2022. <em>Interpretable Machine Learning: A Guide for
+Making Black Box Models Explainable</em>. 2 ed. Independently published.
+</div>
+<div id="ref-munzner2014" class="csl-entry" role="listitem">
+Munzner, Tamara. 2014. <em>Visualization Analysis and Design</em>. CRC
+Press.
+</div>
+<div id="ref-ribeiro2016" class="csl-entry" role="listitem">
+Ribeiro, Marco Tulio, Sameer Singh, dan Carlos Guestrin. 2016.
+<span>“"Why Should I Trust You?": Explaining the Predictions of Any
+Classifier.”</span> arXiv:1602.04938. <a
+href="https://arxiv.org/abs/1602.04938">https://arxiv.org/abs/1602.04938</a>.
+</div>
+<div id="ref-rudin2019" class="csl-entry" role="listitem">
+Rudin, Cynthia. 2019. <span>“Stop explaining black box machine learning
+models for high stakes decisions and use interpretable models
+instead.”</span> <em>Nature Machine Intelligence</em> 1 (5): 206–15. <a
+href="https://doi.org/10.1038/s42256-019-0048-x">https://doi.org/10.1038/s42256-019-0048-x</a>.
+</div>
+<div id="ref-selvaraju2017" class="csl-entry" role="listitem">
+Selvaraju, Ramprasaath R., Michael Cogswell, Abhishek Das, Ramakrishna
+Vedantam, Devi Parikh, dan Dhruv Batra. 2016. <span>“Grad-CAM: Visual
+Explanations from Deep Networks via Gradient-based Localization.”</span>
+arXiv:1610.02391. <a
+href="https://arxiv.org/abs/1610.02391">https://arxiv.org/abs/1610.02391</a>.
+</div>
+<div id="ref-simonyan2014" class="csl-entry" role="listitem">
+Simonyan, Karen, Andrea Vedaldi, dan Andrew Zisserman. 2013. <span>“Deep
+Inside Convolutional Networks: Visualising Image Classification Models
+and Saliency Maps.”</span> arXiv:1312.6034. <a
+href="https://arxiv.org/abs/1312.6034">https://arxiv.org/abs/1312.6034</a>.
+</div>
+<div id="ref-sundararajan2017" class="csl-entry" role="listitem">
+Sundararajan, Mukund, Ankur Taly, dan Qiqi Yan. 2017. <span>“Axiomatic
+Attribution for Deep Networks.”</span> arXiv:1703.01365. <a
+href="https://arxiv.org/abs/1703.01365">https://arxiv.org/abs/1703.01365</a>.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch10_rl.html"><span>Sebelumnya</span>Belajar dari Ganjaran: Reinforcement Learning</a>
+  <a class="next" href="ch30_sinyal.html"><span>Berikutnya</span>Menangkap Sinyal: Estimasi, Filter, dan Radar</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

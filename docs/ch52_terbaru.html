@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ke Mana Arah AI · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 32</p>
+<h1>Ke Mana Arah AI</h1>
+<p><span id="ch:terbaru" data-label="ch:terbaru"></span></p>
+<p>Selama dua tahun kuliah, bidang ini bergerak lebih cepat daripada
+slide yang mengajarkannya. Ketika kuliah LSTM membahas xLSTM sebagai
+pesaing transformer, model bahasa besar sudah dipakai jutaan orang
+setiap hari. Ketika kuliah AI and law membahas usulan aturan untuk model
+serbaguna, aturan itu sudah berlaku. Bab penutup ini mencoba merangkum
+perkembangan besar beberapa tahun terakhir dan menghubungkannya kembali
+dengan fondasi di bab-bab sebelumnya. Isinya pasti cepat usang, dan
+memang itulah intinya.</p>
+<h1 id="model-fondasi-dan-hukum-penskalaan">Model fondasi dan hukum
+penskalaan</h1>
+<p>Istilah <em>foundation model</em> <span class="citation"
+data-cites="bommasani2021">(Bommasani dkk. 2021)</span> menamai
+pergeseran cara membangun AI. Alih-alih melatih model khusus untuk
+setiap tugas, kita melatih satu model besar pada data yang luas,
+biasanya dengan self-supervised learning (<a
+href="ch01_belajar_dari_data.html">Bab 1</a>), lalu menyesuaikannya
+untuk banyak tugas. GPT-4 <span class="citation"
+data-cites="openai2023">(OpenAI dkk. 2023)</span>, model-model terbuka
+seperti LLaMA <span class="citation" data-cites="touvron2023">(Touvron
+dkk. 2023)</span>, CLIP untuk gambar dan teks <span class="citation"
+data-cites="radford2021">(Radford dkk. 2021)</span>, dan AlphaFold untuk
+protein adalah contoh-contohnya.</p>
+<p>Pendorong utamanya adalah pengamatan empiris yang disebut <em>scaling
+laws</em>. <span class="citation" data-cites="kaplan2020">Kaplan dkk.
+(2020)</span> menemukan bahwa loss model bahasa turun mengikuti hukum
+pangkat terhadap jumlah parameter <span
+class="math inline">\(N\)</span>, jumlah data <span
+class="math inline">\(D\)</span>, dan komputasi <span
+class="math inline">\(C\)</span>, misalnya <span
+class="math inline">\(L(N)\approx(N_c/N)^{\alpha}\)</span> dengan <span
+class="math inline">\(\alpha\)</span> kecil. Hukum pangkat berarti garis
+lurus pada skala log–log: setiap kali model diperbesar sepuluh kali,
+loss turun dengan faktor yang kira-kira tetap. Komputasi pelatihan
+transformer bisa diperkirakan dengan aturan praktis <span
+class="math inline">\(C\approx6ND\)</span> operasi floating point:
+sekitar dua operasi per parameter per token untuk lintasan maju, dan
+sekitar empat untuk lintasan mundur. <span class="citation"
+data-cites="hoffmann2022">Hoffmann dkk. (2022)</span> menunjukkan bahwa
+untuk anggaran komputasi tertentu, banyak model sebelumnya terlalu besar
+dan dilatih dengan terlalu sedikit data, dan bahwa jumlah token yang
+optimal kira-kira dua puluh kali jumlah parameter. Model dengan 70
+miliar parameter dengan demikian butuh sekitar 1,4 triliun token, dan
+komputasinya <span
+class="math inline">\(6\times7\times10^{10}\times1{,}4\times10^{12}
+\approx5{,}9\times10^{23}\)</span> operasi. Angka ini menarik
+dibandingkan dengan ambang <span class="math inline">\(10^{25}\)</span>
+operasi yang dipakai AI Act untuk menandai model dengan risiko sistemik
+(<a href="ch51_ai_manusia.html">Bab 31</a>): ambang itu kira-kira tujuh
+belas kali lebih besar.</p>
+<p>Supaya model raksasa lebih murah dijalankan, arsitektur <em>mixture
+of experts</em> <span class="citation" data-cites="fedus2022">(Fedus,
+Zoph, dan Shazeer 2021)</span> hanya mengaktifkan sebagian kecil
+subjaringan untuk setiap token, sehingga jumlah parameter total bisa
+besar sekali sementara komputasi per token tetap terkendali. Untuk
+menyesuaikan model ke tugas baru tanpa melatih ulang semua parameternya,
+LoRA <span class="citation" data-cites="hu2022">(Hu dkk. 2021)</span>
+membekukan matriks bobot <span
+class="math inline">\(\boldsymbol{W}\in\mathbb{R}^{d\times d}\)</span>
+dan hanya mempelajari koreksi berpangkat rendah <span
+class="math inline">\(\boldsymbol B\boldsymbol A\)</span> dengan <span
+class="math inline">\(\boldsymbol B\in\mathbb{R}^{d\times r}\)</span>
+dan <span class="math inline">\(\boldsymbol A\in\mathbb{R}^{r\times
+d}\)</span>. Untuk <span class="math inline">\(d=4096\)</span> dan <span
+class="math inline">\(r=8\)</span>, satu matriks penuh punya sekitar
+16,8 juta parameter, sedangkan koreksinya hanya <span
+class="math inline">\(2\times4096\times8=65\,536\)</span>, kurang dari
+setengah persen.</p>
+<h1 id="menyelaraskan-model-dengan-manusia">Menyelaraskan model dengan
+manusia</h1>
+<p>Model bahasa yang hanya dilatih menebak kata berikutnya belum tentu
+membantu, jujur, atau aman. InstructGPT <span class="citation"
+data-cites="ouyang2022">(Ouyang dkk. 2022)</span> memperkenalkan resep
+tiga langkah: penyetelan dengan contoh jawaban yang ditulis manusia,
+pelatihan model ganjaran dari perbandingan pasangan jawaban <span
+class="citation" data-cites="christiano2017">(Christiano dkk.
+2017)</span>, lalu optimasi model bahasa terhadap model ganjaran itu
+dengan PPO (<a href="ch10_rl.html">Bab 12</a>), sambil menjaga agar ia
+tidak terlalu jauh dari model awal.</p>
+<p>Direct preference optimization <span class="citation"
+data-cites="rafailov2023">(Rafailov dkk. 2023)</span> memperlihatkan
+bahwa langkah reinforcement learning bisa dilewati. Penurunannya elegan.
+Tujuan RLHF adalah memaksimalkan ganjaran harapan dikurangi penalti KL
+terhadap model acuan <span
+class="math inline">\(\pi_{\mathrm{ref}}\)</span>: <span
+class="math display">\[\max_\pi\ \mathbb{E}_{y\sim\pi(\cdot\mid
+x)}\big[r(x,y)\big]-\beta\,\mathrm{KL}\big(\pi(\cdot\mid
+x)\,\|\,\pi_{\mathrm{ref}}(\cdot\mid x)\big).\]</span> Masalah ini punya
+solusi tertutup, <span class="math inline">\(\pi^*(y\mid
+x)\propto\pi_{\mathrm{ref}}(y\mid x)\exp\big(r(x,y)/\beta\big)\)</span>.
+Membalik persamaan ini memberi ganjaran dalam bentuk policy, <span
+class="math inline">\(r(x,y)=\beta\log\big(\pi^*(y\mid
+x)/\pi_{\mathrm{ref}}(y\mid x)\big)\)</span> ditambah suku yang hanya
+bergantung pada <span class="math inline">\(x\)</span>. Dalam model
+preferensi Bradley–Terry, peluang jawaban <span
+class="math inline">\(y_w\)</span> lebih disukai dari <span
+class="math inline">\(y_l\)</span> adalah <span
+class="math inline">\(\sigma\big(r(x,y_w)-r(x,y_l)\big)\)</span>, dan
+suku yang hanya bergantung pada <span class="math inline">\(x\)</span>
+saling menghapus dalam selisih itu. Hasilnya, preferensi bisa dipelajari
+langsung pada policy dengan loss <span
+class="math display">\[\mathcal{L}_{\mathrm{DPO}}=-\log\sigma\Big(\beta\log\frac{\pi_\theta(y_w\mid
+x)}{\pi_{\mathrm{ref}}(y_w\mid x)}-\beta\log\frac{\pi_\theta(y_l\mid
+x)}{\pi_{\mathrm{ref}}(y_l\mid x)}\Big),\]</span> sebuah binary
+cross-entropy biasa, tanpa model ganjaran terpisah dan tanpa sampling
+selama pelatihan.</p>
+<h1 id="model-yang-bernalar">Model yang bernalar</h1>
+<p><span class="citation" data-cites="wei2022">Wei dkk. (2022)</span>
+menunjukkan bahwa meminta model menuliskan langkah-langkah penalarannya
+sebelum menjawab, <em>chain-of-thought</em>, memperbaiki kinerja pada
+soal matematika dan logika secara nyata. Generasi berikutnya melatih
+kemampuan ini secara langsung. DeepSeek-R1 <span class="citation"
+data-cites="deepseek2025">(DeepSeek-AI dkk. 2025)</span> memperlihatkan
+bahwa reinforcement learning dengan ganjaran yang bisa diperiksa secara
+otomatis, misalnya apakah jawaban akhir sebuah soal matematika benar
+atau apakah sebuah program lolos uji, membuat model belajar menulis
+rantai penalaran panjang, memeriksa ulang, dan mencoba jalan lain ketika
+buntu. Pola ini mengingatkan pada pelajaran dari AlphaZero di <a
+href="ch02b_ai_klasik.html">Bab 3</a>: memberi model lebih banyak waktu
+untuk “berpikir” saat menjawab, dengan mencari dan memeriksa, menjadi
+sumbu penskalaan baru di samping ukuran model.</p>
+<p>Hasilnya terlihat jelas dalam matematika. AlphaGeometry <span
+class="citation" data-cites="trinh2024">(Trinh dkk. 2024)</span>
+menggabungkan model bahasa dengan mesin deduksi simbolik untuk
+menyelesaikan soal geometri olimpiade. Pada Olimpiade Matematika
+Internasional Juli 2025, sebuah versi Gemini Deep Think dari Google
+DeepMind menyelesaikan lima dari enam soal dalam bahasa alami dan diakui
+panitia mencapai standar medali emas<a href="#fn1" class="footnote-ref"
+id="fnref1" role="doc-noteref"><sup>1</sup></a>.</p>
+<h1 id="agen">Agen</h1>
+<p>Model bahasa yang bisa memakai alat berubah dari penjawab pertanyaan
+menjadi agen. ReAct <span class="citation" data-cites="yao2023">(Yao
+dkk. 2022)</span> merangkai penalaran dan tindakan secara bergantian:
+model menulis pikiran, memanggil alat seperti pencarian web atau
+kalkulator, membaca hasilnya, lalu berpikir lagi. Retrieval-augmented
+generation <span class="citation" data-cites="lewis2020">(Lewis dkk.
+2020)</span> memberi model akses ke basis dokumen sehingga jawabannya
+bisa bersandar pada sumber yang dikutip, bukan hanya pada ingatan
+parameternya. Agen pemrograman yang bisa membaca kode, menjalankan uji,
+dan memperbaiki kesalahannya sendiri menjadi salah satu penerapan yang
+paling cepat berkembang. Sebagian besar masalah lama muncul kembali
+dalam bentuk baru: credit assignment untuk tugas panjang (<a
+href="ch10_rl.html">Bab 12</a>), galat yang menumpuk sepanjang banyak
+langkah seperti pada rollout simulator (<a href="ch16_operator.html">Bab
+26</a>), dan pertanyaan siapa yang bertanggung jawab ketika agen
+bertindak (<a href="ch51_ai_manusia.html">Bab 31</a>).</p>
+<h1 id="gambar-video-dan-model-dunia">Gambar, video, dan model
+dunia</h1>
+<p>Model difusi dari <a href="ch09_ml_advanced.html">Bab 11</a> menjadi
+mesin di balik generator gambar modern. Latent diffusion <span
+class="citation" data-cites="rombach2022">(Rombach dkk. 2021)</span>
+menjalankan difusi di ruang laten sebuah autoencoder, bukan di ruang
+piksel, sehingga jauh lebih murah. Diffusion transformer <span
+class="citation" data-cites="peebles2023">(Peebles dan Xie 2022)</span>
+mengganti U-Net dengan transformer dan memperlihatkan bahwa model difusi
+juga mengikuti hukum penskalaan. Generator video adalah perpanjangan
+alami dari gagasan yang sama ke dimensi waktu.</p>
+<p>Model yang membangkitkan video yang konsisten secara fisis mulai
+disebut <em>world models</em>, sebuah istilah yang dipakai <span
+class="citation" data-cites="ha2018">Ha dan Schmidhuber (2018)</span>
+untuk agen yang belajar model internal lingkungannya lalu berlatih di
+dalam “mimpi”-nya sendiri. Apakah model video benar-benar memahami
+fisika atau hanya meniru penampilannya adalah pertanyaan terbuka, dan
+alat dari Bagian V, seperti uji kekekalan dan ekstrapolasi, adalah cara
+yang baik untuk mengujinya.</p>
+<h1 id="ai-untuk-sains">AI untuk sains</h1>
+<p>Tahun 2024 memberi penanda simbolis. Hadiah Nobel Fisika diberikan
+kepada John Hopfield dan Geoffrey Hinton untuk penemuan dasar yang
+memungkinkan machine learning dengan jaringan saraf tiruan, dan setengah
+Hadiah Nobel Kimia diberikan kepada Demis Hassabis dan John Jumper untuk
+prediksi struktur protein (<a href="ch42_protein.html">Bab 20</a>).
+Jaringan Hopfield yang dihargai itu adalah leluhur langsung jaringan
+Hopfield modern di <a href="ch04_lstm_transformer.html">Bab 6</a>.</p>
+<p>Di bidang cuaca, model berbasis machine learning seperti GraphCast
+<span class="citation" data-cites="lam2023">(Lam dkk. 2023)</span>,
+GenCast <span class="citation" data-cites="price2025">(Price dkk.
+2025)</span>, dan Aurora <span class="citation"
+data-cites="bodnar2024">(Bodnar dkk. 2024)</span> kini bersaing dengan
+sistem numerik operasional, dan beberapa pusat prakiraan cuaca mulai
+menjalankannya berdampingan. Model fondasi untuk fisika umum <span
+class="citation" data-cites="mccabe2023 alkin2024">(McCabe dkk. 2023;
+Alkin dkk. 2024)</span> dan kumpulan data simulasi besar <span
+class="citation" data-cites="ohana2024">(Ohana dkk. 2024)</span> mencoba
+mengulang kesuksesan itu untuk PDE secara umum. Di kimia dan biologi,
+AlphaFold3 <span class="citation" data-cites="abramson2024">(Abramson
+dkk. 2024)</span> memperluas prediksi struktur ke interaksi antar
+molekul. Pola yang sama muncul di semua bidang ini: data simulasi dan
+pengukuran yang terkumpul selama puluhan tahun menjadi bahan bakar, dan
+struktur fisika, seperti simetri dan kekekalan, menjadi kemudi.</p>
+<h1 id="yang-tidak-berubah">Yang tidak berubah</h1>
+<p>Di tengah semua perubahan ini, pelajaran dari kuliah-kuliah dasar
+tetap berlaku, bahkan semakin penting. Generalisasi di luar data latih
+tetap sulit (<a href="ch01_belajar_dari_data.html">Bab 1</a>). Model
+besar tetap bisa belajar jalan pintas yang salah, dan evaluasi yang
+jujur tetap memerlukan pembagian data yang hati-hati. Optimasi tetap
+bergantung pada condition number dan noise (<a
+href="ch02_optimasi.html">Bab 2</a>). Model generatif tetap bisa
+berhalusinasi, sehingga penalaran yang bisa diperiksa dan sumber yang
+bisa dikutip menjadi semakin berharga. Dan sistem yang kuat tetap harus
+dijelaskan dengan jujur kepada orang-orang yang hidupnya terdampak (<a
+href="ch11_xai.html">Bab 13</a> dan <a href="ch51_ai_manusia.html">Bab
+31</a>).</p>
+<p>Kalau ada satu benang merah yang saya bawa dari empat semester ini,
+mungkin begini: kemajuan terbesar jarang datang dari membuang apa yang
+sudah diketahui. LSTM bertahan karena constant error carousel adalah
+gagasan yang benar. Konvolusi bertahan karena simetri geser adalah sifat
+dunia. Persamaan Navier–Stokes tidak berhenti berlaku karena ada
+jaringan saraf. Model terbaik adalah yang belajar dari data sambil
+menghormati apa yang sudah kita ketahui tentang dunia.</p>
+<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<p>Bab ini disusun dari bacaan, bukan dari satu mata kuliah. Sebagian
+topiknya disinggung di kuliah LSTM (xLSTM dan Mamba), NLP (model bahasa
+besar), AI and Law (model AI serbaguna), dan AI in Life Sciences (model
+bahasa untuk kimia). Perkembangan yang baru diperiksa dengan pengumuman
+resminya pada saat penulisan, Oktober 2026.</p>
+<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-abramson2024" class="csl-entry" role="listitem">
+Abramson, Josh, Jonas Adler, Jack Dunger, Richard Evans, Tim Green,
+Alexander Pritzel, Olaf Ronneberger, dkk. 2024. <span>“Accurate
+structure prediction of biomolecular interactions with AlphaFold
+3.”</span> <em>Nature</em> 630 (8016): 493–500. <a
+href="https://doi.org/10.1038/s41586-024-07487-w">https://doi.org/10.1038/s41586-024-07487-w</a>.
+</div>
+<div id="ref-alkin2024" class="csl-entry" role="listitem">
+Alkin, Benedikt, Andreas Fürst, Simon Schmid, Lukas Gruber, Markus
+Holzleitner, dan Johannes Brandstetter. 2024. <span>“Universal Physics
+Transformers: A Framework For Efficiently Scaling Neural
+Operators.”</span> arXiv:2402.12365. <a
+href="https://arxiv.org/abs/2402.12365">https://arxiv.org/abs/2402.12365</a>.
+</div>
+<div id="ref-bodnar2024" class="csl-entry" role="listitem">
+Bodnar, Cristian, Wessel P. Bruinsma, Ana Lucic, Megan Stanley, Anna
+Vaughan, Johannes Brandstetter, Patrick Garvan, dkk. 2024. <span>“A
+Foundation Model for the Earth System.”</span> arXiv:2405.13063. <a
+href="https://arxiv.org/abs/2405.13063">https://arxiv.org/abs/2405.13063</a>.
+</div>
+<div id="ref-bommasani2021" class="csl-entry" role="listitem">
+Bommasani, Rishi, Drew A. Hudson, Ehsan Adeli, Russ Altman, Simran
+Arora, Sydney von Arx, Michael S. Bernstein, dkk. 2021. <span>“On the
+Opportunities and Risks of Foundation Models.”</span> arXiv:2108.07258.
+<a
+href="https://arxiv.org/abs/2108.07258">https://arxiv.org/abs/2108.07258</a>.
+</div>
+<div id="ref-christiano2017" class="csl-entry" role="listitem">
+Christiano, Paul, Jan Leike, Tom B. Brown, Miljan Martic, Shane Legg,
+dan Dario Amodei. 2017. <span>“Deep reinforcement learning from human
+preferences.”</span> arXiv:1706.03741. <a
+href="https://arxiv.org/abs/1706.03741">https://arxiv.org/abs/1706.03741</a>.
+</div>
+<div id="ref-deepseek2025" class="csl-entry" role="listitem">
+DeepSeek-AI, Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Peiyi
+Wang, Qihao Zhu, dkk. 2025. <span>“DeepSeek-R1: Incentivizing Reasoning
+Capability in LLMs via Reinforcement Learning.”</span> arXiv:2501.12948.
+<a
+href="https://arxiv.org/abs/2501.12948">https://arxiv.org/abs/2501.12948</a>.
+</div>
+<div id="ref-fedus2022" class="csl-entry" role="listitem">
+Fedus, William, Barret Zoph, dan Noam Shazeer. 2021. <span>“Switch
+Transformers: Scaling to Trillion Parameter Models with Simple and
+Efficient Sparsity.”</span> arXiv:2101.03961. <a
+href="https://arxiv.org/abs/2101.03961">https://arxiv.org/abs/2101.03961</a>.
+</div>
+<div id="ref-ha2018" class="csl-entry" role="listitem">
+Ha, David, dan Jürgen Schmidhuber. 2018. <span>“World Models.”</span>
+arXiv:1803.10122. <a
+href="https://arxiv.org/abs/1803.10122">https://arxiv.org/abs/1803.10122</a>.
+</div>
+<div id="ref-hoffmann2022" class="csl-entry" role="listitem">
+Hoffmann, Jordan, Sebastian Borgeaud, Arthur Mensch, Elena Buchatskaya,
+Trevor Cai, Eliza Rutherford, Diego de Las Casas, dkk. 2022.
+<span>“Training Compute-Optimal Large Language Models.”</span>
+arXiv:2203.15556. <a
+href="https://arxiv.org/abs/2203.15556">https://arxiv.org/abs/2203.15556</a>.
+</div>
+<div id="ref-hu2022" class="csl-entry" role="listitem">
+Hu, Edward J., Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi
+Li, Shean Wang, Lu Wang, dan Weizhu Chen. 2021. <span>“LoRA: Low-Rank
+Adaptation of Large Language Models.”</span> arXiv:2106.09685. <a
+href="https://arxiv.org/abs/2106.09685">https://arxiv.org/abs/2106.09685</a>.
+</div>
+<div id="ref-kaplan2020" class="csl-entry" role="listitem">
+Kaplan, Jared, Sam McCandlish, Tom Henighan, Tom B. Brown, Benjamin
+Chess, Rewon Child, Scott Gray, Alec Radford, Jeffrey Wu, dan Dario
+Amodei. 2020. <span>“Scaling Laws for Neural Language Models.”</span>
+arXiv:2001.08361. <a
+href="https://arxiv.org/abs/2001.08361">https://arxiv.org/abs/2001.08361</a>.
+</div>
+<div id="ref-lam2023" class="csl-entry" role="listitem">
+Lam, Remi, Alvaro Sanchez-Gonzalez, Matthew Willson, Peter Wirnsberger,
+Meire Fortunato, Ferran Alet, Suman Ravuri, dkk. 2023. <span>“Learning
+skillful medium-range global weather forecasting.”</span>
+<em>Science</em> 382 (6677): 1416–21. <a
+href="https://doi.org/10.1126/science.adi2336">https://doi.org/10.1126/science.adi2336</a>.
+</div>
+<div id="ref-lewis2020" class="csl-entry" role="listitem">
+Lewis, Patrick, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir
+Karpukhin, Naman Goyal, Heinrich Küttler, dkk. 2020.
+<span>“Retrieval-Augmented Generation for Knowledge-Intensive NLP
+Tasks.”</span> arXiv:2005.11401. <a
+href="https://arxiv.org/abs/2005.11401">https://arxiv.org/abs/2005.11401</a>.
+</div>
+<div id="ref-mccabe2023" class="csl-entry" role="listitem">
+McCabe, Michael, Bruno Régaldo-Saint Blancard, Liam Holden Parker, Ruben
+Ohana, Miles Cranmer, Alberto Bietti, Michael Eickenberg, dkk. 2023.
+<span>“Multiple Physics Pretraining for Physical Surrogate
+Models.”</span> arXiv:2310.02994. <a
+href="https://arxiv.org/abs/2310.02994">https://arxiv.org/abs/2310.02994</a>.
+</div>
+<div id="ref-ohana2024" class="csl-entry" role="listitem">
+Ohana, Ruben, Michael McCabe, Lucas Meyer, Rudy Morel, Fruzsina J.
+Agocs, Miguel Beneitez, Marsha Berger, dkk. 2024. <span>“The Well: a
+Large-Scale Collection of Diverse Physics Simulations for Machine
+Learning.”</span> arXiv:2412.00568. <a
+href="https://arxiv.org/abs/2412.00568">https://arxiv.org/abs/2412.00568</a>.
+</div>
+<div id="ref-openai2023" class="csl-entry" role="listitem">
+OpenAI, Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ahmad, Ilge
+Akkaya, Florencia Leoni Aleman, dkk. 2023. <span>“GPT-4 Technical
+Report.”</span> arXiv:2303.08774. <a
+href="https://arxiv.org/abs/2303.08774">https://arxiv.org/abs/2303.08774</a>.
+</div>
+<div id="ref-ouyang2022" class="csl-entry" role="listitem">
+Ouyang, Long, Jeff Wu, Xu Jiang, Diogo Almeida, Carroll L. Wainwright,
+Pamela Mishkin, Chong Zhang, dkk. 2022. <span>“Training language models
+to follow instructions with human feedback.”</span> arXiv:2203.02155. <a
+href="https://arxiv.org/abs/2203.02155">https://arxiv.org/abs/2203.02155</a>.
+</div>
+<div id="ref-peebles2023" class="csl-entry" role="listitem">
+Peebles, William, dan Saining Xie. 2022. <span>“Scalable Diffusion
+Models with Transformers.”</span> arXiv:2212.09748. <a
+href="https://arxiv.org/abs/2212.09748">https://arxiv.org/abs/2212.09748</a>.
+</div>
+<div id="ref-price2025" class="csl-entry" role="listitem">
+Price, Ilan, Alvaro Sanchez-Gonzalez, Ferran Alet, Tom R. Andersson,
+Andrew El-Kadi, Dominic Masters, Timo Ewalds, dkk. 2025.
+<span>“Probabilistic weather forecasting with machine learning.”</span>
+<em>Nature</em> 637 (8044): 84–90. <a
+href="https://doi.org/10.1038/s41586-024-08252-9">https://doi.org/10.1038/s41586-024-08252-9</a>.
+</div>
+<div id="ref-radford2021" class="csl-entry" role="listitem">
+Radford, Alec, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh,
+Sandhini Agarwal, Girish Sastry, dkk. 2021. <span>“Learning Transferable
+Visual Models From Natural Language Supervision.”</span>
+arXiv:2103.00020. <a
+href="https://arxiv.org/abs/2103.00020">https://arxiv.org/abs/2103.00020</a>.
+</div>
+<div id="ref-rafailov2023" class="csl-entry" role="listitem">
+Rafailov, Rafael, Archit Sharma, Eric Mitchell, Stefano Ermon,
+Christopher D. Manning, dan Chelsea Finn. 2023. <span>“Direct Preference
+Optimization: Your Language Model is Secretly a Reward Model.”</span>
+arXiv:2305.18290. <a
+href="https://arxiv.org/abs/2305.18290">https://arxiv.org/abs/2305.18290</a>.
+</div>
+<div id="ref-rombach2022" class="csl-entry" role="listitem">
+Rombach, Robin, Andreas Blattmann, Dominik Lorenz, Patrick Esser, dan
+Björn Ommer. 2021. <span>“High-Resolution Image Synthesis with Latent
+Diffusion Models.”</span> arXiv:2112.10752. <a
+href="https://arxiv.org/abs/2112.10752">https://arxiv.org/abs/2112.10752</a>.
+</div>
+<div id="ref-touvron2023" class="csl-entry" role="listitem">
+Touvron, Hugo, Thibaut Lavril, Gautier Izacard, Xavier Martinet,
+Marie-Anne Lachaux, Timothée Lacroix, Baptiste Rozière, dkk. 2023.
+<span>“LLaMA: Open and Efficient Foundation Language Models.”</span>
+arXiv:2302.13971. <a
+href="https://arxiv.org/abs/2302.13971">https://arxiv.org/abs/2302.13971</a>.
+</div>
+<div id="ref-trinh2024" class="csl-entry" role="listitem">
+Trinh, Trieu H., Yuhuai Wu, Quoc V. Le, He He, dan Thang Luong. 2024.
+<span>“Solving olympiad geometry without human demonstrations.”</span>
+<em>Nature</em> 625 (7995): 476–82. <a
+href="https://doi.org/10.1038/s41586-023-06747-5">https://doi.org/10.1038/s41586-023-06747-5</a>.
+</div>
+<div id="ref-wei2022" class="csl-entry" role="listitem">
+Wei, Jason, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Brian Ichter,
+Fei Xia, Ed Chi, Quoc Le, dan Denny Zhou. 2022. <span>“Chain-of-Thought
+Prompting Elicits Reasoning in Large Language Models.”</span>
+arXiv:2201.11903. <a
+href="https://arxiv.org/abs/2201.11903">https://arxiv.org/abs/2201.11903</a>.
+</div>
+<div id="ref-yao2023" class="csl-entry" role="listitem">
+Yao, Shunyu, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik
+Narasimhan, dan Yuan Cao. 2022. <span>“ReAct: Synergizing Reasoning and
+Acting in Language Models.”</span> arXiv:2210.03629. <a
+href="https://arxiv.org/abs/2210.03629">https://arxiv.org/abs/2210.03629</a>.
+</div>
+</div>
+<section id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Pengumuman Google DeepMind, Juli 2025: <a
+href="https://deepmind.google/blog/advanced-version-of-gemini-with-deep-think-officially-achieves-gold-medal-standard-at-the-international-mathematical-olympiad/"
+class="uri">https://deepmind.google/blog/advanced-version-of-gemini-with-deep-think-officially-achieves-gold-medal-standard-at-the-international-mathematical-olympiad/</a>.
+OpenAI melaporkan hasil setara dengan model eksperimentalnya, tetapi
+hasil itu tidak disertifikasi oleh koordinator IMO.<a href="#fnref1"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch51_ai_manusia.html"><span>Sebelumnya</span>AI, Hukum, dan Manusia</a>
+  <a class="next" href="lampA_glosarium.html"><span>Berikutnya</span>Glosarium</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

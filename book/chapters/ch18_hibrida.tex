@@ -1,0 +1,90 @@
+\chapter{Model Hibrida: Fisika dan Data Bersama}
+\label{ch:hibrida}
+
+Di antara semua pendekatan di Bagian V, model hibrida adalah yang paling dekat dengan cara kerja
+insinyur sehari-hari. Kita tidak membuang solver yang sudah teruji puluhan tahun. Kita membiarkannya
+mengerjakan apa yang ia kuasai, lalu memakai data untuk memperbaiki bagian yang ia kerjakan dengan
+buruk. Bab ini dirangkai dari kuliah metode numerik fluida, yang membahas model penutup turbulensi
+beserta kelemahannya, dan dari bacaan selama tugas akhir.
+
+\section{Di mana solver lemah}
+
+\Cref{ch:numerik} memperlihatkan bahwa simulasi praktis selalu memodelkan sesuatu yang tidak bisa
+diselesaikan: tegangan Reynolds di RANS, pusaran sub-grid di LES, gaya antara fluida dan partikel di
+aliran multifase, atau perpindahan panas di dekat dinding yang tidak cukup halus grid-nya. Model-model ini
+dirumuskan dengan asumsi yang disederhanakan dan dikalibrasi pada aliran sederhana. Ketika dipakai pada
+aliran yang rumit, misalnya dengan pemisahan aliran, kelengkungan kuat, atau putaran, asumsinya runtuh.
+Data dari simulasi yang lebih teliti, seperti DNS dan LES, atau dari percobaan, bisa dipakai untuk
+mempelajari model yang lebih baik \citep{duraisamy2019}.
+
+\section{Model penutup yang dipelajari}
+
+Pendekatan paling langsung adalah melatih jaringan untuk memprediksi besaran yang hilang dari besaran
+yang tersedia. Untuk RANS, targetnya tegangan Reynolds, dan inputnya gradien kecepatan rata-rata. Tetapi
+jaringan sembarang tidak menjamin sifat fisika yang paling dasar: hasilnya harus sama tidak peduli
+bagaimana sistem koordinat diputar. \citet{ling2016} membangun sifat itu ke dalam arsitektur. Mereka
+memakai hasil klasik bahwa tensor anisotropi Reynolds $\bm b$, dalam model viskositas turbulen umum,
+bisa ditulis sebagai kombinasi dari sepuluh tensor basis $\bm T^{(n)}$ yang disusun dari tensor laju
+regangan $\bm S$ dan tensor rotasi $\bm\Omega$ yang dinormalisasi \citep{pope2000}:
+\begin{equation}
+\bm b=\sum_{n=1}^{10}g_n(\lambda_1,\dots,\lambda_5)\,\bm T^{(n)}.
+\end{equation}
+Koefisien $g_n$ hanya bergantung pada lima besaran invarian $\lambda_i$, seperti
+$\mathrm{tr}(\bm S^2)$ dan $\mathrm{tr}(\bm\Omega^2)$, yang nilainya tidak berubah ketika koordinat
+diputar. Tensor basis sendiri berputar bersama koordinat. Jadi kalau jaringan hanya mempelajari $g_n$
+dari invarian, hasil $\bm b$ dijamin berputar dengan benar, apa pun bobot jaringannya. Model viskositas
+turbulen linear dari \cref{ch:numerik} adalah kasus khusus dengan hanya suku pertama, $\bm T^{(1)}=\bm S$,
+dan koefisien tetap. Inilah contoh nyata inductive bias dari \cref{ch:peta}: simetri tidak dipelajari dari
+data, tetapi dibangun ke dalam bentuk modelnya.
+
+\section{A priori dan a posteriori}
+
+Model penutup yang dipelajari sering tampak baik dalam uji \emph{a priori}: ambil medan DNS,
+hitung input dan target, lalu ukur galat prediksi. Begitu model dimasukkan ke dalam solver dan simulasi
+dijalankan, yaitu uji \emph{a posteriori}, hasilnya bisa mengecewakan atau bahkan meledak. Penyebabnya
+sama dengan masalah rollout di \cref{ch:operator}. Selama pelatihan, model melihat input dari DNS.
+Selama simulasi, ia melihat input dari medan yang dihasilkan solver bersama model itu sendiri, yang
+distribusinya bergeser. Galat kecil mengubah medan, medan yang berubah mengubah input model, dan
+lingkarannya bisa memperbesar galat.
+
+Obatnya adalah melatih model di dalam lingkar yang sama dengan tempat ia akan dipakai. Pendekatan
+\istilah{solver-in-the-loop} \citep{um2020} menulis satu langkah simulasi hibrida sebagai
+\begin{equation}
+\vu_{n+1}=\mathcal S(\vu_n)+\mathcal C_\theta\big(\mathcal S(\vu_n)\big),
+\end{equation}
+dengan $\mathcal S$ solver kasar dan $\mathcal C_\theta$ koreksi yang dipelajari. Kalau solver ditulis
+dalam kerangka yang bisa diturunkan, gradien loss bisa dibawa mundur melewati beberapa langkah solver
+sekaligus, sehingga koreksi belajar memperbaiki galat yang muncul dari interaksinya sendiri dengan solver.
+Gagasan solver yang bisa diturunkan, \istilah{differentiable physics}, dibahas lengkap dalam buku
+\citet{thuerey2021}. \citet{kochkov2021} memakai pendekatan serupa untuk turbulensi dua dimensi: jaringan
+mempelajari cara menginterpolasi nilai di sisi sel pada grid yang jauh lebih kasar, dan simulasi yang
+dihasilkan setara akurasinya dengan solver klasik pada grid berkali-kali lebih halus, dengan percepatan
+puluhan kali.
+
+\section{Ketidakpastian dan banyak tingkat ketelitian}
+
+Model hibrida juga cocok untuk memanfaatkan data dari sumber yang berbeda-beda ketelitian dan harganya.
+Simulasi kasar murah dan banyak, simulasi teliti mahal dan sedikit, percobaan paling dipercaya tetapi
+paling jarang. Model \istilah{multi-fidelity} mempelajari koreksi dari tingkat murah ke tingkat mahal, yang
+biasanya jauh lebih sederhana untuk dipelajari daripada solusi lengkapnya. Ketidakpastian prediksi bisa
+diperkirakan dengan ensemble atau model probabilistik (\cref{ch:arsitektur}), dan ini penting karena model
+hibrida sering dipakai justru di luar daerah data latihnya.
+
+Asimilasi data dari \cref{ch:prob} adalah bentuk hibrida yang paling tua. Solver memberi ramalan, data
+memberi koreksi, dan keduanya digabung dengan bobot sesuai ketidakpastian masing-masing. Ketika model
+penutupnya sendiri tidak pasti, parameter model bisa ikut ditaksir dalam proses asimilasi, misalnya
+dengan menambahkannya ke vektor keadaan Kalman filter ensemble.
+
+\section{Apa yang dipelajari, dan apa yang tidak}
+
+Pola umum model hibrida bisa diringkas dalam satu kalimat: biarkan fisika menangani apa yang sudah
+diketahui pasti, terutama hukum kekekalan, dan biarkan data menangani apa yang dimodelkan dengan buruk.
+Pilihan ini punya keuntungan praktis yang besar. Karena sebagian besar dinamika dihitung oleh solver
+yang konservatif, model hibrida jauh lebih jarang melanggar kekekalan massa atau energi daripada model
+pengganti murni. Karena koreksinya kecil, ia butuh lebih sedikit data. Dan karena strukturnya jelas,
+kegagalannya lebih mudah didiagnosis. Ulasan \citet{vinuesa2022} dan \citet{brunton2020} menempatkan
+pendekatan ini sebagai salah satu jalur yang paling menjanjikan untuk mekanika fluida komputasi.
+
+\sumberbab{Bab ini dirangkai dari kuliah Numerical Methods in Fluid Mechanics (model penutup turbulensi)
+dan bacaan selama tugas akhir. Rujukan utama: \citet{duraisamy2019}, \citet{ling2016}, \citet{um2020},
+\citet{kochkov2021}, dan \citet{thuerey2021}.}

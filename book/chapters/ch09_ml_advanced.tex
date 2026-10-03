@@ -1,0 +1,374 @@
+\chapter{Dari Estimasi ke Difusi}
+\label{ch:mlat}
+
+Kuliah machine learning lanjut saya ikuti pada musim dingin 2025/26, di bawah Johannes
+Brandstetter, yang risetnya sendiri berada di persimpangan deep learning dan simulasi fisika.
+Delapan unitnya membentuk satu alur panjang: dari teori estimasi dan statistik Bayesian, lewat
+VAE, persamaan diferensial biasa, parsial, dan stokastik, sampai model difusi, flow matching, dan
+neural field. Tugas-tugasnya meliputi probabilistic PCA, score-based diffusion dan neural ODE, serta
+variational diffusion model. Di antara semua kuliah, inilah yang paling langsung mengarah ke AI
+untuk simulasi.
+
+Benang merah bab ini sederhana untuk diucapkan, meski butuh beberapa halaman untuk dipahami:
+model generatif modern adalah persamaan diferensial. Model difusi adalah persamaan difusi yang
+dijalankan mundur. Flow matching adalah persamaan transport. Neural field adalah fungsi kontinu
+yang bisa diatur oleh persamaan fisika. Untuk sampai ke sana, kita mulai dari pertanyaan yang
+paling dasar: seberapa baik kita bisa menaksir sesuatu dari data.
+
+\section{Teori estimasi}
+
+Misalkan data $\mathcal D$ dibangkitkan oleh distribusi dengan parameter $\theta$ yang tidak
+diketahui, dan kita membuat sebuah estimator $\hat\theta(\mathcal D)$. Karena data acak, estimator
+pun acak. Kualitasnya diukur dengan mean squared error yang dirata-ratakan atas semua kemungkinan
+data, dan MSE itu terurai menjadi varians dan bias kuadrat,
+\begin{equation}
+\mathrm{MSE}(\hat\theta)=\E\big[(\hat\theta-\theta)^2\big]=\mathrm{Var}(\hat\theta)+\big(\E[\hat\theta]-\theta\big)^2.
+\end{equation}
+Bentuknya sama dengan dekomposisi bias--varians di \cref{ch:data}, kali ini untuk parameter,
+bukan untuk prediksi. Rata-rata sampel adalah estimator tak bias untuk rata-rata distribusi.
+Varians sampel yang dibagi $N$ bias ke bawah, dan pembagian dengan $N-1$ menghilangkan bias itu.
+Estimator tak bias dengan varians terkecil di antara semua estimator tak bias disebut
+\istilah{minimum variance unbiased} (MVU).
+
+Ada batas bawah mutlak untuk varians estimator tak bias mana pun. \istilah{Fisher information}
+\begin{equation}
+I(\theta)=-\E\Big[\frac{\partial^2}{\partial\theta^2}\log p(\mathcal D\mid\theta)\Big]
+\end{equation}
+mengukur seberapa tajam puncak log-likelihood di sekitar nilai yang benar. Puncak yang tajam
+berarti data membawa banyak informasi tentang $\theta$. Batas Cramér--Rao menyatakan
+$\mathrm{Var}(\hat\theta)\ge1/I(\theta)$ untuk setiap estimator tak bias. Untuk rata-rata distribusi
+normal dengan varians $\sigma^2$ yang diketahui dan $N$ sampel, $I=N/\sigma^2$, sehingga varians
+terkecil yang mungkin adalah $\sigma^2/N$. Rata-rata sampel mencapai batas ini, jadi ia estimator
+yang efisien. Maximum likelihood, secara umum, tidak selalu tak bias untuk sampel kecil, tetapi
+untuk sampel besar ia konsisten dan mencapai batas Cramér--Rao secara asimtotik.
+
+Batas Cramér--Rao punya terjemahan langsung di dunia simulasi. Kalau kita ingin menaksir sebuah
+parameter fisika, misalnya koefisien perpindahan panas, dari pengukuran temperatur, Fisher
+information mengatakan apakah percobaan kita cukup informatif. Kalau log-likelihood hampir datar
+terhadap parameter itu, tidak ada metode pintar yang bisa menaksirnya dengan baik. Masalahnya ada
+pada desain percobaan, bukan pada algoritmenya.
+
+\section{Cara pandang Bayesian}
+
+Pendekatan frekuentis menganggap $\theta$ tetap dan datanya acak. Pendekatan Bayesian menganggap
+$\theta$ sendiri tidak pasti dan mewakilinya dengan distribusi. Teorema Bayes memperbarui prior
+menjadi posterior setelah melihat data. Untuk beberapa pasangan likelihood dan prior, posterior
+punya bentuk yang sama dengan prior, dan pasangan seperti ini disebut \istilah{conjugate}. Contoh yang
+dibahas kuliah adalah Gamma dan Poisson. Kalau jumlah kejadian per hari mengikuti Poisson dengan
+laju $\lambda$, dan prior $\lambda\sim\mathrm{Gamma}(\alpha,\beta)$, maka setelah mengamati
+$x_1,\dots,x_N$, posteriornya $\mathrm{Gamma}(\alpha+\sum_ix_i,\ \beta+N)$. Dengan prior
+$\mathrm{Gamma}(2,1)$ dan pengamatan 3, 5, dan 4 kejadian, posteriornya $\mathrm{Gamma}(14,4)$ dengan
+rata-rata $3{,}5$. Prior bertindak seperti dua kejadian yang ``sudah teramati'' dalam satu hari
+semu, dan bobotnya memudar seiring datangnya data.
+
+Estimasi MAP mengambil puncak posterior, dan dengan prior Gauss pada bobot ia menghasilkan weight
+decay, seperti di \cref{ch:data}. Pendekatan Bayesian penuh tidak berhenti di puncak. Ia
+memprediksi dengan merata-ratakan atas seluruh posterior, dan normalisasi posterior,
+$p(\mathcal D)=\int p(\mathcal D\mid\theta)p(\theta)\dd\theta$, disebut \istilah{evidence}. Evidence
+bisa dipakai untuk membandingkan model: model yang terlalu sederhana tidak bisa menjelaskan data,
+sedangkan model yang terlalu fleksibel menyebar peluangnya ke terlalu banyak kemungkinan data,
+sehingga keduanya mendapat evidence yang rendah.
+
+\section{Variabel laten dan probabilistic PCA}
+
+Banyak data lebih mudah dijelaskan kalau kita membayangkan ada sebab tersembunyi di baliknya.
+\istilah{Latent variable model} menulis $p(\vx)=\int p(\vx\mid\vz)p(\vz)\dd\vz$, dengan $\vz$ yang
+tidak pernah diamati. Contoh paling sederhana adalah probabilistic PCA \citep{tipping1999}:
+\begin{equation}
+\vx=\mW\vz+\bm\mu+\bm\varepsilon,\qquad \vz\sim\N(\bm0,\bm I_q),\qquad \bm\varepsilon\sim\N(\bm0,\sigma^2\bm I_D).
+\end{equation}
+Karena semuanya Gauss, distribusi marginalnya juga Gauss, $\vx\sim\N(\bm\mu,\mW\mW^\top+\sigma^2\bm I)$,
+dan maximum likelihood punya solusi tertutup. Kolom $\mW$ terbentang oleh $q$ vektor eigen
+utama dari kovarians sampel, diskalakan oleh $(\lambda_i-\sigma^2)^{1/2}$, dan $\sigma^2$ adalah
+rata-rata nilai eigen yang dibuang. Ketika $\sigma^2\to0$, PCA biasa muncul kembali. Keuntungan
+versi probabilistik adalah adanya likelihood, sehingga data yang hilang bisa ditangani, model
+bisa dibandingkan, dan beberapa model bisa digabung.
+
+Kalau $p(\vx\mid\vz)$ tidak lagi linear, misalnya berupa jaringan saraf, integral marginal tidak
+bisa dihitung lagi, dan posterior $p(\vz\mid\vx)$ pun tidak. Dari sinilah VAE lahir.
+
+\section{ELBO, sekali lagi dan lebih teliti}
+
+\Cref{ch:arsitektur} memperkenalkan VAE secara intuitif. Kuliah ini menurunkannya. Ambil sembarang
+distribusi $q(\vz\mid\vx)$. Log-likelihood bisa ditulis sebagai
+\begin{equation}
+\log p(\vx)=\underbrace{\E_{q(\vz\mid\vx)}\Big[\log\frac{p(\vx,\vz)}{q(\vz\mid\vx)}\Big]}_{\mathrm{ELBO}}
++\KL\big(q(\vz\mid\vx)\,\|\,p(\vz\mid\vx)\big).
+\end{equation}
+Identitas ini didapat dengan satu trik. Karena $\log p(\vx)$ tidak bergantung pada $\vz$, ia sama dengan
+ekspektasinya di bawah $q$. Lalu tulis $p(\vx)=p(\vx,\vz)/p(\vz\mid\vx)$, kalikan dan bagi dengan $q(\vz\mid\vx)$
+di dalam logaritma, dan pisahkan menjadi dua suku:
+\[
+\log p(\vx)=\E_q\Big[\log\frac{p(\vx,\vz)}{q(\vz\mid\vx)}\Big]+\E_q\Big[\log\frac{q(\vz\mid\vx)}{p(\vz\mid\vx)}\Big].
+\]
+Suku kedua adalah definisi divergensi KL. Divergensi KL tidak pernah negatif, sehingga suku pertama
+adalah batas bawah untuk $\log p(\vx)$.
+Memaksimalkan ELBO terhadap $q$ sama dengan mendekatkan $q$ ke posterior yang sebenarnya, dan
+memaksimalkannya terhadap parameter model menaikkan likelihood. Kalau suku pertama diuraikan, kita
+mendapat dua bagian yang sudah dikenal: rekonstruksi, $\E_q[\log p(\vx\mid\vz)]$, dan pencocokan
+prior, $-\KL(q(\vz\mid\vx)\,\|\,p(\vz))$.
+
+Divergensi KL sendiri layak dipahami. $\KL(q\|p)=\E_q[\log q-\log p]$ mengukur seberapa banyak
+informasi yang hilang kalau $p$ dipakai untuk mewakili $q$. Ia tidak simetris. Meminimalkan
+$\KL(q\|p)$ terhadap $q$ membuat $q$ menghindari daerah tempat $p$ kecil, sehingga $q$ cenderung
+memilih satu puncak $p$ dan mengabaikan puncak lain.
+
+Model campuran Gauss memberi contoh yang menjembatani. Data dianggap berasal dari salah satu dari
+$K$ distribusi Gauss, dan label komponennya adalah variabel laten diskret. Algoritme EM untuk
+model ini, yang sudah kita temui di \cref{ch:prob}, ternyata adalah maksimisasi ELBO bergantian:
+langkah E memilih $q$ sama dengan posterior yang tepat, dan langkah M memperbarui parameter.
+VAE melakukan hal yang sama, tetapi karena posteriornya tidak bisa dihitung, $q$ diwakili oleh
+jaringan encoder, dan gradien dibawa melewati sampling dengan reparameterization trick.
+
+Langkah terakhir menuju model difusi adalah VAE hierarkis. Alih-alih satu lapisan laten,
+kita punya rantai $\vx\to\vz_1\to\vz_2\to\cdots\to\vz_T$, dan pada versi Markov setiap lapisan hanya
+bergantung pada lapisan di sebelahnya. ELBO-nya terurai menjadi jumlah suku untuk setiap transisi.
+Model difusi adalah VAE hierarkis Markov dengan dua keputusan istimewa: dimensi setiap laten sama
+dengan dimensi data, dan encoder-nya tidak dipelajari, melainkan ditetapkan sebagai penambahan noise
+Gauss sedikit demi sedikit \citep{luo2022}.
+
+\section{Persamaan diferensial biasa, parsial, dan stokastik}
+
+Sebelum masuk ke model difusi, kuliah berhenti sejenak untuk mengulang matematika yang akan dipakai.
+
+\subsection{ODE}
+
+Persamaan diferensial biasa, $\dot{\vx}=f(\vx,t)$ dengan $\vx(0)=\vx_0$, menggambarkan sistem yang
+perubahannya ditentukan oleh keadaannya sekarang. Untuk sistem linear $\dot{\vx}=\mA\vx$, solusinya
+$\vx(t)=e^{\mA t}\vx_0$, dan nilai eigen $\mA$ menentukan nasibnya: bagian real negatif berarti
+peluruhan, bagian real positif berarti pertumbuhan, bagian imajiner berarti osilasi. Teorema
+Picard--Lindelöf menjamin solusi ada dan tunggal kalau $f$ Lipschitz.
+
+Kebanyakan ODE tidak punya solusi tertutup, jadi kita menyelesaikannya secara numerik. Metode Euler,
+$\vx_{n+1}=\vx_n+h\,f(\vx_n,t_n)$, punya galat global sebanding dengan langkah $h$. Runge--Kutta orde
+empat mengevaluasi $f$ empat kali per langkah dan galatnya sebanding dengan $h^4$. Untuk sistem kaku
+(\istilah{stiff}), yaitu yang punya skala waktu cepat sekali dan lambat sekaligus, metode
+eksplisit terpaksa memakai langkah kecil sekali agar stabil, dan metode implisit atau langkah
+adaptif menjadi pilihan yang lebih baik. Topik ini dibahas lebih dalam di \cref{ch:fiskom}.
+
+\subsection{PDE dan persamaan panas}
+
+Persamaan diferensial parsial melibatkan turunan terhadap lebih dari satu variabel. Contoh yang
+dibahas panjang lebar di kuliah adalah persamaan panas pada selang $(0,1)$,
+\begin{equation}
+\partial_tu=\kappa\,\partial_{xx}u,\qquad u(0,t)=u(1,t)=0.
+\end{equation}
+Pemisahan variabel memberi solusi
+\begin{equation}
+u(x,t)=\sum_{n=1}^\infty b_n\,e^{-\kappa(n\pi)^2t}\sin(n\pi x),
+\end{equation}
+dengan koefisien $b_n$ diambil dari kondisi awal. Setiap mode Fourier meluruh dengan laju yang
+sebanding dengan kuadrat frekuensinya. Detail halus hilang paling cepat, dan setelah cukup lama
+yang tersisa hanya gelombang paling panjang. Pada garis bilangan penuh, transformasi Fourier
+memberi gambaran yang sama, $\hat u(k,t)=\hat u(k,0)\,e^{-\kappa k^2t}$, yang di ruang posisi berarti
+konvolusi dengan kernel Gauss yang semakin lebar. Pengamatan ini akan berguna sebentar
+lagi: menambahkan noise Gauss pada data sama dengan menjalankan persamaan panas pada distribusinya.
+
+\subsection{Gerak Brown dan SDE}
+
+Gerak Brown $W_t$ adalah batas acak dari jalan acak dengan langkah yang semakin kecil. Kenaikannya
+independen dan berdistribusi normal, $W_{t+\Delta t}-W_t\sim\N(0,\Delta t)$. Simpangannya tumbuh
+seperti $\sqrt{\Delta t}$, bukan $\Delta t$, sehingga lintasannya kontinu tetapi tidak bisa
+diturunkan di mana pun. Sebuah jalan acak memberi gambaran: kalau setiap langkah waktu $\Delta t$ kita
+melangkah ke kiri atau ke kanan sejauh $\sqrt{\Delta t}$, setelah waktu $t=n\Delta t$ variansnya
+$n\Delta t=t$, tidak bergantung pada seberapa halus langkahnya. Kalau langkahnya sebanding $\Delta t$,
+variansnya akan menyusut ke nol ketika langkah diperhalus. \istilah{Stochastic differential equation}
+menambahkan suku acak ini ke ODE,
+\begin{equation}
+\dd\vx=f(\vx,t)\dd t+g(t)\dd W_t,
+\end{equation}
+dengan $f$ sebagai \istilah{drift} dan $g$ sebagai \istilah{diffusion}. Kalkulus untuk persamaan ini
+punya satu kejutan. Karena $(\dd W)^2$ berukuran $\dd t$, bukan nol, aturan rantai mendapat suku
+tambahan. Lemma Itô untuk fungsi skalar $\varphi(x)$ berbunyi
+\begin{equation}
+\dd\varphi=\Big(\varphi'f+\tfrac12g^2\varphi''\Big)\dd t+\varphi'g\dd W.
+\end{equation}
+Asal suku tambahan itu terlihat dari Taylor orde dua:
+$\dd\varphi=\varphi'\dd x+\tfrac12\varphi''(\dd x)^2+\dots$. Dengan $\dd x=f\dd t+g\dd W$, kuadratnya memuat
+$g^2(\dd W)^2$, dan karena $(\dd W)^2$ berukuran $\dd t$, suku itu bertahan, sedangkan $(\dd t)^2$ dan
+$\dd t\,\dd W$ lebih kecil dan hilang. Contoh klasiknya gerak Brown geometris, $\dd S=\mu S\dd t+\sigma S\dd W$, model sederhana harga
+saham. Dengan $\varphi=\log S$, lemma Itô memberi $\dd\log S=(\mu-\tfrac12\sigma^2)\dd t+\sigma\dd W$,
+sehingga $S_t=S_0\exp\big((\mu-\tfrac12\sigma^2)t+\sigma W_t\big)$. Suku $-\tfrac12\sigma^2$ adalah jejak
+kalkulus Itô yang tidak akan muncul dalam kalkulus biasa.
+
+Distribusi $p(\vx,t)$ dari solusi SDE berevolusi menurut persamaan Fokker--Planck,
+\begin{equation}
+\partial_tp=-\nabla\cdot(f\,p)+\tfrac12g^2\,\Delta p.
+\end{equation}
+Suku pertama adalah transport oleh drift, suku kedua adalah difusi. Untuk $f=0$, ini persis
+persamaan panas. Sebuah SDE yang bekerja pada partikel-partikel menjadi PDE yang bekerja pada
+kerapatannya.
+
+\section{Neural ODE}
+
+Blok residual, $\vh_{l+1}=\vh_l+F(\vh_l)$, terlihat seperti satu langkah Euler. Kalau jumlah
+lapisan dibuat tak hingga dan setiap langkahnya kecil, kita mendapat
+\begin{equation}
+\frac{\dd\vh}{\dd t}=f_\theta(\vh,t),
+\end{equation}
+sebuah \istilah{neural ODE} \citep{chen2018}. Lintasan maju dihitung dengan solver ODE apa pun,
+termasuk yang langkahnya adaptif. Untuk gradien, kita bisa saja melakukan backprop melewati setiap
+langkah solver, tetapi memorinya sebanding dengan jumlah langkah. Metode adjoint, yang dikenal lama
+dalam teori kendali optimal, menghindarinya. Definisikan $\bm a(t)=\partial\Loss/\partial\vh(t)$.
+Vektor ini memenuhi ODE-nya sendiri yang berjalan mundur,
+\begin{equation}
+\frac{\dd\bm a}{\dd t}=-\bm a^\top\frac{\partial f_\theta}{\partial\vh},\qquad
+\frac{\dd\Loss}{\dd\theta}=-\int_{t_1}^{t_0}\bm a^\top\frac{\partial f_\theta}{\partial\theta}\dd t.
+\end{equation}
+Keadaan $\vh$, adjoint $\bm a$, dan gradien terhadap parameter diintegrasikan mundur bersama dalam
+satu sistem yang diperbesar. Memorinya konstan terhadap jumlah langkah. Persamaan adjoint ini tidak
+lain adalah delta backprop dari \cref{ch:dlbasic} dalam waktu kontinu.
+
+Neural ODE cocok sekali untuk sistem fisika yang memang berevolusi secara kontinu. Data yang
+diambil pada waktu tidak teratur bisa langsung dipakai, dan model dinamika yang dipelajari bisa
+dijalankan dengan solver standar. Hubungan dengan model difusi juga erat: sampling deterministik
+dari model difusi adalah menyelesaikan sebuah ODE.
+
+\section{Model difusi}
+
+Model difusi denoising \citep{sohldickstein2015,ho2020} menetapkan proses maju yang merusak data
+selangkah demi selangkah,
+\begin{equation}
+q(\vx_t\mid\vx_{t-1})=\N\big(\sqrt{1-\beta_t}\,\vx_{t-1},\ \beta_t\bm I\big),
+\end{equation}
+dengan jadwal noise $\beta_t$ yang kecil. Karena komposisi Gauss tetap Gauss, kita bisa melompat
+langsung dari data ke langkah mana pun: dengan $\bar\alpha_t=\prod_{s\le t}(1-\beta_s)$,
+\begin{equation}
+\vx_t=\sqrt{\bar\alpha_t}\,\vx_0+\sqrt{1-\bar\alpha_t}\,\bm\epsilon,\qquad \bm\epsilon\sim\N(\bm0,\bm I).
+\end{equation}
+Bentuk tertutup ini bisa diperiksa dengan dua langkah. Tulis $\alpha_t=1-\beta_t$. Satu langkah memberi
+$\vx_1=\sqrt{\alpha_1}\vx_0+\sqrt{1-\alpha_1}\bm\epsilon_1$, dan langkah berikutnya
+$\vx_2=\sqrt{\alpha_2}\vx_1+\sqrt{1-\alpha_2}\bm\epsilon_2=\sqrt{\alpha_1\alpha_2}\vx_0+\sqrt{\alpha_2(1-\alpha_1)}\bm\epsilon_1+\sqrt{1-\alpha_2}\bm\epsilon_2$.
+Dua noise Gauss independen yang dijumlahkan tetap Gauss, dengan varians yang dijumlahkan:
+$\alpha_2(1-\alpha_1)+(1-\alpha_2)=1-\alpha_1\alpha_2$. Jadi
+$\vx_2=\sqrt{\alpha_1\alpha_2}\,\vx_0+\sqrt{1-\alpha_1\alpha_2}\,\bm\epsilon$, dan induksi memberi rumus umumnya.
+Dengan jadwal $\beta_t$ yang naik linear dari $10^{-4}$ ke $0{,}02$ dalam seribu langkah, seperti pada
+\citet{ho2020}, nilai $\bar\alpha_T$ sekitar $4\times10^{-5}$: sinyal aslinya tinggal kurang dari satu
+persen dalam amplitudo. Setelah cukup banyak langkah, $\vx_T$ hampir murni noise. Proses mundur dipelajari oleh sebuah
+jaringan. Dari ELBO VAE hierarkis, setelah beberapa langkah aljabar, loss pelatihannya menjadi
+sederhana: tebak noise yang ditambahkan,
+\begin{equation}
+\Loss=\E_{t,\vx_0,\bm\epsilon}\big\|\bm\epsilon-\bm\epsilon_\theta(\vx_t,t)\big\|^2.
+\end{equation}
+Pada saat sampling, kita mulai dari noise murni dan berulang kali mengurangi noise yang ditebak
+jaringan, ditambah sedikit noise baru, sampai kembali ke data.
+
+Bayangkan setetes tinta jatuh ke segelas air. Tinta menyebar perlahan sampai airnya berwarna rata,
+dan bentuk awal tetes itu tampak hilang. Model difusi belajar memutar video itu mundur: dari air
+yang keruh merata, langkah demi langkah, sampai tetes tinta terbentuk kembali. Setiap langkah mundur
+hanya perlu sedikit menebak, karena setiap langkah maju hanya sedikit merusak.
+
+Kelemahan DDPM adalah lambat, karena sampling membutuhkan ratusan sampai ribuan langkah jaringan.
+DDIM \citep{song2021ddim} menunjukkan bahwa jaringan yang sama bisa dipakai dengan proses sampling
+deterministik yang melompati banyak langkah, tanpa pelatihan ulang. Variational diffusion models
+\citep{kingma2021} merumuskan jadwal noise sebagai rasio sinyal terhadap noise yang bisa dipelajari dan
+menunjukkan bahwa ELBO model difusi hanya bergantung pada jadwal itu melalui nilai ujung-ujungnya.
+
+\section{Score dan persamaan diferensial stokastik}
+
+\citet{song2021} menyatukan model difusi dalam bahasa SDE. Proses maju adalah SDE
+$\dd\vx=f(\vx,t)\dd t+g(t)\dd W$ yang mengubah distribusi data menjadi Gauss. Hasil lama dari
+\citet{anderson1982} menyatakan bahwa proses ini punya kebalikan dalam waktu, yang juga sebuah SDE,
+\begin{equation}
+\dd\vx=\big[f(\vx,t)-g(t)^2\,\nabla_{\vx}\log p_t(\vx)\big]\dd t+g(t)\dd\bar W,
+\end{equation}
+yang berjalan dari $t=T$ ke $t=0$. Satu-satunya besaran yang tidak diketahui adalah \istilah{score}
+$\nabla_{\vx}\log p_t(\vx)$, yaitu arah tempat kerapatan data naik paling cepat. Jaringan
+$s_\theta(\vx,t)$ dilatih untuk menebak score ini. Melatihnya ternyata mudah berkat
+\istilah{denoising score matching} \citep{vincent2011}: kalau $\tilde\vx=\vx+\sigma\bm\epsilon$, score
+dari distribusi bersyarat $p(\tilde\vx\mid\vx)$ adalah $-(\tilde\vx-\vx)/\sigma^2=-\bm\epsilon/\sigma$,
+sehingga menebak score sama dengan menebak noise, persis seperti DDPM.
+
+Ada juga ODE yang menghasilkan distribusi marginal yang sama di setiap waktu, yaitu
+\istilah{probability flow ODE},
+\begin{equation}
+\dd\vx=\big[f(\vx,t)-\tfrac12g(t)^2\nabla_{\vx}\log p_t(\vx)\big]\dd t.
+\end{equation}
+Mengapa SDE dan ODE bisa menghasilkan marginal yang sama? Persamaan Fokker--Planck menjawabnya.
+Suku difusi $\tfrac12g^2\Delta p$ bisa ditulis sebagai $\nabla\cdot(\tfrac12g^2\,p\,\nabla\log p)$,
+sehingga difusi pada kerapatan bisa diganti dengan transport deterministik dengan kecepatan
+$-\tfrac12g^2\nabla\log p$. Partikel-partikel individu bergerak berbeda, tetapi kerumunannya
+berevolusi dengan cara yang sama. Kuliah merangkum bahwa ketiga cara melatih model difusi, yaitu
+menebak data bersih, menebak noise, dan menebak score, setara sampai faktor skala. Untuk
+membangkitkan sampel bersyarat, misalnya gambar dari teks, score ditambah dengan gradien sebuah
+penilai syarat, atau syarat langsung diberikan sebagai input ke jaringan.
+
+\section{Flow matching}
+
+Kalau ujung-ujungnya kita menyelesaikan sebuah ODE, mengapa tidak langsung belajar ODE-nya?
+Flow matching \citep{lipman2023} melakukan hal itu. Kita mencari medan kecepatan $v_\theta(\vx,t)$
+sehingga ODE $\dot{\vx}=v_\theta(\vx,t)$ membawa sampel dari distribusi sederhana $p_0$, misalnya
+Gauss, ke distribusi data $p_1$. Pemetaan yang dihasilkan disebut \istilah{flow} dalam arti
+matematis, dan barisan distribusi antara $p_t$ disebut \istilah{probability path}.
+
+Kesulitannya, medan kecepatan yang benar untuk seluruh distribusi tidak diketahui. Kunci flow
+matching adalah bekerja secara bersyarat. Untuk satu pasangan titik, sampel noise $\vx_0$ dan sampel
+data $\vx_1$, kita bisa memilih jalur yang paling sederhana, garis lurus
+$\vx_t=(1-t)\vx_0+t\vx_1$, yang kecepatannya konstan, $\vx_1-\vx_0$. Loss \istilah{conditional flow
+matching} memaksa jaringan meniru kecepatan bersyarat itu,
+\begin{equation}
+\Loss_{\mathrm{CFM}}=\E_{t,\vx_0,\vx_1}\big\|v_\theta(\vx_t,t)-(\vx_1-\vx_0)\big\|^2,
+\end{equation}
+dan hasil utamanya adalah bahwa gradien loss ini sama dengan gradien loss untuk medan kecepatan
+marginal yang sebenarnya. Kita tidak pernah perlu mengetahui medan marginal itu. Gagasan jalur lurus
+juga dikembangkan secara independen sebagai \istilah{rectified flow} \citep{liu2023}.
+
+Analogi yang saya pakai adalah rombongan penumpang yang harus dipindahkan dari terminal ke berbagai
+alamat di kota. Kita tidak tahu jalur terbaik untuk seluruh rombongan, tetapi kita tahu jalur lurus
+untuk setiap pasangan terminal dan alamat. Kalau sopir belajar rata-rata dari jutaan perjalanan
+lurus seperti itu, ia akhirnya tahu arah yang tepat di setiap persimpangan untuk seluruh arus
+penumpang. Persamaan kontinuitas yang mengatur probability path, $\partial_tp_t+\nabla\cdot(p_tv_t)=0$,
+adalah persamaan kekekalan massa yang sama dengan di mekanika fluida.
+
+\section{Neural field}
+
+Unit terakhir kuliah meninggalkan model generatif dan membahas cara lain merepresentasikan data.
+Dalam fisika, medan adalah besaran yang punya nilai di setiap titik ruang dan waktu: temperatur,
+tekanan, kecepatan. \istilah{Neural field} adalah jaringan saraf yang mewakili medan seperti itu
+secara langsung, $f_\theta:(\vx,t)\mapsto\text{nilai}$ \citep{xie2022}. Alih-alih menyimpan nilai di
+grid, kita menyimpan bobot jaringan. Representasinya kontinu, tidak terikat resolusi, dan bisa
+diturunkan di mana saja dengan autodiff.
+
+Bentuk tiga dimensi bisa diwakili sebagai occupancy field, yaitu peluang sebuah titik berada di
+dalam benda, atau sebagai \istilah{signed distance field} $f(\vx)$, jarak bertanda dari titik ke
+permukaan, positif di luar dan negatif di dalam \citep{park2019}. Permukaannya adalah himpunan nol
+$f(\vx)=0$, dan bisa diekstrak dengan algoritme seperti marching cubes. Fungsi jarak yang sejati
+memenuhi persamaan Eikonal, $\|\nabla f(\vx)\|=1$. Menambahkan $(\|\nabla f_\theta\|-1)^2$ ke loss di
+titik-titik acak memaksa jaringan menjadi fungsi jarak yang sah \citep{gropp2020}. Ini adalah loss
+yang diinformasikan fisika: sebuah persamaan diferensial parsial ditegakkan di dalam loss.
+
+NeRF, yang sudah kita lihat di \cref{ch:cv}, adalah neural field untuk kerapatan dan warna yang
+dilatih melalui persamaan volume rendering. Kuliah menutup dengan pernyataan yang menjembatani ke
+Bagian III: dari sudut pandang ini, PINN hanyalah neural field yang diatur oleh persamaan fisika.
+Bedanya dengan NeRF hanya pada persamaan apa yang ditegakkan.
+
+Satu masalah praktis menghubungkan semuanya. MLP biasa dengan aktivasi ReLU cenderung belajar
+komponen frekuensi rendah lebih dulu dan kesulitan mewakili detail halus, gejala yang disebut
+\istilah{spectral bias} \citep{rahaman2019}. Dua obat yang populer adalah memetakan input dengan
+fungsi sinus dan kosinus berbagai frekuensi sebelum masuk jaringan \citep{tancik2020}, atau memakai
+fungsi sinus sebagai aktivasi seperti pada SIREN \citep{sitzmann2020}. Spectral bias juga menjadi
+salah satu alasan PINN sulit mempelajari solusi yang berosilasi cepat (\cref{ch:pinn}).
+
+\section{Di luar kelas}
+
+Alat-alat dari bab ini menyebar jauh. Model difusi membangkitkan gambar dan video (\cref{ch:terbaru}), dan
+modul struktur AlphaFold3 adalah model difusi yang membangkitkan koordinat atom (\cref{ch:protein}). Teori
+estimasi dan batas Cramér--Rao adalah bahasa sehari-hari pemrosesan sinyal (\cref{ch:sinyal}).
+Probabilistic PCA dan analisis faktor dipakai untuk meringkas data ekspresi gen yang berisik
+(\cref{ch:genomik}). Neural ODE cocok untuk data medis yang diukur pada waktu tidak teratur, seperti kunjungan
+pasien yang jaraknya berbeda-beda.
+
+Bagi Bagian V, bab ini memberi hampir semua alatnya. Neural ODE adalah cara alami untuk mempelajari
+dinamika sistem fisika dari data. Neural field adalah kerangka PINN. Model difusi dan flow matching
+dipakai untuk membangkitkan medan turbulen yang realistis, untuk memperbaiki prediksi jangka panjang
+model pengganti \citep{lippe2023}, dan untuk prakiraan cuaca probabilistik \citep{price2025}. Bahkan
+cara berpikirnya pun berasal dari fisika: model difusi adalah persamaan panas pada ruang
+distribusi, dan flow matching adalah persamaan kontinuitas. Batas Cramér--Rao mengingatkan bahwa
+ketika kita mencoba menyimpulkan parameter fisika dari data, informasi yang terkandung di dalam data
+membatasi apa yang bisa dicapai oleh metode mana pun.
+
+\sumberbab{Bab ini mengikuti delapan unit kuliah Machine Learning: Advanced Techniques: teori estimasi,
+statistik Bayesian, probabilistic PCA, VAE dan ELBO, ODE, PDE, dan SDE, neural ODE, model difusi
+(DDPM, DDIM), score-based model dan flow matching, Fokker--Planck, dan neural field. Bacaan utamanya
+adalah makalah-makalah aslinya: \citet{tipping1999}, \citet{kingma2014}, \citet{chen2018},
+\citet{ho2020}, \citet{song2021}, \citet{lipman2023}, dan ulasan \citet{luo2022}.}

@@ -1,0 +1,168 @@
+\chapter{Peta Perjalanan}
+\label{ch:peta}
+
+Sebelum masuk ke materi, ada baiknya melihat peta besarnya dulu: mata kuliah apa saja yang
+dilalui, dalam urutan apa, dan bagaimana semuanya tersusun menjadi buku ini.
+
+\section{Empat semester}
+
+\Cref{tab:perjalanan} menyusun mata kuliah menurut semester ketika saya mengikutinya. Urutan
+bab di buku tidak persis mengikuti urutan waktu. Bab disusun menurut alur gagasan: fondasi
+lebih dulu, lalu deep learning, lalu simulasi. Tabel ini berguna bagi pembaca yang ingin
+membaca buku ini sambil mengikuti kuliah serupa.
+
+\begin{table}[ht]
+\centering\small
+\caption{Mata kuliah menurut semester dan bab yang membahasnya.}
+\label{tab:perjalanan}
+\begin{tabularx}{\linewidth}{@{}p{3.6cm}Xp{1.4cm}@{}}
+\toprule
+Semester & Mata kuliah & Bab \\
+\midrule
+Musim dingin 2024/25
+ & Deep Learning and Neural Nets I & \ref{ch:dlbasic} \\
+ & LSTM and Recurrent Neural Nets & \ref{ch:lstm} \\
+ & Computer Vision & \ref{ch:cv} \\
+ & Machine Learning: Supervised Techniques & \ref{ch:data} \\
+ & Control Systems & \ref{ch:kendali} \\
+ & Production Automation Systems & \ref{ch:kendali} \\
+ & Optimum and Adaptive Signal Processing Systems & \ref{ch:sinyal} \\
+ & AI in Society, AI and Law I & \ref{ch:manusia} \\
+\midrule
+Musim panas 2025
+ & Deep Learning and Neural Nets II & \ref{ch:arsitektur} \\
+ & Deep Reinforcement Learning & \ref{ch:rl} \\
+ & Machine Learning: Unsupervised Techniques & \ref{ch:unsup} \\
+ & Machine Learning and Pattern Classification & \ref{ch:unsup} \\
+ & Statistical Learning Theory & \ref{ch:data} \\
+ & Introduction to Autonomous Vehicles & \ref{ch:robot} \\
+ & Introduction to Robotic Systems & \ref{ch:robot} \\
+ & Learning from User-generated Data & \ref{ch:rekomendasi} \\
+ & Introduction to Genetics; Genome Analysis and Transcriptomics & \ref{ch:genomik} \\
+ & Structural Bioinformatics & \ref{ch:protein} \\
+ & AI in Life Sciences & \ref{ch:hayati} \\
+ & Deep Learning for Medical Imaging & \ref{ch:medis} \\
+ & Robopsychology; Technology and Society; AI and Law II & \ref{ch:manusia} \\
+\midrule
+Musim dingin 2025/26
+ & Machine Learning: Advanced Techniques & \ref{ch:mlat} \\
+ & Probabilistic Models & \ref{ch:prob} \\
+ & AI and Visualization & \ref{ch:xai} \\
+ & Machine Learning: Basic Techniques & \ref{ch:data} \\
+ & Reinforcement Learning & \ref{ch:rl} \\
+ & Numerical Methods in Fluid Mechanics & \ref{ch:fluida}, \ref{ch:numerik} \\
+ & Computational Physics I & \ref{ch:fiskom} \\
+ & Optimum and Adaptive Signal Processing Systems (latihan) & \ref{ch:sinyal} \\
+ & Radar System Engineering (latihan) & \ref{ch:sinyal} \\
+ & Pervasive Computing: Systems and Environments; Design and Development & \ref{ch:pervasif} \\
+ & KS Operations Research & \ref{ch:klasik} \\
+ & Natural Language Processing & \ref{ch:lstm} \\
+ & Communicating AI & \ref{ch:manusia} \\
+\midrule
+Musim panas 2026
+ & Introduction to AI & \ref{ch:klasik} \\
+ & Deep Learning: Geometric Techniques & \ref{ch:gdl} \\
+ & Numerical Optimization for AI & \ref{ch:optimasi} \\
+ & Tugas akhir: recurrence CFD & \ref{ch:rcfd} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Bab-bab tentang \emph{scientific machine learning} (\cref{ch:pinn,ch:operator,ch:penemuan,ch:hibrida})
+tidak berasal dari satu mata kuliah. Isinya dirangkai dari beberapa kuliah, terutama machine
+learning lanjut, metode numerik fluida, dan fisika komputasi, ditambah bacaan selama
+mengerjakan tugas akhir.
+
+Buku ini terbagi menjadi enam bagian. Bagian I berisi fondasi: apa artinya belajar dari data,
+bagaimana mencari parameter terbaik, bagaimana AI klasik mencari dan merencanakan, dan bagaimana
+menemukan struktur tanpa label. Bagian II membahas deep learning dan persepsi, dari jaringan
+konvolusi sampai model generatif, reinforcement learning, dan explainable AI. Bagian III turun ke
+dunia sinyal dan sistem fisik: estimasi dan filter, radar, kendali, komputasi pervasif, dan robot.
+Bagian IV masuk ke ilmu hayati: genom, molekul dan obat, protein, dan citra medis. Bagian V membahas
+AI untuk simulasi fisika, bidang tugas akhir saya. Bagian VI menutup dengan sistem rekomendasi, sisi
+manusia dan hukum, dan perkembangan AI terbaru.
+
+Beberapa mata kuliah di tabel berada di luar kebutuhan kurikulum. Semuanya tetap masuk ke buku, sebab cerita AI tidak lengkap
+tanpa robot yang bergerak, rekomendasi yang kita terima setiap hari, dan molekul yang dirancang
+dengan bantuan mesin.
+
+\section{Mengapa simulasi}
+
+Simulasi fisika seperti \istilah{computational fluid dynamics} (CFD) menyelesaikan persamaan
+diferensial parsial di jutaan sel. Hasilnya akurat, tetapi mahal: satu kasus bisa berjalan
+berhari-hari di klaster komputer. Machine learning menawarkan jalan pintas. Ia belajar dari
+hasil simulasi sebelumnya, lalu menebak hasil baru dalam hitungan detik. Masalahnya, model yang
+hanya belajar dari data tidak tahu apa-apa tentang kekekalan massa atau energi. Ia bisa
+menghasilkan aliran yang terlihat meyakinkan tetapi melanggar fisika.
+
+Saya suka membayangkan perbedaan ini seperti dua cara memasak. Juru masak pertama mengikuti
+resep secara persis: takaran, suhu, waktu. Hasilnya bisa diulang, tetapi lambat, karena setiap
+langkah harus ditimbang. Juru masak kedua memasak dengan lidah. Ia mencicipi, mengingat rasa
+masakan sebelumnya, lalu menebak. Cepat, tetapi kadang meleset jauh. Juru masak terbaik memakai
+keduanya: resep menjaga agar masakan tidak gagal total, lidah membuatnya cepat dan luwes. Solver
+CFD adalah resep, machine learning adalah lidah, dan \emph{physics-informed machine learning}
+adalah usaha memakai keduanya sekaligus.
+
+Di antara dua ujung itu terbentang spektrum yang lebar. \Cref{fig:spektrum} menempatkan
+pendekatan-pendekatan yang akan kita temui di sepanjang buku.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \shade[left color=biru!25,right color=oranye!25] (0,0) rectangle (13,0.5);
+  \node[label,anchor=north] at (0.2,-0.05) {\shortstack[l]{hanya fisika\\(solver klasik)}};
+  \node[label,anchor=north] at (12.8,-0.05) {\shortstack[r]{hanya data\\(black box)}};
+  \foreach \x/\t/\b in {
+     1.2/{CFD, FV}/{Bab \ref{ch:numerik}},
+     3.0/{rCFD}/{Bab \ref{ch:rcfd}},
+     4.6/{model hibrida,\\ closure}/{Bab \ref{ch:hibrida}},
+     6.3/{PINN}/{Bab \ref{ch:pinn}},
+     7.9/{SINDy, ROM}/{Bab \ref{ch:penemuan}},
+     9.6/{neural operator,\\ GNN simulator}/{Bab \ref{ch:operator}},
+     11.6/{model generatif\\ murni}/{Bab \ref{ch:arsitektur}}}{
+    \fill[abu] (\x,0.5) circle (0.06);
+    \node[font=\sffamily\scriptsize,align=center,anchor=south] at (\x,0.62) {\t};
+    \node[font=\sffamily\scriptsize,text=oranye!80!black,anchor=north] at (\x,-0.9) {\b};
+  }
+\end{tikzpicture}
+\caption{Spektrum pendekatan simulasi, dari solver berbasis persamaan sampai model berbasis data.
+Semakin ke kanan, semakin cepat, tetapi semakin sedikit jaminan fisikanya.}
+\label{fig:spektrum}
+\end{figure}
+
+Literatur memakai beberapa nama untuk wilayah ini: \emph{scientific machine learning},
+\emph{physics-informed machine learning} \citep{karniadakis2021}, atau \emph{physics-based deep
+learning} \citep{thuerey2021}. Tinjauan yang khusus membahas mekanika fluida ditulis oleh
+\citet{brunton2020}, \citet{vinuesa2022}, dan \citet{lino2023}. Di buku ini saya memakai istilah
+yang lebih sederhana: AI untuk simulasi.
+
+\section{Tiga pintu masuk fisika}
+
+\citet{karniadakis2021} membedakan tiga cara memasukkan pengetahuan fisika ke dalam model
+pembelajaran. Pembagian ini akan muncul berulang kali, jadi ada gunanya dikenal sejak awal.
+
+Pintu pertama adalah data. Kalau sebuah model dilatih dengan cukup banyak hasil simulasi yang
+benar, ia ikut meniru pola fisika yang terkandung di dalamnya. Inilah yang disebut
+\istilah{observational bias}, dan contohnya adalah neural operator yang dilatih dari ribuan solusi
+persamaan (\cref{ch:operator}). Pintu kedua adalah arsitektur. Model bisa dirancang agar
+otomatis mematuhi sifat tertentu, misalnya tetap berlaku ketika sistemnya diputar atau digeser.
+Konvolusi, yang dengan sendirinya menghormati pergeseran (\cref{ch:dlbasic}), dan jaringan yang
+menghormati rotasi (\cref{ch:gdl}) termasuk di sini. Ini \istilah{inductive bias}. Pintu ketiga
+adalah fungsi loss. Kita menambahkan suku yang menghukum setiap pelanggaran persamaan fisika,
+sehingga model belajar mematuhinya selama pelatihan. Ini \istilah{learning bias}, dan contoh
+paling terkenalnya adalah PINN (\cref{ch:pinn}).
+
+Setiap kali bertemu model baru di bab-bab berikutnya, ada tiga pertanyaan yang layak diajukan.
+Lewat pintu mana fisika masuk: data, arsitektur, atau loss? Apa yang terjadi kalau model
+dipakai di luar jangkauan data latihnya, misalnya untuk waktu yang lebih panjang atau geometri
+yang berbeda? Dan berapa biaya melatihnya dibanding biaya menjalankan solver klasik? Tiga
+pertanyaan ini akan menemani kita sampai akhir.
+
+\section{Notasi}
+
+Buku ini memakai notasi yang umum di kuliah. Vektor dicetak tebal ($\vx$), matriks huruf
+besar tebal ($\mW$), skalar huruf miring ($x$). Data latih ditulis $\{(\vx_n,y_n)\}_{n=1}^N$,
+dan parameter model ditulis $\vw$ atau $\vtheta$. Ekspektasi ditulis $\E[\cdot]$, distribusi
+normal $\N(\mu,\sigma^2)$, dan divergensi Kullback--Leibler $\KL(q\,\|\,p)$. Pada bab-bab
+fluida, $\vu$ berarti kecepatan, $p$ tekanan, $\rho$ massa jenis, $\nu$ viskositas kinematik,
+dan $T$ temperatur.

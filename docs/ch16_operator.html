@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Belajar Menyelesaikan: Neural Operator dan
+Simulator · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 26</p>
+<h1>Belajar Menyelesaikan: Neural Operator dan Simulator</h1>
+<p><span id="ch:operator" data-label="ch:operator"></span></p>
+<p>Bab ini juga tidak berasal dari satu mata kuliah. Kuliah geometric
+deep learning memberi bahasa graf dan ekuivariansi, kuliah machine
+learning lanjut memberi transformasi Fourier dan neural ODE, dan
+dosennya sendiri, Johannes Brandstetter, termasuk peneliti yang
+membentuk bidang ini, dari message passing PDE solver sampai transformer
+untuk fisika. Sisanya datang dari bacaan.</p>
+<p>PINN mempelajari satu solusi. Kalau syarat awalnya berubah sedikit,
+pelatihan harus diulang. Neural operator dan simulator yang dipelajari
+mengambil tujuan yang lebih ambisius: belajar <em>cara</em>
+menyelesaikan sebuah keluarga persamaan, sehingga solusi untuk syarat
+awal, parameter, atau geometri baru bisa diperoleh dalam satu lintasan
+maju, sering ribuan kali lebih cepat dari solver klasik.</p>
+<h1 id="dari-fungsi-ke-fungsi">Dari fungsi ke fungsi</h1>
+<p>Solver numerik pada dasarnya adalah sebuah <em>operator</em>: ia
+memetakan satu fungsi, misalnya medan temperatur awal atau distribusi
+konduktivitas, ke fungsi lain, yaitu solusinya. Jaringan saraf biasa
+memetakan vektor berukuran tetap ke vektor berukuran tetap, sehingga
+terikat pada satu resolusi grid. <em>Operator learning</em> ingin
+belajar pemetaan antar ruang fungsi itu sendiri, sehingga model yang
+dilatih pada grid kasar bisa dievaluasi pada grid yang lebih halus <span
+class="citation" data-cites="kovachki2023">(Kovachki dkk.
+2021)</span>.</p>
+<h2 id="deeponet">DeepONet</h2>
+<p>DeepONet <span class="citation" data-cites="lu2021">(Lu dkk.
+2021)</span> bertumpu pada teorema aproksimasi universal untuk operator.
+Operator <span class="math inline">\(G\)</span> yang memetakan fungsi
+input <span class="math inline">\(v\)</span> ke solusi <span
+class="math inline">\(G(v)\)</span>, dievaluasi di titik <span
+class="math inline">\(y\)</span>, didekati sebagai <span
+class="math display">\[G(v)(y)\approx\sum_{k=1}^pb_k(v)\,t_k(y).\]</span>
+Jaringan <em>branch</em> menerima nilai <span
+class="math inline">\(v\)</span> di sejumlah titik sensor tetap dan
+mengeluarkan koefisien <span class="math inline">\(b_k\)</span>.
+Jaringan <em>trunk</em> menerima koordinat <span
+class="math inline">\(y\)</span> dan mengeluarkan fungsi basis <span
+class="math inline">\(t_k(y)\)</span>. Bentuk ini mengingatkan pada
+ekspansi deret seperti Fourier atau POD (<a
+href="ch17_penemuan_reduksi.html">Bab 27</a>), dengan perbedaan bahwa
+basis dan koefisiennya sama-sama dipelajari. Karena trunk menerima
+koordinat kontinu, keluarannya bisa dievaluasi di titik mana pun.</p>
+<h2 id="fourier-neural-operator">Fourier neural operator</h2>
+<p>Fourier neural operator <span class="citation"
+data-cites="li2021">(Li dkk. 2020)</span> berangkat dari bentuk solusi
+banyak PDE linear: konvolusi syarat awal dengan sebuah kernel, seperti
+kernel Gauss pada persamaan panas di <a href="ch09_ml_advanced.html">Bab
+11</a>. Satu lapisan FNO memakai operator integral dengan kernel yang
+dipelajari, <span class="math display">\[(\mathcal
+Kv)(x)=\int\kappa(x-y)\,v(y)\,\mathrm{d}y.\]</span> Karena kernel hanya
+bergantung pada selisih <span class="math inline">\(x-y\)</span>,
+operator ini adalah konvolusi, dan teorema konvolusi (<a
+href="ch05_computer_vision.html">Bab 7</a>) mengubahnya menjadi
+perkalian di domain frekuensi: <span class="math display">\[\mathcal
+Kv=\mathcal F^{-1}\big(\boldsymbol R\cdot\mathcal Fv\big),\]</span>
+dengan <span class="math inline">\(\boldsymbol R\)</span> bobot yang
+dipelajari untuk setiap frekuensi. FNO hanya menyimpan bobot untuk
+sejumlah kecil frekuensi terendah dan membuang sisanya. Satu lapisan
+lengkap menjumlahkan operator spektral ini dengan transformasi linear
+lokal, lalu menerapkan nonlinearitas. Dengan FFT, biayanya sebanding
+dengan <span class="math inline">\(N\log N\)</span> untuk <span
+class="math inline">\(N\)</span> titik grid, dan karena bobotnya
+didefinisikan per frekuensi, bukan per titik grid, model yang sama bisa
+dijalankan pada resolusi yang berbeda. Pemotongan frekuensi juga punya
+sisi buruk: struktur yang tajam, seperti gelombang kejut, sulit diwakili
+oleh sedikit mode Fourier.</p>
+<h1 id="simulator-berbasis-graf">Simulator berbasis graf</h1>
+<p>Grid teratur jarang ditemui dalam simulasi teknik. Mesh menyesuaikan
+diri dengan geometri, dan partikel bergerak bebas. Di sini jaringan graf
+(<a href="ch07_geometric.html">Bab 9</a>) menjadi alat alami. Graph
+Network-based Simulator <span class="citation"
+data-cites="sanchez2020">(Sanchez-Gonzalez dkk. 2020)</span>
+memperlakukan setiap partikel sebagai simpul dan menghubungkan partikel
+yang berdekatan dengan sisi. Arsitekturnya mengikuti pola
+<em>encode–process–decode</em>: keadaan setiap partikel dikodekan
+menjadi vektor laten, beberapa langkah message passing menyebarkan
+informasi interaksi, lalu decoder mengeluarkan percepatan setiap
+partikel. Posisi baru dihitung dengan integrator sederhana, dan langkah
+itu diulang. Model yang dilatih pada air, pasir, dan cairan kental ini
+menghasilkan rollout yang stabil untuk ribuan langkah.</p>
+<p>MeshGraphNets <span class="citation" data-cites="pfaff2021">(Pfaff
+dkk. 2020)</span> membawa gagasan yang sama ke mesh simulasi, dengan dua
+jenis sisi: sisi mesh yang mengikuti konektivitas elemen, dan sisi
+“dunia” antara simpul yang berdekatan di ruang walau tidak tersambung di
+mesh, misalnya untuk kain yang menyentuh dirinya sendiri. Model ini
+bahkan belajar menyesuaikan resolusi mesh. Message Passing Neural PDE
+Solvers <span class="citation"
+data-cites="brandstetter2022">(Brandstetter, Worrall, dan Welling
+2022)</span> merumuskan message passing sebagai solver PDE umum dan
+menunjukkan bahwa ia mencakup skema numerik klasik seperti beda hingga
+dan volume hingga sebagai kasus khusus. Hubungan ini sudah kita lihat di
+<a href="ch13_numerik_fluida.html">Bab 23</a>: volume hingga adalah
+message passing fluks.</p>
+<h1 id="masalah-rollout">Masalah rollout</h1>
+<p>Hampir semua simulator yang dipelajari bekerja secara autoregresif:
+tebak langkah berikutnya, lalu pakai tebakan itu sebagai input untuk
+langkah selanjutnya. Galat kecil di setiap langkah tidak hanya menumpuk,
+tetapi juga bisa diperbesar. Misalkan galat di langkah <span
+class="math inline">\(t\)</span> adalah <span
+class="math inline">\(e_t\)</span>, model menambahkan galat baru <span
+class="math inline">\(\delta\)</span> di setiap langkah, dan kepekaan
+langkah model terhadap inputnya diwakili faktor <span
+class="math inline">\(J\)</span>. Maka <span
+class="math inline">\(e_{t+1}\approx Je_t+\delta\)</span>, dan setelah
+<span class="math inline">\(T\)</span> langkah <span
+class="math display">\[e_T\approx\delta\sum_{k=0}^{T-1}J^k.\]</span>
+Kalau <span class="math inline">\(|J|&lt;1\)</span>, galat jenuh di
+sekitar <span class="math inline">\(\delta/(1-|J|)\)</span>. Kalau <span
+class="math inline">\(|J|\)</span> sedikit lebih besar dari satu, galat
+tumbuh eksponensial. Dengan <span
+class="math inline">\(J=1{,}01\)</span>, setelah 500 langkah faktor
+<span class="math inline">\(J^{500}\approx145\)</span>. Model yang
+tampak sempurna dalam uji satu langkah bisa meledak dalam rollout
+panjang.</p>
+<p>Ada masalah yang lebih halus. Selama pelatihan, model hanya melihat
+input dari simulasi sejati. Selama rollout, ia melihat input dari
+tebakannya sendiri, yang sedikit berbeda distribusinya. Ini covariate
+shift yang sama dengan behavioral cloning di <a href="ch10_rl.html">Bab
+12</a>. Beberapa obat sudah dicoba: menambahkan noise pada input selama
+pelatihan agar model terbiasa dengan input yang tidak sempurna <span
+class="citation" data-cites="sanchez2020">(Sanchez-Gonzalez dkk.
+2020)</span>, melatih dengan rollout beberapa langkah, atau, seperti
+PDE-Refiner <span class="citation" data-cites="lippe2023">(Lippe dkk.
+2023)</span>, memperhalus setiap tebakan dengan beberapa langkah
+denoising mirip model difusi, supaya komponen frekuensi tinggi dengan
+amplitudo kecil tidak diabaikan. Analisis spektrum sering menunjukkan
+bahwa model kehilangan detail halus lebih dulu, dan detail itulah yang
+kemudian merusak stabilitas.</p>
+<h1 id="model-fondasi-untuk-fisika-dan-cuaca">Model fondasi untuk fisika
+dan cuaca</h1>
+<p>Keberhasilan paling mencolok terjadi di prakiraan cuaca, di mana data
+reanalisis global berpuluh tahun tersedia. FourCastNet <span
+class="citation" data-cites="pathak2022">(Pathak dkk. 2022)</span>
+memakai operator Fourier yang adaptif. GraphCast <span class="citation"
+data-cites="lam2023">(Lam dkk. 2023)</span> memakai message passing di
+atas mesh ikosahedral berjenjang yang membungkus bumi, dan dalam banyak
+ukuran mengungguli sistem prakiraan numerik operasional untuk sepuluh
+hari ke depan, dengan waktu hitung kurang dari satu menit. GenCast <span
+class="citation" data-cites="price2025">(Price dkk. 2025)</span> memakai
+model difusi untuk menghasilkan ensemble prakiraan yang probabilistik.
+Aurora <span class="citation" data-cites="bodnar2024">(Bodnar dkk.
+2024)</span> dilatih pada beragam data atmosfer sebagai model fondasi
+yang bisa disetel ke tugas-tugas baru, seperti kualitas udara.</p>
+<p>Gagasan model fondasi juga dibawa ke PDE secara umum. Pretraining
+pada banyak sistem fisika sekaligus <span class="citation"
+data-cites="mccabe2023">(McCabe dkk. 2023)</span> ternyata membantu
+ketika model disetel ke sistem baru dengan data sedikit. Kumpulan data
+besar seperti The Well <span class="citation"
+data-cites="ohana2024">(Ohana dkk. 2024)</span> menyediakan simulasi
+dari banyak bidang fisika untuk melatih dan menguji model seperti ini.
+Universal Physics Transformers <span class="citation"
+data-cites="alkin2024">(Alkin dkk. 2024)</span> memisahkan model dari
+diskretisasi: titik mesh atau partikel dikodekan ke ruang laten
+berukuran tetap, dinamika berjalan di ruang laten, dan decoder bisa
+ditanya di titik mana pun. <span class="citation"
+data-cites="gupta2022">Gupta dan Brandstetter (2022)</span>
+membandingkan arsitektur secara sistematis pada berbagai skala ruang dan
+waktu.</p>
+<h1 id="pertanyaan-yang-tetap-harus-diajukan">Pertanyaan yang tetap
+harus diajukan</h1>
+<p>Kembali ke tiga pertanyaan di <a href="ch00_peta.html">Bab 0</a>.
+Fisika masuk ke model-model ini terutama lewat data dan arsitektur:
+simulasi yang benar sebagai data latih, dan ekuivariansi, lokalitas,
+serta konservasi sebagai struktur jaringan. Di luar jangkauan data
+latih, misalnya pada bilangan Reynolds lain atau geometri yang jauh
+berbeda, jaminannya tipis, dan pengujian harus dilakukan secara
+eksplisit. Biaya pelatihannya besar, sering setara ribuan simulasi
+klasik untuk menghasilkan data, sehingga keuntungan baru muncul kalau
+model dipakai berkali-kali, misalnya untuk optimasi desain, kendali
+waktu nyata, atau ensemble besar. Ulasan <span class="citation"
+data-cites="lino2023">Lino dkk. (2023)</span> dan <span class="citation"
+data-cites="vinuesa2022">Vinuesa dan Brunton (2022)</span> memberi
+gambaran yang seimbang tentang kekuatan dan batas pendekatan ini dalam
+mekanika fluida.</p>
+<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<p>Bab ini dirangkai dari kuliah Deep Learning: Geometric Techniques,
+Machine Learning: Advanced Techniques, dan bacaan selama tugas akhir.
+Makalah utamanya: <span class="citation" data-cites="lu2021">Lu dkk.
+(2021)</span>, <span class="citation" data-cites="li2021">Li dkk.
+(2020)</span>, <span class="citation" data-cites="kovachki2023">Kovachki
+dkk. (2021)</span>, <span class="citation"
+data-cites="sanchez2020">Sanchez-Gonzalez dkk. (2020)</span>, <span
+class="citation" data-cites="pfaff2021">Pfaff dkk. (2020)</span>, <span
+class="citation" data-cites="brandstetter2022">Brandstetter, Worrall,
+dan Welling (2022)</span>, <span class="citation"
+data-cites="lippe2023">Lippe dkk. (2023)</span>, dan <span
+class="citation" data-cites="lam2023">Lam dkk. (2023)</span>.</p>
+<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-alkin2024" class="csl-entry" role="listitem">
+Alkin, Benedikt, Andreas Fürst, Simon Schmid, Lukas Gruber, Markus
+Holzleitner, dan Johannes Brandstetter. 2024. <span>“Universal Physics
+Transformers: A Framework For Efficiently Scaling Neural
+Operators.”</span> arXiv:2402.12365. <a
+href="https://arxiv.org/abs/2402.12365">https://arxiv.org/abs/2402.12365</a>.
+</div>
+<div id="ref-bodnar2024" class="csl-entry" role="listitem">
+Bodnar, Cristian, Wessel P. Bruinsma, Ana Lucic, Megan Stanley, Anna
+Vaughan, Johannes Brandstetter, Patrick Garvan, dkk. 2024. <span>“A
+Foundation Model for the Earth System.”</span> arXiv:2405.13063. <a
+href="https://arxiv.org/abs/2405.13063">https://arxiv.org/abs/2405.13063</a>.
+</div>
+<div id="ref-brandstetter2022" class="csl-entry" role="listitem">
+Brandstetter, Johannes, Daniel Worrall, dan Max Welling. 2022.
+<span>“Message Passing Neural PDE Solvers.”</span> arXiv:2202.03376. <a
+href="https://arxiv.org/abs/2202.03376">https://arxiv.org/abs/2202.03376</a>.
+</div>
+<div id="ref-gupta2022" class="csl-entry" role="listitem">
+Gupta, Jayesh K., dan Johannes Brandstetter. 2022. <span>“Towards
+Multi-spatiotemporal-scale Generalized PDE Modeling.”</span>
+arXiv:2209.15616. <a
+href="https://arxiv.org/abs/2209.15616">https://arxiv.org/abs/2209.15616</a>.
+</div>
+<div id="ref-kovachki2023" class="csl-entry" role="listitem">
+Kovachki, Nikola, Zongyi Li, Burigede Liu, Kamyar Azizzadenesheli,
+Kaushik Bhattacharya, Andrew Stuart, dan Anima Anandkumar. 2021.
+<span>“Neural Operator: Learning Maps Between Function Spaces.”</span>
+arXiv:2108.08481. <a
+href="https://arxiv.org/abs/2108.08481">https://arxiv.org/abs/2108.08481</a>.
+</div>
+<div id="ref-lam2023" class="csl-entry" role="listitem">
+Lam, Remi, Alvaro Sanchez-Gonzalez, Matthew Willson, Peter Wirnsberger,
+Meire Fortunato, Ferran Alet, Suman Ravuri, dkk. 2023. <span>“Learning
+skillful medium-range global weather forecasting.”</span>
+<em>Science</em> 382 (6677): 1416–21. <a
+href="https://doi.org/10.1126/science.adi2336">https://doi.org/10.1126/science.adi2336</a>.
+</div>
+<div id="ref-li2021" class="csl-entry" role="listitem">
+Li, Zongyi, Nikola Kovachki, Kamyar Azizzadenesheli, Burigede Liu,
+Kaushik Bhattacharya, Andrew Stuart, dan Anima Anandkumar. 2020.
+<span>“Fourier Neural Operator for Parametric Partial Differential
+Equations.”</span> arXiv:2010.08895. <a
+href="https://arxiv.org/abs/2010.08895">https://arxiv.org/abs/2010.08895</a>.
+</div>
+<div id="ref-lino2023" class="csl-entry" role="listitem">
+Lino, Mario, Stathi Fotiadis, Anil A. Bharath, dan Chris D. Cantwell.
+2023. <span>“Current and emerging deep-learning methods for the
+simulation of fluid dynamics.”</span> <em>Proceedings of the Royal
+Society A: Mathematical, Physical and Engineering Sciences</em> 479
+(2275). <a
+href="https://doi.org/10.1098/rspa.2023.0058">https://doi.org/10.1098/rspa.2023.0058</a>.
+</div>
+<div id="ref-lippe2023" class="csl-entry" role="listitem">
+Lippe, Phillip, Bastiaan S. Veeling, Paris Perdikaris, Richard E.
+Turner, dan Johannes Brandstetter. 2023. <span>“PDE-Refiner: Achieving
+Accurate Long Rollouts with Neural PDE Solvers.”</span>
+arXiv:2308.05732. <a
+href="https://arxiv.org/abs/2308.05732">https://arxiv.org/abs/2308.05732</a>.
+</div>
+<div id="ref-lu2021" class="csl-entry" role="listitem">
+Lu, Lu, Pengzhan Jin, Guofei Pang, Zhongqiang Zhang, dan George Em
+Karniadakis. 2021. <span>“Learning nonlinear operators via DeepONet
+based on the universal approximation theorem of operators.”</span>
+<em>Nature Machine Intelligence</em> 3 (3): 218–29. <a
+href="https://doi.org/10.1038/s42256-021-00302-5">https://doi.org/10.1038/s42256-021-00302-5</a>.
+</div>
+<div id="ref-mccabe2023" class="csl-entry" role="listitem">
+McCabe, Michael, Bruno Régaldo-Saint Blancard, Liam Holden Parker, Ruben
+Ohana, Miles Cranmer, Alberto Bietti, Michael Eickenberg, dkk. 2023.
+<span>“Multiple Physics Pretraining for Physical Surrogate
+Models.”</span> arXiv:2310.02994. <a
+href="https://arxiv.org/abs/2310.02994">https://arxiv.org/abs/2310.02994</a>.
+</div>
+<div id="ref-ohana2024" class="csl-entry" role="listitem">
+Ohana, Ruben, Michael McCabe, Lucas Meyer, Rudy Morel, Fruzsina J.
+Agocs, Miguel Beneitez, Marsha Berger, dkk. 2024. <span>“The Well: a
+Large-Scale Collection of Diverse Physics Simulations for Machine
+Learning.”</span> arXiv:2412.00568. <a
+href="https://arxiv.org/abs/2412.00568">https://arxiv.org/abs/2412.00568</a>.
+</div>
+<div id="ref-pathak2022" class="csl-entry" role="listitem">
+Pathak, Jaideep, Shashank Subramanian, Peter Harrington, Sanjeev Raja,
+Ashesh Chattopadhyay, Morteza Mardani, Thorsten Kurth, dkk. 2022.
+<span>“FourCastNet: A Global Data-driven High-resolution Weather Model
+using Adaptive Fourier Neural Operators.”</span> arXiv:2202.11214. <a
+href="https://arxiv.org/abs/2202.11214">https://arxiv.org/abs/2202.11214</a>.
+</div>
+<div id="ref-pfaff2021" class="csl-entry" role="listitem">
+Pfaff, Tobias, Meire Fortunato, Alvaro Sanchez-Gonzalez, dan Peter W.
+Battaglia. 2020. <span>“Learning Mesh-Based Simulation with Graph
+Networks.”</span> arXiv:2010.03409. <a
+href="https://arxiv.org/abs/2010.03409">https://arxiv.org/abs/2010.03409</a>.
+</div>
+<div id="ref-price2025" class="csl-entry" role="listitem">
+Price, Ilan, Alvaro Sanchez-Gonzalez, Ferran Alet, Tom R. Andersson,
+Andrew El-Kadi, Dominic Masters, Timo Ewalds, dkk. 2025.
+<span>“Probabilistic weather forecasting with machine learning.”</span>
+<em>Nature</em> 637 (8044): 84–90. <a
+href="https://doi.org/10.1038/s41586-024-08252-9">https://doi.org/10.1038/s41586-024-08252-9</a>.
+</div>
+<div id="ref-sanchez2020" class="csl-entry" role="listitem">
+Sanchez-Gonzalez, Alvaro, Jonathan Godwin, Tobias Pfaff, Rex Ying, Jure
+Leskovec, dan Peter W. Battaglia. 2020. <span>“Learning to Simulate
+Complex Physics with Graph Networks.”</span> arXiv:2002.09405. <a
+href="https://arxiv.org/abs/2002.09405">https://arxiv.org/abs/2002.09405</a>.
+</div>
+<div id="ref-vinuesa2022" class="csl-entry" role="listitem">
+Vinuesa, Ricardo, dan Steven L. Brunton. 2022. <span>“Enhancing
+computational fluid dynamics with machine learning.”</span> <em>Nature
+Computational Science</em> 2 (6): 358–66. <a
+href="https://doi.org/10.1038/s43588-022-00264-7">https://doi.org/10.1038/s43588-022-00264-7</a>.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch15_pinn.html"><span>Sebelumnya</span>Physics-Informed Neural Networks</a>
+  <a class="next" href="ch17_penemuan_reduksi.html"><span>Berikutnya</span>Menemukan dan Memampatkan Dinamika</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

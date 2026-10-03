@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Model Hibrida: Fisika dan Data
+Bersama · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 28</p>
+<h1>Model Hibrida: Fisika dan Data Bersama</h1>
+<p><span id="ch:hibrida" data-label="ch:hibrida"></span></p>
+<p>Di antara semua pendekatan di Bagian V, model hibrida adalah yang
+paling dekat dengan cara kerja insinyur sehari-hari. Kita tidak membuang
+solver yang sudah teruji puluhan tahun. Kita membiarkannya mengerjakan
+apa yang ia kuasai, lalu memakai data untuk memperbaiki bagian yang ia
+kerjakan dengan buruk. Bab ini dirangkai dari kuliah metode numerik
+fluida, yang membahas model penutup turbulensi beserta kelemahannya, dan
+dari bacaan selama tugas akhir.</p>
+<h1 id="di-mana-solver-lemah">Di mana solver lemah</h1>
+<p><a href="ch13_numerik_fluida.html">Bab 23</a> memperlihatkan bahwa
+simulasi praktis selalu memodelkan sesuatu yang tidak bisa diselesaikan:
+tegangan Reynolds di RANS, pusaran sub-grid di LES, gaya antara fluida
+dan partikel di aliran multifase, atau perpindahan panas di dekat
+dinding yang tidak cukup halus grid-nya. Model-model ini dirumuskan
+dengan asumsi yang disederhanakan dan dikalibrasi pada aliran sederhana.
+Ketika dipakai pada aliran yang rumit, misalnya dengan pemisahan aliran,
+kelengkungan kuat, atau putaran, asumsinya runtuh. Data dari simulasi
+yang lebih teliti, seperti DNS dan LES, atau dari percobaan, bisa
+dipakai untuk mempelajari model yang lebih baik <span class="citation"
+data-cites="duraisamy2019">(Duraisamy, Iaccarino, dan Xiao
+2019)</span>.</p>
+<h1 id="model-penutup-yang-dipelajari">Model penutup yang
+dipelajari</h1>
+<p>Pendekatan paling langsung adalah melatih jaringan untuk memprediksi
+besaran yang hilang dari besaran yang tersedia. Untuk RANS, targetnya
+tegangan Reynolds, dan inputnya gradien kecepatan rata-rata. Tetapi
+jaringan sembarang tidak menjamin sifat fisika yang paling dasar:
+hasilnya harus sama tidak peduli bagaimana sistem koordinat diputar.
+<span class="citation" data-cites="ling2016">Ling, Kurzawski, dan
+Templeton (2016)</span> membangun sifat itu ke dalam arsitektur. Mereka
+memakai hasil klasik bahwa tensor anisotropi Reynolds <span
+class="math inline">\(\boldsymbol b\)</span>, dalam model viskositas
+turbulen umum, bisa ditulis sebagai kombinasi dari sepuluh tensor basis
+<span class="math inline">\(\boldsymbol T^{(n)}\)</span> yang disusun
+dari tensor laju regangan <span class="math inline">\(\boldsymbol
+S\)</span> dan tensor rotasi <span
+class="math inline">\(\boldsymbol\Omega\)</span> yang dinormalisasi
+<span class="citation" data-cites="pope2000">(Pope 2000)</span>: <span
+class="math display">\[\boldsymbol
+b=\sum_{n=1}^{10}g_n(\lambda_1,\dots,\lambda_5)\,\boldsymbol
+T^{(n)}.\]</span> Koefisien <span class="math inline">\(g_n\)</span>
+hanya bergantung pada lima besaran invarian <span
+class="math inline">\(\lambda_i\)</span>, seperti <span
+class="math inline">\(\mathrm{tr}(\boldsymbol S^2)\)</span> dan <span
+class="math inline">\(\mathrm{tr}(\boldsymbol\Omega^2)\)</span>, yang
+nilainya tidak berubah ketika koordinat diputar. Tensor basis sendiri
+berputar bersama koordinat. Jadi kalau jaringan hanya mempelajari <span
+class="math inline">\(g_n\)</span> dari invarian, hasil <span
+class="math inline">\(\boldsymbol b\)</span> dijamin berputar dengan
+benar, apa pun bobot jaringannya. Model viskositas turbulen linear dari
+<a href="ch13_numerik_fluida.html">Bab 23</a> adalah kasus khusus dengan
+hanya suku pertama, <span class="math inline">\(\boldsymbol
+T^{(1)}=\boldsymbol S\)</span>, dan koefisien tetap. Inilah contoh nyata
+inductive bias dari <a href="ch00_peta.html">Bab 0</a>: simetri tidak
+dipelajari dari data, tetapi dibangun ke dalam bentuk modelnya.</p>
+<h1 id="a-priori-dan-a-posteriori">A priori dan a posteriori</h1>
+<p>Model penutup yang dipelajari sering tampak baik dalam uji <em>a
+priori</em>: ambil medan DNS, hitung input dan target, lalu ukur galat
+prediksi. Begitu model dimasukkan ke dalam solver dan simulasi
+dijalankan, yaitu uji <em>a posteriori</em>, hasilnya bisa mengecewakan
+atau bahkan meledak. Penyebabnya sama dengan masalah rollout di <a
+href="ch16_operator.html">Bab 26</a>. Selama pelatihan, model melihat
+input dari DNS. Selama simulasi, ia melihat input dari medan yang
+dihasilkan solver bersama model itu sendiri, yang distribusinya
+bergeser. Galat kecil mengubah medan, medan yang berubah mengubah input
+model, dan lingkarannya bisa memperbesar galat.</p>
+<p>Obatnya adalah melatih model di dalam lingkar yang sama dengan tempat
+ia akan dipakai. Pendekatan <em>solver-in-the-loop</em> <span
+class="citation" data-cites="um2020">(Um dkk. 2020)</span> menulis satu
+langkah simulasi hibrida sebagai <span
+class="math display">\[\boldsymbol{u}_{n+1}=\mathcal
+S(\boldsymbol{u}_n)+\mathcal C_\theta\big(\mathcal
+S(\boldsymbol{u}_n)\big),\]</span> dengan <span
+class="math inline">\(\mathcal S\)</span> solver kasar dan <span
+class="math inline">\(\mathcal C_\theta\)</span> koreksi yang
+dipelajari. Kalau solver ditulis dalam kerangka yang bisa diturunkan,
+gradien loss bisa dibawa mundur melewati beberapa langkah solver
+sekaligus, sehingga koreksi belajar memperbaiki galat yang muncul dari
+interaksinya sendiri dengan solver. Gagasan solver yang bisa diturunkan,
+<em>differentiable physics</em>, dibahas lengkap dalam buku <span
+class="citation" data-cites="thuerey2021">Thuerey dkk. (2021)</span>.
+<span class="citation" data-cites="kochkov2021">Kochkov dkk.
+(2021)</span> memakai pendekatan serupa untuk turbulensi dua dimensi:
+jaringan mempelajari cara menginterpolasi nilai di sisi sel pada grid
+yang jauh lebih kasar, dan simulasi yang dihasilkan setara akurasinya
+dengan solver klasik pada grid berkali-kali lebih halus, dengan
+percepatan puluhan kali.</p>
+<h1 id="ketidakpastian-dan-banyak-tingkat-ketelitian">Ketidakpastian dan
+banyak tingkat ketelitian</h1>
+<p>Model hibrida juga cocok untuk memanfaatkan data dari sumber yang
+berbeda-beda ketelitian dan harganya. Simulasi kasar murah dan banyak,
+simulasi teliti mahal dan sedikit, percobaan paling dipercaya tetapi
+paling jarang. Model <em>multi-fidelity</em> mempelajari koreksi dari
+tingkat murah ke tingkat mahal, yang biasanya jauh lebih sederhana untuk
+dipelajari daripada solusi lengkapnya. Ketidakpastian prediksi bisa
+diperkirakan dengan ensemble atau model probabilistik (<a
+href="ch06_arsitektur_generatif.html">Bab 8</a>), dan ini penting karena
+model hibrida sering dipakai justru di luar daerah data latihnya.</p>
+<p>Asimilasi data dari <a href="ch08_probabilistik.html">Bab 10</a>
+adalah bentuk hibrida yang paling tua. Solver memberi ramalan, data
+memberi koreksi, dan keduanya digabung dengan bobot sesuai
+ketidakpastian masing-masing. Ketika model penutupnya sendiri tidak
+pasti, parameter model bisa ikut ditaksir dalam proses asimilasi,
+misalnya dengan menambahkannya ke vektor keadaan Kalman filter
+ensemble.</p>
+<h1 id="apa-yang-dipelajari-dan-apa-yang-tidak">Apa yang dipelajari, dan
+apa yang tidak</h1>
+<p>Pola umum model hibrida bisa diringkas dalam satu kalimat: biarkan
+fisika menangani apa yang sudah diketahui pasti, terutama hukum
+kekekalan, dan biarkan data menangani apa yang dimodelkan dengan buruk.
+Pilihan ini punya keuntungan praktis yang besar. Karena sebagian besar
+dinamika dihitung oleh solver yang konservatif, model hibrida jauh lebih
+jarang melanggar kekekalan massa atau energi daripada model pengganti
+murni. Karena koreksinya kecil, ia butuh lebih sedikit data. Dan karena
+strukturnya jelas, kegagalannya lebih mudah didiagnosis. Ulasan <span
+class="citation" data-cites="vinuesa2022">Vinuesa dan Brunton
+(2022)</span> dan <span class="citation"
+data-cites="brunton2020">Brunton, Noack, dan Koumoutsakos (2020)</span>
+menempatkan pendekatan ini sebagai salah satu jalur yang paling
+menjanjikan untuk mekanika fluida komputasi.</p>
+<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<p>Bab ini dirangkai dari kuliah Numerical Methods in Fluid Mechanics
+(model penutup turbulensi) dan bacaan selama tugas akhir. Rujukan utama:
+<span class="citation" data-cites="duraisamy2019">Duraisamy, Iaccarino,
+dan Xiao (2019)</span>, <span class="citation"
+data-cites="ling2016">Ling, Kurzawski, dan Templeton (2016)</span>,
+<span class="citation" data-cites="um2020">Um dkk. (2020)</span>, <span
+class="citation" data-cites="kochkov2021">Kochkov dkk. (2021)</span>,
+dan <span class="citation" data-cites="thuerey2021">Thuerey dkk.
+(2021)</span>.</p>
+<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-brunton2020" class="csl-entry" role="listitem">
+Brunton, Steven L., Bernd R. Noack, dan Petros Koumoutsakos. 2020.
+<span>“Machine Learning for Fluid Mechanics.”</span> <em>Annual Review
+of Fluid Mechanics</em> 52 (1): 477–508. <a
+href="https://doi.org/10.1146/annurev-fluid-010719-060214">https://doi.org/10.1146/annurev-fluid-010719-060214</a>.
+</div>
+<div id="ref-duraisamy2019" class="csl-entry" role="listitem">
+Duraisamy, Karthik, Gianluca Iaccarino, dan Heng Xiao. 2019.
+<span>“Turbulence Modeling in the Age of Data.”</span> <em>Annual Review
+of Fluid Mechanics</em> 51 (1): 357–77. <a
+href="https://doi.org/10.1146/annurev-fluid-010518-040547">https://doi.org/10.1146/annurev-fluid-010518-040547</a>.
+</div>
+<div id="ref-kochkov2021" class="csl-entry" role="listitem">
+Kochkov, Dmitrii, Jamie A. Smith, Ayya Alieva, Qing Wang, Michael P.
+Brenner, dan Stephan Hoyer. 2021. <span>“Machine learning–accelerated
+computational fluid dynamics.”</span> <em>Proceedings of the National
+Academy of Sciences</em> 118 (21). <a
+href="https://doi.org/10.1073/pnas.2101784118">https://doi.org/10.1073/pnas.2101784118</a>.
+</div>
+<div id="ref-ling2016" class="csl-entry" role="listitem">
+Ling, Julia, Andrew Kurzawski, dan Jeremy Templeton. 2016.
+<span>“Reynolds averaged turbulence modelling using deep neural networks
+with embedded invariance.”</span> <em>Journal of Fluid Mechanics</em>
+807: 155–66. <a
+href="https://doi.org/10.1017/jfm.2016.615">https://doi.org/10.1017/jfm.2016.615</a>.
+</div>
+<div id="ref-pope2000" class="csl-entry" role="listitem">
+Pope, Stephen B. 2000. <em>Turbulent Flows</em>. Cambridge University
+Press.
+</div>
+<div id="ref-thuerey2021" class="csl-entry" role="listitem">
+Thuerey, N., B. Holzschuh, P. Holl, G. Kohl, M. Lino, Q. Liu, P.
+Schnell, dan F. Trost. 2021. <span>“Physics-based Deep Learning.”</span>
+arXiv:2109.05237. <a
+href="https://arxiv.org/abs/2109.05237">https://arxiv.org/abs/2109.05237</a>.
+</div>
+<div id="ref-um2020" class="csl-entry" role="listitem">
+Um, Kiwon, Robert Brand, Yun, Fei, Philipp Holl, dan Nils Thuerey. 2020.
+<span>“Solver-in-the-Loop: Learning from Differentiable Physics to
+Interact with Iterative PDE-Solvers.”</span> arXiv:2007.00016. <a
+href="https://arxiv.org/abs/2007.00016">https://arxiv.org/abs/2007.00016</a>.
+</div>
+<div id="ref-vinuesa2022" class="csl-entry" role="listitem">
+Vinuesa, Ricardo, dan Steven L. Brunton. 2022. <span>“Enhancing
+computational fluid dynamics with machine learning.”</span> <em>Nature
+Computational Science</em> 2 (6): 358–66. <a
+href="https://doi.org/10.1038/s43588-022-00264-7">https://doi.org/10.1038/s43588-022-00264-7</a>.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch17_penemuan_reduksi.html"><span>Sebelumnya</span>Menemukan dan Memampatkan Dinamika</a>
+  <a class="next" href="ch19_rcfd.html"><span>Berikutnya</span>Recurrence CFD: Simulasi dari Ingatan</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

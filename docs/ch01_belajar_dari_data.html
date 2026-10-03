@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Belajar dari Data · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 1</p>
+<h1>Belajar dari Data</h1>
+<p><span id="ch:data" data-label="ch:data"></span></p>
+<p>Kerangka di bab ini tidak datang dari satu kuliah. Ia muncul pertama
+kali di kuliah supervised learning pada semester pertama, lalu kembali
+di kuliah unsupervised, di kuliah dasar-dasar machine learning, dan di
+bagian pembuka kuliah geometric deep learning. Karena dipakai oleh
+begitu banyak kuliah, saya menaruhnya di depan.</p>
+<p>Semua yang ada di buku ini, dari LSTM sampai PINN, berdiri di atas
+satu gagasan sederhana: kita punya contoh, dan kita ingin aturan yang
+juga berlaku untuk contoh yang belum pernah dilihat. Bab ini membahas
+gagasan itu secara jujur. Apa yang sebenarnya kita minimalkan? Mengapa
+model yang sempurna di data latih bisa gagal di data baru? Dan mengapa
+dimensi tinggi membuat semuanya lebih sulit?</p>
+<h1 id="tiga-cara-belajar">Tiga cara belajar</h1>
+<p>Bayangkan tiga murid. Murid pertama belajar dengan kunci jawaban:
+setiap soal latihan punya jawaban benar, dan ia menyesuaikan cara
+berpikirnya sampai jawabannya cocok. Murid kedua hanya diberi setumpuk
+soal tanpa jawaban. Ia mengelompokkan soal yang mirip dan menemukan
+polanya sendiri. Murid ketiga tidak diberi soal sama sekali. Ia mencoba
+sesuatu, lalu gurunya hanya berkata “bagus” atau “kurang”, kadang baru
+setelah banyak langkah.</p>
+<p>Murid pertama mewakili <em>supervised learning</em>, di mana setiap
+input <span class="math inline">\(\boldsymbol{x}\)</span> datang bersama
+target <span class="math inline">\(y\)</span>. Murid kedua mewakili
+<em>unsupervised learning</em>, di mana hanya ada <span
+class="math inline">\(\boldsymbol{x}\)</span> dan kita mencari
+strukturnya: kelompok, arah utama, atau bentuk distribusinya. Murid
+ketiga mewakili <em>reinforcement learning</em>, tempat sebuah agen
+bertindak, menerima <em>reward</em>, dan harus menebak tindakan mana
+yang pantas dipuji (<a href="ch10_rl.html">Bab 12</a>). Di antara
+ketiganya ada bentuk campuran. <em>Self-supervised learning</em>,
+misalnya, membuat target dari data itu sendiri, seperti menebak kata
+yang ditutup dalam sebuah kalimat. Hampir semua model bahasa besar
+dilatih dengan cara ini. Bab ini berfokus pada murid pertama, karena
+kerangka berpikirnya dipakai di mana-mana.</p>
+<h1 id="kerangka-supervised-learning">Kerangka supervised learning</h1>
+<p>Kita menganggap data berasal dari sebuah distribusi gabungan <span
+class="math inline">\(p(\boldsymbol{x},y)\)</span> yang tidak kita
+ketahui. Yang kita miliki hanyalah sampel <span
+class="math inline">\(\mathcal{D}=\{(\boldsymbol{x}_n,y_n)\}_{n=1}^N\)</span>
+yang diambil secara independen dari distribusi itu, asumsi yang biasa
+disebut <em>i.i.d.</em> Kita lalu memilih sebuah model <span
+class="math inline">\(f(\boldsymbol{x};\boldsymbol{w})\)</span> dari
+suatu <em>model class</em> <span
+class="math inline">\(\mathcal{F}\)</span>, dan sebuah <em>loss
+function</em> <span
+class="math inline">\(L(y,f(\boldsymbol{x}))\)</span> yang mengukur
+seberapa buruk tebakan kita. Dua besaran kemudian menjadi pusat
+perhatian: <span class="math display">\[\begin{aligned}
+R(f) &amp;= \mathbb{E}_{(\boldsymbol{x},y)\sim
+p}\big[L(y,f(\boldsymbol{x}))\big] = \int
+L(y,f(\boldsymbol{x}))\,p(\boldsymbol{x},y)\,\mathrm{d}\boldsymbol{x}\,\mathrm{d}y,
+\label{eq:risk}\\
+\hat R_N(f) &amp;= \frac1N\sum_{n=1}^N L(y_n,f(\boldsymbol{x}_n)).
+\label{eq:emprisk}
+\end{aligned}\]</span> Yang pertama disebut <em>generalization
+error</em> atau risiko sejati. Yang kedua disebut <em>empirical
+risk</em> atau <em>training error</em>. Yang sebenarnya kita inginkan
+adalah <span class="math inline">\(R(f)\)</span> kecil, tetapi yang bisa
+kita hitung hanya <span class="math inline">\(\hat R_N(f)\)</span>.
+<em>Empirical risk minimization</em> (ERM) memilih <span
+class="math inline">\(\hat
+f=\operatorname*{arg\,min}_{f\in\mathcal{F}}\hat R_N(f)\)</span> dan
+berharap <span class="math inline">\(R(\hat f)\)</span> ikut kecil.
+Hampir seluruh teori generalisasi pada dasarnya bertanya kapan harapan
+ini masuk akal.</p>
+<p>Seandainya kita mengetahui <span
+class="math inline">\(p(\boldsymbol{x},y)\)</span> dengan sempurna, ada
+prediktor terbaik yang mungkin, yaitu <em>Bayes-optimal predictor</em>
+<span class="math inline">\(f^*\)</span>, dengan risiko <span
+class="math inline">\(R^*=R(f^*)\)</span> yang disebut <em>Bayes
+risk</em>. Untuk loss kuadrat, prediktor itu adalah rata-rata bersyarat
+<span
+class="math inline">\(f^*(\boldsymbol{x})=\mathbb{E}[y\mid\boldsymbol{x}]\)</span>.
+Alasannya mudah dilihat. Tetapkan satu <span
+class="math inline">\(\boldsymbol{x}\)</span> dan cari bilangan <span
+class="math inline">\(c\)</span> yang meminimalkan <span
+class="math inline">\(\mathbb{E}[(y-c)^2\mid\boldsymbol{x}]\)</span>.
+Turunan terhadap <span class="math inline">\(c\)</span> adalah <span
+class="math inline">\(-2\,\mathbb{E}[y-c\mid\boldsymbol{x}]\)</span>,
+yang bernilai nol tepat ketika <span
+class="math inline">\(c=\mathbb{E}[y\mid\boldsymbol{x}]\)</span>. Kalau
+loss diganti dengan <span class="math inline">\(|y-c|\)</span>, jawaban
+optimalnya berubah menjadi median bersyarat. Jadi pilihan loss
+menentukan statistik apa yang akan ditiru oleh model. Untuk klasifikasi
+dengan loss 0–1, prediktor Bayes memilih kelas dengan peluang bersyarat
+terbesar. Bayes risk umumnya tidak nol, karena data sendiri berisik: dua
+pasien dengan hasil laboratorium yang sama bisa saja punya diagnosis
+yang berbeda.</p>
+<h1 id="dari-asumsi-noise-ke-fungsi-loss">Dari asumsi noise ke fungsi
+loss</h1>
+<p>Kuliah dasar-dasar machine learning menekankan satu hal yang sering
+terlewat: fungsi loss bukan pilihan sembarang. Ia lahir dari asumsi
+tentang bagaimana data dibangkitkan. Misalkan <span
+class="math inline">\(y=f(\boldsymbol{x};\boldsymbol{w})+\varepsilon\)</span>
+dengan noise <span
+class="math inline">\(\varepsilon\sim\mathcal{N}(0,\sigma^2)\)</span>.
+Likelihood satu titik data adalah <span
+class="math display">\[p(y_n\mid\boldsymbol{x}_n,\boldsymbol{w})=\frac{1}{\sqrt{2\pi\sigma^2}}\exp\!\Big(-\frac{(y_n-f(\boldsymbol{x}_n;\boldsymbol{w}))^2}{2\sigma^2}\Big).\]</span>
+Karena data i.i.d., likelihood seluruh data adalah hasil kali, dan
+negatif log-likelihoodnya menjadi <span class="math display">\[-\log
+p(\mathcal{D}\mid\boldsymbol{w})=\frac{1}{2\sigma^2}\sum_{n=1}^N\big(y_n-f(\boldsymbol{x}_n;\boldsymbol{w})\big)^2+\frac
+N2\log(2\pi\sigma^2).\]</span> Suku kedua tidak bergantung pada <span
+class="math inline">\(\boldsymbol{w}\)</span>. Maka <em>maximum
+likelihood</em> dengan noise Gauss sama persis dengan meminimalkan
+<em>mean squared error</em>. Dengan jalan yang sama, noise Laplace
+menghasilkan loss mutlak <span class="math inline">\(|y-f|\)</span>,
+keluaran Bernoulli dengan peluang <span
+class="math inline">\(\sigma(f)\)</span> menghasilkan <em>binary
+cross-entropy</em>, dan keluaran kategorikal dengan softmax menghasilkan
+<em>cross-entropy</em> (Tabel 1.1).</p>
+<p>Kasus Bernoulli layak diturunkan juga, karena loss ini dipakai di
+hampir semua pengklasifikasi. Misalkan label <span
+class="math inline">\(y\in\{0,1\}\)</span> dan model mengeluarkan
+peluang <span
+class="math inline">\(p=\sigma(f(\boldsymbol{x};\boldsymbol{w}))\)</span>
+bahwa <span class="math inline">\(y=1\)</span>. Peluang satu label bisa
+ditulis dalam satu rumus, <span
+class="math inline">\(p(y\mid\boldsymbol{x})=p^{\,y}(1-p)^{1-y}\)</span>,
+karena untuk <span class="math inline">\(y=1\)</span> rumus itu menjadi
+<span class="math inline">\(p\)</span> dan untuk <span
+class="math inline">\(y=0\)</span> menjadi <span
+class="math inline">\(1-p\)</span>. Negatif log-likelihood seluruh data
+adalah <span class="math display">\[-\log p(\mathcal
+D\mid\boldsymbol{w})=-\sum_{n=1}^N\Big[y_n\log
+p_n+(1-y_n)\log(1-p_n)\Big],\]</span> dan itulah binary cross-entropy.
+Sebagai contoh, kalau model memberi peluang <span
+class="math inline">\(0{,}9\)</span> untuk contoh yang labelnya satu,
+loss-nya <span class="math inline">\(-\ln0{,}9\approx0{,}105\)</span>.
+Kalau peluangnya hanya <span class="math inline">\(0{,}1\)</span>,
+loss-nya <span class="math inline">\(-\ln0{,}1\approx2{,}30\)</span>,
+lebih dari dua puluh kali lebih besar. Loss ini menghukum keyakinan yang
+salah dengan keras sekali, dan sifat itulah yang membuat model terdorong
+memberi peluang yang terkalibrasi.</p>
+<div id="tab:noiseloss">
+<table>
+<caption>Asumsi noise dan loss yang dihasilkannya.</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Asumsi pada <span
+class="math inline">\(y\mid\boldsymbol{x}\)</span></th>
+<th style="text-align: left;">Loss dari <span
+class="math inline">\(-\log\)</span> likelihood</th>
+<th style="text-align: left;">Sifat</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Gauss <span
+class="math inline">\(\mathcal{N}(f,\sigma^2)\)</span></td>
+<td style="text-align: left;">kuadrat, <span
+class="math inline">\((y-f)^2\)</span></td>
+<td style="text-align: left;">peka terhadap pencilan</td>
+</tr>
+<tr>
+<td style="text-align: left;">Laplace</td>
+<td style="text-align: left;">mutlak, <span
+class="math inline">\(|y-f|\)</span></td>
+<td style="text-align: left;">lebih tahan pencilan</td>
+</tr>
+<tr>
+<td style="text-align: left;">Bernoulli, <span
+class="math inline">\(p=\sigma(f)\)</span></td>
+<td style="text-align: left;">binary cross-entropy</td>
+<td style="text-align: left;">klasifikasi dua kelas</td>
+</tr>
+<tr>
+<td style="text-align: left;">Kategorikal, <span
+class="math inline">\(p=\mathrm{softmax}(f)\)</span></td>
+<td style="text-align: left;">cross-entropy</td>
+<td style="text-align: left;">klasifikasi banyak kelas</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Timbangan dapur memberi gambaran yang pas. Kalau timbangan Anda
+kadang meleset sedikit ke atas atau ke bawah secara acak, rata-rata dari
+beberapa kali menimbang adalah tebakan yang baik, dan itulah loss
+kuadrat. Tetapi kalau sesekali seekor kucing melompat ke atas timbangan,
+satu hasil bisa meleset jauh sekali. Rata-rata akan ikut tertarik oleh
+angka itu, sedangkan median tidak. Noise berekor tebal seperti Laplace
+menghasilkan loss mutlak, yang tidak terlalu peduli pada satu
+pencilan.</p>
+<h1 id="prior-sebagai-regularisasi">Prior sebagai regularisasi</h1>
+<p>Maximum likelihood hanya mendengarkan data. Kalau datanya sedikit,
+model mudah percaya pada kebetulan. Pendekatan Bayesian menambahkan
+<em>prior</em> <span class="math inline">\(p(\boldsymbol{w})\)</span>,
+yaitu keyakinan awal tentang parameter sebelum melihat data. Teorema
+Bayes kemudian memberi <em>posterior</em> <span
+class="math display">\[p(\boldsymbol{w}\mid\mathcal{D})=\frac{p(\mathcal{D}\mid\boldsymbol{w})\,p(\boldsymbol{w})}{p(\mathcal{D})},\]</span>
+dan estimasi <em>maximum a posteriori</em> (MAP) memaksimalkannya. Dalam
+bentuk logaritma, <span
+class="math display">\[\hat\boldsymbol{w}_{\mathrm{MAP}}=\operatorname*{arg\,min}_{\boldsymbol{w}}\Big[-\log
+p(\mathcal{D}\mid\boldsymbol{w})-\log p(\boldsymbol{w})\Big].\]</span>
+Dengan prior Gauss <span
+class="math inline">\(\boldsymbol{w}\sim\mathcal{N}(\boldsymbol
+0,\alpha^{-1}\boldsymbol I)\)</span>, suku kedua menjadi <span
+class="math inline">\(\tfrac\alpha2\|\boldsymbol{w}\|_2^2\)</span>.
+Itulah <em>weight decay</em>, atau <em>ridge regression</em> dalam
+bahasa statistik. Dengan prior Laplace, suku kedua menjadi <span
+class="math inline">\(\lambda\|\boldsymbol{w}\|_1\)</span>, yang dikenal
+sebagai lasso <span class="citation"
+data-cites="tibshirani1996">(Tibshirani 1996)</span>. Lasso punya sifat
+yang menarik: ia cenderung membuat banyak bobot bernilai tepat nol.
+Sifat ini nanti menjadi inti metode SINDy untuk menemukan persamaan dari
+data (<a href="ch17_penemuan_reduksi.html">Bab 27</a>).</p>
+<p>Dalam simulasi, kita sering tahu banyak hal sebelum melihat data.
+Aliran harus kekal massa, temperatur dalam kelvin tidak boleh negatif,
+dan solusi harus simetris kalau geometrinya simetris. Semua itu bisa
+dibaca sebagai prior yang kuat. PINN (<a href="ch15_pinn.html">Bab
+25</a>) memasukkan persamaan diferensial ke dalam loss dengan cara yang
+mirip suku <span class="math inline">\(-\log p(\boldsymbol{w})\)</span>
+di atas, hanya saja “prior”-nya menyangkut fungsi keluaran, bukan
+bobot.</p>
+<h1 id="mengukur-generalisasi">Mengukur generalisasi</h1>
+<p>Risiko sejati Persamaan (1.1) tidak bisa dihitung, jadi kita
+memperkirakannya. Cara paling sederhana adalah menyisihkan sebagian data
+yang tidak pernah disentuh selama pelatihan, lalu menghitung loss
+rata-rata di sana. Karena titik-titik uji itu independen dari model yang
+sudah jadi, rata-ratanya adalah estimator tak bias untuk <span
+class="math inline">\(R(\hat f)\)</span>.</p>
+<p>Kesulitan muncul karena kita juga harus memilih
+<em>hyperparameter</em>: jumlah lapisan, laju belajar, kekuatan
+regularisasi. Kalau data uji dipakai untuk memilih, ia ikut bocor ke
+dalam model dan estimasinya menjadi terlalu optimistis. Karena itu data
+biasanya dibagi tiga: data latih, data validasi untuk memilih
+hyperparameter, dan data uji yang disentuh sekali saja di akhir. Kalau
+data sedikit, <em><span class="math inline">\(k\)</span>-fold
+cross-validation</em> membagi data menjadi <span
+class="math inline">\(k\)</span> bagian dan melatih model <span
+class="math inline">\(k\)</span> kali, setiap kali dengan satu bagian
+sebagai validasi. Rata-rata skornya menjadi estimasi generalisasi,
+dengan biaya <span class="math inline">\(k\)</span> kali pelatihan.
+Perlu diingat bahwa cross-validation menghasilkan estimasi kinerja,
+bukan satu model. Model akhir biasanya dilatih ulang pada seluruh data
+latih.</p>
+<p>Ada beberapa kebocoran yang sering terjadi tanpa disadari.
+Menormalisasi seluruh data, termasuk data uji, sebelum dibagi berarti
+statistik data uji ikut masuk ke pelatihan. Rata-rata dan simpangan baku
+seharusnya dihitung dari data latih saja. Untuk deret waktu atau hasil
+simulasi yang berurutan, membagi data secara acak juga menyesatkan.
+Titik-titik yang berdekatan dalam waktu hampir identik, sehingga ujian
+menjadi terlalu mudah. Data seperti ini sebaiknya dibagi menurut waktu
+atau menurut kasus simulasi.</p>
+<h1 id="bias-varians-dan-dua-bentuk-kurva">Bias, varians, dan dua bentuk
+kurva</h1>
+<p>Ambil loss kuadrat dan anggap <span
+class="math inline">\(y=g(\boldsymbol{x})+\varepsilon\)</span> dengan
+<span class="math inline">\(\mathbb{E}[\varepsilon]=0\)</span> dan <span
+class="math inline">\(\mathrm{Var}[\varepsilon]=\sigma^2\)</span>. Model
+<span class="math inline">\(\hat f_{\mathcal D}\)</span> bergantung pada
+data latih <span class="math inline">\(\mathcal D\)</span> yang acak.
+Untuk satu titik <span class="math inline">\(\boldsymbol{x}\)</span>,
+ekspektasi galatnya terhadap semua kemungkinan data latih dan noise
+terurai menjadi tiga suku <span class="citation"
+data-cites="geman1992">(Geman, Bienenstock, dan Doursat 1992)</span>:
+<span class="math display">\[\mathbb{E}\big[(y-\hat f_{\mathcal
+D}(\boldsymbol{x}))^2\big]
+=\underbrace{\big(g(\boldsymbol{x})-\mathbb{E}_{\mathcal D}[\hat
+f_{\mathcal D}(\boldsymbol{x})]\big)^2}_{\text{bias}^2}
++\underbrace{\mathbb{E}_{\mathcal D}\big[(\hat f_{\mathcal
+D}(\boldsymbol{x})-\mathbb{E}_{\mathcal D}[\hat f_{\mathcal
+D}(\boldsymbol{x})])^2\big]}_{\text{varians}}
++\underbrace{\sigma^2}_{\text{noise}}.\]</span> Bias mengukur seberapa
+jauh rata-rata model dari kebenaran. Varians mengukur seberapa banyak
+model berubah kalau data latihnya diganti. Noise tidak bisa dikurangi
+oleh model apa pun.</p>
+<p>Penurunannya hanya memakai satu trik: tambahkan dan kurangkan besaran
+yang sama. Tulis singkat <span class="math inline">\(\hat f=\hat
+f_{\mathcal D}(\boldsymbol{x})\)</span>, <span
+class="math inline">\(\bar f=\mathbb{E}_{\mathcal D}[\hat f]\)</span>,
+dan <span class="math inline">\(g=g(\boldsymbol{x})\)</span>. Karena
+<span class="math inline">\(y=g+\varepsilon\)</span>, <span
+class="math display">\[y-\hat f=\varepsilon+(g-\bar f)+(\bar f-\hat
+f).\]</span> Kuadratkan, lalu ambil ekspektasi. Noise <span
+class="math inline">\(\varepsilon\)</span> berasal dari titik uji dan
+independen dari data latih, sehingga semua suku silang yang memuat <span
+class="math inline">\(\varepsilon\)</span> hilang karena <span
+class="math inline">\(\mathbb{E}[\varepsilon]=0\)</span>. Suku silang
+<span class="math inline">\(2(g-\bar f)\mathbb{E}_{\mathcal D}[\bar
+f-\hat f]\)</span> juga hilang, karena <span
+class="math inline">\(g-\bar f\)</span> tidak acak dan <span
+class="math inline">\(\mathbb{E}_{\mathcal D}[\hat f]=\bar f\)</span>.
+Yang tersisa adalah tiga kuadrat: <span
+class="math inline">\(\mathbb{E}[\varepsilon^2]=\sigma^2\)</span>, <span
+class="math inline">\((g-\bar f)^2\)</span>, dan <span
+class="math inline">\(\mathbb{E}_{\mathcal D}[(\hat f-\bar
+f)^2]\)</span>, persis tiga suku di atas.</p>
+<p>Contoh angka membuatnya konkret. Misalkan nilai sebenarnya di sebuah
+titik <span class="math inline">\(g=2\)</span>, noise bervarians <span
+class="math inline">\(\sigma^2=0{,}25\)</span>, dan kita melatih model
+yang sama pada tiga himpunan data latih berbeda, yang memberi prediksi
+<span class="math inline">\(1{,}6\)</span>, <span
+class="math inline">\(2{,}0\)</span>, dan <span
+class="math inline">\(2{,}1\)</span> di titik itu. Rata-rata prediksinya
+<span class="math inline">\(\bar f=1{,}9\)</span>, sehingga bias
+kuadratnya <span class="math inline">\((2-1{,}9)^2=0{,}01\)</span>.
+Variansnya <span
+class="math inline">\(\tfrac13\big[(1{,}6-1{,}9)^2+(2{,}0-1{,}9)^2+(2{,}1-1{,}9)^2\big]=\tfrac13(0{,}09+0{,}01+0{,}04)\approx0{,}047\)</span>.
+Galat kuadrat harapannya <span
+class="math inline">\(0{,}01+0{,}047+0{,}25\approx0{,}31\)</span>, dan
+di sini noise adalah bagian terbesar. Model yang lebih rumit bisa saja
+menurunkan bias, tetapi tidak akan menyentuh <span
+class="math inline">\(0{,}25\)</span> itu.</p>
+<p>Papan dart membantu membayangkannya. Pemain dengan bias kecil dan
+varians kecil mengumpulkan semua anak panah di tengah. Pemain dengan
+bias besar tetapi varians kecil mengumpulkannya rapat di pojok kiri
+atas: konsisten, tetapi salah arah. Pemain dengan bias kecil tetapi
+varians besar menyebar ke mana-mana, meski rata-ratanya tepat di tengah.
+Model yang terlalu sederhana mirip pemain kedua. Model yang terlalu
+rumit mirip pemain ketiga, karena setiap set data latih membuatnya
+melempar ke tempat yang berbeda.</p>
+<p>Gambaran klasik mengatakan bahwa ketika kompleksitas model bertambah,
+bias turun dan varians naik, sehingga galat uji membentuk huruf U dengan
+titik terbaik di tengah. Gambaran ini benar untuk banyak model klasik,
+tetapi jaringan saraf modern sering punya parameter jauh lebih banyak
+daripada jumlah data, dan tetap generalisasi dengan baik. <span
+class="citation" data-cites="belkin2019">Belkin dkk. (2019)</span>
+menunjukkan bahwa setelah <em>interpolation threshold</em>, yaitu titik
+ketika model baru saja mampu menghafal semua data latih, galat uji bisa
+turun lagi. Kurva lengkapnya disebut <em>double descent</em> (Gambar
+1.1). Sebelumnya, <span class="citation" data-cites="zhang2017">Zhang
+dkk. (2016)</span> memperlihatkan bahwa jaringan yang sama bisa
+menghafal label acak dengan sempurna. Artinya, kapasitas mentah tidak
+menjelaskan generalisasi. Yang menentukan adalah solusi mana yang
+dipilih oleh algoritme pelatihan di antara banyak solusi yang sama-sama
+menghafal data. Stochastic gradient descent tampaknya cenderung memilih
+solusi yang halus, sebuah topik yang muncul lagi di <a
+href="ch02_optimasi.html">Bab 2</a>.</p>
+<figure id="fig:doubledescent">
+<p><img src="fig/165e14df05be.svg" alt="image" /> <img
+src="fig/6d5dfe31c10b.svg" alt="image" /></p>
+<figcaption>Kiri, kurva U klasik. Kanan, double descent: setelah model
+mampu menghafal semua data latih, galat uji bisa turun lagi. Kedua kurva
+bersifat skematik.</figcaption>
+</figure>
+<p>Kuliah geometric deep learning dan teori pembelajaran statistik
+memakai cara lain untuk memecah galat, yang lebih umum. Misalkan <span
+class="math inline">\(f^*\)</span> prediktor Bayes, <span
+class="math inline">\(f_{\mathcal F}\)</span> prediktor terbaik di dalam
+model class, <span class="math inline">\(\hat f\)</span> hasil ERM, dan
+<span class="math inline">\(\tilde f\)</span> hasil algoritme optimasi
+yang sungguh kita jalankan. Maka <span class="math display">\[R(\tilde
+f)-R^*=\underbrace{R(f_{\mathcal F})-R^*}_{\text{aproksimasi}}
++\underbrace{R(\hat f)-R(f_{\mathcal F})}_{\text{estimasi}}
++\underbrace{R(\tilde f)-R(\hat f)}_{\text{optimasi}}.\]</span> Model
+class yang lebih besar mengecilkan galat aproksimasi, tetapi bisa
+membesarkan galat estimasi, karena semakin banyak fungsi yang kebetulan
+cocok dengan data. Galat optimasi muncul karena kita hampir tidak pernah
+benar-benar menemukan minimum global.</p>
+<h1 id="kutukan-dimensi">Kutukan dimensi</h1>
+<p>Ada satu hal yang membuat machine learning di dimensi tinggi berbeda
+secara mendasar dari intuisi kita di dimensi rendah. Namanya <em>curse
+of dimensionality</em>. Ambil kubus satuan <span
+class="math inline">\([0,1]^d\)</span> dan kubus kecil di tengahnya
+dengan sisi <span class="math inline">\(0{,}9\)</span>. Fraksi volume di
+dalam kubus kecil adalah <span class="math inline">\(0{,}9^d\)</span>.
+Untuk <span class="math inline">\(d=1\)</span> hasilnya <span
+class="math inline">\(0{,}9\)</span>. Untuk <span
+class="math inline">\(d=10\)</span> hasilnya sekitar <span
+class="math inline">\(0{,}35\)</span>. Untuk <span
+class="math inline">\(d=100\)</span> hasilnya kira-kira <span
+class="math inline">\(2{,}7\times10^{-5}\)</span>. Hampir seluruh volume
+kubus berdimensi seratus berada di kulit tipis dekat permukaannya. Titik
+acak hampir selalu dekat ke tepi, dan hampir semua pasangan titik punya
+jarak yang mirip.</p>
+<p>Akibatnya, metode lokal seperti <span
+class="math inline">\(k\)</span>-nearest neighbour kehilangan makna.
+Untuk menutup ruang berdimensi <span class="math inline">\(d\)</span>
+dengan ketelitian <span class="math inline">\(\epsilon\)</span>, kita
+butuh sekitar <span class="math inline">\(\epsilon^{-d}\)</span> titik.
+Kuliah geometric deep learning menyatakannya secara formal: untuk kelas
+fungsi Lipschitz di <span class="math inline">\(d\)</span> dimensi,
+galat estimasi terbaik turun hanya seperti <span
+class="math inline">\(N^{-1/d}\)</span>. Dengan <span
+class="math inline">\(d=100\)</span>, menggandakan jumlah data hampir
+tidak membantu.</p>
+<p>Mencari kunci yang jatuh di lorong panjang masih mudah. Di lantai
+sebuah aula, butuh waktu jauh lebih lama. Di gedung bertingkat yang
+penuh ruangan, kita mulai putus asa. Sekarang bayangkan gedung dengan
+seratus arah yang berbeda: sebanyak apa pun senter yang dibawa, sebagian
+besar ruang tetap gelap.</p>
+<p>Lalu mengapa deep learning bisa bekerja pada gambar berukuran jutaan
+piksel? Ada dua jawaban yang akan muncul berkali-kali di buku ini.
+Jawaban pertama adalah <em>manifold hypothesis</em>: data nyata tidak
+memenuhi seluruh ruang. Gambar wajah manusia menempati semacam permukaan
+berdimensi jauh lebih rendah di dalam ruang piksel. Kalau model bisa
+menemukan permukaan itu, dimensi efektif masalahnya kecil. Jawaban kedua
+adalah simetri. Kita tahu bahwa kucing tetap kucing kalau digeser
+sedikit ke kiri. Kalau arsitektur dibuat invarian atau ekuivarian
+terhadap simetri seperti ini, ruang hipotesis menyusut drastis tanpa
+membuang solusi yang benar. Itulah gagasan pokok <span class="citation"
+data-cites="bronstein2021">Bronstein dkk. (2021)</span>, yang kita bahas
+di <a href="ch07_geometric.html">Bab 9</a>.</p>
+<h1 id="tidak-ada-makan-siang-gratis">Tidak ada makan siang gratis</h1>
+<p>Teorema <em>no free lunch</em> <span class="citation"
+data-cites="wolpert1996">(Wolpert 1996)</span> menyatakan bahwa kalau
+dirata-ratakan atas semua kemungkinan masalah, tidak ada algoritme
+belajar yang lebih baik dari yang lain. Kedengarannya pesimistis, tetapi
+pesannya praktis: keberhasilan selalu datang dari asumsi yang cocok
+dengan masalahnya. Konvolusi bekerja untuk gambar karena gambar punya
+struktur lokal dan simetri geser. PINN bekerja untuk masalah yang
+persamaannya kita ketahui. Tanpa asumsi, tidak ada generalisasi.</p>
+<h1 id="mengukur-kinerja-klasifikasi">Mengukur kinerja klasifikasi</h1>
+<p>Untuk klasifikasi dua kelas, hasil prediksi disusun dalam
+<em>confusion matrix</em> yang berisi <em>true positive</em> (TP),
+<em>false positive</em> (FP), <em>true negative</em> (TN), dan <em>false
+negative</em> (FN). Dari keempatnya diperoleh <span
+class="math display">\[\text{precision}=\frac{TP}{TP+FP},\qquad
+\text{recall}=\frac{TP}{TP+FN},\qquad
+\text{specificity}=\frac{TN}{TN+FP}.\]</span> Misalkan sebuah tes
+menandai 50 dari 1000 orang sebagai positif, dan 40 di antaranya memang
+sakit, sementara total orang yang sakit ada 60. Maka <span
+class="math inline">\(TP=40\)</span>, <span
+class="math inline">\(FP=10\)</span>, dan <span
+class="math inline">\(FN=20\)</span>, sehingga precision <span
+class="math inline">\(40/50=0{,}80\)</span> dan recall <span
+class="math inline">\(40/60\approx0{,}67\)</span>. Precision menjawab
+“kalau tes bilang positif, seberapa bisa dipercaya?”, recall menjawab
+“dari semua yang sakit, berapa yang tertangkap?”. Keduanya sering
+dirangkum dengan rata-rata harmonik, <span
+class="math inline">\(F_1=2\cdot\frac{0{,}80\cdot0{,}67}{0{,}80+0{,}67}\approx0{,}73\)</span>.
+Rata-rata harmonik dipakai karena ia tertarik ke nilai yang lebih kecil:
+model tidak bisa menutupi recall yang buruk dengan precision yang
+sempurna.</p>
+<p>Akurasi bisa menipu kalau kelasnya tidak seimbang. Pada data dengan
+99 persen kelas negatif, model yang selalu menjawab “negatif” punya
+akurasi 99 persen dan recall nol. Kurva ROC memplot recall terhadap
+<span class="math inline">\(1-\text{specificity}\)</span> untuk semua
+ambang keputusan. Luas di bawahnya, AUC, sama dengan peluang model
+memberi skor lebih tinggi pada satu contoh positif acak dibanding satu
+contoh negatif acak.</p>
+<h1 id="generalisasi-di-luar-kelas">Generalisasi di luar kelas</h1>
+<p>Pertanyaan-pertanyaan di bab ini akan muncul lagi di setiap bidang
+yang dibahas buku ini, dengan wajah yang berbeda-beda.</p>
+<p>Yang pertama adalah <em>distribution shift</em>: data saat model
+dipakai tidak berasal dari distribusi yang sama dengan data latih. Model
+citra medis yang dilatih di satu rumah sakit bisa gagal di rumah sakit
+lain dengan pemindai berbeda (<a href="ch43_medis.html">Bab 21</a>).
+Model pengenal aktivitas yang dilatih pada segelintir orang bisa gagal
+pada orang dengan gaya gerak lain (<a href="ch32_pervasif.html">Bab
+16</a>). Model pengganti simulasi yang dilatih pada bilangan Reynolds
+antara 100 dan 1000 belum tentu benar pada 5000 (<a
+href="ch16_operator.html">Bab 26</a>).</p>
+<p>Yang kedua adalah kejujuran pembagian data. Di kimia, molekul dari
+satu seri senyawa hampir identik, sehingga pembagian acak membuat model
+tampak jauh lebih baik dari kenyataannya (<a
+href="ch41_molekul.html">Bab 19</a>). Di sensor yang dikenakan,
+jendela-jendela dari orang yang sama berkorelasi kuat. Di simulasi,
+potret berurutan dari satu kasus hampir sama. Pola umumnya: bagilah data
+menurut satuan yang benar-benar baru saat model dipakai, entah itu
+pasien, orang, kerangka molekul, atau kasus simulasi.</p>
+<p>Yang ketiga adalah mahalnya data. Satu label ahli radiologi, satu
+pengukuran assay, atau satu simulasi CFD penuh bisa memakan waktu dan
+biaya besar. Di sinilah prior, dalam bentuk simetri, pengetahuan domain,
+atau hukum fisika, menjadi berharga: ia mengurangi data yang dibutuhkan
+dan menjaga model tetap masuk akal di luar daerah yang pernah
+dilihatnya.</p>
+<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<p>Bab ini merangkai materi dari Machine Learning: Basic Techniques,
+Supervised dan Unsupervised Techniques, Statistical Learning Theory,
+serta bagian pembuka Deep Learning: Geometric Techniques. Bacaan
+pendamping yang baik adalah <span class="citation"
+data-cites="bishop2006">Bishop (2006)</span>, <span class="citation"
+data-cites="hastie2009">Hastie, Tibshirani, dan Friedman (2009)</span>,
+dan <span class="citation" data-cites="bach2024">Bach (2024)</span>.</p>
+<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-bach2024" class="csl-entry" role="listitem">
+Bach, Francis. 2024. <em>Learning Theory from First Principles</em>. MIT
+Press.
+</div>
+<div id="ref-belkin2019" class="csl-entry" role="listitem">
+Belkin, Mikhail, Daniel Hsu, Siyuan Ma, dan Soumik Mandal. 2019.
+<span>“Reconciling modern machine-learning practice and the classical
+bias–variance trade-off.”</span> <em>Proceedings of the National Academy
+of Sciences</em> 116 (32): 15849–54. <a
+href="https://doi.org/10.1073/pnas.1903070116">https://doi.org/10.1073/pnas.1903070116</a>.
+</div>
+<div id="ref-bishop2006" class="csl-entry" role="listitem">
+Bishop, Christopher M. 2006. <em>Pattern Recognition and Machine
+Learning</em>. Springer.
+</div>
+<div id="ref-bronstein2021" class="csl-entry" role="listitem">
+Bronstein, Michael M., Joan Bruna, Taco Cohen, dan Petar Veličković.
+2021. <span>“Geometric Deep Learning: Grids, Groups, Graphs, Geodesics,
+and Gauges.”</span> arXiv:2104.13478. <a
+href="https://arxiv.org/abs/2104.13478">https://arxiv.org/abs/2104.13478</a>.
+</div>
+<div id="ref-geman1992" class="csl-entry" role="listitem">
+Geman, Stuart, Elie Bienenstock, dan René Doursat. 1992. <span>“Neural
+Networks and the Bias/Variance Dilemma.”</span> <em>Neural
+Computation</em> 4 (1): 1–58. <a
+href="https://doi.org/10.1162/neco.1992.4.1.1">https://doi.org/10.1162/neco.1992.4.1.1</a>.
+</div>
+<div id="ref-hastie2009" class="csl-entry" role="listitem">
+Hastie, Trevor, Robert Tibshirani, dan Jerome Friedman. 2009. <em>The
+Elements of Statistical Learning</em>. 2 ed. Springer.
+</div>
+<div id="ref-tibshirani1996" class="csl-entry" role="listitem">
+Tibshirani, Robert. 1996. <span>“Regression Shrinkage and Selection Via
+the Lasso.”</span> <em>Journal of the Royal Statistical Society Series
+B: Statistical Methodology</em> 58 (1): 267–88. <a
+href="https://doi.org/10.1111/j.2517-6161.1996.tb02080.x">https://doi.org/10.1111/j.2517-6161.1996.tb02080.x</a>.
+</div>
+<div id="ref-wolpert1996" class="csl-entry" role="listitem">
+Wolpert, David H. 1996. <span>“The Lack of A Priori Distinctions Between
+Learning Algorithms.”</span> <em>Neural Computation</em> 8 (7): 1341–90.
+<a
+href="https://doi.org/10.1162/neco.1996.8.7.1341">https://doi.org/10.1162/neco.1996.8.7.1341</a>.
+</div>
+<div id="ref-zhang2017" class="csl-entry" role="listitem">
+Zhang, Chiyuan, Samy Bengio, Moritz Hardt, Benjamin Recht, dan Oriol
+Vinyals. 2016. <span>“Understanding deep learning requires rethinking
+generalization.”</span> arXiv:1611.03530. <a
+href="https://arxiv.org/abs/1611.03530">https://arxiv.org/abs/1611.03530</a>.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch00_peta.html"><span>Sebelumnya</span>Peta Perjalanan</a>
+  <a class="next" href="ch02_optimasi.html"><span>Berikutnya</span>Optimasi: Turun Gunung dalam Kabut</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

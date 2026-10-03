@@ -1,0 +1,136 @@
+\chapter{Belajar dari Jejak Pengguna}
+\label{ch:rekomendasi}
+
+Kuliah learning from user-generated data saya ikuti pada musim panas 2025, diberikan oleh kelompok
+Markus Schedl, yang banyak meneliti rekomendasi musik. Sebelas kuliahnya bergerak dari collaborative
+filtering klasik ke evaluasi, data teks dan data implisit, sistem rekomendasi berbasis graf, hibrida,
+dan konteks, lalu ditutup dengan dua topik yang jarang dibahas di kuliah teknis: bias dan keadilan, serta
+sistem rekomendasi yang diilhami psikologi. Latihannya membangun rekomendasi item-kNN dari umpan balik
+implisit, model faktor laten, dan evaluasi dengan nDCG.
+
+Sistem rekomendasi barangkali adalah machine learning yang paling sering kita temui tanpa disadari:
+video berikutnya, lagu berikutnya, produk yang ``mungkin juga Anda suka''. Datanya adalah jejak yang
+ditinggalkan jutaan pengguna, berupa rating, klik, putaran lagu, dan waktu menonton, dan tugasnya adalah
+menebak apa yang akan disukai seseorang dari apa yang disukai orang-orang lain.
+
+\section{Collaborative filtering}
+
+Data dasarnya adalah matriks pengguna terhadap item, dengan rating di sel yang diketahui dan kosong di
+sebagian besar sel lainnya. \istilah{Collaborative filtering} berbasis pengguna mengikuti logika sederhana:
+cari pengguna lain yang selera masa lalunya mirip denganmu, lalu rekomendasikan apa yang mereka sukai.
+Kemiripan biasanya diukur dengan kosinus atau korelasi Pearson antara vektor rating. Untuk dua pengguna
+dengan rating $(5,3,4)$ dan $(4,2,5)$ pada tiga item yang sama, kemiripan kosinusnya
+\begin{equation}
+\frac{5\cdot4+3\cdot2+4\cdot5}{\sqrt{5^2+3^2+4^2}\sqrt{4^2+2^2+5^2}}=\frac{46}{\sqrt{50}\sqrt{45}}\approx0{,}97.
+\end{equation}
+Korelasi Pearson mengurangkan rata-rata rating setiap pengguna lebih dulu, sehingga pengguna yang selalu
+memberi rating tinggi dan pengguna yang pelit rating tetap bisa dikenali sebagai bersepakat. Prediksi
+rating lalu dihitung sebagai rata-rata berbobot dari rating tetangga-tetangga terdekat.
+
+Versi berbasis item \citep{sarwar2001} membalik sudut pandangnya: item yang sering disukai oleh orang
+yang sama dianggap mirip, dan kita merekomendasikan item yang mirip dengan yang sudah kamu sukai.
+Karena jumlah item biasanya lebih stabil daripada jumlah pengguna, kemiripan antar item bisa dihitung
+lebih jarang dan dipakai ulang, sehingga pendekatan ini lebih mudah diskalakan.
+
+\section{Faktor laten}
+
+Pendekatan yang menjadi inti solusi-solusi terbaik dalam kompetisi Netflix Prize adalah faktorisasi
+matriks \citep{koren2009}. Setiap
+pengguna $u$ dan setiap item $i$ diwakili oleh vektor berdimensi kecil, $\bm p_u$ dan $\bm q_i$, dan rating
+diprediksi sebagai
+\begin{equation}
+\hat r_{ui}=\mu+b_u+b_i+\bm p_u^\top\bm q_i,
+\end{equation}
+dengan $\mu$ rata-rata global, $b_u$ kecenderungan pengguna memberi rating tinggi atau rendah, dan $b_i$
+kecenderungan item dinilai tinggi atau rendah. Vektor-vektor ini dilatih dengan meminimalkan galat
+kuadrat pada rating yang diketahui saja, ditambah regularisasi L2:
+\begin{equation}
+\Loss=\sum_{(u,i)\ \text{diketahui}}\big(r_{ui}-\hat r_{ui}\big)^2+\lambda\big(b_u^2+b_i^2+\|\bm p_u\|^2+\|\bm q_i\|^2\big).
+\end{equation}
+Turunan terhadap $\bm p_u$ untuk satu rating, dengan galat $e_{ui}=r_{ui}-\hat r_{ui}$, adalah
+$-2e_{ui}\bm q_i+2\lambda\bm p_u$. Langkah SGD (\cref{ch:optimasi}) dengan laju $\eta$, faktor dua diserap ke
+dalam $\eta$, menjadi
+\begin{equation}
+\bm p_u\leftarrow\bm p_u+\eta\big(e_{ui}\bm q_i-\lambda\bm p_u\big),\qquad
+\bm q_i\leftarrow\bm q_i+\eta\big(e_{ui}\bm p_u-\lambda\bm q_i\big).
+\end{equation}
+Dimensi-dimensi laten tidak diberi nama, tetapi sering bisa ditafsirkan: untuk film, satu dimensi
+mungkin memisahkan film serius dari komedi, dimensi lain film untuk penonton dewasa dari film keluarga.
+Ini analisis faktor dari \cref{ch:unsup}, diterapkan pada matriks yang sebagian besar kosong.
+
+Dalam praktik, kebanyakan data bukan rating, melainkan umpan balik implisit: klik, putaran, pembelian.
+Data ini tidak punya sinyal negatif yang jelas, karena tidak mengklik bisa berarti tidak suka atau
+sekadar tidak melihat. Bayesian personalized ranking \citep{rendle2009} mengubah tujuannya menjadi
+peringkat: untuk setiap pengguna, item yang pernah ia pakai seharusnya diberi skor lebih tinggi dari item
+yang belum. Loss-nya $-\sum\ln\sigma(\hat x_{ui}-\hat x_{uj})$ untuk pasangan item $i$ yang dipakai dan $j$
+yang tidak, sebuah binary cross-entropy atas pasangan. Neural collaborative filtering \citep{he2017}
+mengganti hasil kali titik dengan jaringan saraf, dan pendekatan berbasis graf seperti LightGCN
+\citep{he2020} memandang pengguna dan item sebagai simpul graf bipartit dan menyebarkan embedding lewat
+message passing (\cref{ch:gdl}).
+
+\section{Mengukur rekomendasi yang baik}
+
+Galat rating seperti RMSE kurang relevan kalau yang ditampilkan adalah daftar sepuluh teratas. Ukuran yang
+peka peringkat lebih cocok. Precision dan recall pada $k$ teratas menghitung berapa item relevan yang
+masuk daftar. \istilah{Discounted cumulative gain} \citep{jarvelin2002} menambahkan bahwa item relevan di
+urutan atas lebih berharga daripada di urutan bawah,
+\begin{equation}
+\mathrm{DCG}@k=\sum_{i=1}^k\frac{\mathrm{rel}_i}{\log_2(i+1)},
+\end{equation}
+dan versi ternormalisasinya, nDCG, membaginya dengan DCG dari urutan terbaik yang mungkin. Untuk daftar
+dengan relevansi $(3,2,0,1)$, DCG-nya $3/1+2/1{,}585+0/2+1/2{,}322\approx3+1{,}262+0+0{,}431=4{,}693$. Urutan
+idealnya $(3,2,1,0)$ dengan DCG $3+1{,}262+0{,}5+0=4{,}762$. Maka nDCG $\approx0{,}985$: hampir sempurna,
+hanya item relevan terakhir yang sedikit terlambat.
+
+Kuliah menekankan bahwa akurasi bukan segalanya. Daftar yang akurat tetapi hanya berisi item yang sudah
+populer tidak membantu siapa pun menemukan sesuatu yang baru. Ukuran di luar akurasi menilai keragaman
+daftar, kebaruan, cakupan katalog, dan \istilah{serendipity}, yaitu kejutan yang menyenangkan. Evaluasi
+offline pada data historis juga berbeda dari evaluasi online dengan pengguna sungguhan, dan studi dengan
+pengguna sering memperlihatkan bahwa yang dirasakan pengguna tidak selalu sejalan dengan angka offline.
+
+\section{Konten, konteks, dan hibrida}
+
+Collaborative filtering gagal untuk item baru yang belum pernah dipakai siapa pun dan pengguna baru yang
+belum punya riwayat, masalah yang disebut \istilah{cold start}. Rekomendasi berbasis konten mengisi celah ini
+dengan memakai sifat item itu sendiri: teks deskripsi, tag, atau sinyal audio sebuah lagu. Untuk teks,
+bobot TF-IDF memberi nilai tinggi pada kata yang sering muncul di sebuah dokumen tetapi jarang di
+dokumen lain, dan model yang lebih maju memakai embedding kata dan model topik. Sistem hibrida
+menggabungkan kedua sumber, misalnya dengan merata-ratakan skor, beralih di antara keduanya tergantung
+situasi, atau memasukkan fitur konten ke dalam model faktor.
+
+Konteks juga mengubah apa yang pantas direkomendasikan. Lagu yang cocok untuk berolahraga pagi berbeda
+dari lagu untuk menjelang tidur. Kuliah memberi contoh dari riset kelompoknya sendiri tentang
+rekomendasi musik yang memperhitungkan lokasi dan aktivitas, dengan memetakan tempat dan lagu ke tag
+yang sama. Rekomendasi berbasis graf pengetahuan menyebarkan preferensi pengguna lewat relasi antar
+item, seperti penyanyi, genre, dan label rekaman.
+
+\section{Bias, keadilan, dan psikologi}
+
+Sistem rekomendasi tidak hanya mencerminkan selera, tetapi juga membentuknya. \istilah{Popularity bias}
+membuat item yang sudah populer semakin sering direkomendasikan, sehingga semakin populer lagi. Kinerja
+sistem juga bisa berbeda antar kelompok pengguna, misalnya menurut usia, jenis kelamin, atau negara.
+Kuliah membahas ukuran untuk mendeteksinya, seperti selisih kinerja rekomendasi antar kelompok, dan contoh
+dari data musik tentang bagaimana algoritme rekomendasi bisa menggeser porsi musik lokal yang diterima
+pendengar di berbagai negara. Strategi perbaikannya bisa diterapkan sebelum pelatihan, misalnya
+menyeimbangkan ulang data, selama pelatihan dengan kendala keadilan, atau sesudahnya dengan menyusun
+ulang daftar.
+
+Kuliah terakhir menghubungkan rekomendasi dengan psikologi kognitif. Ingatan manusia memudar menurut
+kurva lupa Ebbinghaus, dan lagu yang terakhir didengar beberapa waktu lalu lebih mudah diingat
+kembali kalau sering diulang. Model memori dari arsitektur kognitif seperti ACT-R dipakai untuk
+meramalkan lagu mana yang ingin didengar lagi seseorang, dengan menimbang seberapa sering dan seberapa
+baru ia mendengarkannya. Sistem rekomendasi yang diilhami psikologi ini juga lebih mudah dijelaskan,
+karena alasannya bisa diungkapkan dengan bahasa yang dipahami manusia.
+
+\section{Di luar layar}
+
+Rekomendasi adalah masalah keputusan berurutan, sehingga reinforcement learning (\cref{ch:rl}) mulai
+dipakai untuk mengoptimalkan kepuasan jangka panjang, bukan klik berikutnya. Gagasan faktorisasi matriks
+juga muncul di bidang lain: matriks senyawa terhadap target di penemuan obat (\cref{ch:hayati}) sama
+jarangnya dengan matriks pengguna terhadap film, dan model yang belajar dari banyak target sekaligus
+memakai logika yang sama dengan collaborative filtering. Dan pertanyaan tentang bias serta dampak
+sosial rekomendasi membawa kita ke bab berikutnya.
+
+\sumberbab{Bab ini mengikuti kuliah dan latihan Learning from User-generated Data: collaborative filtering,
+faktor laten, evaluasi, data konten dan implisit, rekomendasi berbasis graf, hibrida, konteks, bias dan
+keadilan, serta sistem rekomendasi yang diilhami psikologi.}

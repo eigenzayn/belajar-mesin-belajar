@@ -1,0 +1,175 @@
+\chapter{Belajar Tanpa Label}
+\label{ch:unsup}
+
+Pada musim panas 2025 saya mengikuti dua kuliah yang saling melengkapi. Kuliah unsupervised
+learning dari Sepp Hochreiter memakai naskah panjang yang bergerak dari PCA dan ICA sampai
+biclustering, metode yang lahir dari analisis data ekspresi gen. Kuliah machine learning and
+pattern classification memberi sisi praktisnya: pengklasifikasi dasar, seleksi fitur, dan cara
+membangun sistem pengenal pola dari awal sampai akhir.
+
+Sebagian besar data di dunia tidak berlabel. Rekaman sensor, foto di ponsel, dan hasil
+pengukuran ekspresi ribuan gen datang tanpa keterangan tentang apa isinya. Unsupervised learning
+mencari struktur di dalam data seperti itu: arah-arah yang penting, sumber-sumber tersembunyi,
+kelompok-kelompok alami, atau peta berdimensi rendah yang mempertahankan tetangga. Hasilnya sering
+menjadi langkah pertama sebelum model supervised dibangun.
+
+\section{Dua cara melihat PCA}
+
+PCA sudah muncul di \cref{ch:cv} sebagai eigenfaces. Kuliah unsupervised menekankan bahwa ada dua
+cara setara untuk menurunkannya. Cara pertama mencari arah $\bm v$ dengan varians proyeksi
+terbesar, $\max_{\|\bm v\|=1}\bm v^\top\bm\Sigma\bm v$, yang jawabannya vektor eigen kovarians
+dengan nilai eigen terbesar. Cara kedua mencari subruang berdimensi $q$ yang meminimalkan galat
+rekonstruksi kuadrat rata-rata ketika data diproyeksikan ke subruang itu lalu dikembalikan. Kedua
+masalah punya jawaban yang sama, karena varians total tetap, dan varians yang tidak tertangkap oleh
+proyeksi adalah tepat galat rekonstruksinya.
+
+PCA unik hanya sampai tanda setiap komponen, dan kalau dua nilai eigen sama, arah-arahnya bisa
+diputar bebas di dalam subruang mereka. Komponen utama tidak berkorelasi satu sama lain, tetapi
+tidak berarti independen. PCA juga linear. Untuk struktur yang melengkung, \istilah{kernel PCA}
+\citep{scholkopf1998} memetakan data secara implisit ke ruang fitur berdimensi tinggi lewat sebuah
+kernel, lalu menjalankan PCA di sana. Yang dibutuhkan hanya matriks kernel antar titik data, bukan
+pemetaannya secara eksplisit.
+
+\section{Memisahkan sumber: ICA}
+
+Di sebuah pesta, dua orang berbicara bersamaan, dan dua mikrofon di sudut ruangan merekam
+campuran suara keduanya dengan proporsi yang berbeda. Bisakah kita mendapatkan kembali suara
+masing-masing orang tanpa tahu proporsi campurannya? Inilah \istilah{cocktail party problem}, dan
+\istilah{independent component analysis} \citep{hyvarinen2000} menjawabnya. Modelnya
+$\vx=\mA\bm s$, dengan $\bm s$ sumber yang saling independen dan $\mA$ matriks campuran yang tidak
+diketahui. Kita mencari matriks pemisah $\mW$ sehingga $\bm y=\mW\vx$ sedekat mungkin dengan
+independen.
+
+Kuncinya adalah teorema limit pusat. Campuran dari beberapa sumber independen cenderung lebih
+mirip Gauss daripada sumber-sumber aslinya. Jadi kita bisa membalik logikanya: cari arah proyeksi
+yang hasilnya paling \emph{tidak} Gauss. Ketidak-Gaussan diukur dengan kurtosis atau negentropi.
+Langkah praktisnya dimulai dengan \istilah{whitening}, yaitu mentransformasi data agar
+kovariansnya menjadi matriks identitas. Setelah itu, yang tersisa hanya mencari rotasi, dan
+algoritme seperti FastICA atau Infomax menemukannya. ICA tidak bisa memulihkan urutan dan skala
+sumber, dan ia gagal kalau lebih dari satu sumber berdistribusi Gauss, karena campuran Gauss
+yang diputar tetap Gauss.
+
+Perbedaan dengan PCA mudah dilihat pada sinyal suara. PCA menemukan arah varians terbesar, yang
+biasanya masih campuran kedua pembicara. ICA menemukan arah yang membuat setiap keluaran terdengar
+seperti satu orang.
+
+\section{Analisis faktor}
+
+Analisis faktor mirip probabilistic PCA (\cref{ch:mlat}), $\vx=\mW\vz+\bm\mu+\bm\varepsilon$, dengan
+satu perbedaan penting: noise $\bm\varepsilon$ punya kovarians diagonal $\bm\Psi$ yang boleh berbeda
+untuk setiap variabel. Setiap variabel teramati punya ``noise pribadinya'' sendiri, dan faktor
+laten $\vz$ menjelaskan korelasi di antara mereka. Model ini tidak punya solusi tertutup, sehingga
+dilatih dengan EM. Dalam data biologis, di mana setiap gen atau setiap probe punya tingkat noise
+yang berbeda, asumsi ini jauh lebih masuk akal daripada noise yang sama untuk semua.
+
+\section{Peta berdimensi rendah}
+
+Kadang yang dicari bukan sumber, melainkan peta: gambaran dua dimensi dari data berdimensi tinggi
+yang mempertahankan sebanyak mungkin hubungan kedekatan. Kuliah membahas sederet metode dengan
+filosofi yang berbeda.
+
+\istilah{Multidimensional scaling} mencari titik-titik di bidang yang jarak-jaraknya sedekat mungkin
+dengan jarak asli. \istilah{Non-negative matrix factorization} menguraikan data menjadi bagian-bagian
+yang hanya boleh dijumlahkan, tidak boleh dikurangkan, sehingga komponennya sering bisa ditafsirkan
+sebagai bagian-bagian nyata, misalnya bagian wajah atau topik dalam teks. \istilah{Locally linear
+embedding} \citep{roweis2000} menganggap setiap titik bisa direkonstruksi secara linear dari
+tetangganya, lalu mencari koordinat rendah dimensi yang mempertahankan bobot rekonstruksi itu.
+Isomap \citep{tenenbaum2000} mengganti jarak lurus dengan jarak di sepanjang graf tetangga, sebuah
+pendekatan jarak geodesik, sehingga data yang tergulung seperti gulungan kue bisa dibentangkan.
+\istilah{Self-organizing map} \citep{kohonen1982} menempatkan grid neuron di ruang data dan menariknya
+ke arah data sambil menjaga neuron yang bertetangga di grid tetap berdekatan. Metode yang paling
+populer untuk visualisasi saat ini adalah t-SNE dan UMAP \citep{mcinnes2018}, yang mencocokkan
+peluang ketetanggaan di ruang asli dengan di ruang peta.
+
+Peta seperti ini menyenangkan dilihat, tetapi mudah disalahbaca. Jarak antar kelompok di peta
+t-SNE tidak bermakna kuantitatif, dan ukuran kelompok bisa diperbesar atau diperkecil oleh
+algoritmenya. Kuliah AI and Visualization kembali ke masalah ini di \cref{ch:xai}.
+
+\section{Pengelompokan}
+
+\subsection{k-means}
+
+Algoritme $k$-means \citep{lloyd1982} bergantian antara dua langkah: tetapkan setiap titik ke pusat
+terdekat, lalu pindahkan setiap pusat ke rata-rata titik-titik anggotanya. Setiap langkah tidak
+menaikkan jumlah kuadrat jarak titik ke pusatnya, sehingga algoritme pasti berhenti, meski belum
+tentu di solusi terbaik. Ambil empat titik di garis bilangan, 1, 2, 10, dan 11, dengan pusat awal 1
+dan 2. Pada langkah pertama, titik 1 masuk ke pusat pertama, sedangkan 2, 10, dan 11 masuk ke pusat
+kedua, yang lalu pindah ke rata-ratanya, $23/3\approx7{,}67$. Pada langkah kedua, titik 2 sekarang
+lebih dekat ke pusat pertama, sehingga kelompoknya menjadi $\{1,2\}$ dan $\{10,11\}$, dengan pusat
+$1{,}5$ dan $10{,}5$. Langkah berikutnya tidak mengubah apa pun. Kalau pusat awalnya buruk, hasil
+akhirnya bisa buruk juga, sehingga $k$-means biasanya dijalankan beberapa kali dari awal acak yang
+berbeda.
+
+\subsection{Model campuran dan EM}
+
+$k$-means adalah versi keras dari model campuran Gauss. Pada model campuran, setiap titik punya
+peluang menjadi anggota setiap kelompok, dan kelompoknya boleh lonjong dengan kovarians sendiri.
+Algoritme EM bergantian antara menghitung peluang keanggotaan (langkah E) dan memperbarui rata-rata,
+kovarians, dan bobot setiap komponen dengan rata-rata berbobot (langkah M). Ketika kovarians semua
+komponen dibuat sama dan kecil sekali, keanggotaan menjadi nol atau satu, dan EM berubah menjadi
+$k$-means.
+
+\subsection{Hierarki dan kemiripan}
+
+Pengelompokan hierarkis tidak memilih jumlah kelompok di awal. Versi aglomeratif mulai dengan setiap
+titik sebagai kelompoknya sendiri, lalu berulang kali menggabungkan dua kelompok terdekat. Arti
+``terdekat'' menentukan bentuk hasilnya. \istilah{Single linkage} memakai pasangan titik terdekat dan
+cenderung menghasilkan rantai panjang, \istilah{complete linkage} memakai pasangan terjauh dan
+menghasilkan kelompok yang padat, dan \istilah{average linkage} berada di antaranya. Hasilnya adalah
+dendrogram yang bisa dipotong di ketinggian mana pun. Metode berbasis kemiripan, termasuk
+pengelompokan spektral, memandang data sebagai graf kemiripan dan memotongnya di tempat ikatan
+paling lemah, sebuah ide yang sudah kita temui pada segmentasi gambar.
+
+\subsection{Biclustering}
+
+Data ekspresi gen berbentuk matriks: baris adalah gen, kolom adalah sampel jaringan atau kondisi.
+Sekelompok gen sering hanya bekerja sama di sebagian sampel, misalnya hanya di jaringan tumor
+tertentu. Mengelompokkan seluruh baris atau seluruh kolom akan melewatkan pola ini.
+\istilah{Biclustering} mencari submatriks, yaitu sekelompok baris yang berperilaku mirip pada
+sekelompok kolom. FABIA \citep{hochreiter2010}, yang dikembangkan di Linz, merumuskannya sebagai
+model faktor dengan prior yang jarang sekali (\istilah{sparse}), sehingga setiap faktor hanya melibatkan
+sedikit gen dan sedikit sampel. Inilah salah satu titik pertemuan pertama antara machine learning
+dan ilmu hayati di buku ini, dan kita akan kembali ke data seperti ini di \cref{ch:hayati}.
+
+\section{Dari fitur ke pengklasifikasi}
+
+Kuliah pattern classification membahas jalur lengkap sebuah sistem pengenal pola: ambil sinyal
+mentah, ubah menjadi fitur, pilih fitur yang berguna, latih pengklasifikasi, lalu evaluasi dengan
+jujur. Contoh yang dipakai banyak berasal dari audio, seperti mendeteksi kejadian akustik dalam
+rekaman.
+
+Pengklasifikasi dasar yang dibahas punya karakter yang berbeda-beda. $k$-nearest neighbour tidak
+belajar apa pun dan hanya mengingat data latih, lalu meminjam label tetangga terdekat. Naive Bayes
+menganggap semua fitur independen bersyarat terhadap kelas, asumsi yang hampir selalu salah tetapi
+sering bekerja dengan baik. Analisis diskriminan linear \citep{fisher1936} mencari arah proyeksi
+yang memisahkan rata-rata kelas sejauh mungkin relatif terhadap sebaran di dalam kelas. Pohon
+keputusan memotong ruang fitur dengan pertanyaan ya atau tidak yang berurutan, dan random forest
+\citep{breiman2001} merata-ratakan banyak pohon yang dilatih pada sampel dan fitur acak. Support
+vector machine \citep{cortes1995} mencari bidang pemisah dengan margin terlebar, dan dengan kernel ia
+bisa memisahkan kelas yang tidak terpisah secara linear. Ide marginnya adalah regularisasi dalam
+bentuk geometris: di antara semua bidang yang memisahkan data latih, pilih yang paling jauh dari
+titik mana pun.
+
+Seleksi fitur bisa dilakukan dengan tiga cara. Metode filter menilai setiap fitur sendiri-sendiri,
+misalnya dari korelasinya dengan label. Metode wrapper mencoba berbagai himpunan fitur dengan
+melatih model sungguhan. Metode embedded memilih fitur sebagai bagian dari pelatihan, seperti lasso
+yang mendorong bobot fitur yang tidak berguna ke nol. Kuliah juga memperkenalkan jaringan saraf
+dengan cara pandang praktis: kapan lapisan dense cukup, kapan konvolusi lebih cocok, dan bagaimana
+transfer learning serta pretraining self-supervised mengurangi kebutuhan data berlabel.
+
+\section{Di luar kelas}
+
+Metode tanpa label muncul di hampir setiap bidang yang disentuh buku ini. Dalam ilmu hayati,
+pengelompokan profil ekspresi gen memisahkan subtipe kanker yang tidak terlihat di bawah
+mikroskop, dan biclustering menemukan modul gen yang aktif bersama. Dalam pemrosesan sinyal, ICA
+memisahkan sinyal jantung ibu dan janin dari elektroda yang sama, dan PCA memampatkan data sensor
+sebelum dikirim. Dalam simulasi, PCA dengan nama proper orthogonal decomposition mereduksi medan
+aliran berjuta sel menjadi beberapa puluh mode (\cref{ch:penemuan}). Dalam sistem rekomendasi,
+faktorisasi matriks yang mirip analisis faktor menemukan selera tersembunyi pengguna
+(\cref{ch:rekomendasi}). Di semua tempat itu, pertanyaannya sama: struktur apa yang tersembunyi di
+balik angka-angka ini?
+
+\sumberbab{Bab ini mengikuti naskah kuliah Machine Learning: Unsupervised Techniques (PCA dan kernel
+PCA, ICA, analisis faktor, metode proyeksi, clustering, biclustering) dan kuliah Machine Learning and
+Pattern Classification (pengklasifikasi dasar, seleksi dan konstruksi fitur, jaringan saraf dalam
+praktik). Bacaan pendamping: \citet{bishop2006}, \citet{hastie2009}, dan \citet{duda2001}.}

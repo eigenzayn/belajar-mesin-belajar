@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Physics-Informed Neural Networks · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 25</p>
+<h1>Physics-Informed Neural Networks</h1>
+<p><span id="ch:pinn" data-label="ch:pinn"></span></p>
+<p>PINN tidak punya mata kuliahnya sendiri dalam perjalanan saya. Ia
+muncul sedikit-sedikit: sebagai neural field yang diatur persamaan di
+akhir kuliah machine learning lanjut (<a
+href="ch09_ml_advanced.html">Bab 11</a>), sebagai kemampuan autodiff
+menurunkan keluaran terhadap input di kuliah deep learning dasar (<a
+href="ch03_dl_basic.html">Bab 5</a>), dan sebagai salah satu pendekatan
+yang terus muncul dalam bacaan tentang machine learning untuk mekanika
+fluida selama mengerjakan tugas akhir. Bab ini merangkai
+potongan-potongan itu.</p>
+<p>Gagasan PINN sederhana. Alih-alih menyelesaikan persamaan diferensial
+di grid, kita mewakili solusinya dengan jaringan saraf dan melatih
+jaringan itu agar memenuhi persamaannya. Gagasan ini sudah dicoba pada
+akhir 1990-an <span class="citation" data-cites="lagaris1998">(Lagaris,
+Likas, dan Fotiadis 1998)</span>, dan dipopulerkan kembali dengan nama
+physics-informed neural networks oleh <span class="citation"
+data-cites="raissi2019">M. Raissi, Perdikaris, dan Karniadakis
+(2019)</span>, setelah autodiff dan GPU membuatnya praktis.</p>
+<h1 id="resep-dasar">Resep dasar</h1>
+<p>Ambil persamaan panas satu dimensi, <span
+class="math inline">\(\partial_tu=\kappa\,\partial_{xx}u\)</span> pada
+<span class="math inline">\(x\in[0,1]\)</span> dan <span
+class="math inline">\(t\in[0,T]\)</span>, dengan syarat awal <span
+class="math inline">\(u(x,0)=u_0(x)\)</span> dan syarat batas <span
+class="math inline">\(u(0,t)=u(1,t)=0\)</span>. Sebuah MLP <span
+class="math inline">\(u_\theta(x,t)\)</span> menerima koordinat dan
+mengeluarkan temperatur. Untuk titik mana pun, autodiff memberi <span
+class="math inline">\(\partial_tu_\theta\)</span> dan <span
+class="math inline">\(\partial_{xx}u_\theta\)</span> secara eksak,
+sehingga kita bisa menghitung <em>residual</em> persamaan, <span
+class="math display">\[r_\theta(x,t)=\partial_tu_\theta(x,t)-\kappa\,\partial_{xx}u_\theta(x,t).\]</span>
+Solusi sejati membuat residual nol di mana-mana. Maka kita meminimalkan
+jumlah kuadrat residual di sekumpulan titik acak di dalam domain, yang
+disebut <em>collocation points</em>, ditambah suku untuk syarat awal dan
+syarat batas: <span
+class="math display">\[\mathcal{L}(\theta)=\frac{\lambda_r}{N_r}\sum_{i=1}^{N_r}r_\theta(x_i,t_i)^2
++\frac{\lambda_0}{N_0}\sum_{j=1}^{N_0}\big(u_\theta(x_j,0)-u_0(x_j)\big)^2
++\frac{\lambda_b}{N_b}\sum_{k=1}^{N_b}u_\theta(x_k^b,t_k)^2.
+\label{eq:pinnloss}\]</span> Kalau ada pengukuran, suku keempat
+menambahkan selisih kuadrat antara <span
+class="math inline">\(u_\theta\)</span> dan data di titik-titik
+pengukuran. Bobot <span class="math inline">\(\lambda\)</span>
+menentukan seberapa penting masing-masing suku, dan seperti akan kita
+lihat, memilihnya ternyata salah satu bagian tersulit.</p>
+<p>Mengapa ini masuk akal? Dari sudut pandang <a
+href="ch01_belajar_dari_data.html">Bab 1</a>, suku residual adalah
+prior: di antara semua fungsi yang cocok dengan data dan syarat batas,
+pilih yang memenuhi hukum fisika. Dari sudut pandang <a
+href="ch09_ml_advanced.html">Bab 11</a>, <span
+class="math inline">\(u_\theta\)</span> adalah neural field, dan
+persamaan diferensial adalah aturan yang ditegakkan pada field itu,
+persis seperti persamaan Eikonal pada signed distance field.</p>
+<h1 id="contoh-kecil-yang-bisa-dihitung-tangan">Contoh kecil yang bisa
+dihitung tangan</h1>
+<p>Supaya terasa konkret, ambil persamaan peluruhan <span
+class="math inline">\(\dot u=-ku\)</span> dengan <span
+class="math inline">\(u(0)=1\)</span> dan <span
+class="math inline">\(k=1\)</span>, pada <span
+class="math inline">\(t\in[0,1]\)</span>. Solusi sejatinya <span
+class="math inline">\(e^{-t}\)</span>, sehingga <span
+class="math inline">\(u(1)=e^{-1}\approx0{,}368\)</span>. <span
+class="citation" data-cites="lagaris1998">Lagaris, Likas, dan Fotiadis
+(1998)</span> menyarankan bentuk solusi yang memenuhi syarat awal secara
+otomatis, <span class="math inline">\(u(t)=1+t\,N(t)\)</span>, dengan
+<span class="math inline">\(N\)</span> sebuah jaringan. Untuk contoh
+tangan, kita ganti jaringan itu dengan konstanta <span
+class="math inline">\(a\)</span> saja, sehingga <span
+class="math inline">\(u(t)=1+at\)</span>. Residualnya <span
+class="math display">\[r(t)=\dot u+u=a+1+at=a(1+t)+1.\]</span> Kita cari
+<span class="math inline">\(a\)</span> yang meminimalkan <span
+class="math inline">\(J(a)=\int_0^1r(t)^2\,\mathrm{d}t\)</span>, versi
+kontinu dari suku residual dalam Persamaan (25.2). Turunan terhadap
+<span class="math inline">\(a\)</span> adalah <span
+class="math inline">\(2\int_0^1\big(a(1+t)+1\big)(1+t)\,\mathrm{d}t\)</span>.
+Menyamakannya dengan nol memberi <span
+class="math display">\[a\int_0^1(1+t)^2\,\mathrm{d}t=-\int_0^1(1+t)\,\mathrm{d}t
+\quad\Longrightarrow\quad a\cdot\frac73=-\frac32
+\quad\Longrightarrow\quad a=-\frac9{14}\approx-0{,}643.\]</span> Maka
+<span class="math inline">\(u(1)\approx1-0{,}643=0{,}357\)</span>, hanya
+sekitar tiga persen di bawah nilai sebenarnya, padahal “jaringan”-nya
+hanya satu bilangan. Jaringan sungguhan dengan ribuan parameter bisa
+mendekati lengkungan eksponensial dengan jauh lebih baik. Contoh ini
+memperlihatkan inti PINN: tidak ada data solusi sama sekali, hanya
+persamaan dan syarat awal, dan meminimalkan residual sudah cukup untuk
+menemukan solusi yang masuk akal.</p>
+<h1 id="masalah-invers">Masalah invers</h1>
+<p>Kekuatan PINN yang paling meyakinkan terletak pada masalah invers.
+Misalkan konduktivitas <span class="math inline">\(\kappa\)</span> tidak
+diketahui, tetapi kita punya beberapa pengukuran temperatur. Cukup
+jadikan <span class="math inline">\(\kappa\)</span> parameter yang ikut
+dilatih bersama bobot jaringan. Suku data memaksa <span
+class="math inline">\(u_\theta\)</span> cocok dengan pengukuran, suku
+residual memaksa <span class="math inline">\(u_\theta\)</span> memenuhi
+persamaan panas dengan <span class="math inline">\(\kappa\)</span> yang
+sedang ditaksir, dan optimasi menemukan <span
+class="math inline">\(\kappa\)</span> yang membuat keduanya konsisten.
+Solver klasik harus dijalankan berulang kali di dalam lingkar optimasi
+untuk masalah yang sama, sedangkan PINN menyelesaikan masalah maju dan
+invers sekaligus.</p>
+<p>Contoh paling terkenal adalah <span class="citation"
+data-cites="raissi2020">Maziar Raissi, Yazdani, dan Karniadakis
+(2020)</span>, yang disinggung di <a
+href="ch05_computer_vision.html">Bab 7</a>. Dari video konsentrasi zat
+pewarna di sekitar sebuah benda, PINN memulihkan medan kecepatan dan
+tekanan yang tidak pernah diukur, karena persamaan transport zat pewarna
+dan persamaan Navier–Stokes menghubungkan ketiganya.</p>
+<h1 id="mengapa-pinn-sulit-dilatih">Mengapa PINN sulit dilatih</h1>
+<p>Kalau PINN begitu sederhana, mengapa tidak menggantikan semua solver?
+Pengalaman komunitas selama beberapa tahun memperlihatkan sejumlah
+kesulitan yang serius <span class="citation"
+data-cites="cuomo2022">(Cuomo dkk. 2022)</span>.</p>
+<p>Kesulitan pertama adalah keseimbangan suku-suku loss. <span
+class="citation" data-cites="wang2021">Wang, Teng, dan Perdikaris
+(2021)</span> memperlihatkan bahwa gradien suku residual bisa jauh lebih
+besar dari gradien suku batas, sehingga jaringan memenuhi persamaan di
+dalam domain tetapi mengabaikan syarat batas. Ini masalah condition
+number dari <a href="ch02_optimasi.html">Bab 2</a> dalam bentuk yang
+khas. Mereka mengusulkan bobot <span
+class="math inline">\(\lambda\)</span> yang disesuaikan otomatis
+berdasarkan besar gradien masing-masing suku. Pendekatan lain memberi
+setiap titik collocation bobotnya sendiri yang ikut dilatih dengan arah
+berlawanan, sehingga titik yang sulit mendapat perhatian lebih <span
+class="citation" data-cites="mcclenny2023">(McClenny dan Braga-Neto
+2023)</span>.</p>
+<p>Kesulitan kedua berasal dari spectral bias (<a
+href="ch09_ml_advanced.html">Bab 11</a>). Analisis neural tangent kernel
+untuk PINN <span class="citation" data-cites="wang2022">(Wang, Yu, dan
+Perdikaris 2022)</span> menunjukkan bahwa komponen solusi dengan
+frekuensi tinggi dipelajari jauh lebih lambat. Solusi dengan gradien
+tajam atau osilasi cepat, yang justru menarik dalam fluida, menjadi
+sulit. Fourier features dan aktivasi sinus membantu.</p>
+<p>Kesulitan ketiga diperlihatkan <span class="citation"
+data-cites="krishnapriyan2021">Krishnapriyan dkk. (2021)</span>. Untuk
+persamaan konveksi dengan koefisien konveksi yang besar, PINN standar
+gagal total meski arsitekturnya cukup ekspresif. Masalahnya terletak
+pada lanskap loss yang sulit sekali dioptimasi, bukan pada kapasitas
+jaringan. Melatih bertahap, mulai dari koefisien kecil lalu dinaikkan,
+atau memecah domain waktu menjadi potongan yang dilatih berurutan,
+memperbaiki keadaan. Gagasan terakhir ini juga menyentuh masalah
+kausalitas: PINN melatih seluruh rentang waktu sekaligus, sehingga bisa
+saja “memenuhi” persamaan di waktu akhir sebelum benar di waktu awal,
+padahal informasi fisik mengalir dari masa lalu ke masa depan.</p>
+<p>Ada beberapa trik lain yang sering dipakai: syarat batas yang
+dibangun langsung ke dalam bentuk solusi, seperti <span
+class="math inline">\(1+tN(t)\)</span> pada contoh di atas, sehingga
+suku batas tidak lagi dibutuhkan; pemilihan titik collocation secara
+adaptif, dengan menambah titik di tempat residualnya besar; dan resep
+optimasi Adam lalu L-BFGS dari <a href="ch02_optimasi.html">Bab
+2</a>.</p>
+<h1 id="penilaian-yang-jujur">Penilaian yang jujur</h1>
+<p>Untuk masalah maju yang tipikal, misalnya aliran di sekitar benda
+pada bilangan Reynolds menengah, PINN umumnya lebih lambat dan kurang
+akurat daripada solver klasik yang sudah matang. Setiap kasus baru juga
+butuh pelatihan baru, karena PINN mempelajari satu solusi, bukan cara
+menyelesaikan. PINN paling bernilai di tempat lain: masalah invers dan
+asimilasi data, masalah dengan data sebaran yang tidak lengkap, geometri
+yang sulit di-mesh, dan masalah berdimensi tinggi di mana grid tidak
+mungkin dibangun <span class="citation"
+data-cites="karniadakis2021">(Karniadakis dkk. 2021)</span>. Untuk
+mempelajari cara menyelesaikan sebuah keluarga persamaan sekaligus, kita
+butuh pendekatan lain: neural operator dan simulator yang dipelajari,
+tema bab berikutnya.</p>
+<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<p>Bab ini dirangkai dari kuliah Machine Learning: Advanced Techniques
+(neural field dan loss yang diinformasikan fisika), kuliah deep learning
+dasar (autodiff), dan bacaan selama tugas akhir. Bacaan utama: <span
+class="citation" data-cites="raissi2019">M. Raissi, Perdikaris, dan
+Karniadakis (2019)</span>, ulasan <span class="citation"
+data-cites="karniadakis2021">Karniadakis dkk. (2021)</span> dan <span
+class="citation" data-cites="cuomo2022">Cuomo dkk. (2022)</span>, serta
+studi tentang kegagalan pelatihan oleh <span class="citation"
+data-cites="wang2021">Wang, Teng, dan Perdikaris (2021)</span>, <span
+class="citation" data-cites="wang2022">Wang, Yu, dan Perdikaris
+(2022)</span>, dan <span class="citation"
+data-cites="krishnapriyan2021">Krishnapriyan dkk. (2021)</span>.</p>
+<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-cuomo2022" class="csl-entry" role="listitem">
+Cuomo, Salvatore, Vincenzo Schiano Di Cola, Fabio Giampaolo, Gianluigi
+Rozza, Maziar Raissi, dan Francesco Piccialli. 2022. <span>“Scientific
+Machine Learning Through Physics–Informed Neural Networks: Where we are
+and What’s Next.”</span> <em>Journal of Scientific Computing</em> 92
+(3). <a
+href="https://doi.org/10.1007/s10915-022-01939-z">https://doi.org/10.1007/s10915-022-01939-z</a>.
+</div>
+<div id="ref-karniadakis2021" class="csl-entry" role="listitem">
+Karniadakis, George Em, Ioannis G. Kevrekidis, Lu Lu, Paris Perdikaris,
+Sifan Wang, dan Liu Yang. 2021. <span>“Physics-informed machine
+learning.”</span> <em>Nature Reviews Physics</em> 3 (6): 422–40. <a
+href="https://doi.org/10.1038/s42254-021-00314-5">https://doi.org/10.1038/s42254-021-00314-5</a>.
+</div>
+<div id="ref-krishnapriyan2021" class="csl-entry" role="listitem">
+Krishnapriyan, Aditi S., Amir Gholami, Shandian Zhe, Robert M. Kirby,
+dan Michael W. Mahoney. 2021. <span>“Characterizing possible failure
+modes in physics-informed neural networks.”</span> arXiv:2109.01050. <a
+href="https://arxiv.org/abs/2109.01050">https://arxiv.org/abs/2109.01050</a>.
+</div>
+<div id="ref-lagaris1998" class="csl-entry" role="listitem">
+Lagaris, I. E., A. Likas, dan D. I. Fotiadis. 1998. <span>“Artificial
+neural networks for solving ordinary and partial differential
+equations.”</span> <em>IEEE Transactions on Neural Networks</em> 9 (5):
+987–1000. <a
+href="https://doi.org/10.1109/72.712178">https://doi.org/10.1109/72.712178</a>.
+</div>
+<div id="ref-mcclenny2023" class="csl-entry" role="listitem">
+McClenny, Levi D., dan Ulisses M. Braga-Neto. 2023. <span>“Self-adaptive
+physics-informed neural networks.”</span> <em>Journal of Computational
+Physics</em> 474: 111722. <a
+href="https://doi.org/10.1016/j.jcp.2022.111722">https://doi.org/10.1016/j.jcp.2022.111722</a>.
+</div>
+<div id="ref-raissi2020" class="csl-entry" role="listitem">
+Raissi, Maziar, Alireza Yazdani, dan George Em Karniadakis. 2020.
+<span>“Hidden fluid mechanics: Learning velocity and pressure fields
+from flow visualizations.”</span> <em>Science</em> 367 (6481): 1026–30.
+<a
+href="https://doi.org/10.1126/science.aaw4741">https://doi.org/10.1126/science.aaw4741</a>.
+</div>
+<div id="ref-raissi2019" class="csl-entry" role="listitem">
+Raissi, M., P. Perdikaris, dan G. E. Karniadakis. 2019.
+<span>“Physics-informed neural networks: A deep learning framework for
+solving forward and inverse problems involving nonlinear partial
+differential equations.”</span> <em>Journal of Computational
+Physics</em> 378: 686–707. <a
+href="https://doi.org/10.1016/j.jcp.2018.10.045">https://doi.org/10.1016/j.jcp.2018.10.045</a>.
+</div>
+<div id="ref-wang2021" class="csl-entry" role="listitem">
+Wang, Sifan, Yujun Teng, dan Paris Perdikaris. 2021.
+<span>“Understanding and Mitigating Gradient Flow Pathologies in
+Physics-Informed Neural Networks.”</span> <em>SIAM Journal on Scientific
+Computing</em> 43 (5): A3055–81. <a
+href="https://doi.org/10.1137/20M1318043">https://doi.org/10.1137/20M1318043</a>.
+</div>
+<div id="ref-wang2022" class="csl-entry" role="listitem">
+Wang, Sifan, Xinling Yu, dan Paris Perdikaris. 2022. <span>“When and why
+PINNs fail to train: A neural tangent kernel perspective.”</span>
+<em>Journal of Computational Physics</em> 449: 110768. <a
+href="https://doi.org/10.1016/j.jcp.2021.110768">https://doi.org/10.1016/j.jcp.2021.110768</a>.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch14_fisika_komputasi.html"><span>Sebelumnya</span>Fisika Komputasi</a>
+  <a class="next" href="ch16_operator.html"><span>Berikutnya</span>Belajar Menyelesaikan: Neural Operator dan Simulator</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

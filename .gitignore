@@ -1,0 +1,11 @@
+book/_build/
+book/*.pdf
+_htmlbuild/
+tools/refs_cache*.json
+tools/__pycache__/
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg

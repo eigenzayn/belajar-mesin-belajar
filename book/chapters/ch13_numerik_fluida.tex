@@ -1,0 +1,139 @@
+\chapter{Dari Persamaan ke Solver}
+\label{ch:numerik}
+
+Setelah persamaan-persamaan atur, kuliah metode numerik fluida bergerak ke cara menyelesaikannya:
+metode volume hingga, kopling tekanan dan kecepatan, turbulensi dalam tiga pertemuan, perpindahan
+panas dan spesies, aliran multifase, dan satu pertemuan khusus tentang recurrence CFD. Bab ini
+merangkum semuanya kecuali yang terakhir, yang mendapat babnya sendiri di \cref{ch:rcfd}.
+
+\section{Metode volume hingga}
+
+Metode volume hingga membagi domain menjadi sel-sel kecil dan menegakkan neraca \cref{eq:transport}
+untuk setiap sel. Mengintegrasikan persamaan atas volume sebuah sel, lalu memakai teorema divergensi
+Gauss, mengubah integral divergensi menjadi jumlah fluks yang melewati sisi-sisi sel:
+\begin{equation}
+\frac{\dd}{\dd t}\int_V\rho\phi\dd V+\sum_{\text{sisi }f}\big(\rho\vu\phi-\Gamma\nabla\phi\big)_f\cdot\bm n_fA_f=\int_VS_\phi\dd V.
+\end{equation}
+Keindahan bentuk ini adalah sifat konservatifnya. Fluks yang keluar dari satu sel lewat sebuah sisi
+adalah persis fluks yang masuk ke sel tetangganya lewat sisi yang sama, sehingga tidak ada massa,
+momentum, atau energi yang hilang atau muncul di dalam domain kecuali lewat batas dan sumber. Di
+\cref{ch:gdl} kita melihat bahwa bentuk ini adalah message passing: setiap sel mengumpulkan ``pesan''
+fluks dari tetangganya.
+
+Nilai di sisi sel harus diperkirakan dari nilai di pusat sel. Untuk suku difusi, beda pusat bekerja
+baik. Untuk suku konveksi, pilihannya lebih rumit. Beda pusat akurat orde dua, tetapi menghasilkan
+osilasi yang tidak fisis kalau konveksi jauh lebih kuat daripada difusi di skala sel, yaitu kalau
+bilangan Péclet sel lebih besar dari dua. Skema \istilah{upwind} mengambil nilai dari sel di hulu
+aliran. Ia stabil dan tidak berosilasi, tetapi hanya orde satu, dan galatnya berperilaku seperti
+difusi tambahan yang meratakan gradien tajam, gejala yang disebut \istilah{numerical diffusion}. Skema
+orde lebih tinggi seperti second-order upwind dan skema dengan limiter mencari jalan tengah. Kuliah
+memperlihatkan contohnya pada perambatan gelombang permukaan, di mana antarmuka air dan udara
+mengabur dengan skema orde satu dan tetap tajam dengan skema yang lebih baik.
+
+Untuk waktu, metode eksplisit menghitung keadaan baru langsung dari keadaan lama. Murah per langkah,
+tetapi langkahnya dibatasi oleh syarat Courant--Friedrichs--Lewy \citep{courant1928},
+\begin{equation}
+\mathrm{CFL}=\frac{u\,\Delta t}{\Delta x}\le C_{\max},
+\end{equation}
+yang secara intuitif berarti informasi tidak boleh melompati lebih dari sekitar satu sel dalam satu
+langkah. Metode implisit menyelesaikan sistem persamaan untuk keadaan baru. Mahal per langkah,
+tetapi stabil untuk langkah yang jauh lebih besar.
+
+\section{Tekanan dan kecepatan}
+
+Untuk aliran tak termampatkan, tekanan tidak punya persamaannya sendiri. Ia harus diatur sedemikian
+rupa sehingga medan kecepatan yang dihasilkan persamaan momentum memenuhi kekekalan massa.
+Algoritme SIMPLE \citep{patankar1972,patankar1980}, yang dibahas langkah demi langkah di kuliah,
+menyelesaikan masalah ini secara iteratif. Pertama, tebak medan tekanan dan selesaikan persamaan
+momentum untuk mendapat kecepatan sementara. Kecepatan ini umumnya belum memenuhi kekekalan massa.
+Kedua, tulis hubungan antara koreksi kecepatan dan koreksi tekanan. Ketiga, masukkan hubungan itu
+ke persamaan kekekalan massa, sehingga diperoleh persamaan untuk koreksi tekanan. Selesaikan,
+perbarui tekanan dan kecepatan, lalu ulangi sampai konvergen. Pendekatan yang menyelesaikan
+persamaan-persamaan ini bergantian disebut \istilah{segregated solver}, sedangkan solver
+\istilah{coupled} menyelesaikannya bersama dalam satu sistem besar.
+
+Kuliah menekankan perbedaan antara konvergensi numerik dan konvergensi fisis. Residu yang turun
+beberapa orde menunjukkan bahwa sistem persamaan diskret sudah terselesaikan. Itu belum berarti
+besaran yang kita pedulikan, misalnya gaya hambat atau temperatur di sebuah titik, sudah tidak
+berubah lagi, apalagi bahwa hasilnya benar secara fisis. Memantau besaran fisis dan menguji
+kebebasan hasil terhadap ukuran grid adalah bagian wajib setiap simulasi.
+
+\section{Turbulensi}
+
+\subsection{Rata-rata Reynolds}
+
+Aliran turbulen penuh dengan fluktuasi acak di semua skala. Untuk teknik, biasanya cukup mengetahui
+rata-ratanya. Dekomposisi Reynolds menulis setiap besaran sebagai rata-rata ditambah fluktuasi,
+$\vu=\bar{\vu}+\vu'$. Ketika dekomposisi ini dimasukkan ke persamaan Navier--Stokes dan dirata-ratakan,
+hampir semuanya rapi kecuali satu suku baru dari nonlinearitas, yaitu \istilah{Reynolds stress}
+$-\rho\,\overline{u_i'u_j'}$. Suku ini tidak diketahui dari besaran rata-rata, sehingga persamaannya
+tidak tertutup. Inilah \istilah{closure problem} turbulensi.
+
+Boussinesq mengusulkan agar Reynolds stress diperlakukan seperti tegangan kental, dengan sebuah
+viskositas turbulen $\mu_t$ yang jauh lebih besar dari viskositas molekuler. Masalahnya bergeser
+menjadi menentukan $\mu_t$. Model $k$-$\varepsilon$ \citep{launder1974} menyelesaikan dua persamaan
+transport tambahan, untuk energi kinetik turbulen $k$ dan laju disipasinya $\varepsilon$, lalu menulis
+$\mu_t=\rho C_\mu k^2/\varepsilon$. Konstanta-konstantanya ditetapkan dari aliran sederhana yang
+dipahami dengan baik, seperti peluruhan turbulensi di belakang grid dan penyebaran jet. Model
+$k$-$\omega$ SST \citep{menter1994} memakai formulasi $k$-$\omega$ di dekat dinding dan beralih ke
+$k$-$\varepsilon$ di aliran bebas, dan menjadi salah satu model paling banyak dipakai di industri.
+Ketika anisotropi turbulensi penting, seperti di dalam siklon gas atau pusaran ujung sayap, model
+Reynolds stress menyelesaikan persamaan transport untuk setiap komponen tegangan.
+
+Turbulensi sering digambarkan sebagai kaskade energi. Pusaran besar menerima energi dari aliran
+rata-rata, pecah menjadi pusaran yang lebih kecil, dan seterusnya, sampai pusaran terkecil cukup
+kecil untuk diredam viskositas menjadi panas. Seperti air terjun bertingkat, energi mengalir dari
+kolam besar ke kolam-kolam yang semakin kecil, dan model turbulensi hanya perlu tahu berapa banyak
+air yang jatuh ke dasar, bukan bentuk setiap riaknya.
+
+\subsection{Large eddy simulation}
+
+\istilah{Large eddy simulation} (LES) menyelesaikan pusaran besar secara langsung dan hanya memodelkan
+pusaran yang lebih kecil dari ukuran grid. Model Smagorinsky \citep{smagorinsky1963} memberi viskositas
+sub-grid $\mu_{\mathrm{SGS}}=\rho(C_s\Delta)^2|\bar{\bm S}|$, sebanding dengan kuadrat ukuran grid dan
+laju deformasi yang terselesaikan. LES jauh lebih mahal dari RANS karena harus berjalan dalam waktu
+dengan grid halus, tetapi jauh lebih murah dari DNS, dan ia menangkap struktur aliran tak tunak
+yang hilang dalam rata-rata.
+
+\section{Panas, spesies, dan reaksi}
+
+Dalam aliran turbulen, panas dan zat terlarut juga diaduk oleh pusaran. Konduktivitas efektif
+menjadi jumlah konduktivitas molekuler dan sumbangan turbulen,
+$\lambda_{\mathrm{eff}}=\lambda+\mu_tc_p/\mathrm{Pr}_t$, dengan bilangan Prandtl turbulen biasanya sekitar
+0,85. Radiasi menambah suku sumber dalam persamaan energi, dan reaksi kimia menambah suku sumber
+dalam persamaan spesies dan energi sekaligus. Kuliah menyinggung contoh-contoh industri, dari nosel
+Laval sampai pemanasan logam cair, untuk menunjukkan bahwa sebagian besar kerja pemodelan ada pada
+suku-suku sumber ini, bukan pada solvernya.
+
+\section{Aliran multifase}
+
+Banyak aliran industri melibatkan lebih dari satu fase: gelembung gas di dalam cairan, butiran di
+dalam gas, tetesan di dalam udara. Kuliah membahas beberapa keluarga pendekatan.
+
+Metode \istilah{volume of fluid} \citep{hirt1981} melacak antarmuka antara dua fluida yang tidak
+bercampur dengan sebuah fraksi volume yang bernilai satu di satu fase dan nol di fase lain. Massa jenis
+dan viskositas dirata-ratakan menurut fraksi itu, dan tegangan permukaan masuk lewat lompatan
+tekanan Young--Laplace di antarmuka, $\Delta p=\sigma\kappa$, dengan $\kappa$ kelengkungan antarmuka.
+Contohnya di kuliah termasuk gelombang di tangki yang bergoyang dan aliran kapiler di saluran mikro.
+
+Untuk partikel atau tetesan yang tersebar, pendekatan Euler--Lagrange melacak setiap partikel, atau
+sekelompok partikel yang mewakilinya, dalam kerangka Lagrange, sementara fase kontinu diselesaikan di
+grid. Kopling bisa satu arah, ketika partikel hanya dibawa aliran, atau dua arah, ketika partikel
+juga memberi gaya balik ke fluida. Untuk aliran butiran padat, metode elemen diskret \citep{cundall1979}
+menyelesaikan gerak setiap butir dan tumbukannya, dan gabungannya dengan CFD dipakai untuk unggun
+terfluidisasi dan pengangkutan pneumatik. Ketika partikel terlalu banyak untuk dilacak satu per satu,
+model dua fluida memperlakukan kedua fase sebagai kontinum yang saling menembus, digandeng oleh fraksi
+volume dan pertukaran momentum.
+
+\section{Di mana machine learning masuk}
+
+Bab ini memperlihatkan tiga titik lemah simulasi aliran. Model penutup, seperti viskositas turbulen
+dan model sub-grid, dibangun dari asumsi yang sering tidak berlaku. Simulasi yang cukup teliti mahal
+sekali. Dan setiap kasus baru, dengan geometri atau syarat batas berbeda, harus disimulasikan dari awal.
+Machine learning masuk lewat ketiga pintu itu: model penutup yang dipelajari dari data simulasi teliti
+(\cref{ch:hibrida}), model pengganti yang menggantikan solver (\cref{ch:pinn,ch:operator}), dan metode
+yang memanfaatkan pola berulang agar simulasi panjang bisa diekstrapolasi dengan murah (\cref{ch:rcfd}).
+
+\sumberbab{Bab ini mengikuti kuliah Numerical Methods in Fluid Mechanics bagian volume hingga,
+kopling tekanan dan kecepatan, turbulensi, panas dan spesies, serta multifase. Bacaan pendamping:
+\citet{versteeg2007}, \citet{ferziger2020}, \citet{patankar1980}, dan \citet{pope2000}.}

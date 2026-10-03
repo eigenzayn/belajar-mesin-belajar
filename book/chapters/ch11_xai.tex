@@ -1,0 +1,156 @@
+\chapter{Membuka Kotak Hitam: AI dan Visualisasi}
+\label{ch:xai}
+
+Kuliah AI and visualization saya ikuti pada musim dingin 2025/26, diberikan oleh kelompok Visual
+Data Science di Linz. Kuliahnya bertumpu pada satu rumus yang muncul sejak pertemuan pertama: AI ditambah
+visualisasi ditambah manusia sama dengan explainable AI. Penjelasan bukan sesuatu yang dikeluarkan
+mesin begitu saja. Ia harus dirancang untuk seseorang, dan visualisasi adalah salah satu alat
+terbaik untuk menyampaikannya.
+
+Model yang paling akurat sering yang paling sulit dipahami. Untuk menyarankan film, itu tidak
+masalah. Untuk menolak kredit, mendiagnosis penyakit, atau menyetujui desain sebuah reaktor, kita
+perlu tahu alasan di balik keputusan. Bab ini membahas dua arah hubungan antara AI dan
+visualisasi: visualisasi untuk memahami AI, dan AI untuk membuat visualisasi.
+
+\section{Siapa yang butuh penjelasan, dan untuk apa}
+
+Penjelasan yang dibutuhkan pengembang model berbeda dari yang dibutuhkan dokter, regulator, atau
+orang yang permohonan kreditnya ditolak. Pengembang ingin menemukan bug dan bias. Pengguna ahli
+ingin tahu kapan model bisa dipercaya. Orang yang terdampak ingin tahu apa yang harus diubah agar
+keputusannya berbeda. Kuliah menyusun teknik-teknik XAI menurut pertanyaan pengguna: mengapa
+prediksi ini, mengapa bukan yang lain, bagaimana kalau input diubah, dan contoh mana yang mirip.
+
+Ada juga pertukaran yang sering digambarkan antara kinerja dan keterjelasan. Regresi linear dan
+pohon keputusan kecil mudah dibaca, jaringan dalam tidak. \citet{rudin2019} berpendapat bahwa untuk
+keputusan berisiko tinggi, kita sebaiknya memakai model yang bisa ditafsirkan sejak awal daripada
+menjelaskan kotak hitam setelah jadi, karena penjelasan sesudahnya bisa saja tidak setia pada apa
+yang sebenarnya dilakukan model.
+
+Kuliah membedakan dua arah. \istilah{Vis for ML} memakai visualisasi untuk memahami, men-debug, dan
+membandingkan model. \istilah{ML for Vis} memakai machine learning untuk membantu membuat visualisasi,
+misalnya merekomendasikan jenis grafik atau menghasilkan dashboard dari permintaan dalam bahasa
+biasa.
+
+\section{Dasar-dasar visualisasi}
+
+Visualisasi bekerja karena sistem visual manusia memproses pola dengan cepat. Tetapi tidak
+semua saluran visual sama kuatnya. \citet{munzner2014} menyusun peringkat untuk data kuantitatif:
+posisi pada sumbu yang sama paling akurat dibaca, disusul panjang, sudut, luas, lalu kecerahan dan
+saturasi warna. Itulah sebabnya grafik batang biasanya lebih jujur daripada diagram lingkaran, dan
+mengapa grafik tiga dimensi yang memiringkan sumbu sering menyesatkan. Prinsip Gestalt menjelaskan
+bagaimana mata mengelompokkan objek: berdekatan, mirip warna atau bentuk, terhubung garis, atau
+berada di dalam wadah yang sama.
+
+Visualisasi juga bisa bercerita. Cerita yang digerakkan penulis membawa pembaca melalui urutan yang
+sudah ditentukan, seperti artikel berita. Cerita yang digerakkan pembaca membiarkan orang menjelajah
+sendiri. Banyak visualisasi terbaik memakai bentuk campuran: dimulai dengan narasi, lalu membuka
+ruang untuk dijelajahi.
+
+Kuliah memakai visualisasi untuk menjelaskan algoritme. Algoritme pengurutan bisa digambar sebagai
+garis-garis yang bertukar tempat dari langkah ke langkah. $k$-means bisa dianimasikan sebagai pusat
+yang bergeser. Teorema Bayes bisa dijelaskan dengan kotak berisi seratus orang. Contoh yang dibahas
+adalah tes penyakit dengan sensitivitas 90 persen, tingkat positif palsu 9 persen, dan prevalensi 1
+persen. Dari seribu orang, sepuluh sakit dan sembilan di antaranya terdeteksi, sedangkan dari 990
+orang sehat, sekitar 89 mendapat hasil positif palsu. Peluang benar-benar sakit setelah hasil positif
+hanya $9/(9+89)\approx9$ persen. Banyak orang, termasuk dokter, menebak jauh lebih tinggi. Gambar
+seratus kotak kecil membuat hasil ini langsung terasa masuk akal.
+
+\section{Menjelaskan lewat proyeksi}
+
+Data berdimensi tinggi, termasuk aktivasi di dalam jaringan saraf, bisa diproyeksikan ke dua dimensi
+untuk dilihat. PCA (\cref{ch:unsup}) mempertahankan varians global, t-SNE mempertahankan tetangga
+lokal, dan UMAP \citep{mcinnes2018} berusaha menjaga keduanya. Kuliah meluangkan waktu khusus untuk
+salah baca yang umum pada t-SNE: hyperparameter seperti perplexity amat menentukan, ukuran kelompok
+di peta tidak berarti apa-apa, jarak antar kelompok bisa menipu, noise acak kadang tampak berpola,
+dan untuk melihat topologi kita mungkin butuh beberapa peta dengan setelan berbeda.
+
+Proyeksi juga bisa menunjukkan proses yang berjalan dalam waktu. Kalau setiap keadaan sebuah proses,
+misalnya setiap langkah algoritme, setiap posisi permainan catur, atau setiap epoch pelatihan
+jaringan, diproyeksikan sebagai satu titik, lalu titik-titik itu dihubungkan, kita mendapat lintasan.
+Lintasan pelatihan dua jaringan bisa dibandingkan: apakah keduanya menempuh jalan yang mirip, atau
+satu berputar-putar sebelum menemukan solusi. Kelompok visualisasi di Linz juga mengembangkan alat
+seperti ini untuk kimia, sehingga ahli kimia bisa menjelajahi ruang molekul yang dilihat oleh model
+prediksi mereka.
+
+\section{Menjelaskan dalam ruang input}
+
+Sekelompok teknik menjelaskan model dengan melihat bagaimana keluarannya berubah terhadap input.
+\istilah{Partial dependence plot} menampilkan efek rata-rata satu fitur terhadap prediksi, dengan
+merata-ratakan atas nilai fitur-fitur lain. \istilah{Individual conditional expectation} menampilkan
+kurva yang sama untuk setiap contoh secara terpisah, sehingga interaksi antar fitur yang tersembunyi
+di balik rata-rata menjadi terlihat.
+
+LIME \citep{ribeiro2016} menjelaskan satu prediksi dengan membangun model sederhana yang hanya berlaku
+di sekitar contoh itu. Contoh diganggu sedikit demi sedikit, misalnya dengan menyembunyikan
+potongan-potongan gambar (\istilah{superpixel}), model asli ditanya untuk setiap versi, lalu model
+linear dilatih untuk meniru jawabannya secara lokal. Bobot model linear itu menjadi penjelasan. Model
+surrogate global melakukan hal serupa untuk seluruh data, dengan risiko bahwa model sederhana itu
+tidak cukup setia.
+
+Nilai Shapley berasal dari teori permainan kooperatif. Pertanyaannya: kalau sekelompok pemain bersama
+menghasilkan keuntungan, berapa bagian yang adil untuk setiap pemain? Jawaban Shapley adalah
+rata-rata kontribusi marginal pemain itu atas semua urutan kedatangan pemain. Dalam XAI, pemainnya
+adalah fitur dan keuntungannya adalah prediksi. Ambil contoh dua fitur, A dan B. Tanpa fitur apa pun,
+prediksi model 0. Dengan A saja 10, dengan B saja 20, dan dengan keduanya 40. Kalau A datang lebih
+dulu, kontribusinya 10, dan kalau datang setelah B, kontribusinya 20. Rata-ratanya 15. Dengan
+cara yang sama, B mendapat $(20+30)/2=25$. Jumlah keduanya tepat 40, prediksi penuh. SHAP
+\citep{lundberg2017} membuat perhitungan ini praktis untuk model dengan banyak fitur, karena jumlah
+urutan yang mungkin tumbuh secara faktorial.
+
+\section{Menjelaskan lewat gradien}
+
+Untuk jaringan saraf, gradien keluaran terhadap input memberi peta kepekaan langsung: piksel mana yang
+paling mengubah skor kelas kalau digeser sedikit. \istilah{Saliency map} vanila \citep{simonyan2014}
+menampilkan besar gradien ini. Hasilnya sering berbintik dan berisik. Integrated gradients
+\citep{sundararajan2017} menjumlahkan gradien sepanjang jalur dari gambar acuan, misalnya gambar hitam,
+ke gambar asli, dan memenuhi sifat bahwa jumlah atribusinya sama dengan selisih keluaran. Grad-CAM
+\citep{selvaraju2017} memakai gradien terhadap peta fitur lapisan konvolusi terakhir untuk menimbang
+peta-peta itu, sehingga menghasilkan peta panas kasar yang menunjukkan daerah gambar yang dipakai
+model. Layer-wise relevance propagation \citep{bach2015} membagi skor keluaran mundur ke input
+lapisan demi lapisan dengan aturan kekekalan relevansi.
+
+Kuliah memakai contoh dari sebuah studi klasifikasi jamur. Peta Grad-CAM kadang menunjukkan bahwa model
+melihat bagian yang memang penting secara biologis, seperti tudung dan bilah, tetapi kadang juga
+latar belakang, misalnya rumput atau tangan yang memegang jamur. Peta seperti ini tidak membuktikan
+bahwa model benar, tetapi amat berguna untuk menemukan jalan pintas yang tidak diinginkan.
+
+\section{Menjelaskan lewat contoh dan konsep}
+
+Manusia sering menjelaskan dengan contoh: ``ini mirip kasus yang kemarin''. Model pun bisa
+menjelaskan prediksinya dengan menunjukkan contoh data latih yang paling mirip di ruang fiturnya.
+\istilah{Prototype} adalah contoh yang mewakili sebuah kelompok, dan \istilah{criticism} adalah contoh yang
+tidak terwakili dengan baik oleh prototype mana pun. Keduanya bersama memberi gambaran lebih jujur
+tentang data.
+
+Penjelasan berbasis konsep bertanya apakah sebuah konsep yang bermakna bagi manusia, misalnya
+``bergaris'' atau ``berlatar salju'', tersimpan di dalam jaringan. \istilah{Network dissection} mencocokkan
+unit-unit di dalam jaringan dengan konsep yang dianotasi. TCAV \citep{kim2018} mempelajari arah di
+ruang aktivasi yang mewakili sebuah konsep dari contoh-contohnya, lalu mengukur seberapa peka
+prediksi sebuah kelas terhadap arah itu. Jenis temuan yang dicari mirip contoh terkenal dari
+\citet{ribeiro2016}, di mana penjelasan LIME mengungkap bahwa sebuah pengklasifikasi serigala dan
+anjing husky sebenarnya terutama melihat salju di latar belakang.
+
+\section{Visualisasi di era AI generatif}
+
+Pertemuan terakhir membahas arah sebaliknya: AI yang membuat visualisasi. Model bahasa bisa menulis
+kode grafik dari permintaan dalam bahasa biasa, menyusun dashboard, atau membuat penjelasan bagi
+pengguna baru. Kuliah menyoroti risikonya. Gambar yang dihasilkan bisa tampak meyakinkan tetapi
+salah secara data. Model membuat asumsi tentang maksud pengguna yang tidak pernah diucapkan. Dan
+jawabannya bergantung pada gambaran yang dibentuk model tentang siapa penggunanya. Kuliah
+mengusulkan antarmuka yang membuat asumsi-asumsi itu terlihat dan bisa dikoreksi pengguna.
+
+\section{Di luar kelas}
+
+Keterjelasan penting di setiap bidang yang dibahas buku ini, dengan alasan yang berbeda-beda.
+Dalam kedokteran, peta Grad-CAM pada citra rontgen bisa mengungkap model yang melihat penanda
+rumah sakit di sudut gambar alih-alih paru-paru. Dalam penemuan obat, atribusi pada atom-atom molekul
+membantu ahli kimia memutuskan bagian mana yang perlu diubah. Dalam pemrosesan sinyal dan sistem
+tertanam, kita perlu tahu sensor mana yang paling menentukan sebuah keputusan. Dalam simulasi,
+keterjelasan bisa diambil sejauh-jauhnya: metode seperti SINDy (\cref{ch:penemuan}) tidak menjelaskan
+model kotak hitam, melainkan menghasilkan persamaan yang bisa dibaca langsung. Itu barangkali bentuk
+penjelasan yang paling disukai \citet{rudin2019}.
+
+\sumberbab{Bab ini mengikuti enam kuliah AI and Visualization beserta labnya: dasar visualisasi,
+menjelaskan algoritme, proyeksi, teknik penjelasan visual (PDP, ICE, LIME, Shapley, saliency, Grad-CAM,
+contoh, konsep), dan AI generatif untuk visualisasi. Bacaan pendamping: \citet{molnar2022} untuk
+interpretable machine learning dan \citet{munzner2014} untuk visualisasi.}

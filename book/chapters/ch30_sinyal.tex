@@ -1,0 +1,156 @@
+\chapter{Menangkap Sinyal: Estimasi, Filter, dan Radar}
+\label{ch:sinyal}
+
+Pemrosesan sinyal masuk ke perjalanan saya lewat dua mata kuliah. Kuliah optimum and adaptive
+signal processing systems, dengan latihan kelompok berisi enam tugas, membahas teori estimasi,
+filter optimal, dan filter adaptif. Pada musim dingin 2025/26, latihan radar system engineering
+mengajak kami membangun radar di dalam notebook: persamaan radar, korelasi, FFT, deteksi, CFAR,
+radar FMCW, dan beamforming digital, sampai sebuah simulator radar sederhana.
+
+Pemrosesan sinyal sudah ``belajar dari data'' jauh sebelum istilah machine learning populer. Filter
+adaptif yang meredam gema di telepon memperbarui bobotnya dengan gradien stokastik, persis seperti
+jaringan saraf. Banyak konsep di bab ini, dari batas Cramér--Rao sampai Kalman filter, sudah kita
+temui dari sisi machine learning. Di sini kita melihatnya dari sisi insinyur sinyal.
+
+\section{Sinyal acak}
+
+Sinyal yang menarik hampir selalu bercampur noise, sehingga kita memperlakukannya sebagai proses
+acak. Sebuah proses disebut stasioner dalam arti luas kalau rata-ratanya tetap dan fungsi
+autokorelasinya, $r_x[k]=\E\big[x[n]x[n+k]\big]$, hanya bergantung pada jarak waktu $k$, bukan pada
+waktu absolut. Transformasi Fourier dari autokorelasi adalah \istilah{power spectral density}, yang
+menyatakan bagaimana daya sinyal tersebar di seluruh frekuensi. Noise putih punya autokorelasi yang
+hanya tidak nol di $k=0$, sehingga spektrumnya datar: semua frekuensi mendapat daya yang sama,
+seperti cahaya putih yang memuat semua warna.
+
+\section{Estimasi klasik}
+
+Kuliah teori estimasi dimulai dengan contoh paling sederhana: menaksir level tegangan tetap $A$
+dari pengukuran yang berisik, $x[n]=A+w[n]$ untuk $n=0,\dots,N-1$, dengan $w[n]$ noise putih Gauss
+bervarians $\sigma^2$. Rata-rata sampel tak bias, variansnya $\sigma^2/N$, dan batas Cramér--Rao
+(\cref{ch:mlat}) untuk masalah ini juga $\sigma^2/N$. Jadi rata-rata sampel adalah estimator
+\istilah{minimum variance unbiased}, dan tidak ada estimator tak bias lain yang lebih baik
+\citep{kay1993}.
+
+Untuk model yang lebih umum, beberapa jalan tersedia. Kalau model linear dalam parameter,
+$\vx=\bm H\bm\theta+\bm w$, estimator \istilah{best linear unbiased} memberi varians terkecil di antara
+semua estimator linear tak bias, dan untuk noise Gauss ia sama dengan MVU. Estimator kuadrat
+terkecil, $\hat{\bm\theta}=(\bm H^\top\bm H)^{-1}\bm H^\top\vx$, tidak memerlukan asumsi statistik apa
+pun, hanya meminimalkan selisih kuadrat antara data dan model. Maximum likelihood menghubungkan
+semuanya: untuk noise Gauss, ia menghasilkan kuadrat terkecil, dan untuk sampel besar ia mendekati
+batas Cramér--Rao.
+
+\section{Estimasi Bayesian}
+
+Kalau kita punya pengetahuan awal tentang parameter, misalnya bahwa sebuah tegangan hampir pasti di
+sekitar lima volt, kita memperlakukan parameter sebagai variabel acak dengan prior. Estimator yang
+meminimalkan galat kuadrat rata-rata, \istilah{minimum mean square error}, ternyata adalah rata-rata
+posterior $\E[\theta\mid\vx]$. Estimator MAP mengambil puncak posterior. Untuk model linear Gauss,
+keduanya sama, dan rata-rata posterior adalah kompromi berbobot antara prior dan data: kalau data
+sedikit atau berisik, hasilnya dekat ke prior, kalau data banyak, hasilnya mengikuti data. Ini
+adalah logika yang sama dengan Kalman gain di \cref{ch:prob}, dan memang Kalman filter adalah
+estimator MMSE yang berjalan berurutan dalam waktu.
+
+\section{Filter optimal}
+
+Misalkan kita ingin mendapatkan sinyal $d[n]$ dari pengamatan $x[n]$ yang terganggu, dengan sebuah
+filter linear berbobot $\bm w$ yang bekerja pada $M$ sampel terakhir, $y[n]=\bm w^\top\vx[n]$. Filter
+Wiener memilih bobot yang meminimalkan galat kuadrat rata-rata $\E\big[(d[n]-y[n])^2\big]$. Menurunkan
+terhadap $\bm w$ dan menyamakannya dengan nol memberi persamaan Wiener--Hopf,
+\begin{equation}
+\bm R\,\bm w=\bm p,\qquad \bm w_{\mathrm{opt}}=\bm R^{-1}\bm p,
+\end{equation}
+dengan $\bm R=\E[\vx\vx^\top]$ matriks autokorelasi input dan $\bm p=\E[\vx d]$ korelasi silang
+antara input dan sinyal yang diinginkan. Hasil ini punya tafsiran geometris yang indah, yaitu
+\istilah{orthogonality principle}: pada bobot optimal, galat tegak lurus terhadap semua data yang
+dipakai. Tidak ada lagi informasi dalam data yang bisa dipakai untuk mengurangi galat.
+
+Filter Wiener membutuhkan statistik $\bm R$ dan $\bm p$, yang dalam praktik harus diperkirakan dari
+data. Menggantinya dengan rata-rata sampel memberi filter kuadrat terkecil, yang optimal untuk
+data yang ada, bukan untuk ekspektasinya \citep{manolakis2005}.
+
+\section{Filter adaptif}
+
+Ketika statistik sinyal berubah dari waktu ke waktu, misalnya gema di ruang yang orangnya berpindah
+tempat, filter harus terus menyesuaikan diri. Algoritme LMS mengambil satu langkah gradient descent
+pada galat kuadrat sesaat di setiap sampel,
+\begin{equation}
+\bm w[n+1]=\bm w[n]+\mu\,e[n]\,\vx[n],\qquad e[n]=d[n]-\bm w[n]^\top\vx[n].
+\end{equation}
+Ini SGD dengan mini-batch berukuran satu, lima puluh tahun sebelum deep learning. Langkah $\mu$ harus
+cukup kecil agar stabil, kira-kira $0<\mu<2/\lambda_{\max}$ dengan $\lambda_{\max}$ nilai eigen terbesar
+$\bm R$, dan kecepatan konvergensinya ditentukan oleh sebaran nilai eigen $\bm R$. Inilah masalah
+condition number dari \cref{ch:optimasi}, dalam pakaian yang berbeda. Algoritme RLS memperbarui
+perkiraan $\bm R^{-1}$ secara rekursif sehingga setiap langkah mirip langkah Newton. Ia konvergen
+jauh lebih cepat dan tidak terpengaruh sebaran nilai eigen, dengan biaya sekitar $M^2$ operasi per
+sampel, dibanding $M$ untuk LMS.
+
+Bayangkan headphone peredam bising. Mikrofon luar menangkap suara mesin pesawat, dan filter adaptif
+belajar memprediksi seberapa banyak suara itu bocor ke telinga. Speaker lalu memutar prediksi
+dengan tanda terbalik. Setiap kali pesawat berbelok atau penumpang menggeser kepala, galat sisa
+berubah, dan bobot filter ikut bergeser beberapa ribu kali per detik.
+
+\section{Radar}
+
+Radar memancarkan gelombang elektromagnetik dan mendengarkan pantulannya. Daya yang kembali
+mengikuti persamaan radar,
+\begin{equation}
+P_r=\frac{P_tG^2\lambda^2\sigma}{(4\pi)^3R^4},
+\end{equation}
+dengan $P_t$ daya pancar, $G$ penguatan antena, $\lambda$ panjang gelombang, $\sigma$ \istilah{radar
+cross section} target, dan $R$ jaraknya. Pangkat empat pada jarak datang dari dua perjalanan: gelombang
+melemah sebanding $R^2$ dalam perjalanan pergi dan sekali lagi dalam perjalanan pulang. Akibatnya,
+untuk melipatgandakan jangkauan, daya pancar harus dinaikkan enam belas kali.
+
+Untuk menemukan pantulan lemah di tengah noise, sinyal yang diterima dikorelasikan dengan sinyal yang
+dipancarkan. Filter ini, \istilah{matched filter}, memaksimalkan rasio sinyal terhadap noise untuk
+noise putih \citep{richards2014}. Puncak korelasi menunjukkan waktu tunda, dan waktu tunda menunjukkan
+jarak, $R=c\tau/2$.
+
+Setelah itu muncul pertanyaan deteksi: apakah sebuah puncak benar-benar target, atau hanya noise
+yang kebetulan tinggi? Kriteria Neyman--Pearson menetapkan ambang yang memaksimalkan peluang deteksi
+untuk peluang alarm palsu tertentu. Masalahnya, tingkat noise dan clutter berubah dari satu tempat
+ke tempat lain. \istilah{Constant false alarm rate} (CFAR) menghitung ambang secara lokal. Untuk setiap
+sel yang diuji, tingkat noise diperkirakan dari sel-sel latih di sekitarnya, dengan beberapa sel
+penjaga di antaranya agar target sendiri tidak ikut terhitung. Varian cell-averaging merata-ratakan
+sel latih, sedangkan varian order-statistic memakai nilai berperingkat tertentu dan lebih tahan
+ketika ada beberapa target berdekatan \citep{rohling1983}.
+
+\subsection{Radar FMCW}
+
+Radar mobil dan radar di dalam ponsel umumnya memakai gelombang kontinu yang frekuensinya naik secara
+linear, sebuah \istilah{chirp}. Pantulan dari target pada jarak $R$ tiba dengan tunda $2R/c$, sehingga
+pada setiap saat frekuensinya sedikit lebih rendah daripada sinyal yang sedang dipancarkan. Mencampur
+keduanya menghasilkan \istilah{beat frequency} yang sebanding dengan jarak,
+\begin{equation}
+f_b=\frac{2RS}{c},\qquad S=\frac{B}{T_c},
+\end{equation}
+dengan $B$ lebar pita chirp dan $T_c$ durasinya. Dengan $B=1$ GHz dan $T_c=50\,\mu$s, kemiringannya
+$2\times10^{13}$ Hz per detik, dan target pada sepuluh meter menghasilkan beat sekitar
+$1{,}33$ MHz. FFT dari sinyal beat langsung memberi profil jarak. Resolusi jaraknya $c/(2B)$,
+lima belas sentimeter untuk lebar pita satu gigahertz.
+
+Kecepatan diperoleh dari deretan chirp. Target yang bergerak menggeser fase pantulan sedikit dari satu
+chirp ke chirp berikutnya, sebanding dengan kecepatannya. FFT kedua di sepanjang chirp mengubah
+geseran fase itu menjadi kecepatan, dan hasil kedua FFT bersama-sama membentuk peta jarak dan
+kecepatan. Dengan beberapa antena penerima, perbedaan fase antar antena menunjukkan arah datangnya
+pantulan, $\Delta\phi=2\pi d\sin\theta/\lambda$. FFT ketiga, atau \istilah{digital beamforming}, mengubahnya
+menjadi sudut. Latihan kami berakhir dengan simulator yang menggabungkan semua langkah ini: memancarkan
+chirp ke beberapa target, menambahkan noise, lalu menjalankan seluruh rantai pemrosesan untuk
+menemukannya kembali.
+
+\section{Di mana machine learning masuk}
+
+Batas antara pemrosesan sinyal dan machine learning semakin kabur. Peta jarak dan kecepatan radar
+diperlakukan sebagai gambar dan dimasukkan ke jaringan konvolusi untuk mengenali gerakan tangan atau
+membedakan pejalan kaki dari sepeda. Detektor CFAR klasik bisa diganti detektor yang dipelajari dari
+data, dengan risiko bahwa jaminan alarm palsunya hilang. Algoritme iteratif, misalnya untuk
+rekonstruksi sinyal, bisa ``dibuka'' (\istilah{unrolled}): setiap iterasi menjadi satu lapisan jaringan
+yang parameternya dipelajari, sehingga struktur algoritme klasik tetap terjaga. Dan di arah sebaliknya, gagasan pemrosesan sinyal, seperti filter, frekuensi, dan
+wavelet, memberi bahasa untuk memahami apa yang dilakukan jaringan saraf (\cref{ch:gdl}). Fondasinya
+tetap sama: model, noise, dan batas atas apa yang bisa diestimasi dari data.
+
+\sumberbab{Bab ini mengikuti kuliah dan latihan Optimum and Adaptive Signal Processing Systems
+(variabel dan proses acak, estimasi klasik dan Bayesian, filter Wiener dan kuadrat terkecil, filter
+adaptif) serta latihan Radar System Engineering (RCS dan persamaan radar, korelasi, FFT, deteksi,
+CFAR, FMCW, beamforming digital, simulator). Bacaan yang disebut kuliah: \citet{kay1993} dan
+\citet{manolakis2005}. Untuk radar, \citet{richards2014}.}

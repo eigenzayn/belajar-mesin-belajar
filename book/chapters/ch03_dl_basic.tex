@@ -1,0 +1,290 @@
+\chapter{Deep Learning: Teknik Dasar}
+\label{ch:dlbasic}
+
+Ini kuliah deep learning pertama saya di Linz, pada semester musim dingin 2024/25. Naskah
+kuliahnya lebih mirip buku daripada slide, lengkap dengan sejarah, notasi yang rapi, dan bab
+khusus tentang inisialisasi dan normalisasi.
+
+Bab ini membangun jaringan saraf dari satu neuron sampai jaringan konvolusi. Empat pertanyaan
+menjadi benang merahnya: apa yang bisa dihitung oleh sebuah jaringan, bagaimana gradiennya
+dihitung, bagaimana sinyal dijaga agar tidak mati atau meledak di jaringan yang dalam, dan
+bagaimana mencegah jaringan sekadar menghafal.
+
+\section{Sejarah singkat}
+
+\citet{mcculloch1943} memodelkan neuron sebagai unit ambang: jumlahkan input yang berbobot, lalu
+keluarkan satu kalau jumlahnya melewati ambang. \citet{rosenblatt1958} membuat
+\istilah{perceptron}, yang bisa mempelajari bobotnya sendiri. Antusiasme sempat surut ketika
+menjadi jelas bahwa satu lapisan perceptron tidak bisa menyelesaikan masalah sesederhana XOR.
+Algoritme backpropagation untuk jaringan berlapis kemudian dipopulerkan oleh
+\citet{rumelhart1986}, meski gagasannya sudah muncul lebih awal. \citet{lecun1998} memakai jaringan
+konvolusi untuk membaca tulisan tangan, dan ledakan modern dimulai ketika jaringan konvolusi
+besar yang dilatih di GPU memenangkan kompetisi ImageNet \citep{krizhevsky2017}. Sejarah yang
+lebih lengkap, termasuk peran Linz melalui LSTM, ditulis oleh \citet{schmidhuber2015}.
+
+\section{Dari satu neuron ke jaringan berlapis}
+
+Satu neuron menghitung \istilah{pre-activation} $s=\vw^\top\vx+b$, lalu \istilah{activation}
+$a=f(s)$. Kalau $f$ fungsi tangga, kita mendapat perceptron. Kalau $f$ sigmoid
+$\sigma(s)=1/(1+e^{-s})$, keluarannya bisa dibaca sebagai peluang, dan model ini tidak lain
+adalah regresi logistik. Dalam kedua kasus, batas keputusannya, $\vw^\top\vx+b=0$, selalu berupa
+bidang datar.
+
+Mengapa satu bidang datar tidak cukup untuk XOR bisa dibuktikan dalam beberapa baris. Titik
+$(0,0)$ dan $(1,1)$ berlabel nol, sedangkan $(0,1)$ dan $(1,0)$ berlabel satu. Misalkan ada garis
+$w_1x_1+w_2x_2+b=0$ yang memisahkannya, dengan label satu di sisi positif. Titik $(0,0)$ memberi
+$b<0$. Titik $(0,1)$ dan $(1,0)$ memberi $w_2+b>0$ dan $w_1+b>0$. Kalau keduanya dijumlahkan,
+diperoleh $w_1+w_2+b>-b>0$. Padahal $(1,1)$ berlabel nol, sehingga seharusnya $w_1+w_2+b<0$.
+Kontradiksi. Satu lapisan tersembunyi dengan dua neuron sudah cukup untuk menyelesaikannya.
+
+Jaringan \istilah{feed-forward} dengan $L$ lapisan menumpuk transformasi yang sama berkali-kali.
+Dengan notasi kuliah,
+\begin{equation}
+\bm s^{(l)}=\mW^{(l)}\bm a^{(l-1)}+\bm b^{(l)},\qquad \bm a^{(l)}=f\big(\bm s^{(l)}\big),
+\qquad \bm a^{(0)}=\vx,\qquad \hat{\vy}=\bm a^{(L)}.
+\end{equation}
+Tanpa fungsi aktivasi yang nonlinear, tumpukan lapisan ini hanyalah satu perkalian matriks
+besar. Dengan nonlinearitas, \istilah{universal approximation theorem} \citep{cybenko1989,hornik1989}
+menjamin bahwa satu lapisan tersembunyi dengan cukup banyak neuron bisa mendekati fungsi kontinu
+apa pun pada domain yang kompak. Teorema ini tidak mengatakan berapa banyak neuron yang
+dibutuhkan, dan juga tidak menjamin gradient descent akan menemukannya. Dalam praktik, jaringan
+yang dalam memakai parameter jauh lebih hemat daripada jaringan yang lebar tetapi dangkal.
+
+Cara saya membayangkannya adalah origami. Lapisan dengan aktivasi ReLU melipat ruang input
+sepanjang beberapa garis lipatan. Lapisan berikutnya melipat hasil lipatan itu sekali lagi.
+Dengan beberapa kali lipatan, selembar kertas bisa berubah menjadi bentuk yang rumit, dan
+jumlah bagian datar yang terbentuk bertambah jauh lebih cepat dengan menambah lipatan baru
+daripada dengan memperlebar kertas.
+
+\section{Backpropagation}
+
+Untuk melatih jaringan dengan gradient descent, kita membutuhkan
+$\partial\Loss/\partial\mW^{(l)}$ untuk semua lapisan. Backpropagation adalah aturan rantai yang
+dihitung dengan urutan yang cerdas: dari belakang ke depan, sambil menyimpan hasil antara.
+Definisikan \istilah{delta} lapisan $l$ sebagai $\bm\delta^{(l)}=\partial\Loss/\partial\bm s^{(l)}$.
+Maka
+\begin{align}
+\bm\delta^{(L)}&=f'\big(\bm s^{(L)}\big)\odot\frac{\partial\Loss}{\partial\bm a^{(L)}}, \label{eq:deltaL}\\
+\bm\delta^{(l)}&=f'\big(\bm s^{(l)}\big)\odot\big(\mW^{(l+1)}\big)^{\!\top}\bm\delta^{(l+1)}, \label{eq:deltal}\\
+\frac{\partial\Loss}{\partial\mW^{(l)}}&=\bm\delta^{(l)}\big(\bm a^{(l-1)}\big)^{\!\top},\qquad
+\frac{\partial\Loss}{\partial\bm b^{(l)}}=\bm\delta^{(l)}. \label{eq:gradW}
+\end{align}
+
+Bayangkan sebuah pabrik yang menghasilkan produk cacat. Manajer di ujung jalur produksi melihat
+seberapa besar cacatnya, lalu membagi kesalahan itu ke para pekerja di stasiun sebelumnya,
+sebanding dengan seberapa besar sumbangan mereka pada produk akhir (bobot $\mW^\top$) dan
+seberapa peka mereka saat itu ($f'$). Setiap pekerja meneruskan bagian kesalahannya ke stasiun
+sebelumnya dengan cara yang sama. Tidak ada yang dihitung dua kali, dan itulah sebabnya
+backprop murah.
+
+Contoh dengan angka membuatnya konkret. Ambil input $x=1$, satu neuron tersembunyi
+$a_1=\sigma(w_1x)$ dengan $w_1=0{,}5$, keluaran linear $\hat y=w_2a_1$ dengan $w_2=2$, target
+$y=1$, dan loss $\Loss=\tfrac12(\hat y-y)^2$. Lintasan maju memberi $s_1=0{,}5$,
+$a_1=\sigma(0{,}5)=0{,}6225$, $\hat y=1{,}2449$, dan $\Loss=0{,}0300$. Delta keluaran adalah
+$\delta_2=\hat y-y=0{,}2449$, sehingga $\partial\Loss/\partial w_2=\delta_2a_1=0{,}1525$. Untuk
+lapisan tersembunyi, $\sigma'(s_1)=a_1(1-a_1)=0{,}2350$, sehingga
+$\delta_1=0{,}2350\times w_2\times\delta_2=0{,}1151$ dan $\partial\Loss/\partial w_1=\delta_1x=0{,}1151$.
+Pengecekan dengan beda hingga selalu baik dilakukan saat menulis backprop sendiri: naikkan $w_1$
+sebesar $0{,}001$, dan loss seharusnya naik kira-kira $0{,}001\times0{,}1151$.
+
+Kerangka kerja modern tidak menurunkan rumus delta secara manual. Mereka memakai
+\istilah{automatic differentiation} \citep{baydin2018}. Program dipecah menjadi operasi dasar yang
+turunannya diketahui, lalu turunan dirangkai dengan salah satu dari dua cara. \istilah{Forward mode}
+membawa turunan terhadap satu input maju bersama perhitungan, cocok kalau input sedikit dan
+output banyak. \istilah{Reverse mode} mencatat semua operasi lalu berjalan mundur, cocok kalau
+outputnya sedikit, misalnya satu nilai loss, dan inputnya banyak, misalnya jutaan bobot.
+Backpropagation adalah reverse mode yang diterapkan pada jaringan saraf. Biayanya hanya beberapa
+kali biaya satu lintasan maju, berapa pun jumlah parameternya.
+
+Autodiff tidak hanya bisa menghitung turunan loss terhadap bobot. Ia juga bisa menghitung
+turunan keluaran jaringan terhadap \emph{input}. Kalau sebuah jaringan $u_\theta(x,t)$ memodelkan
+temperatur, autodiff memberi $\partial u_\theta/\partial t$ dan $\partial^2u_\theta/\partial x^2$
+secara eksak, tanpa grid dan tanpa beda hingga. Kemampuan sederhana inilah yang membuat PINN
+mungkin: residu persamaan panas $\partial_tu-\kappa\,\partial_{xx}u$ bisa dihitung langsung di titik
+mana pun (\cref{ch:pinn}).
+
+Kuliah juga memperkenalkan dua objek turunan yang lebih umum. Jacobian
+$\bm J=\partial\hat{\vy}/\partial\vx$ mengukur kepekaan setiap keluaran terhadap setiap input, dan
+backprop pada dasarnya mengalikan Jacobian lapisan-lapisan dari kanan ke kiri dengan sebuah
+vektor. Hessian $\bm H=\partial^2\Loss/\partial\vw\partial\vw^\top$ mengukur kelengkungan loss
+dan menentukan condition number masalah optimasi (\cref{ch:optimasi}). Hasil kali Hessian dengan
+sebuah vektor bisa dihitung tanpa pernah membentuk Hessian, cukup dengan dua lintasan autodiff.
+
+\section{Fungsi aktivasi}
+
+Sigmoid dan tanh adalah fungsi aktivasi klasik, tetapi keduanya jenuh di kedua sisi: untuk input
+yang besar, turunannya hampir nol, dan turunan sigmoid tidak pernah melebihi seperempat. ReLU,
+$\max(0,s)$, murah dan tidak jenuh untuk input positif, tetapi neuron bisa ``mati'' kalau
+pre-activation-nya selalu negatif. ELU memperhalus bagian negatif dengan $\alpha(e^s-1)$ sehingga
+rata-rata keluarannya lebih dekat ke nol. SELU adalah ELU yang diskalakan dengan konstanta
+tertentu, $\lambda\approx1{,}0507$ dan $\alpha\approx1{,}6733$, dan kita akan melihat sebentar lagi
+mengapa angka-angka itu istimewa. Transformer umumnya memakai GELU atau SiLU, yang mulus di
+sekitar nol.
+
+Pasangan aktivasi keluaran dan loss ditentukan oleh jenis tugas, sesuai \cref{tab:noiseloss}:
+keluaran linear dengan MSE untuk regresi, sigmoid dengan binary cross-entropy untuk dua kelas,
+dan softmax dengan cross-entropy untuk banyak kelas. Pasangan ini dipilih karena delta
+keluarannya menjadi sederhana sekali. Untuk softmax dengan cross-entropy, misalnya,
+$\bm\delta^{(L)}=\hat{\vy}-\vy$.
+
+Hasil ini layak diturunkan sekali, karena ia muncul di setiap pengklasifikasi. Dengan
+$\hat y_k=e^{s_k}/\sum_je^{s_j}$ dan label one-hot $\vy$, loss-nya
+$\Loss=-\sum_ky_k\log\hat y_k=-\sum_ky_ks_k+\log\sum_je^{s_j}$, karena $\sum_ky_k=1$. Turunan suku pertama
+terhadap $s_i$ adalah $-y_i$. Turunan suku kedua adalah $e^{s_i}/\sum_je^{s_j}=\hat y_i$. Jadi
+$\partial\Loss/\partial s_i=\hat y_i-y_i$. Turunan softmax yang rumit, dengan semua suku silangnya, saling
+menghapus dengan logaritma dari cross-entropy. Sebagai contoh, kalau tiga kelas memberi
+$\hat{\vy}=(0{,}7;\ 0{,}2;\ 0{,}1)$ dan kelas yang benar adalah yang pertama, deltanya
+$(-0{,}3;\ 0{,}2;\ 0{,}1)$: skor kelas yang benar didorong naik, skor kelas lain didorong turun
+sebanding dengan peluang yang keliru diberikan kepadanya.
+
+\section{Menjaga sinyal tetap hidup}
+
+Di jaringan yang dalam, sinyal maju dan gradien mundur melewati banyak perkalian matriks. Kalau
+setiap lapisan sedikit mengecilkan sinyal, setelah lima puluh lapisan sinyalnya hilang. Kalau
+setiap lapisan sedikit membesarkannya, sinyal meledak. Permainan bisik berantai memberi
+gambaran yang tepat. Kalau setiap orang berbisik sedikit lebih pelan dari yang ia dengar, pesan
+lenyap setelah dua puluh orang. Kalau setiap orang berbicara sedikit lebih keras, orang di ujung
+barisan sudah berteriak. Inisialisasi yang baik membuat setiap orang mengulang pesan dengan
+volume yang sama.
+
+Kuliah membahas hal ini dengan \istilah{mean field theory}, yaitu melacak rata-rata dan varians
+aktivasi dari lapisan ke lapisan. Ambil satu pre-activation, $s_i=\sum_{j=1}^Jw_{ij}a_j$. Kalau bobot
+diambil i.i.d.\ dengan rata-rata nol dan varians $\mathrm{Var}(w)$, independen dari aktivasi, maka setiap
+suku punya rata-rata nol dan varians $\E[w^2a^2]=\mathrm{Var}(w)\,\E[a^2]$. Varians jumlah $J$ suku
+independen adalah jumlah variansnya, sehingga
+\begin{equation}
+\mathrm{Var}(s_i)=J\,\mathrm{Var}(w)\,\E[a^2].
+\end{equation}
+Agar varians tidak berubah dari lapisan ke lapisan, kita butuh $J\,\mathrm{Var}(w)\approx1$
+untuk aktivasi yang hampir linear di sekitar nol, yaitu inisialisasi LeCun,
+$\mathrm{Var}(w)=1/J$. Glorot merata-ratakan kebutuhan arah maju dan mundur menjadi
+$\mathrm{Var}(w)=2/(J+I)$, dengan $I$ jumlah output. Untuk ReLU, $a=\max(0,s)$. Kalau $s$ simetris di
+sekitar nol, separuh nilainya dipotong menjadi nol dan separuh lainnya dibiarkan, sehingga
+$\E[a^2]=\tfrac12\E[s^2]=\tfrac12\mathrm{Var}(s)$. Masukkan ke rumus di atas: varians terjaga kalau
+$J\,\mathrm{Var}(w)\cdot\tfrac12=1$, yaitu $\mathrm{Var}(w)=2/J$ \citep{he2015}. Untuk lapisan dengan
+512 input, simpangan baku bobotnya $\sqrt{2/512}=0{,}0625$. Dengan $\sqrt{1/512}\approx0{,}044$ yang
+cocok untuk tanh, varians sinyal di jaringan ReLU akan menyusut separuh di setiap lapisan, dan setelah
+dua puluh lapisan tinggal sekitar sepersejuta.
+
+Inisialisasi menjaga sinyal di awal pelatihan, sedangkan normalisasi menjaganya terus-menerus.
+\istilah{Batch normalization} \citep{ioffe2015} menormalkan setiap pre-activation dengan rata-rata dan
+simpangan baku di dalam mini-batch, lalu memberi skala $\gamma$ dan geser $\beta$ yang bisa
+dipelajari:
+\begin{equation}
+\hat s=\frac{s-\mu_{\mathcal B}}{\sqrt{\sigma_{\mathcal B}^2+\epsilon}},\qquad y=\gamma\hat s+\beta.
+\end{equation}
+Saat inferensi, statistik batch diganti rata-rata bergerak yang dikumpulkan selama pelatihan.
+\istilah{Layer normalization} melakukan hal yang serupa, tetapi rata-ratanya dihitung atas neuron
+dalam satu contoh, bukan atas contoh dalam satu batch. Karena tidak bergantung pada ukuran batch,
+layer norm menjadi standar di jaringan rekuren dan transformer.
+
+Pendekatan yang khas Linz adalah \istilah{self-normalizing networks} \citep{klambauer2017}.
+Dengan aktivasi SELU dan inisialisasi yang tepat, pemetaan pasangan (rata-rata, varians) dari
+satu lapisan ke lapisan berikutnya punya titik tetap yang stabil dan menarik di $(0,1)$. Kalau
+aktivasi menyimpang dari titik itu, lapisan berikutnya menariknya kembali. Jaringan menormalkan
+dirinya sendiri tanpa lapisan normalisasi tambahan, dan konstanta $\lambda$ serta $\alpha$
+pada SELU dipilih tepat agar titik tetap itu ada.
+
+\section{Regularisasi}
+
+Jaringan modern punya parameter jauh lebih banyak daripada jumlah contoh. Tanpa pengekangan, ia
+bisa menghafal. Kuliah membahas beberapa cara mengekangnya. Weight decay, suku
+$\tfrac\lambda2\|\vw\|^2$ pada loss, setara dengan prior Gauss pada bobot (\cref{ch:data}).
+Menambahkan noise pada neuron atau bobot selama pelatihan memaksa jaringan tahan terhadap
+gangguan kecil, dan untuk model linear, noise Gauss pada input setara dengan regularisasi L2.
+Dropout mematikan setiap neuron dengan peluang $p$ selama pelatihan \citep{hinton2012}, sehingga
+jaringan tidak bisa bergantung pada satu neuron tertentu. Saat inferensi semua neuron aktif dan
+keluaran diskalakan, dan dropout bisa dibaca sebagai melatih ensembel amat besar dari
+sub-jaringan yang berbagi bobot. Early stopping menghentikan pelatihan ketika galat validasi
+mulai naik. Data augmentation memperbanyak data dengan transformasi yang tidak mengubah label,
+seperti menggeser, memutar, atau mengubah kecerahan. Ada juga cara yang mengubah ukuran jaringan
+selama pelatihan, yaitu menambah neuron (\istilah{growing}) atau membuang bobot yang kurang penting
+(\istilah{pruning}), serta pencarian eksplisit akan minimum yang datar \citep{hochreiter1997flat}.
+
+Dua kesalahan praktis sering terjadi di sini. Yang pertama adalah lupa mematikan dropout dan lupa
+memakai statistik batch norm hasil pelatihan saat evaluasi. Di PyTorch, inilah beda antara
+\texttt{model.train()} dan \texttt{model.eval()}. Yang kedua adalah augmentasi yang diam-diam
+mengubah label. Membalik angka 6 bisa menjadikannya 9. Pada data fisika, memutar medan kecepatan
+tanpa ikut memutar arah vektor-vektor kecepatannya juga menghasilkan data yang salah.
+
+\section{Jaringan konvolusi}
+
+Gambar berukuran $256\times256$ dengan tiga kanal punya hampir dua ratus ribu input. Lapisan
+fully-connected ke seribu neuron akan membutuhkan dua ratus juta bobot. Jaringan konvolusi
+memangkas angka ini dengan dua asumsi: pola penting bersifat lokal, dan pola yang sama bisa
+muncul di mana saja. Satu \istilah{kernel} kecil, misalnya $3\times3$, digeser ke seluruh gambar,
+\begin{equation}
+(\bm a\ast\bm k)_{ij}=\sum_{u,v}a_{i+u,\,j+v}\,k_{uv},
+\end{equation}
+dan bobot yang sama dipakai di semua posisi (\istilah{weight sharing}). Secara matematis, operasi
+ini adalah \istilah{cross-correlation}, karena konvolusi sejati membalik kernelnya lebih dulu.
+Karena kernel dipelajari, perbedaan itu tidak penting.
+
+Bayangkan Anda mencari satu tanda tangan di sebuah dokumen besar dengan kaca pembesar kecil.
+Anda menggeser kaca pembesar ke seluruh halaman dan mencatat seberapa mirip isi di bawahnya
+dengan tanda tangan yang dicari. Anda tidak butuh kaca pembesar yang berbeda untuk setiap posisi.
+Setiap kernel konvolusi adalah satu kaca pembesar yang mencari satu jenis pola.
+
+Untuk input berukuran $I$, kernel $K$, padding $P$, dan stride $S$, ukuran keluarannya adalah
+\begin{equation}
+O=\Big\lfloor\frac{I+2P-K}{S}\Big\rfloor+1,
+\end{equation}
+dan satu lapisan dengan $C_{\mathrm{in}}$ kanal masuk serta $C_{\mathrm{out}}$ kanal keluar punya
+$K^2C_{\mathrm{in}}C_{\mathrm{out}}+C_{\mathrm{out}}$ parameter, tidak bergantung pada ukuran gambar.
+Rumus ukuran keluaran mudah diturunkan dengan menghitung posisi. Setelah padding, panjang input
+menjadi $I+2P$. Kernel sepanjang $K$ pertama kali diletakkan di posisi paling kiri, dan ruang geraknya
+sampai mentok di kanan adalah $I+2P-K$ piksel. Dengan langkah $S$, banyaknya langkah yang muat adalah
+$\lfloor(I+2P-K)/S\rfloor$, ditambah satu untuk posisi awal. Jumlah parameternya berasal dari satu
+kernel $K\times K$ untuk setiap pasangan kanal masuk dan kanal keluar, ditambah satu bias per kanal
+keluar.
+LeNet memberi contoh klasik \citep{lecun1998}. Input $32\times32$ dengan kernel $5\times5$ tanpa
+padding menghasilkan keluaran $28\times28$. Dengan enam kernel, lapisan pertama punya
+$5\cdot5\cdot6+6=156$ parameter, dan pooling $2\times2$ dengan stride dua mengecilkan peta fitur
+menjadi $14\times14$.
+
+Pooling mengambil maksimum atau rata-rata di jendela kecil. Ia mengecilkan peta fitur dan memberi
+sedikit ketahanan terhadap pergeseran kecil. \istilah{Receptive field} sebuah neuron adalah daerah
+input yang memengaruhinya, dan setiap lapisan konvolusi atau pooling memperluasnya. Lapisan awal
+melihat tepi dan tekstur, lapisan tengah melihat bagian objek, lapisan akhir melihat objek utuh.
+Kalau kernel lapisan pertama sebuah jaringan terlatih divisualisasikan, hasilnya hampir selalu
+detektor tepi dan bercak warna, mirip sel-sel di korteks visual primer.
+
+Karena konvolusi linear, backprop melaluinya juga berupa konvolusi. Gradien terhadap input adalah
+konvolusi delta dengan kernel yang dibalik, operasi yang disebut \istilah{transposed convolution}.
+Gradien terhadap kernel adalah korelasi antara input dan delta yang dijumlahkan atas semua posisi,
+karena kernel yang sama dipakai di mana-mana. Transposed convolution juga dipakai sebagai lapisan
+untuk memperbesar resolusi, misalnya di bagian decoder U-Net (\cref{ch:arsitektur}).
+
+Sifat terpenting konvolusi adalah ini: kalau input digeser, keluarannya ikut bergeser dengan
+cara yang sama. Untuk operator geser $T$, berlaku $(T\bm a)\ast\bm k=T(\bm a\ast\bm k)$. Sifat ini
+disebut \istilah{translation equivariance}. Pooling global di ujung jaringan mengubahnya menjadi
+\istilah{invariance}: label tidak berubah kalau objeknya digeser. \Cref{ch:gdl} akan menunjukkan
+bahwa konvolusi adalah satu-satunya operator linear yang punya sifat ini, lalu
+menggeneralisasikannya ke rotasi, permutasi, dan graf.
+
+\section{Konvolusi di mana-mana}
+
+Konvolusi jauh lebih tua dari jaringan saraf, dan hampir setiap bidang di buku ini punya versinya
+sendiri. Dalam pemrosesan sinyal, filter FIR yang meratakan atau menajamkan sinyal adalah konvolusi
+satu dimensi dengan kernel yang dirancang insinyur (\cref{ch:sinyal}). Dalam pengolahan citra klasik,
+filter Gauss dan Sobel adalah kernel yang dirancang dengan tangan (\cref{ch:cv}). Dalam genomik, jaringan
+konvolusi satu dimensi yang digeser sepanjang urutan DNA mempelajari motif pendek tempat protein
+menempel, persis seperti kaca pembesar yang mencari tanda tangan (\cref{ch:genomik}). Dalam sensor yang
+dikenakan, konvolusi pada sinyal akselerometer mempelajari pola gerak (\cref{ch:pervasif}).
+
+Dalam simulasi, hubungannya langsung terasa bagi siapa pun yang pernah menulis solver numerik. Kernel
+\[
+\bm k=\frac1{h^2}\begin{pmatrix}0&1&0\\1&-4&1\\0&1&0\end{pmatrix}
+\]
+adalah stensil lima titik untuk Laplacian $\nabla^2u$ pada grid berjarak $h$. Kernel
+$\tfrac1{2h}(-1,0,1)$ adalah turunan pusat. Dengan kata lain, solver beda hingga pada grid teratur
+adalah jaringan konvolusi dengan kernel yang sudah ditentukan oleh fisika. Jaringan konvolusi
+yang dilatih pada data simulasi bisa dipandang sebagai solver yang mempelajari stensilnya sendiri.
+Pandangan ini menjelaskan mengapa CNN dan U-Net menjadi pilihan pertama untuk model pengganti
+pada grid teratur, dan mengapa mesh yang tidak teratur membutuhkan jaringan graf
+(\cref{ch:gdl,ch:operator}).
+
+\sumberbab{Bab ini mengikuti naskah kuliah Deep Learning and Neural Nets I, yang kini bernama
+Deep Learning: Basic Techniques: sejarah, notasi, arsitektur dasar, generalisasi, jaringan
+konvolusi, metode belajar, regularisasi, inisialisasi, dan normalisasi. Bacaan pendamping:
+\citet{goodfellow2016}, \citet{prince2023}, dan ulasan \citet{lecun2015}.}

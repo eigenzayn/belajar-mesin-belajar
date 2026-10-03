@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robot dan Kendaraan Otonom · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 17</p>
+<h1>Robot dan Kendaraan Otonom</h1>
+<p><span id="ch:robot" data-label="ch:robot"></span></p>
+<p>Musim panas 2025 membawa saya ke dua kuliah tentang mesin yang
+bergerak. Introduction to robotic systems membahas mekanika lengan
+robot: kerangka koordinat, kinematika maju dan balik, Jacobian,
+persamaan gerak dari prinsip Lagrange, visual servoing, dan perencanaan
+jalur. Introduction to autonomous vehicles membahas mobil yang mengemudi
+sendiri: lokalisasi dengan pendekatan Markov, ICP, dan NDT, sensor
+lidar, deteksi objek tiga dimensi, Kalman filter, dan pelacakan banyak
+objek, dengan proyek lokalisasi dan proyek persepsi.</p>
+<p>Robot adalah tempat semua yang sudah kita bahas bertemu. Ia harus
+melihat (<a href="ch05_computer_vision.html">Bab 7</a>), menaksir
+keadaannya di tengah ketidakpastian (<a
+href="ch08_probabilistik.html">Bab 10</a>), mengendalikan geraknya (<a
+href="ch31_kendali.html">Bab 15</a>), dan memutuskan apa yang dilakukan
+(<a href="ch10_rl.html">Bab 12</a> dan <a
+href="ch02b_ai_klasik.html">Bab 3</a>). Bab ini melihat dua jenis robot:
+lengan industri yang bekerja di tempat, dan kendaraan yang bergerak di
+dunia terbuka.</p>
+<h1 id="koordinat-dan-kinematika">Koordinat dan kinematika</h1>
+<p>Robot hidup di antara banyak kerangka koordinat: dunia, dasar robot,
+setiap sendi, ujung lengan, kamera. Posisi dan orientasi sebuah kerangka
+relatif terhadap kerangka lain dinyatakan dengan matriks rotasi dan
+vektor translasi, yang digabung menjadi matriks transformasi homogen
+<span class="math inline">\(4\times4\)</span>, sehingga transformasi
+berurutan cukup dikalikan. Konvensi Denavit–Hartenberg <span
+class="citation" data-cites="denavit1955">(Denavit dan Hartenberg
+1955)</span> memberi resep standar untuk menempatkan kerangka di setiap
+sendi, sehingga setiap sambungan hanya butuh empat parameter.</p>
+<p><em>Forward kinematics</em> menghitung posisi ujung lengan dari
+sudut-sudut sendi. Untuk lengan planar dua ruas dengan panjang <span
+class="math inline">\(l_1\)</span> dan <span
+class="math inline">\(l_2\)</span> serta sudut <span
+class="math inline">\(q_1\)</span> dan <span
+class="math inline">\(q_2\)</span>, <span
+class="math display">\[x=l_1\cos q_1+l_2\cos(q_1+q_2),\qquad y=l_1\sin
+q_1+l_2\sin(q_1+q_2).\]</span> Dengan <span
+class="math inline">\(l_1=l_2=1\)</span>, <span
+class="math inline">\(q_1=0\)</span>, dan <span
+class="math inline">\(q_2=90^\circ\)</span>, ujung lengan berada di
+<span class="math inline">\((1,1)\)</span>. <em>Inverse kinematics</em>
+berjalan ke arah sebaliknya: dari posisi yang diinginkan, cari sudut
+sendinya. Untuk lengan dua ruas ada dua jawaban, siku di atas atau siku
+di bawah, dan untuk posisi di luar jangkauan tidak ada jawaban sama
+sekali. Lengan dengan lebih banyak sendi dari yang dibutuhkan, yang
+disebut redundan, punya tak hingga jawaban, dan kebebasan itu bisa
+dipakai untuk menghindari rintangan.</p>
+<p>Jacobian menghubungkan kecepatan sendi dengan kecepatan ujung lengan,
+<span class="math inline">\(\dot{\boldsymbol p}=\boldsymbol
+J(\boldsymbol q)\dot{\boldsymbol q}\)</span>. Untuk lengan dua ruas
+tadi, determinannya <span class="math inline">\(l_1l_2\sin q_2\)</span>.
+Ketika lengan terbentang lurus atau terlipat penuh, <span
+class="math inline">\(\sin q_2=0\)</span> dan Jacobian kehilangan
+pangkat. Di konfigurasi <em>singular</em> seperti ini, ada arah gerak
+yang tidak bisa dicapai sama sekali, dan kecepatan sendi yang dibutuhkan
+untuk bergerak di dekatnya membengkak.</p>
+<h1 id="dinamika">Dinamika</h1>
+<p>Kinematika tidak peduli pada massa dan gaya. Untuk mengendalikan
+lengan yang sebenarnya, kita perlu tahu torsi apa yang menghasilkan
+gerak tertentu. Kuliah menurunkannya dengan prinsip Hamilton dan
+persamaan Lagrange. Tuliskan energi kinetik <span
+class="math inline">\(T\)</span> dan energi potensial <span
+class="math inline">\(V\)</span> sebagai fungsi koordinat sendi, bentuk
+fungsi Lagrange <span class="math inline">\(L=T-V\)</span>, lalu
+terapkan <span
+class="math display">\[\frac{\,\mathrm{d}}{\,\mathrm{d}t}\frac{\partial
+L}{\partial\dot q_i}-\frac{\partial L}{\partial q_i}=\tau_i.\]</span>
+Hasilnya selalu berbentuk <span class="math inline">\(\boldsymbol
+M(\boldsymbol q)\ddot{\boldsymbol q}+\boldsymbol C(\boldsymbol
+q,\dot{\boldsymbol q})\dot{\boldsymbol q}+\boldsymbol g(\boldsymbol
+q)=\boldsymbol\tau\)</span>, dengan matriks massa yang bergantung pada
+konfigurasi, suku Coriolis dan sentrifugal, dan gravitasi. Struktur ini
+dipakai langsung untuk kendali: kalau persamaannya diketahui, pengendali
+bisa menghitung torsi yang membatalkan nonlinearitas dan menyisakan
+sistem linear yang mudah dikendalikan. Deskripsi robot untuk perangkat
+lunak, seperti format URDF, menyimpan semua massa, inersia, dan geometri
+yang dibutuhkan untuk perhitungan ini <span class="citation"
+data-cites="lynch2017">(Lynch dan Park 2017)</span>.</p>
+<h1 id="melihat-dan-merencanakan">Melihat dan merencanakan</h1>
+<p>Visual servoing mengendalikan robot dengan umpan balik dari kamera.
+Model kamera dan kalibrasinya sama dengan di <a
+href="ch05_computer_vision.html">Bab 7</a>. Pada visual servoing
+berbasis posisi, pose objek diperkirakan dari gambar, lalu galat pose
+diumpankan ke pengendali.</p>
+<p>Untuk bergerak tanpa menabrak, kuliah membahas medan potensial
+buatan. Tujuan memberi potensial yang menarik, rintangan memberi
+potensial yang menolak, dan robot mengikuti gradien negatif jumlahnya,
+seperti bola yang menggelinding di lanskap. Cara ini elegan dan murah,
+tetapi punya masalah yang sudah kita kenal dari optimasi: minimum lokal.
+Robot bisa terjebak di lekukan antara dua rintangan, di mana tarikan dan
+tolakan seimbang. Perencana berbasis graf seperti A* (<a
+href="ch02b_ai_klasik.html">Bab 3</a>) atau perencana berbasis sampel
+menghindarinya dengan mencari secara global. Gerak sepanjang jalur
+kemudian diberi profil kecepatan yang halus, misalnya trapesium dengan
+fase percepatan, kecepatan tetap, dan perlambatan, supaya motor tidak
+dihentak.</p>
+<h1 id="di-mana-aku-berada-lokalisasi">Di mana aku berada:
+lokalisasi</h1>
+<p>Mobil otonom harus tahu posisinya dengan ketelitian beberapa
+sentimeter, jauh lebih teliti dari GPS biasa. Kuliah membahas tiga
+pendekatan. <em>Markov localization</em> adalah filter Bayes dari <a
+href="ch08_probabilistik.html">Bab 10</a> di atas grid posisi <span
+class="citation" data-cites="thrun2005">(Thrun, Burgard, dan Fox
+2005)</span>. Keyakinan tentang posisi disebar menurut model gerak,
+karena roda selip dan odometri tidak sempurna, lalu dipertajam dengan
+membandingkan pengukuran sensor dengan peta. Bayangkan berjalan di
+koridor gelap dengan tangan meraba dinding: setiap langkah menambah
+keraguan, setiap pintu yang teraba mengurangi keraguan.</p>
+<p>Dua pendekatan lain bekerja dengan mencocokkan awan titik lidar
+dengan peta. <em>Iterative closest point</em> <span class="citation"
+data-cites="besl1992">(Besl dan McKay 1992)</span> bergantian antara
+memasangkan setiap titik pindaian dengan titik peta terdekat, lalu
+mencari rotasi dan translasi kaku yang meminimalkan jarak kuadrat
+pasangan-pasangan itu. Langkah kedua punya solusi tertutup melalui
+dekomposisi nilai singular. ICP cepat konvergen kalau tebakan awalnya
+baik, dan bisa tersesat kalau tidak. <em>Normal distributions
+transform</em> <span class="citation" data-cites="biber2003">(Biber dan
+Strasser 2004)</span> membagi peta menjadi sel-sel dan mewakili
+titik-titik di setiap sel dengan sebuah distribusi Gauss. Pindaian baru
+dicocokkan dengan memaksimalkan likelihood titik-titiknya di bawah
+campuran Gauss itu, yang lebih mulus dan lebih tahan terhadap tebakan
+awal yang kurang tepat.</p>
+<h1 id="melihat-jalan-persepsi-dan-pelacakan">Melihat jalan: persepsi
+dan pelacakan</h1>
+<p>Lidar memancarkan pulsa laser dan mengukur waktu tempuhnya, sehingga
+menghasilkan awan titik tiga dimensi dengan jarak yang akurat. Kamera
+memberi warna dan tekstur, dan radar (<a href="ch30_sinyal.html">Bab
+14</a>) memberi kecepatan langsung dan tetap bekerja dalam hujan dan
+kabut. Fusi sensor menggabungkan kelebihan masing-masing.</p>
+<p>Mendeteksi objek dalam awan titik punya kesulitan khas:
+titik-titiknya tidak tersusun dalam grid dan urutannya tidak bermakna.
+PointNet <span class="citation" data-cites="qi2017">(Qi dkk.
+2016)</span> menanganinya dengan menerapkan MLP yang sama pada setiap
+titik lalu menggabungkan hasilnya dengan pooling maksimum, sebuah fungsi
+yang invarian terhadap permutasi persis seperti DeepSets di <a
+href="ch07_geometric.html">Bab 9</a>. PointPillars <span
+class="citation" data-cites="lang2019">(Lang dkk. 2018)</span>
+mengelompokkan titik ke dalam pilar-pilar vertikal di atas grid tanah,
+mengubahnya menjadi gambar pandangan atas, lalu memakai jaringan
+konvolusi dua dimensi yang cepat.</p>
+<p>Deteksi di setiap bingkai belum cukup. Kita perlu tahu bahwa mobil di
+bingkai ini adalah mobil yang sama dengan di bingkai sebelumnya, dan ke
+mana ia bergerak. Pelacakan banyak objek bekerja dalam siklus. Untuk
+setiap jejak yang sudah ada, Kalman filter atau versi diperluasnya
+meramalkan posisi di bingkai berikutnya. Deteksi baru lalu dipasangkan
+dengan jejak-jejak itu. Pemasangan ini adalah masalah penugasan:
+diberikan matriks biaya berisi jarak antara setiap ramalan dan setiap
+deteksi, cari pasangan satu-satu dengan biaya total terkecil. Algoritme
+Hungaria <span class="citation" data-cites="kuhn1955">(Kuhn 1955)</span>
+menyelesaikannya secara eksak. Deteksi yang tidak punya pasangan bisa
+menjadi jejak baru, dan jejak yang lama tidak mendapat deteksi dihapus.
+Setiap jejak yang terpasang diperbarui dengan langkah koreksi
+Kalman.</p>
+<h1 id="di-mana-machine-learning-masuk">Di mana machine learning
+masuk</h1>
+<p>Robotika klasik dibangun dari model yang diturunkan: kinematika,
+dinamika, model sensor. Machine learning masuk di tempat model sulit
+ditulis. Persepsi hampir seluruhnya dikuasai deep learning. Dinamika
+yang sulit dimodelkan, seperti gesekan, kabel, atau benda lunak, bisa
+dipelajari dari data dan dipakai sebagai koreksi atas model fisika.
+Policy untuk manipulasi yang rumit dilatih dengan reinforcement learning
+di simulator lalu dipindahkan ke robot nyata, atau dipelajari dari
+demonstrasi manusia (<a href="ch10_rl.html">Bab 12</a>). Model fondasi
+yang memadukan penglihatan, bahasa, dan aksi mulai dipakai untuk memberi
+perintah robot dengan kalimat biasa (<a href="ch52_terbaru.html">Bab
+32</a>). Tetapi untuk bagian yang menyangkut keselamatan, seperti
+lokalisasi, pelacakan, dan kendali tingkat rendah, metode klasik dengan
+jaminan yang bisa dianalisis tetap menjadi tulang punggung.</p>
+<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<p>Bab ini mengikuti kuliah Introduction to Robotic Systems
+(transformasi kerangka, kecepatan benda kaku, Denavit–Hartenberg,
+kinematika maju dan balik, Jacobian dan singularitas, persamaan
+Lagrange, visual servoing, medan potensial, profil trayektori) dan
+Introduction to Autonomous Vehicles (Markov localization, ICP, NDT,
+lidar, deteksi objek tiga dimensi, Kalman dan extended Kalman filter,
+pelacakan banyak objek). Buku rujukan: <span class="citation"
+data-cites="lynch2017">Lynch dan Park (2017)</span> dan <span
+class="citation" data-cites="thrun2005">Thrun, Burgard, dan Fox
+(2005)</span>.</p>
+<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-besl1992" class="csl-entry" role="listitem">
+Besl, P. J., dan Neil D. McKay. 1992. <span>“A method for registration
+of 3-D shapes.”</span> <em>IEEE Transactions on Pattern Analysis and
+Machine Intelligence</em> 14 (2): 239–56. <a
+href="https://doi.org/10.1109/34.121791">https://doi.org/10.1109/34.121791</a>.
+</div>
+<div id="ref-biber2003" class="csl-entry" role="listitem">
+Biber, P., dan W. Strasser. 2004. <span>“The normal distributions
+transform: a new approach to laser scan matching.”</span> Dalam
+<em>Proceedings 2003 IEEE/RSJ International Conference on Intelligent
+Robots and Systems (IROS 2003) (Cat. No.03CH37453)</em>, 3:2743–48. <a
+href="https://doi.org/10.1109/IROS.2003.1249285">https://doi.org/10.1109/IROS.2003.1249285</a>.
+</div>
+<div id="ref-denavit1955" class="csl-entry" role="listitem">
+Denavit, J., dan R. S. Hartenberg. 1955. <span>“A Kinematic Notation for
+Lower-Pair Mechanisms Based on Matrices.”</span> <em>Journal of Applied
+Mechanics</em> 22 (2): 215–21. <a
+href="https://doi.org/10.1115/1.4011045">https://doi.org/10.1115/1.4011045</a>.
+</div>
+<div id="ref-kuhn1955" class="csl-entry" role="listitem">
+Kuhn, H. W. 1955. <span>“The Hungarian method for the assignment
+problem.”</span> <em>Naval Research Logistics Quarterly</em> 2 (1–2):
+83–97. <a
+href="https://doi.org/10.1002/nav.3800020109">https://doi.org/10.1002/nav.3800020109</a>.
+</div>
+<div id="ref-lang2019" class="csl-entry" role="listitem">
+Lang, Alex H., Sourabh Vora, Holger Caesar, Lubing Zhou, Jiong Yang, dan
+Oscar Beijbom. 2018. <span>“PointPillars: Fast Encoders for Object
+Detection from Point Clouds.”</span> arXiv:1812.05784. <a
+href="https://arxiv.org/abs/1812.05784">https://arxiv.org/abs/1812.05784</a>.
+</div>
+<div id="ref-lynch2017" class="csl-entry" role="listitem">
+Lynch, Kevin M., dan Frank C. Park. 2017. <em>Modern Robotics:
+Mechanics, Planning, and Control</em>. Cambridge University Press.
+</div>
+<div id="ref-qi2017" class="csl-entry" role="listitem">
+Qi, Charles R., Hao Su, Kaichun Mo, dan Leonidas J. Guibas. 2016.
+<span>“PointNet: Deep Learning on Point Sets for 3D Classification and
+Segmentation.”</span> arXiv:1612.00593. <a
+href="https://arxiv.org/abs/1612.00593">https://arxiv.org/abs/1612.00593</a>.
+</div>
+<div id="ref-thrun2005" class="csl-entry" role="listitem">
+Thrun, Sebastian, Wolfram Burgard, dan Dieter Fox. 2005.
+<em>Probabilistic Robotics</em>. MIT Press.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch32_pervasif.html"><span>Sebelumnya</span>Komputasi yang Menghilang</a>
+  <a class="next" href="ch40_genomik.html"><span>Berikutnya</span>Membaca Kode Kehidupan</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

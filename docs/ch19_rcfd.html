@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recurrence CFD: Simulasi dari
+Ingatan · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 29</p>
+<h1>Recurrence CFD: Simulasi dari Ingatan</h1>
+<p><span id="ch:rcfd" data-label="ch:rcfd"></span></p>
+<p>Recurrence CFD adalah topik tugas akhir saya, dan kuliah metode
+numerik fluida memberinya satu pertemuan penuh. Stefan Pirker membukanya
+dengan Max dan Moritz, dua anak nakal dari cerita bergambar Wilhelm
+Busch, dan guru mereka, Lehrer Lämpel. Max dan Moritz membuat tebakan
+yang berani, sang guru mengoreksinya. Menurut Pirker, begitulah cara
+algoritme SIMPLE menyelesaikan persamaan Navier–Stokes: tebakan yang
+tidak sempurna, lalu koreksi berbasis fisika. Dan begitulah juga rCFD
+dikembangkan. Bab ini mengikuti alur kuliah itu, lalu menceritakan
+sedikit tentang apa yang saya kerjakan dalam tugas akhir.</p>
+<h1 id="aliran-yang-mengulang-dirinya">Aliran yang mengulang
+dirinya</h1>
+<p>Banyak aliran yang menarik bagi industri berjalan lama sekali.
+Peleburan baja di dalam ladle, pencampuran di tangki berpengaduk, dan
+gelembung yang naik di kolom gelembung bisa berlangsung menit sampai
+jam, sedangkan simulasi CFD yang teliti hanya sanggup menjangkau
+beberapa puluh detik waktu fisis dalam waktu hitung yang wajar.
+Untungnya, banyak aliran seperti ini, setelah melewati fase awal, tidak
+menghasilkan pola yang benar-benar baru. Pusaran datang dan pergi,
+gelembung naik dalam pola yang mirip, dan keadaan aliran berulang kali
+kembali ke dekat keadaan yang pernah dikunjungi sebelumnya.</p>
+<p>Pengulangan ini bisa diukur. Simpan medan aliran dari simulasi penuh
+sebagai deretan bingkai <span
+class="math inline">\(\boldsymbol\phi_1,\dots,\boldsymbol\phi_M\)</span>.
+Untuk setiap pasangan bingkai, hitung jaraknya, lalu normalisasikan:
+<span
+class="math display">\[R_{ij}=\frac{\|\boldsymbol\phi_i-\boldsymbol\phi_j\|}{\max_{k,l}\|\boldsymbol\phi_k-\boldsymbol\phi_l\|}.\]</span>
+Matriks <span class="math inline">\(\boldsymbol R\)</span> ini disebut
+<em>recurrence matrix</em>. Diagonalnya nol, karena setiap bingkai
+identik dengan dirinya sendiri. Kalau aliran periodik sempurna,
+garis-garis gelap sejajar diagonal muncul pada jarak satu periode. Pada
+aliran turbulen, polanya lebih kabur, tetapi tetap ada daerah-daerah di
+luar diagonal dengan nilai kecil: pasangan bingkai yang berjauhan dalam
+waktu tetapi mirip satu sama lain. Dalam bahasa machine learning, <span
+class="math inline">\(\boldsymbol R\)</span> adalah matriks jarak antar
+sampel, dan pasangan dengan jarak kecil adalah tetangga terdekat di
+ruang keadaan aliran.</p>
+<h1 id="rcfd-berbasis-aliran">rCFD berbasis aliran</h1>
+<p>Gagasan pertama, yang diterbitkan <span class="citation"
+data-cites="lichtenegger2016">Lichtenegger dan Pirker (2016)</span>
+untuk kolom gelembung, berbunyi seperti kalimat yang berulang di slide:
+“kita putuskan dengan berani untuk menyusun aliran buatan dengan
+menjahit potongan-potongan rangkaian aliran”. Mulailah dari sebuah
+bingkai, mainkan beberapa bingkai berikutnya dari basis data, lalu
+lompat ke bingkai lain yang mirip dengan bingkai terakhir menurut
+recurrence matrix, dan teruskan dari sana. Hasilnya adalah deret medan
+aliran sepanjang yang kita mau, yang secara statistik meniru aliran
+asli, tanpa pernah menyelesaikan persamaan Navier–Stokes lagi.</p>
+<p>Di atas aliran yang dijahit ini, besaran yang terbawa aliran,
+misalnya konsentrasi zat terlarut, dilacak dengan persamaan transport
+implisit (Persamaan (22.2)). Persamaan transport untuk satu besaran
+skalar jauh lebih murah daripada persamaan Navier–Stokes yang terkopel,
+dan karena implisit, langkah waktunya bisa jauh lebih besar. Pada kasus
+kolom gelembung, rCFD berbasis aliran menghasilkan prediksi yang cocok
+dengan CFD penuh dengan percepatan sekitar seratus kali.</p>
+<p>Bayangkan mencoba meramalkan arus lalu lintas sebuah kota selama
+setahun. Daripada mensimulasikan setiap mobil, kita merekam lalu lintas
+selama beberapa minggu, lalu menyusun tahun buatan dengan menyambung
+potongan-potongan hari yang mirip: setelah Senin pagi yang macet
+biasanya datang siang yang agak sepi. Kalau yang kita pedulikan adalah
+ke mana sebuah paket akan sampai, rekaman lalu lintas yang dijahit sudah
+cukup.</p>
+<h1 id="rcfd-berbasis-transport">rCFD berbasis transport</h1>
+<p>Langkah kedua, dari <span class="citation"
+data-cites="pirker2018">Pirker dan Lichtenegger (2018)</span>, bahkan
+melewati persamaan transport. Kuliah menjelaskannya dengan sungai Danube
+di Linz. Sebuah zat yang dijatuhkan ke sungai dibawa arus dan menyebar.
+Arus membawa zat dari satu tempat ke tempat lain, yaitu konveksi, dan
+pusaran kecil membuatnya menyebar, yaitu difusi. Dalam bahasa sel-sel
+volume hingga, konveksi berarti sebagian isi sebuah sel berpindah ke sel
+lain, dan difusi berarti dua sel bertetangga saling bertukar isi. Mesh
+simulasi adalah jaringan komunikasi antar sel. rCFD berbasis transport
+memutuskan, sekali lagi dengan berani, untuk mengganti konveksi dengan
+<em>cell-to-cell shifts</em> dan difusi dengan <em>face swaps</em> yang
+direkam dari simulasi penuh.</p>
+<p>Secara sederhana, satu langkah transport menjadi perkalian dengan
+sebuah matriks pemindahan. Kalau <span
+class="math inline">\(c_i\)</span> adalah jumlah zat di sel <span
+class="math inline">\(i\)</span> dan <span
+class="math inline">\(P_{ji}\)</span> fraksi isi sel <span
+class="math inline">\(i\)</span> yang dipindahkan ke sel <span
+class="math inline">\(j\)</span> dalam satu langkah, maka <span
+class="math display">\[c_j^{\mathrm{baru}}=\sum_iP_{ji}\,c_i.\]</span>
+Massa total kekal tepat ketika setiap kolom <span
+class="math inline">\(\boldsymbol P\)</span> berjumlah satu, <span
+class="math inline">\(\sum_jP_{ji}=1\)</span>: semua isi sel <span
+class="math inline">\(i\)</span> pergi ke suatu tempat, tidak ada yang
+hilang dan tidak ada yang muncul. Pembaca yang ingat <a
+href="ch17_penemuan_reduksi.html">Bab 27</a> akan mengenali bahwa
+matriks seperti ini adalah versi diskret dari operator transfer, saudara
+operator Koopman, yang memajukan distribusi alih-alih memajukan
+pengamatan.</p>
+<p>Hasilnya mencengangkan. Untuk simulasi pencampuran di sebuah ladle
+baja, slide kuliah membandingkan CFD penuh yang membutuhkan 26 jam
+dengan rCFD berbasis transport yang selesai dalam 1,6 detik pada
+perangkat keras yang sama, dengan histogram konsentrasi yang cocok di
+beberapa titik waktu.</p>
+<h1 id="tiga-kegagalan-berani-dan-koreksinya">Tiga kegagalan berani dan
+koreksinya</h1>
+<p>Bagian paling jujur dari kuliah adalah tiga “kegagalan berani” rCFD
+dan cara memperbaikinya.</p>
+<p>Kegagalan pertama adalah ketidakseimbangan massa. Untuk simulasi yang
+panjang, hasil rCFD menyimpang dari CFD penuh. Penyebabnya, pemindahan
+antar sel yang direkam dari bingkai berbeda dan dijahit bersama tidak
+menjamin bahwa setiap kolom <span class="math inline">\(\boldsymbol
+P\)</span> berjumlah tepat satu. Secara lokal, sebagian massa hilang dan
+sebagian lain tercipta. Secara global, neraca massa spesies bisa
+dihitung dengan mudah, sehingga galat rCFD bisa dipantau. Koreksinya
+memakai pemantau global itu untuk menyesuaikan pola konsentrasi lokal
+lewat face swaps yang bekerja pada massa, sehingga neraca kembali
+seimbang.</p>
+<p>Kegagalan kedua adalah difusi yang tidak fisis. Face swaps yang sama
+kuatnya di semua tempat membuat zat menyebar terlalu cepat di daerah
+tenang dan terlalu lambat di daerah turbulen. <span class="citation"
+data-cites="du2020">Du, Blocken, dan Pirker (2020)</span>, yang
+menerapkan rCFD pada penyebaran polutan di sekitar bangunan,
+memperbaikinya dengan membuat kekuatan face swaps bergantung pada
+turbulensi lokal, yang dalam LES dinyatakan oleh viskositas
+sub-grid.</p>
+<p>Kegagalan ketiga adalah pengulangan yang kurang menonjol. Di domain
+yang besar, tidak ada dua bingkai yang mirip di <em>semua</em> tempat
+sekaligus. Penjahitan global memasangkan bingkai yang secara rata-rata
+mirip tetapi secara lokal, misalnya di ekor pusaran di belakang sebuah
+gedung, tidak mirip sama sekali. Usulan koreksinya adalah memecah domain
+menjadi “pulau-pulau” dengan pengulangan yang kuat dan “laut” latar
+dengan pengulangan yang lemah, masing-masing dengan recurrence matrix
+sendiri.</p>
+<h1 id="menuju-kembaran-digital">Menuju kembaran digital</h1>
+<p>Kuliah ditutup dengan visi yang lebih besar. Kalau rCFD begitu cepat,
+ia bisa berjalan bersamaan dengan proses industri yang sebenarnya,
+sebagai kembaran digital. Masalahnya, proses nyata punya lebih dari satu
+keadaan operasi, dan rCFD yang dijalankan maju tanpa koreksi pasti
+melenceng dari kenyataan. Jalan keluarnya mirip asimilasi data di <a
+href="ch08_probabilistik.html">Bab 10</a>: jalankan rCFD sambil
+mengoreksinya dengan pengukuran proses yang tersedia secara langsung.
+Kuliah memperlihatkan percobaan sederhana untuk ide ini, dua aliran air
+panas dan dingin yang dicampur di sebuah tangki dengan deretan sensor
+temperatur vertikal. Model tangki ideal yang tercampur sempurna terlalu
+sederhana karena mengabaikan perbedaan di dalam tangki, sedangkan CFD
+tanpa validasi rawan galat. rCFD yang diturunkan dari CFD dan dikoreksi
+dengan data sensor menempati tempat di antara keduanya.</p>
+<h1 id="tugas-akhir-saya">Tugas akhir saya</h1>
+<p>Tugas akhir saya menerapkan rCFD berbasis transport pada pancaran
+apung (<em>buoyant jet</em>) di dalam sebuah tangki: air hangat yang
+masuk dan naik karena lebih ringan, lalu bercampur dengan air di
+sekitarnya. Kasus ini menyentuh dua kegagalan di atas sekaligus.
+Pancaran yang naik membentuk lapisan temperatur yang tajam, dan setiap
+difusi tambahan dari pemindahan antar sel mengaburkan lapisan itu.
+Ketika dinding tangki kehilangan panas ke lingkungan, alirannya juga
+tidak lagi berulang sempurna, karena temperatur rata-rata terus
+turun.</p>
+<p>Benang merah pekerjaannya adalah mengambil lebih banyak informasi
+dari simulasi penuh dan menyimpannya di dalam basis data rCFD, alih-alih
+memakai satu konstanta global. Salah satu contohnya adalah difusivitas
+lokal yang direkam dari CFD dan dipakai kembali saat replay, gagasan
+yang sejalan dengan koreksi <span class="citation"
+data-cites="du2020">Du, Blocken, dan Pirker (2020)</span>. Contoh lain
+adalah difusivitas negatif yang terkendali untuk mempertajam kembali
+gradien yang terlalu kabur, dengan pembatas seperti pada skema
+flux-corrected transport agar tidak muncul osilasi. Hasil-hasil
+kuantitatifnya ada di laporan tugas akhir. Yang ingin saya sampaikan di
+sini lebih sederhana: setiap perbaikan mengikuti pola yang sama dengan
+yang diajarkan di kuliah, yaitu tebakan yang berani diikuti koreksi
+berbasis fisika.</p>
+<h1 id="rcfd-dari-sudut-pandang-machine-learning">rCFD dari sudut
+pandang machine learning</h1>
+<p>Setelah membaca bab-bab sebelumnya, rCFD bisa dilihat dengan mata
+machine learning. Basis data bingkai adalah ingatan, recurrence matrix
+adalah ukuran kemiripan antar keadaan, dan penjahitan adalah mencari
+tetangga terdekat di ruang keadaan lalu melompat ke sana. Tidak ada
+jaringan saraf dan tidak ada pelatihan dengan gradien. rCFD adalah model
+pengganti nonparametrik, mirip <span
+class="math inline">\(k\)</span>-nearest neighbour (<a
+href="ch02c_unsupervised.html">Bab 4</a>) yang diterapkan pada lintasan
+dinamika. Matriks pemindahan antar sel adalah operator transfer yang
+dipelajari dari data, saudara dekat DMD dan Koopman (<a
+href="ch17_penemuan_reduksi.html">Bab 27</a>). Dan koreksi neraca massa
+adalah contoh paling jelas dari prinsip model hibrida (<a
+href="ch18_hibrida.html">Bab 28</a>): biarkan data memberi dinamika, dan
+biarkan hukum kekekalan menjaga agar hasilnya tetap fisis.</p>
+<p>Kekuatannya juga kelemahannya. Karena hanya memutar ulang dan
+menyusun kembali apa yang pernah dilihat, rCFD tidak bisa menghasilkan
+keadaan aliran yang benar-benar baru. Untuk aliran yang memang mengulang
+dirinya, itu justru jaminan: hasilnya tidak akan berhalusinasi. Untuk
+aliran yang berubah keadaan operasinya, dibutuhkan basis data dengan
+banyak keadaan dan cara memilih di antaranya, persis pertanyaan yang
+diangkat kuliah tentang proses nyata yang punya lebih dari satu keadaan
+operasi. Di sinilah rCFD dan model pengganti berbasis jaringan saraf,
+seperti yang disinggung di slide terakhir kuliah, mungkin akan saling
+melengkapi.</p>
+<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<p>Bab ini mengikuti pertemuan tentang recurrence CFD dalam kuliah
+Numerical Methods in Fluid Mechanics dan pengalaman selama tugas akhir.
+Makalah utamanya: <span class="citation"
+data-cites="lichtenegger2016">Lichtenegger dan Pirker (2016)</span>
+untuk rCFD berbasis aliran, <span class="citation"
+data-cites="pirker2018">Pirker dan Lichtenegger (2018)</span> untuk rCFD
+berbasis transport, dan <span class="citation" data-cites="du2020">Du,
+Blocken, dan Pirker (2020)</span> untuk penerapan pada lingkungan
+bangunan.</p>
+<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-du2020" class="csl-entry" role="listitem">
+Du, Yaxing, Bert Blocken, dan Stefan Pirker. 2020. <span>“A novel
+approach to simulate pollutant dispersion in the built environment:
+Transport-based recurrence CFD.”</span> <em>Building and
+Environment</em> 170: 106604. <a
+href="https://doi.org/10.1016/j.buildenv.2019.106604">https://doi.org/10.1016/j.buildenv.2019.106604</a>.
+</div>
+<div id="ref-lichtenegger2016" class="csl-entry" role="listitem">
+Lichtenegger, T., dan S. Pirker. 2016. <span>“Recurrence CFD – A novel
+approach to simulate multiphase flows with strongly separated time
+scales.”</span> <em>Chemical Engineering Science</em> 153: 394–410. <a
+href="https://doi.org/10.1016/j.ces.2016.07.036">https://doi.org/10.1016/j.ces.2016.07.036</a>.
+</div>
+<div id="ref-pirker2018" class="csl-entry" role="listitem">
+Pirker, S., dan T. Lichtenegger. 2018. <span>“Efficient
+time-extrapolation of single- and multiphase simulations by transport
+based recurrence CFD (rCFD).”</span> <em>Chemical Engineering
+Science</em> 188: 65–83. <a
+href="https://doi.org/10.1016/j.ces.2018.04.059">https://doi.org/10.1016/j.ces.2018.04.059</a>.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch18_hibrida.html"><span>Sebelumnya</span>Model Hibrida: Fisika dan Data Bersama</a>
+  <a class="next" href="ch50_rekomendasi.html"><span>Berikutnya</span>Belajar dari Jejak Pengguna</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

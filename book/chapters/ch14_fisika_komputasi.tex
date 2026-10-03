@@ -1,0 +1,126 @@
+\chapter{Fisika Komputasi}
+\label{ch:fiskom}
+
+Kuliah fisika komputasi saya ikuti pada musim dingin 2025/26. Catatan kuliahnya berupa tulisan
+tangan, tiga belas pertemuan yang masing-masing membahas satu alat numerik dasar: interpolasi,
+transformasi Fourier dan FFT, mencari akar, persamaan diferensial biasa, metode simplektik, masalah
+nilai batas, masalah nilai eigen, persamaan diferensial parsial yang bergantung waktu, metode
+split-operator, lalu Monte Carlo. Alat-alat ini tersembunyi di dalam hampir setiap simulasi, dan
+juga di dalam banyak algoritme machine learning.
+
+\section{Interpolasi dan Fourier}
+
+Interpolasi mencari fungsi mulus yang melewati titik-titik data yang diketahui. Polinomial
+interpolasi Lagrange berderajat $n-1$ melewati $n$ titik dengan tepat, tetapi untuk derajat tinggi
+pada titik berjarak sama, ia berosilasi liar di dekat tepi selang. Spline kubik memakai polinomial
+derajat tiga per potongan yang disambung mulus, dan biasanya jauh lebih jinak. Interpolasi dengan
+polinomial trigonometri, yaitu jumlah sinus dan kosinus, cocok untuk data periodik, dan koefisiennya
+tidak lain adalah transformasi Fourier diskret.
+
+Menghitung transformasi Fourier diskret dari $N$ titik secara langsung membutuhkan sekitar $N^2$
+operasi. FFT \citep{cooley1965} memecah jumlah itu menjadi dua jumlah setengah ukuran, satu untuk indeks
+genap dan satu untuk indeks ganjil, lalu mengulang pemecahan itu secara rekursif. Biayanya turun
+menjadi sekitar $N\log_2N$. Untuk satu juta titik, selisihnya kira-kira dari $10^{12}$ ke
+$2\times10^7$ operasi. FFT menjadi tulang punggung pemrosesan sinyal, pengolahan citra, solver
+spektral untuk PDE, dan neural operator berbasis Fourier di \cref{ch:operator}.
+
+\section{Mencari akar}
+
+Banyak masalah berujung pada mencari $x$ yang memenuhi $f(x)=0$. Metode bagi dua mulai dari selang
+tempat $f$ berganti tanda, lalu terus membagi selang menjadi dua dan mempertahankan separuh yang
+masih mengandung pergantian tanda. Lambat tetapi pasti: setiap langkah memberi tambahan satu bit
+ketelitian. Metode Newton--Raphson memakai garis singgung, $x_{n+1}=x_n-f(x_n)/f'(x_n)$, dan
+konvergen secara kuadratik di dekat akar, tetapi bisa melompat jauh kalau tebakan awalnya buruk
+atau turunannya hampir nol. Dalam banyak dimensi, Newton menjadi penyelesaian sistem linear dengan
+Jacobian di setiap langkah, dan itulah yang terjadi di dalam setiap solver implisit.
+
+\section{Persamaan diferensial biasa}
+
+Masalah nilai awal $\dot{\bm y}=\bm f(\bm y,t)$ dengan $\bm y(0)$ diketahui diselesaikan selangkah demi
+selangkah. Metode Euler eksplisit, $\bm y_{n+1}=\bm y_n+h\bm f(\bm y_n,t_n)$, hanya akurat orde satu.
+Runge--Kutta orde empat mengevaluasi $\bm f$ empat kali per langkah dan galat globalnya sebanding
+dengan $h^4$, sehingga memperkecil langkah setengah kali mengurangi galat enam belas kali.
+
+Osilator harmonik memperlihatkan bahwa akurasi saja tidak cukup. Persamaan Newton $\ddot x=-\omega^2x$
+punya energi yang kekal, dan di ruang fase posisi dan kecepatan, lintasannya adalah elips tertutup.
+Euler eksplisit membuat lintasan berputar keluar, karena energinya bertambah sedikit di setiap
+langkah. Runge--Kutta orde empat jauh lebih akurat, tetapi untuk simulasi yang panjang sekali energinya
+tetap perlahan bergeser. Metode \istilah{simplektik} seperti velocity Verlet \citep{verlet1967} tidak
+menjaga energi persis, tetapi galat energinya berosilasi dalam batas yang tetap dan tidak menumpuk,
+karena metode ini menjaga struktur geometris ruang fase, yaitu volume ruang fase, sesuai teorema
+Liouville. Untuk dinamika molekul dan mekanika benda langit yang berjalan jutaan langkah, sifat ini
+jauh lebih penting daripada orde akurasi.
+
+Masalah nilai batas berbeda. Syaratnya diberikan di dua ujung, misalnya $u(a)=u_a$ dan $u(b)=u_b$.
+Metode \istilah{shooting} menebak kemiringan awal, menyelesaikan masalah nilai awal, melihat seberapa
+jauh hasilnya meleset di ujung lain, lalu memperbaiki tebakan dengan pencarian akar. Alternatifnya,
+turunan diganti beda hingga di grid, sehingga masalahnya menjadi sistem persamaan linear tridiagonal.
+
+\section{Nilai eigen}
+
+Persamaan Schrödinger stasioner dalam satu dimensi adalah masalah nilai eigen: cari energi $E$ dan
+fungsi gelombang $\psi$ yang memenuhi $-\tfrac{\hbar^2}{2m}\psi''+V\psi=E\psi$. Dengan beda hingga,
+operator turunan kedua menjadi matriks tridiagonal, dan masalahnya menjadi mencari nilai eigen sebuah
+matriks. Algoritme QR melakukan ini secara iteratif. Matriks diuraikan menjadi hasil kali matriks
+ortogonal dan matriks segitiga atas, dikalikan dalam urutan terbalik, lalu diulang. Untuk matriks
+simetris, iterasinya konvergen ke matriks diagonal yang berisi nilai-nilai eigen. Penguraian QR
+sendiri dibangun dengan refleksi Householder yang mengenolkan kolom demi kolom.
+
+Nilai eigen muncul di mana-mana di buku ini: arah utama PCA, kestabilan sistem linear, frekuensi
+getaran struktur, dan mode-mode aliran pada dekomposisi POD.
+
+\section{PDE yang bergantung waktu}
+
+Persamaan difusi $\partial_tu=D\,\partial_{xx}u$ yang didiskretisasi dengan beda maju dalam waktu dan
+beda pusat dalam ruang memberi skema eksplisit
+\begin{equation}
+u_j^{n+1}=u_j^n+\frac{D\Delta t}{\Delta x^2}\big(u_{j+1}^n-2u_j^n+u_{j-1}^n\big).
+\end{equation}
+Analisis kestabilan von Neumann memasukkan satu gelombang Fourier $u_j^n=g^ne^{ikj\Delta x}$ ke dalam
+skema dan menghitung faktor penguat $g=1-4r\sin^2(k\Delta x/2)$ dengan $r=D\Delta t/\Delta x^2$. Supaya
+tidak ada gelombang yang tumbuh, $|g|\le1$ untuk semua $k$, yang berarti $r\le1/2$. Dengan $D=1$ dan
+$\Delta x=0{,}01$, langkah waktu tidak boleh melebihi $5\times10^{-5}$. Memperhalus grid dua kali
+memaksa langkah waktu empat kali lebih kecil. Skema implisit menghapus batas ini dengan harga
+menyelesaikan sistem linear di setiap langkah.
+
+Untuk persamaan Schrödinger yang bergantung waktu, kuliah membahas metode \istilah{split-operator}.
+Operator Hamilton terdiri atas energi kinetik, yang sederhana di ruang momentum, dan energi potensial,
+yang sederhana di ruang posisi. Satu langkah waktu dipecah menjadi setengah langkah potensial, satu
+langkah kinetik setelah FFT ke ruang momentum, lalu setengah langkah potensial lagi setelah FFT balik.
+Gagasan memecah operator menjadi bagian-bagian yang masing-masing mudah juga dipakai di banyak solver
+fluida, misalnya untuk memisahkan konveksi dari difusi.
+
+\section{Monte Carlo}
+
+Integral berdimensi tinggi tidak bisa dihitung dengan grid, karena jumlah titiknya tumbuh eksponensial.
+Integrasi Monte Carlo merata-ratakan fungsi pada titik-titik acak. Galatnya turun seperti $1/\sqrt N$,
+lambat, tetapi tidak bergantung pada dimensi sama sekali. Itulah sebabnya Monte Carlo menang untuk
+masalah berdimensi tinggi, dan itulah juga hubungannya dengan kutukan dimensi di \cref{ch:data}.
+
+Dalam fisika statistik, kita ingin rata-rata besaran atas distribusi Boltzmann
+$p(\bm X)\propto\exp\big(-H(\bm X)/k_BT\big)$, dengan $H$ energi total sistem banyak partikel.
+Konstanta normalisasinya, fungsi partisi, mustahil dihitung. Algoritme Metropolis
+\citep{metropolis1953} tidak membutuhkannya. Usulkan gerakan kecil acak sebuah partikel. Kalau
+energinya turun, terima. Kalau naik sebesar $\Delta H$, terima dengan peluang $\exp(-\Delta H/k_BT)$.
+Rantai Markov yang dihasilkan mengunjungi konfigurasi dengan frekuensi sesuai distribusi Boltzmann.
+Ini adalah MCMC yang sama dengan di \cref{ch:prob}, di tempat kelahirannya.
+
+\section{Simulasi partikel}
+
+Fisika komputasi juga membawa kita ke simulasi partikel. Dinamika molekul \citep{alder1959} mengintegrasikan
+persamaan Newton untuk setiap atom dengan gaya dari potensial antaratom, biasanya dengan velocity
+Verlet, dan menghitung sifat makroskopis seperti tekanan dan temperatur sebagai rata-rata
+\citep{frenkel2002}. Metode elemen diskret melakukan hal serupa untuk butiran yang bertumbukan
+(\cref{ch:numerik}). \istilah{Smoothed particle hydrodynamics} \citep{gingold1977,monaghan1992} memakai
+partikel untuk mewakili fluida itu sendiri, dengan besaran di setiap titik diperoleh dengan
+merata-ratakan partikel tetangga menggunakan kernel penghalus. Tanpa grid, metode ini nyaman untuk
+permukaan bebas dan percikan.
+
+Semua simulasi partikel punya struktur yang sama: setiap partikel berinteraksi dengan tetangga di
+dekatnya. Struktur ini persis struktur graf, dan simulator berbasis jaringan graf di \cref{ch:operator}
+belajar meniru simulasi partikel seperti ini dengan memperlakukan partikel sebagai simpul dan
+interaksi sebagai sisi.
+
+\sumberbab{Bab ini mengikuti tiga belas catatan kuliah Computational Physics I yang ditulis tangan.
+Salah satu buku yang disebut di awal kuliah adalah Numerical Recipes \citep{press2007}. Untuk simulasi partikel,
+\citet{frenkel2002} adalah pengantar yang baik.}

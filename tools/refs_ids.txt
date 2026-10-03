@@ -1,0 +1,271 @@
+# key | id (doi: or arxiv:) | expected words in title
+rumelhart1986 | doi:10.1038/323533a0 | back-propagating
+lecun2015 | doi:10.1038/nature14539 | deep learning
+mcculloch1943 | doi:10.1007/BF02478259 | logical calculus
+rosenblatt1958 | doi:10.1037/h0042519 | perceptron
+hornik1989 | doi:10.1016/0893-6080(89)90020-8 | universal approximators
+cybenko1989 | doi:10.1007/BF02551274 | superpositions
+schmidhuber2015 | doi:10.1016/j.neunet.2014.09.003 | overview
+hochreiter1997 | doi:10.1162/neco.1997.9.8.1735 | long short-term memory
+hochreiter1997flat | doi:10.1162/neco.1997.9.1.1 | flat minima
+bengio1994 | doi:10.1109/72.279181 | long-term dependencies
+gers2000 | doi:10.1162/089976600300015015 | forget
+vaswani2017 | arxiv:1706.03762 | attention
+beck2024 | arxiv:2405.04517 | xlstm
+gu2023 | arxiv:2312.00752 | mamba
+ramsauer2021 | arxiv:2008.02217 | hopfield
+bahdanau2015 | arxiv:1409.0473 | align
+mikolov2013 | arxiv:1301.3781 | word representations
+devlin2019 | arxiv:1810.04805 | bert
+brown2020 | arxiv:2005.14165 | few-shot
+he2016 | doi:10.1109/CVPR.2016.90 | residual
+he2015 | arxiv:1502.01852 | rectifiers
+krizhevsky2017 | doi:10.1145/3065386 | imagenet
+lecun1998 | doi:10.1109/5.726791 | document recognition
+ioffe2015 | arxiv:1502.03167 | batch normalization
+hinton2012 | arxiv:1207.0580 | co-adaptation
+kingma2015 | arxiv:1412.6980 | adam
+loshchilov2019 | arxiv:1711.05101 | weight decay
+klambauer2017 | arxiv:1706.02515 | self-normalizing
+belkin2019 | doi:10.1073/pnas.1903070116 | bias
+zhang2017 | arxiv:1611.03530 | rethinking
+keskar2017 | arxiv:1609.04836 | sharp minima
+jacot2018 | arxiv:1806.07572 | tangent kernel
+ronneberger2015 | arxiv:1505.04597 | u-net
+kingma2014 | arxiv:1312.6114 | variational
+kingma2019 | arxiv:1906.02691 | variational autoencoders
+goodfellow2014 | arxiv:1406.2661 | adversarial
+rezende2015 | arxiv:1505.05770 | normalizing flows
+sohldickstein2015 | arxiv:1503.03585 | nonequilibrium
+ho2020 | arxiv:2006.11239 | denoising diffusion
+song2021ddim | arxiv:2010.02502 | implicit
+song2021 | arxiv:2011.13456 | stochastic differential
+kingma2021 | arxiv:2107.00630 | variational diffusion
+luo2022 | arxiv:2208.11970 | diffusion
+lipman2023 | arxiv:2210.02747 | flow matching
+liu2023 | arxiv:2209.03003 | flow straight
+vincent2011 | doi:10.1162/NECO_a_00142 | denoising autoencoders
+anderson1982 | doi:10.1016/0304-4149(82)90051-5 | reverse-time
+chen2018 | arxiv:1806.07366 | ordinary differential
+mildenhall2020 | arxiv:2003.08934 | nerf
+sitzmann2020 | arxiv:2006.09661 | periodic activation
+tancik2020 | arxiv:2006.10739 | fourier features
+park2019 | arxiv:1901.05103 | deepsdf
+gropp2020 | arxiv:2002.10099 | implicit geometric
+xie2022 | arxiv:2111.11426 | neural fields
+rahaman2019 | arxiv:1806.08734 | spectral bias
+lowe2004 | doi:10.1023/B:VISI.0000029664.99615.94 | scale-invariant
+horn1981 | doi:10.1016/0004-3702(81)90024-2 | optical flow
+turk1991 | doi:10.1162/jocn.1991.3.1.71 | eigenfaces
+girshick2015 | arxiv:1504.08083 | fast r-cnn
+ren2015 | arxiv:1506.01497 | faster r-cnn
+redmon2016 | arxiv:1506.02640 | only look once
+dosovitskiy2021 | arxiv:2010.11929 | 16x16
+dosovitskiy2015 | arxiv:1504.06852 | flownet
+teed2020 | arxiv:2003.12039 | raft
+kirillov2023 | arxiv:2304.02643 | segment anything
+eykholt2018 | arxiv:1707.08945 | physical
+raissi2020 | doi:10.1126/science.aaw4741 | hidden fluid
+bronstein2021 | arxiv:2104.13478 | geometric deep learning
+bronstein2017 | doi:10.1109/MSP.2017.2693418 | euclidean
+zaheer2017 | arxiv:1703.06114 | deep sets
+kipf2017 | arxiv:1609.02907 | graph convolutional
+gilmer2017 | arxiv:1704.01212 | message passing
+xu2019 | arxiv:1810.00826 | powerful
+morris2019 | arxiv:1810.02244 | weisfeiler
+velickovic2018 | arxiv:1710.10903 | attention
+cohen2016 | arxiv:1602.07576 | group equivariant
+mallat2012 | doi:10.1002/cpa.21413 | scattering
+bruna2014 | arxiv:1312.6203 | spectral
+defferrard2016 | arxiv:1606.09375 | spectral filtering
+topping2022 | arxiv:2111.14522 | over-squashing
+alon2021 | arxiv:2006.05205 | bottleneck
+battaglia2018 | arxiv:1806.01261 | relational
+sanchez2020 | arxiv:2002.09405 | complex physics
+pfaff2021 | arxiv:2010.03409 | mesh-based
+brandstetter2022 | arxiv:2202.03376 | message passing neural pde
+satorras2021 | arxiv:2102.09844 | equivariant graph
+lam2023 | doi:10.1126/science.adi2336 | weather
+kalman1960 | doi:10.1115/1.3662552 | filtering
+rabiner1989 | doi:10.1109/5.18626 | hidden markov
+dempster1977 | doi:10.1111/j.2517-6161.1977.tb01600.x | incomplete
+evensen1994 | doi:10.1029/94JC00572 | sequential data assimilation
+tipping1999 | doi:10.1111/1467-9868.00196 | probabilistic principal
+blei2017 | doi:10.1080/01621459.2017.1285773 | variational inference
+metropolis1953 | doi:10.1063/1.1699114 | equation of state
+hastings1970 | doi:10.1093/biomet/57.1.97 | monte carlo
+gal2016 | arxiv:1506.02142 | dropout
+lakshminarayanan2017 | arxiv:1612.01474 | ensembles
+mnih2015 | doi:10.1038/nature14236 | human-level
+schulman2017 | arxiv:1707.06347 | proximal
+schulman2015 | arxiv:1502.05477 | trust region
+williams1992 | doi:10.1007/BF00992696 | simple statistical
+silver2016 | doi:10.1038/nature16961 | go
+haarnoja2018 | arxiv:1801.01290 | soft actor-critic
+ross2011 | arxiv:1011.0686 | reduction
+ho2016 | arxiv:1606.03476 | imitation
+arjonamedina2019 | arxiv:1806.07857 | rudder
+rabault2019 | doi:10.1017/jfm.2019.62 | flow control
+garnier2021 | doi:10.1016/j.compfluid.2021.104973 | review
+ribeiro2016 | arxiv:1602.04938 | trust
+lundberg2017 | arxiv:1705.07874 | unified
+sundararajan2017 | arxiv:1703.01365 | axiomatic
+selvaraju2017 | arxiv:1610.02391 | grad-cam
+simonyan2014 | arxiv:1312.6034 | saliency
+mcinnes2018 | arxiv:1802.03426 | umap
+rudin2019 | doi:10.1038/s42256-019-0048-x | stop explaining
+kim2018 | arxiv:1711.11279 | concept activation
+bach2015 | doi:10.1371/journal.pone.0130140 | pixel-wise
+courant1928 | doi:10.1007/BF01448839 | differenzengleichungen
+patankar1972 | doi:10.1016/0017-9310(72)90054-3 | calculation procedure
+menter1994 | doi:10.2514/3.12149 | two-equation
+launder1974 | doi:10.1016/0045-7825(74)90029-2 | numerical computation
+smagorinsky1963 | doi:10.1175/1520-0493(1963)091<0099:GCEWTP>2.3.CO;2 | general circulation
+hirt1981 | doi:10.1016/0021-9991(81)90145-5 | volume of fluid
+cundall1979 | doi:10.1680/geot.1979.29.1.47 | discrete numerical
+verlet1967 | doi:10.1103/PhysRev.159.98 | computer
+cooley1965 | doi:10.1090/S0025-5718-1965-0178586-1 | algorithm
+alder1959 | doi:10.1063/1.1730376 | molecular dynamics
+monaghan1992 | doi:10.1146/annurev.aa.30.090192.002551 | smoothed particle
+gingold1977 | doi:10.1093/mnras/181.3.375 | smoothed particle
+lichtenegger2016 | doi:10.1016/j.ces.2016.07.036 | recurrence cfd
+pirker2018 | doi:10.1016/j.ces.2018.04.059 | recurrence cfd
+du2020 | doi:10.1016/j.buildenv.2019.106604 | recurrence cfd
+lagaris1998 | doi:10.1109/72.712178 | artificial neural networks
+raissi2019 | doi:10.1016/j.jcp.2018.10.045 | physics
+karniadakis2021 | doi:10.1038/s42254-021-00314-5 | physics
+cuomo2022 | doi:10.1007/s10915-022-01939-z | physics–informed
+wang2021 | doi:10.1137/20M1318043 | gradient
+wang2022 | doi:10.1016/j.jcp.2021.110768 | neural tangent kernel
+krishnapriyan2021 | arxiv:2109.01050 | failure modes
+mcclenny2023 | doi:10.1016/j.jcp.2022.111722 | self-adaptive
+lu2021 | doi:10.1038/s42256-021-00302-5 | deeponet
+li2021 | arxiv:2010.08895 | fourier neural operator
+kovachki2023 | arxiv:2108.08481 | neural operator
+brunton2016 | doi:10.1073/pnas.1517384113 | governing equations
+rudy2017 | doi:10.1126/sciadv.1602614 | partial differential
+champion2019 | doi:10.1073/pnas.1906995116 | coordinates
+brunton2020 | doi:10.1146/annurev-fluid-010719-060214 | fluid mechanics
+duraisamy2019 | doi:10.1146/annurev-fluid-010518-040547 | turbulence modeling
+ling2016 | doi:10.1017/jfm.2016.615 | invariance
+kochkov2021 | doi:10.1073/pnas.2101784118 | accelerate
+vinuesa2022 | doi:10.1038/s43588-022-00264-7 | computational fluid
+lino2023 | doi:10.1098/rspa.2023.0058 | fluid dynamics
+schmid2010 | doi:10.1017/S0022112010001217 | dynamic mode
+berkooz1993 | doi:10.1146/annurev.fl.25.010193.002543 | proper orthogonal
+taira2017 | doi:10.2514/1.J056060 | modal analysis
+lusch2018 | doi:10.1038/s41467-018-07210-0 | universal linear embeddings
+lippe2023 | arxiv:2308.05732 | pde-refiner
+um2020 | arxiv:2007.00016 | solver-in-the-loop
+thuerey2021 | arxiv:2109.05237 | physics-based deep learning
+gupta2022 | arxiv:2209.15616 | multi-spatiotemporal
+alkin2024 | arxiv:2402.12365 | universal physics
+bodnar2024 | arxiv:2405.13063 | foundation model
+price2025 | doi:10.1038/s41586-024-08252-9 | probabilistic weather
+pathak2022 | arxiv:2202.11214 | fourcastnet
+kohl2023 | arxiv:2309.01745 | turbulent
+baydin2018 | arxiv:1502.05767 | automatic differentiation
+robbins1951 | doi:10.1214/aoms/1177729586 | stochastic approximation
+polyak1964 | doi:10.1016/0041-5553(64)90137-5 | speeding
+bottou2018 | doi:10.1137/16M1080173 | optimization methods
+armijo1966 | doi:10.2140/pjm.1966.16.1 | minimization
+tibshirani1996 | doi:10.1111/j.2517-6161.1996.tb02080.x | lasso
+rosenbrock1960 | doi:10.1093/comjnl/3.3.175 | automatic method
+vapnik1999 | doi:10.1109/72.788640 | statistical learning
+wolpert1996 | doi:10.1162/neco.1996.8.7.1341 | lack of a priori
+geman1992 | doi:10.1162/neco.1992.4.1.1 | bias/variance
+pearson1901 | doi:10.1080/14786440109462720 | closest fit
+hotelling1933 | doi:10.1037/h0071325 | principal components
+lloyd1982 | doi:10.1109/TIT.1982.1056489 | least squares quantization
+hyvarinen2000 | doi:10.1016/S0893-6080(00)00026-5 | independent component
+cortes1995 | doi:10.1007/BF00994018 | support-vector
+breiman2001 | doi:10.1023/A:1010933404324 | random forests
+bolukbasi2016 | arxiv:1607.06520 | homemaker
+long2020 | doi:10.1145/3313831.3376727 | ai literacy
+epley2007 | doi:10.1037/0033-295X.114.4.864 | anthropomorphism
+nass2000 | doi:10.1111/0022-4537.00153 | mindlessness
+mori2012 | doi:10.1109/MRA.2012.2192811 | uncanny
+# --- classic AI
+hart1968 | doi:10.1109/TSSC.1968.300136 | heuristic determination
+knuth1975 | doi:10.1016/0004-3702(75)90019-3 | alpha-beta
+kocsis2006 | doi:10.1007/11871842_29 | bandit
+silver2018 | doi:10.1126/science.aar6404 | reinforcement learning
+fikes1971 | doi:10.1016/0004-3702(71)90010-5 | strips
+turing1950 | doi:10.1093/mind/LIX.236.433 | computing machinery
+searle1980 | doi:10.1017/S0140525X00005756 | minds
+kirkpatrick1983 | doi:10.1126/science.220.4598.671 | annealing
+glover1989 | doi:10.1287/ijoc.1.3.190 | tabu
+# --- unsupervised / pattern classification
+fisher1936 | doi:10.1111/j.1469-1809.1936.tb02137.x | multiple measurements
+scholkopf1998 | doi:10.1162/089976698300017467 | nonlinear component
+kohonen1982 | doi:10.1007/BF00337288 | self-organized
+hochreiter2010 | doi:10.1093/bioinformatics/btq227 | fabia
+roweis2000 | doi:10.1126/science.290.5500.2323 | locally linear
+tenenbaum2000 | doi:10.1126/science.290.5500.2319 | global geometric
+# --- reinforcement learning
+watkins1992 | doi:10.1007/BF00992698 | q-learning
+mnih2016 | arxiv:1602.01783 | asynchronous
+schulman2016 | arxiv:1506.02438 | generalized advantage
+christiano2017 | arxiv:1706.03741 | human preferences
+ouyang2022 | arxiv:2203.02155 | instructions
+# --- control, signals, sensing
+koopman1931 | doi:10.1073/pnas.17.5.315 | hamiltonian
+rohling1983 | doi:10.1109/TAES.1983.309350 | cfar
+weiser1991 | doi:10.1038/scientificamerican0991-94 | 21st century
+bulling2014 | doi:10.1145/2499621 | activity recognition
+# --- robotics and autonomous vehicles
+besl1992 | doi:10.1109/34.121791 | registration
+biber2003 | doi:10.1109/IROS.2003.1249285 | normal distributions
+qi2017 | arxiv:1612.00593 | pointnet
+lang2019 | arxiv:1812.05784 | pointpillars
+kuhn1955 | doi:10.1002/nav.3800020109 | hungarian
+denavit1955 | doi:10.1115/1.4011045 | kinematic notation
+# --- recommender systems
+koren2009 | doi:10.1109/MC.2009.263 | matrix factorization
+sarwar2001 | doi:10.1145/371920.372071 | item-based
+he2017 | arxiv:1708.05031 | neural collaborative
+rendle2009 | arxiv:1205.2618 | bpr
+jarvelin2002 | doi:10.1145/582415.582418 | cumulated gain
+he2020 | arxiv:2002.02126 | lightgcn
+# --- life sciences and medical imaging
+jumper2021 | doi:10.1038/s41586-021-03819-2 | alphafold
+abramson2024 | doi:10.1038/s41586-024-07487-w | alphafold
+weininger1988 | doi:10.1021/ci00057a005 | smiles
+rogers2010 | doi:10.1021/ci100050t | extended-connectivity
+mayr2016 | doi:10.3389/fenvs.2015.00080 | deeptox
+gomezbombarelli2018 | doi:10.1021/acscentsci.7b00572 | automatic chemical design
+segler2018 | doi:10.1038/nature25978 | planning chemical
+esteva2017 | doi:10.1038/nature21056 | dermatologist
+isensee2021 | doi:10.1038/s41592-020-01008-z | nnu-net
+love2014 | doi:10.1186/s13059-014-0550-8 | deseq2
+li2009 | doi:10.1093/bioinformatics/btp324 | short read alignment
+poplin2018 | doi:10.1038/nbt.4235 | variant caller
+yang2019 | doi:10.1021/acs.jcim.9b00237 | molecular representations
+seidl2023 | arxiv:2303.03363 | drug discovery
+hounsfield1973 | doi:10.1259/0007-1285-46-552-1016 | computerized transverse
+preuer2018 | doi:10.1021/acs.jcim.8b00234 | fréchet
+seidl2022 | doi:10.1021/acs.jcim.1c01065 | hopfield
+segler2018gen | doi:10.1021/acscentsci.7b00512 | focused molecule libraries
+lipinski1997 | doi:10.1016/S0169-409X(96)00423-1 | solubility and permeability
+gaulton2012 | doi:10.1093/nar/gkr777 | chembl
+hollmann2025 | doi:10.1038/s41586-024-08328-6 | tabular
+# --- recent developments
+radford2021 | arxiv:2103.00020 | transferable visual
+kaplan2020 | arxiv:2001.08361 | scaling laws
+hoffmann2022 | arxiv:2203.15556 | compute-optimal
+rafailov2023 | arxiv:2305.18290 | direct preference
+wei2022 | arxiv:2201.11903 | chain-of-thought
+deepseek2025 | arxiv:2501.12948 | deepseek-r1
+yao2023 | arxiv:2210.03629 | react
+lewis2020 | arxiv:2005.11401 | retrieval-augmented
+rombach2022 | arxiv:2112.10752 | latent diffusion
+peebles2023 | arxiv:2212.09748 | transformers
+openai2023 | arxiv:2303.08774 | gpt-4
+touvron2023 | arxiv:2302.13971 | llama
+fedus2022 | arxiv:2101.03961 | switch
+hu2022 | arxiv:2106.09685 | lora
+bommasani2021 | arxiv:2108.07258 | opportunities and risks
+trinh2024 | doi:10.1038/s41586-023-06747-5 | geometry
+ha2018 | arxiv:1803.10122 | world models
+mccabe2023 | arxiv:2310.02994 | multiple physics
+ohana2024 | arxiv:2412.00568 | the well

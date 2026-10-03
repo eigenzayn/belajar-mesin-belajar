@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mengendalikan Sistem · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 15</p>
+<h1>Mengendalikan Sistem</h1>
+<p><span id="ch:kendali" data-label="ch:kendali"></span></p>
+<p>Di semester pertama saya mengambil dua mata kuliah yang sekilas tidak
+ada hubungannya dengan machine learning. Control systems membahas sistem
+dinamis linear dari model ruang keadaan sampai pengendali diskret,
+dengan latihan dan ujian berbasis MATLAB. Production automation systems
+membahas dunia pabrik: perangkat otomasi, sistem waktu nyata,
+pemrograman PLC, fieldbus, dan standar IEC 61499 untuk sistem otomasi
+terdistribusi. Belakangan terlihat bahwa teori kendali adalah saudara
+kandung reinforcement learning, dan bahwa model ruang keadaan adalah
+bahasa yang sama yang dipakai Kalman filter, state space model seperti
+Mamba, dan penemuan persamaan dari data.</p>
+<h1 id="sistem-dan-model">Sistem dan model</h1>
+<p>Sebuah sistem dinamis dijelaskan oleh keadaannya, yaitu sekumpulan
+besaran yang cukup untuk menentukan masa depannya kalau input diketahui.
+Untuk rangkaian listrik RC, keadaannya tegangan kapasitor. Untuk kaskade
+tangki air yang saling mengalirkan, keadaannya ketinggian air di setiap
+tangki. Untuk populasi pemangsa dan mangsa, keadaannya jumlah
+masing-masing hewan, dan persamaan Lotka–Volterra menggambarkan siklus
+naik turun yang khas: mangsa berlimpah membuat pemangsa bertambah,
+pemangsa yang banyak membuat mangsa berkurang, dan seterusnya. Bentuk
+umumnya adalah <span
+class="math display">\[\dot{\boldsymbol{x}}=\boldsymbol
+f(\boldsymbol{x},\boldsymbol u),\qquad \boldsymbol{y}=\boldsymbol
+h(\boldsymbol{x},\boldsymbol u),\]</span> dengan <span
+class="math inline">\(\boldsymbol u\)</span> input yang bisa kita atur
+dan <span class="math inline">\(\boldsymbol{y}\)</span> keluaran yang
+bisa kita ukur.</p>
+<p>Sebagian besar teori dibangun untuk sistem linear yang tidak berubah
+terhadap waktu, <span
+class="math display">\[\dot{\boldsymbol{x}}=\boldsymbol{A}\boldsymbol{x}+\boldsymbol
+B\boldsymbol u,\qquad \boldsymbol{y}=\boldsymbol
+C\boldsymbol{x}+\boldsymbol D\boldsymbol u.\]</span> Sistem nonlinear
+dilinearkan di sekitar titik kesetimbangan dengan mengganti <span
+class="math inline">\(\boldsymbol f\)</span> dengan matriks Jacobiannya.
+Solusi sistem linear adalah <span
+class="math inline">\(\boldsymbol{x}(t)=e^{\boldsymbol{A}t}\boldsymbol{x}_0+\int_0^te^{\boldsymbol{A}(t-\tau)}\boldsymbol
+B\boldsymbol u(\tau)\,\mathrm{d}\tau\)</span>, dan perilakunya
+ditentukan oleh nilai eigen <span
+class="math inline">\(\boldsymbol{A}\)</span>. Sistem stabil secara
+asimtotik, artinya kembali ke kesetimbangan dari gangguan apa pun, tepat
+ketika semua nilai eigen punya bagian real negatif. Bentuk Jordan
+menguraikan sistem menjadi mode-mode independen, sehingga setiap nilai
+eigen bisa dibaca sebagai satu cara sistem meluruh, tumbuh, atau
+berosilasi.</p>
+<h1 id="bisa-dicapai-bisa-diamati">Bisa dicapai, bisa diamati</h1>
+<p>Dua pertanyaan menentukan apakah sebuah sistem bisa dikendalikan
+dengan baik. Pertama, apakah input bisa membawa keadaan ke mana saja?
+Untuk sistem linear, jawabannya ya tepat ketika matriks <span
+class="math display">\[\mathcal R=\big[\boldsymbol B\ \
+\boldsymbol{A}\boldsymbol B\ \ \boldsymbol{A}^2\boldsymbol B\ \cdots\
+\boldsymbol{A}^{n-1}\boldsymbol B\big]\]</span> berpangkat penuh. Kedua,
+apakah keadaan bisa direkonstruksi dari keluaran? Jawabannya ya tepat
+ketika matriks yang disusun dari <span class="math inline">\(\boldsymbol
+C,\boldsymbol C\boldsymbol{A},\dots,\boldsymbol
+C\boldsymbol{A}^{n-1}\)</span> berpangkat penuh. Dekomposisi Kalman
+memisahkan keadaan menjadi bagian yang bisa dicapai dan diamati, bagian
+yang hanya salah satunya, dan bagian yang tidak keduanya. Bagian yang
+tidak terjangkau dan tidak stabil adalah kabar buruk, karena tidak ada
+pengendali yang bisa menyelamatkannya.</p>
+<h1 id="pengendali-dan-pengamat">Pengendali dan pengamat</h1>
+<p>Dengan umpan balik keadaan <span class="math inline">\(\boldsymbol
+u=-\boldsymbol K\boldsymbol{x}\)</span>, sistem tertutup menjadi <span
+class="math inline">\(\dot{\boldsymbol{x}}=(\boldsymbol{A}-\boldsymbol
+B\boldsymbol K)\boldsymbol{x}\)</span>, dan kita bisa memilih <span
+class="math inline">\(\boldsymbol K\)</span> agar nilai eigen sistem
+tertutup berada di tempat yang kita inginkan, selama sistemnya bisa
+dicapai. Ambil contoh paling sederhana, sebuah massa tanpa gesekan,
+<span class="math inline">\(\ddot x=u\)</span>. Dengan keadaan posisi
+dan kecepatan serta <span class="math inline">\(u=-k_1x-k_2\dot
+x\)</span>, persamaan karakteristiknya <span
+class="math inline">\(s^2+k_2s+k_1=0\)</span>. Kalau kita menginginkan
+kedua kutub di <span class="math inline">\(-2\)</span>, polinomialnya
+harus <span class="math inline">\((s+2)^2=s^2+4s+4\)</span>, sehingga
+<span class="math inline">\(k_1=k_2=4\)</span>. Rumus Ackermann
+melakukan perhitungan yang sama untuk sistem dengan satu input berukuran
+berapa pun.</p>
+<p>Kalau keadaan tidak diukur seluruhnya, kita membangun pengamat yang
+menirukan sistem dan mengoreksi dirinya dengan galat keluaran, <span
+class="math display">\[\dot{\hat\boldsymbol{x}}=\boldsymbol{A}\hat\boldsymbol{x}+\boldsymbol
+B\boldsymbol u+\boldsymbol L\big(\boldsymbol{y}-\boldsymbol
+C\hat\boldsymbol{x}\big).\]</span> Prinsip pemisahan menyatakan bahwa
+pengendali dan pengamat bisa dirancang terpisah lalu digabung, dan
+kutub-kutub sistem gabungan adalah gabungan kutub keduanya.</p>
+<p>Alih-alih memilih kutub, kita juga bisa meminta pengendali terbaik
+menurut sebuah biaya. Linear quadratic regulator meminimalkan <span
+class="math display">\[J=\int_0^\infty\big(\boldsymbol{x}^\top\boldsymbol
+Q\boldsymbol{x}+\boldsymbol u^\top\boldsymbol R\boldsymbol
+u\big)\,\mathrm{d}t,\]</span> yang menimbang seberapa jauh keadaan
+menyimpang terhadap seberapa besar tenaga kendali yang dipakai.
+Jawabannya tetap berupa umpan balik linear, dengan <span
+class="math inline">\(\boldsymbol K\)</span> dari persamaan Riccati.
+Ketika pengukurannya berisik, pengamat optimalnya adalah Kalman filter
+<span class="citation" data-cites="kalman1960">(Kalman 1960)</span>, dan
+gabungan LQR dengan Kalman filter disebut LQG. Dari sudut pandang <a
+href="ch10_rl.html">Bab 12</a>, LQR adalah masalah reinforcement
+learning yang modelnya diketahui sempurna, dinamikanya linear, dan
+biayanya kuadratik, sehingga persamaan Bellman bisa diselesaikan secara
+tertutup.</p>
+<h1 id="domain-frekuensi">Domain frekuensi</h1>
+<p>Transformasi Laplace mengubah persamaan diferensial linear menjadi
+persamaan aljabar. Hubungan antara input dan keluaran menjadi fungsi
+alih, <span class="math inline">\(G(s)=\boldsymbol C(s\boldsymbol
+I-\boldsymbol{A})^{-1}\boldsymbol B+\boldsymbol D\)</span>. Sistem
+stabil dalam arti BIBO, yaitu input terbatas selalu menghasilkan
+keluaran terbatas, kalau semua kutub <span
+class="math inline">\(G(s)\)</span> berada di setengah bidang kiri.
+Respons frekuensi <span class="math inline">\(G(i\omega)\)</span>
+menyatakan bagaimana sinyal sinus diperkuat dan digeser fasenya, dan
+diagram Bode menggambarnya dalam skala logaritmik.</p>
+<p>Dalam lingkar umpan balik, pengendali <span
+class="math inline">\(R(s)\)</span> dan proses <span
+class="math inline">\(G(s)\)</span> membentuk fungsi lingkar terbuka
+<span class="math inline">\(L(s)=R(s)G(s)\)</span>, dan banyak sifat
+sistem tertutup bisa dibaca dari bentuk <span
+class="math inline">\(L\)</span>. Pengendali proporsional-integral
+menambahkan suku integral yang menghapus galat keadaan tunak, karena
+selama galat masih ada, integralnya terus tumbuh dan mendorong input.
+Kuliah merancang pengendali seperti ini dengan membentuk respons langkah
+yang diinginkan, lalu memeriksa kestabilannya dengan kriteria grafis.
+Bagian terakhir kuliah membawa semuanya ke dunia digital. Pengendali di
+komputer bekerja pada sampel, dan pemetaan <span
+class="math inline">\(z=e^{sT}\)</span> menghubungkan domain kontinu
+dengan domain diskret. Transformasi Tustin memberi cara praktis untuk
+mengubah pengendali kontinu menjadi algoritme diskret.</p>
+<h1 id="otomasi-di-pabrik">Otomasi di pabrik</h1>
+<p>Teori kendali bertemu kenyataan di lantai pabrik. Kuliah production
+automation memperlihatkan lapisan-lapisan yang menjalankan kendali itu.
+<em>Programmable logic controller</em> (PLC) membaca semua input,
+menjalankan programnya, lalu menulis semua output, dalam siklus yang
+berulang setiap beberapa milidetik. Programnya ditulis dalam bahasa
+standar IEC 61131-3, seperti diagram tangga yang meniru rangkaian relai,
+diagram blok fungsi, atau teks terstruktur. Sistem waktu nyata
+membedakan tenggat keras, yang tidak boleh terlewat sama sekali karena
+akibatnya berbahaya, dari tenggat lunak, yang sesekali boleh terlewat.
+Fieldbus menghubungkan sensor, aktuator, dan pengendali dengan
+komunikasi yang waktunya bisa dipastikan. Standar IEC 61499 memecah
+aplikasi otomasi menjadi blok fungsi yang digerakkan oleh kejadian dan
+bisa disebar ke banyak perangkat, sebuah langkah menuju pabrik yang bisa
+dikonfigurasi ulang dengan cepat, tema utama gerakan Industri 4.0.</p>
+<h1 id="kendali-dan-machine-learning">Kendali dan machine learning</h1>
+<p>Hubungan antara kendali dan machine learning berjalan ke dua arah.
+Dari kendali ke machine learning: model ruang keadaan menjadi state
+space model di deep learning (<a href="ch04_lstm_transformer.html">Bab
+6</a>), metode adjoint dari kendali optimal menjadi cara melatih neural
+ODE (<a href="ch09_ml_advanced.html">Bab 11</a>), dan Kalman filter
+menjadi kerangka data assimilation (<a
+href="ch08_probabilistik.html">Bab 10</a>). Dari machine learning ke
+kendali: model dinamika bisa dipelajari dari data alih-alih diturunkan
+dari hukum fisika, lalu dipakai dalam pengendali prediktif yang
+mengoptimalkan beberapa langkah ke depan di setiap saat. Teori operator
+Koopman <span class="citation" data-cites="koopman1931">(Koopman
+1931)</span> menawarkan cara melihat sistem nonlinear sebagai sistem
+linear di ruang fungsi yang lebih besar, sehingga alat-alat kendali
+linear bisa dipakai kembali, sebuah gagasan yang kita temui lagi di <a
+href="ch17_penemuan_reduksi.html">Bab 27</a>. Reinforcement learning
+sendiri bisa dipandang sebagai kendali optimal tanpa model, dan pada
+sistem nyata keduanya sering digabung: model fisika memberi dasar,
+pembelajaran mengoreksi apa yang tidak dimodelkan.</p>
+<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<p>Bab ini mengikuti naskah kuliah Control Systems (sistem dan model,
+sifat sistem, sistem LTI, keterjangkauan dan keteramatan, pengendali dan
+pengamat keadaan, LQR dan LQG, transformasi Laplace, desain pengendali,
+sistem diskret) dan kuliah Production Automation Systems (perangkat
+otomasi, sistem waktu nyata, PLC, fieldbus, IEC 61499). Bacaan lanjut
+tentang hubungan kendali dan data: <span class="citation"
+data-cites="brunton2022">Brunton dan Kutz (2022)</span>.</p>
+<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-brunton2022" class="csl-entry" role="listitem">
+Brunton, Steven L., dan J. Nathan Kutz. 2022. <em>Data-Driven Science
+and Engineering: Machine Learning, Dynamical Systems, and Control</em>.
+2 ed. Cambridge University Press.
+</div>
+<div id="ref-kalman1960" class="csl-entry" role="listitem">
+Kalman, R. E. 1960. <span>“A New Approach to Linear Filtering and
+Prediction Problems.”</span> <em>Journal of Basic Engineering</em> 82
+(1): 35–45. <a
+href="https://doi.org/10.1115/1.3662552">https://doi.org/10.1115/1.3662552</a>.
+</div>
+<div id="ref-koopman1931" class="csl-entry" role="listitem">
+Koopman, B. O. 1931. <span>“Hamiltonian Systems and Transformation in
+Hilbert Space.”</span> <em>Proceedings of the National Academy of
+Sciences</em> 17 (5): 315–18. <a
+href="https://doi.org/10.1073/pnas.17.5.315">https://doi.org/10.1073/pnas.17.5.315</a>.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch30_sinyal.html"><span>Sebelumnya</span>Menangkap Sinyal: Estimasi, Filter, dan Radar</a>
+  <a class="next" href="ch32_pervasif.html"><span>Berikutnya</span>Komputasi yang Menghilang</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

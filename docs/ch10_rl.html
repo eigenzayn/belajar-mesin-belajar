@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Belajar dari Ganjaran: Reinforcement
+Learning · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 12</p>
+<h1>Belajar dari Ganjaran: Reinforcement Learning</h1>
+<p><span id="ch:rl" data-label="ch:rl"></span></p>
+<p>Reinforcement learning datang kepada saya dalam dua tahap. Pada musim
+panas 2025, kuliah deep reinforcement learning langsung membawa kami ke
+imitation learning, policy gradient, dan credit assignment, dengan
+proyek latihan berupa agen DQN, agen PPO, dan sebuah tantangan akhir.
+Pada musim dingin berikutnya, kuliah reinforcement learning mengisi
+fondasinya secara rapi: proses keputusan Markov, dynamic programming,
+metode Monte Carlo, dan temporal difference. Bab ini menyusunnya dalam
+urutan yang lebih logis, fondasi dulu, lalu deep RL.</p>
+<p>Dua tipe belajar di bab-bab sebelumnya selalu punya data yang sudah
+tersedia. Reinforcement learning berbeda. Agen harus mengumpulkan
+datanya sendiri dengan bertindak, dan umpan baliknya bukan jawaban yang
+benar, melainkan angka ganjaran yang sering datang terlambat. Seekor
+anjing yang belajar duduk tidak diberi tahu gerakan otot apa yang harus
+dilakukan. Ia mencoba sesuatu, dan kadang mendapat camilan. Tugasnya
+adalah mencari tahu tindakan mana yang membuat camilan itu datang.</p>
+<h1 id="proses-keputusan-markov">Proses keputusan Markov</h1>
+<p>Kerangka formalnya adalah <em>Markov decision process</em> (MDP):
+himpunan keadaan <span class="math inline">\(\mathcal S\)</span>,
+himpunan aksi <span class="math inline">\(\mathcal A\)</span>, dinamika
+<span class="math inline">\(p(s&#39;,r\mid s,a)\)</span> yang memberi
+peluang keadaan berikutnya dan ganjarannya, serta faktor diskon <span
+class="math inline">\(\gamma\in[0,1)\)</span> <span class="citation"
+data-cites="sutton2018">(Sutton dan Barto 2018)</span>. Di setiap
+langkah, agen melihat keadaan <span class="math inline">\(s_t\)</span>,
+memilih aksi <span class="math inline">\(a_t\)</span> menurut
+<em>policy</em> <span class="math inline">\(\pi(a\mid s)\)</span>, lalu
+menerima ganjaran <span class="math inline">\(r_{t+1}\)</span> dan
+keadaan baru. Tujuannya memaksimalkan <em>return</em>, jumlah ganjaran
+yang didiskon, <span class="math display">\[G_t=r_{t+1}+\gamma
+r_{t+2}+\gamma^2r_{t+3}+\cdots=\sum_{k=0}^\infty\gamma^kr_{t+k+1}.\]</span>
+Faktor diskon membuat ganjaran yang jauh di masa depan bernilai lebih
+kecil, dan secara matematis menjaga jumlahnya tetap terhingga.</p>
+<p>Seberapa baik berada di sebuah keadaan diukur oleh <em>value
+function</em> <span
+class="math inline">\(V^\pi(s)=\mathbb{E}_\pi[G_t\mid s_t=s]\)</span>,
+dan seberapa baik mengambil sebuah aksi di sebuah keadaan oleh
+<em>action-value function</em> <span
+class="math inline">\(Q^\pi(s,a)=\mathbb{E}_\pi[G_t\mid
+s_t=s,a_t=a]\)</span>. Kedua fungsi memenuhi persamaan rekursif yang
+menjadi jantung seluruh bidang ini, yaitu persamaan Bellman: <span
+class="math display">\[V^\pi(s)=\sum_a\pi(a\mid
+s)\sum_{s&#39;,r}p(s&#39;,r\mid s,a)\big[r+\gamma
+V^\pi(s&#39;)\big].\]</span> Nilai sebuah keadaan sama dengan ganjaran
+langsung ditambah nilai keadaan berikutnya yang didiskon, dirata-ratakan
+atas semua yang mungkin terjadi. Untuk policy terbaik, rata-rata atas
+aksi diganti dengan maksimum, dan kita mendapat persamaan Bellman
+optimal, <span
+class="math inline">\(V^*(s)=\max_a\sum_{s&#39;,r}p(s&#39;,r\mid
+s,a)[r+\gamma V^*(s&#39;)]\)</span>.</p>
+<p>Persamaan ini turun langsung dari definisi return. Karena <span
+class="math inline">\(G_t=r_{t+1}+\gamma G_{t+1}\)</span>, ekspektasinya
+dari keadaan <span class="math inline">\(s\)</span> adalah <span
+class="math inline">\(\mathbb{E}[r_{t+1}+\gamma G_{t+1}\mid
+s_t=s]\)</span>. Ekspektasi ini dihitung bertahap: pilih aksi menurut
+<span class="math inline">\(\pi\)</span>, dapatkan ganjaran dan keadaan
+berikutnya menurut <span class="math inline">\(p\)</span>, lalu ganti
+<span class="math inline">\(\mathbb{E}[G_{t+1}\mid
+s_{t+1}=s&#39;]\)</span> dengan <span
+class="math inline">\(V^\pi(s&#39;)\)</span> berkat sifat Markov, karena
+masa depan setelah <span class="math inline">\(s&#39;\)</span> tidak
+bergantung pada bagaimana kita sampai di sana.</p>
+<p>Contoh paling kecil sudah memperlihatkan maknanya. Bayangkan satu
+keadaan dengan satu aksi yang selalu memberi ganjaran satu dan kembali
+ke keadaan yang sama. Persamaan Bellman menjadi <span
+class="math inline">\(V=1+\gamma V\)</span>, sehingga <span
+class="math inline">\(V=1/(1-\gamma)\)</span>. Dengan <span
+class="math inline">\(\gamma=0{,}9\)</span>, nilainya 10. Faktor diskon
+bisa dibaca sebagai cakrawala efektif: dengan <span
+class="math inline">\(\gamma=0{,}9\)</span>, agen kira-kira peduli pada
+sepuluh langkah ke depan.</p>
+<h1 id="dynamic-programming">Dynamic programming</h1>
+<p>Kalau dinamika MDP diketahui, persamaan Bellman bisa diselesaikan
+dengan dynamic programming <span class="citation"
+data-cites="bellman1957">(Bellman 1957)</span>. <em>Policy
+evaluation</em> menghitung <span class="math inline">\(V^\pi\)</span>
+dengan menerapkan persamaan Bellman berulang-ulang sebagai aturan update
+sampai nilainya tidak berubah lagi. Karena faktor diskon membuat update
+ini kontraktif, iterasinya pasti konvergen. <em>Policy improvement</em>
+lalu membuat policy baru yang serakah terhadap <span
+class="math inline">\(V^\pi\)</span>, memilih di setiap keadaan aksi
+dengan nilai harapan tertinggi. Teorema perbaikan policy menjamin policy
+baru ini tidak lebih buruk dari yang lama. Bergantian antara keduanya
+disebut <em>policy iteration</em>, dan ia berakhir di policy optimal
+dalam jumlah langkah terhingga untuk MDP terhingga. <em>Value
+iteration</em> memadatkan keduanya dengan langsung menerapkan persamaan
+Bellman optimal sebagai update.</p>
+<p>Kuliah memakai dunia grid kecil sebagai contoh. Agen bergerak di
+petak-petak, setiap langkah memberi ganjaran <span
+class="math inline">\(-1\)</span>, dan permainan berakhir di petak
+sudut. Setelah policy evaluation untuk policy acak, nilai setiap petak
+mencerminkan rata-rata jumlah langkah yang dibutuhkan untuk mencapai
+sudut dengan berjalan acak. Policy yang serakah terhadap nilai-nilai itu
+sudah langsung menunjuk jalur terpendek.</p>
+<h1 id="belajar-dari-pengalaman">Belajar dari pengalaman</h1>
+<p>Di dunia nyata, dinamika jarang diketahui. Agen harus belajar dari
+sampel.</p>
+<p>Metode <em>Monte Carlo</em> menunggu sampai satu episode selesai,
+lalu memakai return yang benar-benar diperoleh sebagai perkiraan nilai
+setiap keadaan yang dikunjungi. Perkiraan ini tak bias, tetapi
+variansnya besar, karena satu return bergantung pada semua keputusan
+acak sampai akhir episode. Metode <em>temporal difference</em> (TD)
+tidak menunggu. Setelah satu langkah, ia memperbarui perkiraan dengan
+memakai perkiraannya sendiri tentang keadaan berikutnya, <span
+class="math display">\[V(s_t)\leftarrow V(s_t)+\alpha\big[r_{t+1}+\gamma
+V(s_{t+1})-V(s_t)\big].\]</span> Selisih di dalam kurung disebut <em>TD
+error</em>. Pendekatan ini, belajar tebakan dari tebakan, disebut
+<em>bootstrapping</em>. Variansnya kecil karena hanya satu langkah acak
+yang terlibat, tetapi ada bias selama perkiraan <span
+class="math inline">\(V(s_{t+1})\)</span> belum benar. Di antara
+keduanya terbentang metode <span
+class="math inline">\(n\)</span>-langkah dan eligibility traces yang
+mencampur keduanya.</p>
+<p>Bayangkan memperkirakan waktu perjalanan pulang dari kantor. Metode
+Monte Carlo menunggu sampai Anda tiba di rumah, lalu mencatat total
+waktunya. Metode TD memperbarui perkiraan di setiap persimpangan:
+“jalanan ternyata macet, perkiraan saya untuk sisa perjalanan harus
+naik”, tanpa menunggu tiba.</p>
+<p>Untuk mengendalikan, bukan hanya menilai, kita mempelajari <span
+class="math inline">\(Q\)</span>. SARSA memperbarui <span
+class="math inline">\(Q(s,a)\)</span> dengan aksi berikutnya yang
+benar-benar diambil, sehingga ia belajar nilai policy yang sedang
+dijalankan. Q-learning <span class="citation"
+data-cites="watkins1992">(Watkins dan Dayan 1992)</span> memakai aksi
+terbaik di keadaan berikutnya, <span
+class="math display">\[Q(s_t,a_t)\leftarrow
+Q(s_t,a_t)+\alpha\big[r_{t+1}+\gamma\max_{a&#39;}Q(s_{t+1},a&#39;)-Q(s_t,a_t)\big],\]</span>
+sehingga ia belajar nilai policy optimal sambil menjalankan policy lain
+yang lebih eksploratif. Perbedaan ini disebut on-policy dan
+off-policy.</p>
+<p>Di sini muncul dilema yang tidak dikenal di supervised learning:
+<em>exploration</em> melawan <em>exploitation</em>. Kalau agen selalu
+memilih aksi yang sejauh ini terbaik, ia mungkin tidak pernah menemukan
+aksi yang sebenarnya lebih baik. Kalau ia terus mencoba hal baru, ia
+membuang ganjaran. Strategi paling sederhana adalah <span
+class="math inline">\(\epsilon\)</span>-greedy: pilih aksi terbaik
+hampir selalu, tetapi dengan peluang kecil <span
+class="math inline">\(\epsilon\)</span> pilih aksi acak. Ini mirip
+memilih tempat makan. Kalau selalu ke warung langganan, kita tidak
+pernah tahu ada warung yang lebih enak di gang sebelah.</p>
+<h1 id="deep-q-network">Deep Q-network</h1>
+<p>Untuk keadaan yang amat banyak, seperti piksel layar permainan, tabel
+<span class="math inline">\(Q\)</span> diganti jaringan saraf <span
+class="math inline">\(Q_\theta(s,a)\)</span>. Gabungan ini ternyata
+tidak stabil, karena data yang dikumpulkan berurutan sangat berkorelasi
+dan targetnya terus berubah seiring jaringannya sendiri berubah. DQN
+<span class="citation" data-cites="mnih2015">(Mnih dkk. 2015)</span>
+memperbaikinya dengan dua trik. <em>Experience replay</em> menyimpan
+pengalaman di sebuah buffer dan melatih jaringan dengan mini-batch acak
+dari buffer itu, sehingga korelasi terputus. <em>Target network</em>
+adalah salinan jaringan yang diperbarui jarang-jarang dan dipakai untuk
+menghitung target, sehingga target tidak bergeser di setiap langkah.
+Dengan dua trik ini, satu arsitektur yang sama belajar memainkan puluhan
+permainan Atari dari piksel. Operator maksimum dalam target Q-learning
+cenderung melebih-lebihkan nilai, dan varian-varian DQN selanjutnya
+memisahkan pemilihan aksi dari penilaian aksinya untuk mengurangi bias
+itu.</p>
+<h1 id="policy-gradient">Policy gradient</h1>
+<p>Pendekatan lain melewati fungsi nilai dan langsung mengoptimalkan
+policy berparameter <span class="math inline">\(\pi_\theta(a\mid
+s)\)</span>. Teorema policy gradient memberi gradien return harapan
+<span class="math inline">\(J(\theta)\)</span> dalam bentuk yang bisa
+diperkirakan dari sampel, <span class="math display">\[\nabla_\theta
+J(\theta)=\mathbb{E}_{\pi_\theta}\Big[\sum_t\nabla_\theta\log\pi_\theta(a_t\mid
+s_t)\,G_t\Big].\]</span> Kuncinya adalah <em>log-derivative trick</em>.
+Untuk satu lintasan <span class="math inline">\(\tau\)</span> dengan
+peluang <span class="math inline">\(p_\theta(\tau)\)</span> dan return
+<span class="math inline">\(G(\tau)\)</span>, gradien return harapan
+adalah <span class="math display">\[\nabla_\theta\int
+p_\theta(\tau)G(\tau)\,\mathrm{d}\tau=\int
+p_\theta(\tau)\,\nabla_\theta\log
+p_\theta(\tau)\,G(\tau)\,\mathrm{d}\tau,\]</span> karena <span
+class="math inline">\(\nabla p=p\,\nabla\log p\)</span>. Bentuk kedua
+adalah sebuah ekspektasi, sehingga bisa diperkirakan dengan
+merata-ratakan atas lintasan yang dijalankan. Peluang lintasan adalah
+hasil kali peluang aksi dari policy dan peluang transisi dari
+lingkungan. Setelah logaritma diambil, hasil kali itu menjadi jumlah,
+dan suku-suku transisi lingkungan tidak bergantung pada <span
+class="math inline">\(\theta\)</span>, sehingga hilang saat diturunkan.
+Yang tersisa hanya <span
+class="math inline">\(\sum_t\nabla_\theta\log\pi_\theta(a_t\mid
+s_t)\)</span>. Inilah alasan policy gradient bisa dipakai tanpa model
+lingkungan sama sekali. Mengganti <span
+class="math inline">\(G(\tau)\)</span> dengan return sejak langkah <span
+class="math inline">\(t\)</span> saja diperbolehkan, karena aksi di
+langkah <span class="math inline">\(t\)</span> tidak bisa memengaruhi
+ganjaran yang sudah diterima sebelumnya.</p>
+<p>Algoritme REINFORCE <span class="citation"
+data-cites="williams1992">(Williams 1992)</span> memakai rumus ini
+langsung: naikkan peluang aksi yang diikuti return tinggi, turunkan
+peluang aksi yang diikuti return rendah. Estimasi ini tak bias, tetapi
+variansnya besar. Mengurangkan sebuah <em>baseline</em> yang tidak
+bergantung pada aksi, biasanya perkiraan <span
+class="math inline">\(V(s_t)\)</span>, tidak mengubah ekspektasinya
+tetapi mengurangi variansnya. Selisih <span
+class="math inline">\(A_t=G_t-V(s_t)\)</span> disebut
+<em>advantage</em>: seberapa jauh aksi ini lebih baik daripada
+rata-rata. Metode <em>actor-critic</em> melatih dua jaringan sekaligus,
+aktor yang memilih aksi dan kritikus yang menaksir nilai <span
+class="citation" data-cites="mnih2016">(Mnih dkk. 2016)</span>, dan
+<em>generalized advantage estimation</em> <span class="citation"
+data-cites="schulman2016">(Schulman, Moritz, dkk. 2015)</span> mencampur
+perkiraan advantage dari berbagai panjang langkah untuk mengatur
+keseimbangan bias dan varians.</p>
+<p>Policy gradient punya kelemahan praktis: satu langkah yang terlalu
+besar bisa merusak policy, dan data baru yang dikumpulkan dengan policy
+rusak itu ikut buruk, sehingga pelatihan bisa runtuh. TRPO <span
+class="citation" data-cites="schulman2015">(Schulman, Levine, dkk.
+2015)</span> membatasi setiap update agar policy baru tidak terlalu jauh
+dari yang lama dalam arti divergensi KL. PPO <span class="citation"
+data-cites="schulman2017">(Schulman dkk. 2017)</span> mencapai efek
+serupa dengan cara yang jauh lebih sederhana, yaitu memotong rasio
+peluang <span class="math inline">\(\rho_t=\pi_\theta(a_t\mid
+s_t)/\pi_{\theta_{\mathrm{lama}}}(a_t\mid s_t)\)</span>: <span
+class="math display">\[L^{\mathrm{CLIP}}(\theta)=\mathbb{E}_t\Big[\min\big(\rho_tA_t,\
+\mathrm{clip}(\rho_t,1-\epsilon,1+\epsilon)A_t\big)\Big].\]</span> Kalau
+sebuah aksi bagus (<span class="math inline">\(A_t&gt;0\)</span>),
+peluangnya boleh naik, tetapi tidak lebih dari faktor <span
+class="math inline">\(1+\epsilon\)</span> dalam satu update. Kalau aksi
+buruk, peluangnya boleh turun, tetapi tidak lebih dari faktor <span
+class="math inline">\(1-\epsilon\)</span>. PPO menjadi algoritme bawaan
+di banyak aplikasi karena kuat dan mudah disetel. Untuk aksi kontinu,
+soft actor-critic <span class="citation"
+data-cites="haarnoja2018">(Haarnoja dkk. 2018)</span> menambahkan
+entropi policy ke dalam tujuan, sehingga agen dihargai karena tetap acak
+selama hal itu tidak terlalu merugikan.</p>
+<h1 id="meniru-dan-memberi-kredit">Meniru dan memberi kredit</h1>
+<h2 id="imitation-learning">Imitation learning</h2>
+<p>Kadang lebih mudah menunjukkan cara melakukan sesuatu daripada
+menulis fungsi ganjarannya. <em>Behavioral cloning</em> memperlakukan
+demonstrasi ahli sebagai data supervised: input keadaan, target aksi.
+Masalahnya adalah <em>covariate shift</em>. Begitu agen sedikit
+menyimpang dari jalur ahli, ia sampai di keadaan yang tidak pernah
+dilihat ahli, membuat kesalahan lebih besar, dan menyimpang semakin
+jauh. DAgger <span class="citation" data-cites="ross2011">(Ross, Gordon,
+dan Bagnell 2010)</span> mengatasinya dengan menjalankan policy agen,
+meminta ahli memberi label pada keadaan yang dikunjungi agen, lalu
+melatih ulang. Pendekatan lain mempelajari fungsi ganjaran dari
+demonstrasi (<em>inverse reinforcement learning</em>), atau
+mempertandingkan agen dengan diskriminator yang membedakan perilakunya
+dari perilaku ahli, seperti pada GAIL <span class="citation"
+data-cites="ho2016">(Ho dan Ermon 2016)</span>.</p>
+<h2 id="credit-assignment">Credit assignment</h2>
+<p>Masalah tersulit RL adalah ganjaran yang tertunda. Dalam sebuah
+pertandingan sepak bola, gol terjadi di menit ke-80, tetapi umpan yang
+menentukan mungkin terjadi lima menit sebelumnya, dan kesalahan lawan
+yang membuka ruang mungkin terjadi lebih awal lagi. Metode TD
+menyebarkan kredit mundur satu langkah demi satu langkah, sehingga untuk
+penundaan panjang, belajarnya lambat sekali. RUDDER <span
+class="citation" data-cites="arjonamedina2019">(Arjona-Medina dkk.
+2018)</span>, yang dikembangkan di Linz, mengambil pendekatan berbeda.
+Sebuah LSTM dilatih untuk memprediksi return total dari seluruh urutan
+keadaan dan aksi. Lalu, dengan menganalisis seberapa besar setiap
+langkah mengubah prediksi itu, return dibagi ulang ke langkah-langkah
+yang benar-benar berkontribusi. Ganjaran yang tertunda diubah menjadi
+ganjaran langsung, dan nilai harapan yang tersisa untuk dipelajari
+menjadi hampir nol. Kuliah deep RL di Linz membahas topik ini dengan
+nama direct credit assignment.</p>
+<h2 id="kendali-sebagai-inferensi">Kendali sebagai inferensi</h2>
+<p>Kuliah juga membahas cara pandang yang menyatukan RL dengan inferensi
+probabilistik (<a href="ch08_probabilistik.html">Bab 10</a>). Kalau kita
+memperkenalkan variabel “optimalitas” yang peluangnya sebanding dengan
+eksponensial ganjaran, mencari policy optimal menjadi mirip menghitung
+posterior atas lintasan, dengan syarat bahwa lintasan itu optimal. Hasil
+dari cara pandang ini adalah RL dengan entropi maksimum, yang
+menjelaskan mengapa soft actor-critic menambahkan entropi ke dalam
+tujuannya.</p>
+<h1 id="model-permainan-dan-banyak-agen">Model, permainan, dan banyak
+agen</h1>
+<p>Buku <span class="citation" data-cites="plaat2022">Plaat
+(2022)</span>, yang menjadi bacaan kuliah, menyusun deep RL menjadi
+beberapa keluarga. Metode berbasis model mempelajari dinamika lingkungan
+lalu merencanakan di dalam model itu, sehingga butuh jauh lebih sedikit
+interaksi. <em>Self-play</em> melatih agen melawan salinan dirinya
+sendiri, seperti AlphaZero <span class="citation"
+data-cites="silver2018">(Silver dkk. 2018)</span>. RL multi-agen
+menghadapi lingkungan yang berubah karena agen lain juga belajar. RL
+hierarkis memecah tugas panjang menjadi subtugas, dan meta-learning
+melatih agen untuk cepat beradaptasi ke tugas baru.</p>
+<h1 id="reinforcement-learning-di-dunia-nyata">Reinforcement learning di
+dunia nyata</h1>
+<p>Di luar permainan, RL dipakai untuk masalah kendali yang sulit
+dimodelkan secara analitis. <span class="citation"
+data-cites="rabault2019">Rabault dkk. (2019)</span> melatih agen untuk
+mengendalikan jet kecil di permukaan silinder dalam simulasi CFD, dan
+agen itu menemukan strategi yang mengurangi gaya hambat. Ulasan <span
+class="citation" data-cites="garnier2021">Garnier dkk. (2021)</span>
+merangkum puluhan studi serupa dalam mekanika fluida, dari kendali
+aliran sampai optimasi bentuk. Dalam robotika, agen dilatih di simulator
+lalu dipindahkan ke robot nyata. Dalam sistem rekomendasi, memilih item
+yang ditampilkan kepada pengguna bisa dirumuskan sebagai masalah
+keputusan berurutan.</p>
+<p>Penerapan yang paling berpengaruh beberapa tahun terakhir justru
+datang dari bahasa. Model bahasa yang sudah dilatih kemudian disetel
+dengan <em>reinforcement learning from human feedback</em>. Manusia
+membandingkan pasangan jawaban model, sebuah model ganjaran dilatih dari
+preferensi itu <span class="citation"
+data-cites="christiano2017">(Christiano dkk. 2017)</span>, lalu model
+bahasa dioptimasi dengan PPO terhadap model ganjaran tersebut <span
+class="citation" data-cites="ouyang2022">(Ouyang dkk. 2022)</span>.
+Perkembangan ini kita bahas lagi di <a href="ch52_terbaru.html">Bab
+32</a>.</p>
+<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<p>Bab ini menggabungkan kuliah Reinforcement Learning (MDP, dynamic
+programming, Monte Carlo, temporal difference, policy gradient, PPO) dan
+kuliah serta latihan Deep Reinforcement Learning (imitation learning,
+policy gradient, direct credit assignment, kendali dan inferensi, proyek
+DQN dan PPO). Bacaan utama: <span class="citation"
+data-cites="sutton2018">Sutton dan Barto (2018)</span> dan <span
+class="citation" data-cites="plaat2022">Plaat (2022)</span>.</p>
+<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-arjonamedina2019" class="csl-entry" role="listitem">
+Arjona-Medina, Jose A., Michael Gillhofer, Michael Widrich, Thomas
+Unterthiner, Johannes Brandstetter, dan Sepp Hochreiter. 2018.
+<span>“RUDDER: Return Decomposition for Delayed Rewards.”</span>
+arXiv:1806.07857. <a
+href="https://arxiv.org/abs/1806.07857">https://arxiv.org/abs/1806.07857</a>.
+</div>
+<div id="ref-bellman1957" class="csl-entry" role="listitem">
+Bellman, Richard. 1957. <em>Dynamic Programming</em>. Princeton
+University Press.
+</div>
+<div id="ref-christiano2017" class="csl-entry" role="listitem">
+Christiano, Paul, Jan Leike, Tom B. Brown, Miljan Martic, Shane Legg,
+dan Dario Amodei. 2017. <span>“Deep reinforcement learning from human
+preferences.”</span> arXiv:1706.03741. <a
+href="https://arxiv.org/abs/1706.03741">https://arxiv.org/abs/1706.03741</a>.
+</div>
+<div id="ref-garnier2021" class="csl-entry" role="listitem">
+Garnier, Paul, Jonathan Viquerat, Jean Rabault, Aurélien Larcher,
+Alexander Kuhnle, dan Elie Hachem. 2021. <span>“A review on deep
+reinforcement learning for fluid mechanics.”</span> <em>Computers
+&amp;amp; Fluids</em> 225: 104973. <a
+href="https://doi.org/10.1016/j.compfluid.2021.104973">https://doi.org/10.1016/j.compfluid.2021.104973</a>.
+</div>
+<div id="ref-haarnoja2018" class="csl-entry" role="listitem">
+Haarnoja, Tuomas, Aurick Zhou, Pieter Abbeel, dan Sergey Levine. 2018.
+<span>“Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement
+Learning with a Stochastic Actor.”</span> arXiv:1801.01290. <a
+href="https://arxiv.org/abs/1801.01290">https://arxiv.org/abs/1801.01290</a>.
+</div>
+<div id="ref-ho2016" class="csl-entry" role="listitem">
+Ho, Jonathan, dan Stefano Ermon. 2016. <span>“Generative Adversarial
+Imitation Learning.”</span> arXiv:1606.03476. <a
+href="https://arxiv.org/abs/1606.03476">https://arxiv.org/abs/1606.03476</a>.
+</div>
+<div id="ref-mnih2016" class="csl-entry" role="listitem">
+Mnih, Volodymyr, Adrià Puigdomènech Badia, Mehdi Mirza, Alex Graves,
+Timothy P. Lillicrap, Tim Harley, David Silver, dan Koray Kavukcuoglu.
+2016. <span>“Asynchronous Methods for Deep Reinforcement
+Learning.”</span> arXiv:1602.01783. <a
+href="https://arxiv.org/abs/1602.01783">https://arxiv.org/abs/1602.01783</a>.
+</div>
+<div id="ref-mnih2015" class="csl-entry" role="listitem">
+Mnih, Volodymyr, Koray Kavukcuoglu, David Silver, Andrei A. Rusu, Joel
+Veness, Marc G. Bellemare, Alex Graves, dkk. 2015. <span>“Human-level
+control through deep reinforcement learning.”</span> <em>Nature</em> 518
+(7540): 529–33. <a
+href="https://doi.org/10.1038/nature14236">https://doi.org/10.1038/nature14236</a>.
+</div>
+<div id="ref-ouyang2022" class="csl-entry" role="listitem">
+Ouyang, Long, Jeff Wu, Xu Jiang, Diogo Almeida, Carroll L. Wainwright,
+Pamela Mishkin, Chong Zhang, dkk. 2022. <span>“Training language models
+to follow instructions with human feedback.”</span> arXiv:2203.02155. <a
+href="https://arxiv.org/abs/2203.02155">https://arxiv.org/abs/2203.02155</a>.
+</div>
+<div id="ref-plaat2022" class="csl-entry" role="listitem">
+Plaat, Aske. 2022. <em>Deep Reinforcement Learning</em>. Springer.
+</div>
+<div id="ref-rabault2019" class="csl-entry" role="listitem">
+Rabault, Jean, Miroslav Kuchta, Atle Jensen, Ulysse Réglade, dan Nicolas
+Cerardi. 2019. <span>“Artificial neural networks trained through deep
+reinforcement learning discover control strategies for active flow
+control.”</span> <em>Journal of Fluid Mechanics</em> 865: 281–302. <a
+href="https://doi.org/10.1017/jfm.2019.62">https://doi.org/10.1017/jfm.2019.62</a>.
+</div>
+<div id="ref-ross2011" class="csl-entry" role="listitem">
+Ross, Stephane, Geoffrey J. Gordon, dan J. Andrew Bagnell. 2010.
+<span>“A Reduction of Imitation Learning and Structured Prediction to
+No-Regret Online Learning.”</span> arXiv:1011.0686. <a
+href="https://arxiv.org/abs/1011.0686">https://arxiv.org/abs/1011.0686</a>.
+</div>
+<div id="ref-schulman2015" class="csl-entry" role="listitem">
+Schulman, John, Sergey Levine, Philipp Moritz, Michael I. Jordan, dan
+Pieter Abbeel. 2015. <span>“Trust Region Policy Optimization.”</span>
+arXiv:1502.05477. <a
+href="https://arxiv.org/abs/1502.05477">https://arxiv.org/abs/1502.05477</a>.
+</div>
+<div id="ref-schulman2016" class="csl-entry" role="listitem">
+Schulman, John, Philipp Moritz, Sergey Levine, Michael Jordan, dan
+Pieter Abbeel. 2015. <span>“High-Dimensional Continuous Control Using
+Generalized Advantage Estimation.”</span> arXiv:1506.02438. <a
+href="https://arxiv.org/abs/1506.02438">https://arxiv.org/abs/1506.02438</a>.
+</div>
+<div id="ref-schulman2017" class="csl-entry" role="listitem">
+Schulman, John, Filip Wolski, Prafulla Dhariwal, Alec Radford, dan Oleg
+Klimov. 2017. <span>“Proximal Policy Optimization Algorithms.”</span>
+arXiv:1707.06347. <a
+href="https://arxiv.org/abs/1707.06347">https://arxiv.org/abs/1707.06347</a>.
+</div>
+<div id="ref-silver2018" class="csl-entry" role="listitem">
+Silver, David, Thomas Hubert, Julian Schrittwieser, Ioannis Antonoglou,
+Matthew Lai, Arthur Guez, Marc Lanctot, dkk. 2018. <span>“A general
+reinforcement learning algorithm that masters chess, shogi, and Go
+through self-play.”</span> <em>Science</em> 362 (6419): 1140–44. <a
+href="https://doi.org/10.1126/science.aar6404">https://doi.org/10.1126/science.aar6404</a>.
+</div>
+<div id="ref-sutton2018" class="csl-entry" role="listitem">
+Sutton, Richard S., dan Andrew G. Barto. 2018. <em>Reinforcement
+Learning: An Introduction</em>. 2 ed. MIT Press.
+</div>
+<div id="ref-watkins1992" class="csl-entry" role="listitem">
+Watkins, Christopher J. C. H., dan Peter Dayan. 1992.
+<span>“Q-learning.”</span> <em>Machine Learning</em> 8 (3–4): 279–92. <a
+href="https://doi.org/10.1007/BF00992698">https://doi.org/10.1007/BF00992698</a>.
+</div>
+<div id="ref-williams1992" class="csl-entry" role="listitem">
+Williams, Ronald J. 1992. <span>“Simple statistical gradient-following
+algorithms for connectionist reinforcement learning.”</span> <em>Machine
+Learning</em> 8 (3–4): 229–56. <a
+href="https://doi.org/10.1007/BF00992696">https://doi.org/10.1007/BF00992696</a>.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch09_ml_advanced.html"><span>Sebelumnya</span>Dari Estimasi ke Difusi</a>
+  <a class="next" href="ch11_xai.html"><span>Berikutnya</span>Membuka Kotak Hitam: AI dan Visualisasi</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

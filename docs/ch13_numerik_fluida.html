@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dari Persamaan ke Solver · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 23</p>
+<h1>Dari Persamaan ke Solver</h1>
+<p><span id="ch:numerik" data-label="ch:numerik"></span></p>
+<p>Setelah persamaan-persamaan atur, kuliah metode numerik fluida
+bergerak ke cara menyelesaikannya: metode volume hingga, kopling tekanan
+dan kecepatan, turbulensi dalam tiga pertemuan, perpindahan panas dan
+spesies, aliran multifase, dan satu pertemuan khusus tentang recurrence
+CFD. Bab ini merangkum semuanya kecuali yang terakhir, yang mendapat
+babnya sendiri di <a href="ch19_rcfd.html">Bab 29</a>.</p>
+<h1 id="metode-volume-hingga">Metode volume hingga</h1>
+<p>Metode volume hingga membagi domain menjadi sel-sel kecil dan
+menegakkan neraca Persamaan (22.2) untuk setiap sel. Mengintegrasikan
+persamaan atas volume sebuah sel, lalu memakai teorema divergensi Gauss,
+mengubah integral divergensi menjadi jumlah fluks yang melewati
+sisi-sisi sel: <span
+class="math display">\[\frac{\,\mathrm{d}}{\,\mathrm{d}t}\int_V\rho\phi\,\mathrm{d}V+\sum_{\text{sisi
+}f}\big(\rho\boldsymbol{u}\phi-\Gamma\nabla\phi\big)_f\cdot\boldsymbol
+n_fA_f=\int_VS_\phi\,\mathrm{d}V.\]</span> Keindahan bentuk ini adalah
+sifat konservatifnya. Fluks yang keluar dari satu sel lewat sebuah sisi
+adalah persis fluks yang masuk ke sel tetangganya lewat sisi yang sama,
+sehingga tidak ada massa, momentum, atau energi yang hilang atau muncul
+di dalam domain kecuali lewat batas dan sumber. Di <a
+href="ch07_geometric.html">Bab 9</a> kita melihat bahwa bentuk ini
+adalah message passing: setiap sel mengumpulkan “pesan” fluks dari
+tetangganya.</p>
+<p>Nilai di sisi sel harus diperkirakan dari nilai di pusat sel. Untuk
+suku difusi, beda pusat bekerja baik. Untuk suku konveksi, pilihannya
+lebih rumit. Beda pusat akurat orde dua, tetapi menghasilkan osilasi
+yang tidak fisis kalau konveksi jauh lebih kuat daripada difusi di skala
+sel, yaitu kalau bilangan Péclet sel lebih besar dari dua. Skema
+<em>upwind</em> mengambil nilai dari sel di hulu aliran. Ia stabil dan
+tidak berosilasi, tetapi hanya orde satu, dan galatnya berperilaku
+seperti difusi tambahan yang meratakan gradien tajam, gejala yang
+disebut <em>numerical diffusion</em>. Skema orde lebih tinggi seperti
+second-order upwind dan skema dengan limiter mencari jalan tengah.
+Kuliah memperlihatkan contohnya pada perambatan gelombang permukaan, di
+mana antarmuka air dan udara mengabur dengan skema orde satu dan tetap
+tajam dengan skema yang lebih baik.</p>
+<p>Untuk waktu, metode eksplisit menghitung keadaan baru langsung dari
+keadaan lama. Murah per langkah, tetapi langkahnya dibatasi oleh syarat
+Courant–Friedrichs–Lewy <span class="citation"
+data-cites="courant1928">(Courant, Friedrichs, dan Lewy 1928)</span>,
+<span class="math display">\[\mathrm{CFL}=\frac{u\,\Delta t}{\Delta
+x}\le C_{\max},\]</span> yang secara intuitif berarti informasi tidak
+boleh melompati lebih dari sekitar satu sel dalam satu langkah. Metode
+implisit menyelesaikan sistem persamaan untuk keadaan baru. Mahal per
+langkah, tetapi stabil untuk langkah yang jauh lebih besar.</p>
+<h1 id="tekanan-dan-kecepatan">Tekanan dan kecepatan</h1>
+<p>Untuk aliran tak termampatkan, tekanan tidak punya persamaannya
+sendiri. Ia harus diatur sedemikian rupa sehingga medan kecepatan yang
+dihasilkan persamaan momentum memenuhi kekekalan massa. Algoritme SIMPLE
+<span class="citation" data-cites="patankar1972 patankar1980">(S. V.
+Patankar dan Spalding 1972; Suhas V. Patankar 1980)</span>, yang dibahas
+langkah demi langkah di kuliah, menyelesaikan masalah ini secara
+iteratif. Pertama, tebak medan tekanan dan selesaikan persamaan momentum
+untuk mendapat kecepatan sementara. Kecepatan ini umumnya belum memenuhi
+kekekalan massa. Kedua, tulis hubungan antara koreksi kecepatan dan
+koreksi tekanan. Ketiga, masukkan hubungan itu ke persamaan kekekalan
+massa, sehingga diperoleh persamaan untuk koreksi tekanan. Selesaikan,
+perbarui tekanan dan kecepatan, lalu ulangi sampai konvergen. Pendekatan
+yang menyelesaikan persamaan-persamaan ini bergantian disebut
+<em>segregated solver</em>, sedangkan solver <em>coupled</em>
+menyelesaikannya bersama dalam satu sistem besar.</p>
+<p>Kuliah menekankan perbedaan antara konvergensi numerik dan
+konvergensi fisis. Residu yang turun beberapa orde menunjukkan bahwa
+sistem persamaan diskret sudah terselesaikan. Itu belum berarti besaran
+yang kita pedulikan, misalnya gaya hambat atau temperatur di sebuah
+titik, sudah tidak berubah lagi, apalagi bahwa hasilnya benar secara
+fisis. Memantau besaran fisis dan menguji kebebasan hasil terhadap
+ukuran grid adalah bagian wajib setiap simulasi.</p>
+<h1 id="turbulensi">Turbulensi</h1>
+<h2 id="rata-rata-reynolds">Rata-rata Reynolds</h2>
+<p>Aliran turbulen penuh dengan fluktuasi acak di semua skala. Untuk
+teknik, biasanya cukup mengetahui rata-ratanya. Dekomposisi Reynolds
+menulis setiap besaran sebagai rata-rata ditambah fluktuasi, <span
+class="math inline">\(\boldsymbol{u}=\bar{\boldsymbol{u}}+\boldsymbol{u}&#39;\)</span>.
+Ketika dekomposisi ini dimasukkan ke persamaan Navier–Stokes dan
+dirata-ratakan, hampir semuanya rapi kecuali satu suku baru dari
+nonlinearitas, yaitu <em>Reynolds stress</em> <span
+class="math inline">\(-\rho\,\overline{u_i&#39;u_j&#39;}\)</span>. Suku
+ini tidak diketahui dari besaran rata-rata, sehingga persamaannya tidak
+tertutup. Inilah <em>closure problem</em> turbulensi.</p>
+<p>Boussinesq mengusulkan agar Reynolds stress diperlakukan seperti
+tegangan kental, dengan sebuah viskositas turbulen <span
+class="math inline">\(\mu_t\)</span> yang jauh lebih besar dari
+viskositas molekuler. Masalahnya bergeser menjadi menentukan <span
+class="math inline">\(\mu_t\)</span>. Model <span
+class="math inline">\(k\)</span>-<span
+class="math inline">\(\varepsilon\)</span> <span class="citation"
+data-cites="launder1974">(Launder dan Spalding 1974)</span>
+menyelesaikan dua persamaan transport tambahan, untuk energi kinetik
+turbulen <span class="math inline">\(k\)</span> dan laju disipasinya
+<span class="math inline">\(\varepsilon\)</span>, lalu menulis <span
+class="math inline">\(\mu_t=\rho C_\mu k^2/\varepsilon\)</span>.
+Konstanta-konstantanya ditetapkan dari aliran sederhana yang dipahami
+dengan baik, seperti peluruhan turbulensi di belakang grid dan
+penyebaran jet. Model <span class="math inline">\(k\)</span>-<span
+class="math inline">\(\omega\)</span> SST <span class="citation"
+data-cites="menter1994">(Menter 1994)</span> memakai formulasi <span
+class="math inline">\(k\)</span>-<span
+class="math inline">\(\omega\)</span> di dekat dinding dan beralih ke
+<span class="math inline">\(k\)</span>-<span
+class="math inline">\(\varepsilon\)</span> di aliran bebas, dan menjadi
+salah satu model paling banyak dipakai di industri. Ketika anisotropi
+turbulensi penting, seperti di dalam siklon gas atau pusaran ujung
+sayap, model Reynolds stress menyelesaikan persamaan transport untuk
+setiap komponen tegangan.</p>
+<p>Turbulensi sering digambarkan sebagai kaskade energi. Pusaran besar
+menerima energi dari aliran rata-rata, pecah menjadi pusaran yang lebih
+kecil, dan seterusnya, sampai pusaran terkecil cukup kecil untuk diredam
+viskositas menjadi panas. Seperti air terjun bertingkat, energi mengalir
+dari kolam besar ke kolam-kolam yang semakin kecil, dan model turbulensi
+hanya perlu tahu berapa banyak air yang jatuh ke dasar, bukan bentuk
+setiap riaknya.</p>
+<h2 id="large-eddy-simulation">Large eddy simulation</h2>
+<p><em>Large eddy simulation</em> (LES) menyelesaikan pusaran besar
+secara langsung dan hanya memodelkan pusaran yang lebih kecil dari
+ukuran grid. Model Smagorinsky <span class="citation"
+data-cites="smagorinsky1963">(SMAGORINSKY 1963)</span> memberi
+viskositas sub-grid <span
+class="math inline">\(\mu_{\mathrm{SGS}}=\rho(C_s\Delta)^2|\bar{\boldsymbol
+S}|\)</span>, sebanding dengan kuadrat ukuran grid dan laju deformasi
+yang terselesaikan. LES jauh lebih mahal dari RANS karena harus berjalan
+dalam waktu dengan grid halus, tetapi jauh lebih murah dari DNS, dan ia
+menangkap struktur aliran tak tunak yang hilang dalam rata-rata.</p>
+<h1 id="panas-spesies-dan-reaksi">Panas, spesies, dan reaksi</h1>
+<p>Dalam aliran turbulen, panas dan zat terlarut juga diaduk oleh
+pusaran. Konduktivitas efektif menjadi jumlah konduktivitas molekuler
+dan sumbangan turbulen, <span
+class="math inline">\(\lambda_{\mathrm{eff}}=\lambda+\mu_tc_p/\mathrm{Pr}_t\)</span>,
+dengan bilangan Prandtl turbulen biasanya sekitar 0,85. Radiasi menambah
+suku sumber dalam persamaan energi, dan reaksi kimia menambah suku
+sumber dalam persamaan spesies dan energi sekaligus. Kuliah menyinggung
+contoh-contoh industri, dari nosel Laval sampai pemanasan logam cair,
+untuk menunjukkan bahwa sebagian besar kerja pemodelan ada pada
+suku-suku sumber ini, bukan pada solvernya.</p>
+<h1 id="aliran-multifase">Aliran multifase</h1>
+<p>Banyak aliran industri melibatkan lebih dari satu fase: gelembung gas
+di dalam cairan, butiran di dalam gas, tetesan di dalam udara. Kuliah
+membahas beberapa keluarga pendekatan.</p>
+<p>Metode <em>volume of fluid</em> <span class="citation"
+data-cites="hirt1981">(Hirt dan Nichols 1981)</span> melacak antarmuka
+antara dua fluida yang tidak bercampur dengan sebuah fraksi volume yang
+bernilai satu di satu fase dan nol di fase lain. Massa jenis dan
+viskositas dirata-ratakan menurut fraksi itu, dan tegangan permukaan
+masuk lewat lompatan tekanan Young–Laplace di antarmuka, <span
+class="math inline">\(\Delta p=\sigma\kappa\)</span>, dengan <span
+class="math inline">\(\kappa\)</span> kelengkungan antarmuka. Contohnya
+di kuliah termasuk gelombang di tangki yang bergoyang dan aliran kapiler
+di saluran mikro.</p>
+<p>Untuk partikel atau tetesan yang tersebar, pendekatan Euler–Lagrange
+melacak setiap partikel, atau sekelompok partikel yang mewakilinya,
+dalam kerangka Lagrange, sementara fase kontinu diselesaikan di grid.
+Kopling bisa satu arah, ketika partikel hanya dibawa aliran, atau dua
+arah, ketika partikel juga memberi gaya balik ke fluida. Untuk aliran
+butiran padat, metode elemen diskret <span class="citation"
+data-cites="cundall1979">(Cundall dan Strack 1979)</span> menyelesaikan
+gerak setiap butir dan tumbukannya, dan gabungannya dengan CFD dipakai
+untuk unggun terfluidisasi dan pengangkutan pneumatik. Ketika partikel
+terlalu banyak untuk dilacak satu per satu, model dua fluida
+memperlakukan kedua fase sebagai kontinum yang saling menembus,
+digandeng oleh fraksi volume dan pertukaran momentum.</p>
+<h1 id="di-mana-machine-learning-masuk">Di mana machine learning
+masuk</h1>
+<p>Bab ini memperlihatkan tiga titik lemah simulasi aliran. Model
+penutup, seperti viskositas turbulen dan model sub-grid, dibangun dari
+asumsi yang sering tidak berlaku. Simulasi yang cukup teliti mahal
+sekali. Dan setiap kasus baru, dengan geometri atau syarat batas
+berbeda, harus disimulasikan dari awal. Machine learning masuk lewat
+ketiga pintu itu: model penutup yang dipelajari dari data simulasi
+teliti (<a href="ch18_hibrida.html">Bab 28</a>), model pengganti yang
+menggantikan solver (<a href="ch15_pinn.html">Bab 25</a> dan <a
+href="ch16_operator.html">Bab 26</a>), dan metode yang memanfaatkan pola
+berulang agar simulasi panjang bisa diekstrapolasi dengan murah (<a
+href="ch19_rcfd.html">Bab 29</a>).</p>
+<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<p>Bab ini mengikuti kuliah Numerical Methods in Fluid Mechanics bagian
+volume hingga, kopling tekanan dan kecepatan, turbulensi, panas dan
+spesies, serta multifase. Bacaan pendamping: <span class="citation"
+data-cites="versteeg2007">Versteeg dan Malalasekera (2007)</span>, <span
+class="citation" data-cites="ferziger2020">Ferziger, Perić, dan Street
+(2020)</span>, <span class="citation" data-cites="patankar1980">Suhas V.
+Patankar (1980)</span>, dan <span class="citation"
+data-cites="pope2000">Pope (2000)</span>.</p>
+<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-courant1928" class="csl-entry" role="listitem">
+Courant, R., K. Friedrichs, dan H. Lewy. 1928. <span>“<span>Ü</span>ber
+die partiellen Differenzengleichungen der mathematischen Physik.”</span>
+<em>Mathematische Annalen</em> 100 (1): 32–74. <a
+href="https://doi.org/10.1007/BF01448839">https://doi.org/10.1007/BF01448839</a>.
+</div>
+<div id="ref-cundall1979" class="csl-entry" role="listitem">
+Cundall, P. A., dan O. D. L. Strack. 1979. <span>“A discrete numerical
+model for granular assemblies.”</span> <em>Géotechnique</em> 29 (1):
+47–65. <a
+href="https://doi.org/10.1680/geot.1979.29.1.47">https://doi.org/10.1680/geot.1979.29.1.47</a>.
+</div>
+<div id="ref-ferziger2020" class="csl-entry" role="listitem">
+Ferziger, Joel H., Milovan Perić, dan Robert L. Street. 2020.
+<em>Computational Methods for Fluid Dynamics</em>. 4 ed. Springer. <a
+href="https://doi.org/10.1007/978-3-319-99693-6">https://doi.org/10.1007/978-3-319-99693-6</a>.
+</div>
+<div id="ref-hirt1981" class="csl-entry" role="listitem">
+Hirt, C. W, dan B. D Nichols. 1981. <span>“Volume of fluid (VOF) method
+for the dynamics of free boundaries.”</span> <em>Journal of
+Computational Physics</em> 39 (1): 201–25. <a
+href="https://doi.org/10.1016/0021-9991(81)90145-5">https://doi.org/10.1016/0021-9991(81)90145-5</a>.
+</div>
+<div id="ref-launder1974" class="csl-entry" role="listitem">
+Launder, B. E., dan D. B. Spalding. 1974. <span>“The numerical
+computation of turbulent flows.”</span> <em>Computer Methods in Applied
+Mechanics and Engineering</em> 3 (2): 269–89. <a
+href="https://doi.org/10.1016/0045-7825(74)90029-2">https://doi.org/10.1016/0045-7825(74)90029-2</a>.
+</div>
+<div id="ref-menter1994" class="csl-entry" role="listitem">
+Menter, F. R. 1994. <span>“Two-equation eddy-viscosity turbulence models
+for engineering applications.”</span> <em>AIAA Journal</em> 32 (8):
+1598–1605. <a
+href="https://doi.org/10.2514/3.12149">https://doi.org/10.2514/3.12149</a>.
+</div>
+<div id="ref-patankar1972" class="csl-entry" role="listitem">
+Patankar, S. V, dan D. B Spalding. 1972. <span>“A calculation procedure
+for heat, mass and momentum transfer in three-dimensional parabolic
+flows.”</span> <em>International Journal of Heat and Mass Transfer</em>
+15 (10): 1787–1806. <a
+href="https://doi.org/10.1016/0017-9310(72)90054-3">https://doi.org/10.1016/0017-9310(72)90054-3</a>.
+</div>
+<div id="ref-patankar1980" class="csl-entry" role="listitem">
+Patankar, Suhas V. 1980. <em>Numerical Heat Transfer and Fluid
+Flow</em>. Hemisphere.
+</div>
+<div id="ref-pope2000" class="csl-entry" role="listitem">
+Pope, Stephen B. 2000. <em>Turbulent Flows</em>. Cambridge University
+Press.
+</div>
+<div id="ref-smagorinsky1963" class="csl-entry" role="listitem">
+SMAGORINSKY, J. 1963. <span>“GENERAL CIRCULATION EXPERIMENTS WITH THE
+PRIMITIVE EQUATIONS.”</span> <em>Monthly Weather Review</em> 91 (3):
+99–164. <a
+href="https://doi.org/10.1175/1520-0493(1963)091&lt;0099:GCEWTP&gt;2.3.CO;2">https://doi.org/10.1175/1520-0493(1963)091&lt;0099:GCEWTP&gt;2.3.CO;2</a>.
+</div>
+<div id="ref-versteeg2007" class="csl-entry" role="listitem">
+Versteeg, Henk Kaarle, dan Weeratunge Malalasekera. 2007. <em>An
+Introduction to Computational Fluid Dynamics: The Finite Volume
+Method</em>. 2 ed. Pearson Education.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch12_persamaan_fluida.html"><span>Sebelumnya</span>Fluida yang Ingin Kita Tiru</a>
+  <a class="next" href="ch14_fisika_komputasi.html"><span>Berikutnya</span>Fisika Komputasi</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

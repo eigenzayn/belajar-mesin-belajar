@@ -1,0 +1,253 @@
+\chapter{Arsitektur Modern dan Model Generatif}
+\label{ch:arsitektur}
+
+Kuliah lanjutan deep learning saya ikuti pada musim panas 2025, dan latihannya setahun kemudian.
+Tugas-tugas latihannya membentuk sebuah tangga: PyTorch dan training loop, jaringan visi dan
+transfer learning, pemantauan eksperimen dan CNN lanjutan, autoencoder dan VAE, contoh adversarial
+dan GAN, lalu normalizing flow. Bab ini menaiki tangga yang sama.
+
+\Cref{ch:dlbasic} membangun jaringan dari bata-bata dasarnya. Bab ini membahas dua hal yang
+membuat deep learning modern berbeda: arsitektur yang memungkinkan jaringan amat dalam dilatih
+dengan stabil, dan model yang tidak hanya mengenali data tetapi juga membangkitkan data baru.
+
+\section{Dari LeNet ke ResNet}
+
+LeNet \citep{lecun1998} dan AlexNet \citep{krizhevsky2017} masih memakai kernel yang relatif besar.
+Keluarga VGG hanya memakai kernel $3\times3$ yang ditumpuk. Dua lapisan $3\times3$ melihat daerah
+$5\times5$, tiga lapisan melihat $7\times7$, dengan parameter yang lebih sedikit dan nonlinearitas
+yang lebih banyak. Dengan 64 kanal masuk dan keluar, satu lapisan $5\times5$ membutuhkan
+$25\cdot64^2=102\,400$ bobot, sedangkan dua lapisan $3\times3$ dengan receptive field yang sama
+cukup dengan $2\cdot9\cdot64^2=73\,728$ bobot, sekitar 28 persen lebih sedikit, dan memberi dua
+nonlinearitas alih-alih satu.
+
+Menambah lapisan seharusnya tidak merugikan, karena lapisan tambahan bisa saja belajar menjadi
+fungsi identitas. Kenyataannya, jaringan polos yang dalam justru punya galat \emph{latih}
+lebih tinggi, jadi masalahnya terletak pada optimasi, bukan overfitting. ResNet \citep{he2016}
+mengubah tugas setiap blok dari mempelajari $H(\vx)$ menjadi mempelajari selisihnya,
+\begin{equation}
+\vy=\vx+F(\vx).
+\end{equation}
+Kalau identitas sudah cukup baik, blok cukup mendorong $F$ ke nol. Gradien pun mendapat jalan tol,
+$\partial\vy/\partial\vx=\bm I+\partial F/\partial\vx$, sehingga sinyal mundur tidak harus melewati
+semua nonlinearitas. Gagasannya sama dengan constant error carousel pada LSTM (\cref{ch:lstm}),
+hanya saja kali ini di sepanjang kedalaman, bukan di sepanjang waktu.
+
+Editor yang baik tidak menulis ulang seluruh esai setiap kali merevisi. Ia menulis catatan
+perubahan di pinggir halaman, dan kalau esainya sudah bagus, catatannya kosong. Blok residual
+bekerja seperti editor itu: ia hanya menambahkan koreksi pada apa yang sudah ada.
+
+Latihan membahas dua variasi. Pada ResNet \istilah{pre-activation}, normalisasi dan aktivasi
+diletakkan sebelum konvolusi, sehingga bloknya berbentuk $\vx+F(\phi(\vx))$ alih-alih
+$\phi(\vx+F(\vx))$. Ketika jalur pintas dan jalur utama berbeda jumlah kanal, konvolusi $1\times1$
+dipakai untuk menyamakannya.
+
+Ada juga blok yang dirancang untuk efisiensi. \istilah{Depthwise-separable convolution} memecah
+konvolusi menjadi dua langkah. Setiap kanal dikonvolusi sendiri-sendiri, lalu kanal-kanal dicampur
+dengan konvolusi $1\times1$. Untuk kernel $3\times3$ dan 64 kanal, jumlah bobot turun dari
+$9\cdot64\cdot64=36\,864$ menjadi $9\cdot64+64\cdot64=4\,672$. Blok \istilah{squeeze-and-excitation}
+merata-ratakan setiap kanal menjadi satu angka, melewatkannya ke MLP kecil, lalu memakai hasilnya
+untuk menskalakan kanal, sehingga jaringan belajar kanal mana yang penting untuk gambar tertentu.
+\istilah{Vision transformer} memotong gambar menjadi petak-petak $P\times P$ dan memperlakukan setiap
+petak sebagai token \citep{dosovitskiy2021}. Gambar $224\times224$ dengan $P=16$ menghasilkan
+$14\times14=196$ token. MLP-Mixer bergantian mencampur informasi antar token dan antar kanal
+dengan MLP biasa, tanpa konvolusi dan tanpa attention.
+
+Melatih jaringan besar dari nol membutuhkan data besar. \istilah{Transfer learning} memakai jaringan
+yang sudah dilatih pada ImageNet, membekukan sebagian besar lapisannya, lalu melatih ulang
+kepala klasifikasinya saja. Fitur umum seperti tepi dan tekstur sudah dipelajari, sehingga data
+yang sedikit pun cukup untuk tugas baru.
+
+\section{Dari mengenali ke membangkitkan}
+
+Model diskriminatif mempelajari $p(y\mid\vx)$. Model generatif mempelajari $p(\vx)$ itu sendiri,
+sehingga bisa membangkitkan contoh baru, mengisi bagian yang hilang, atau menilai seberapa wajar
+sebuah data. Kuliah membahas lima keluarga.
+
+\subsection{Autoencoder}
+
+Autoencoder memampatkan $\vx$ menjadi kode $\vz=e(\vx)$ yang berdimensi kecil, lalu
+merekonstruksinya menjadi $\hat\vx=d(\vz)$. Loss rekonstruksinya mengikuti asumsi noise
+(\cref{tab:noiseloss}): MSE untuk data kontinu yang dianggap Gauss, binary cross-entropy dengan
+keluaran sigmoid untuk data di antara nol dan satu. Autoencoder linear dengan loss kuadrat
+menemukan subruang yang sama dengan PCA. Kelemahannya, autoencoder biasa tidak menjamin ruang kode
+yang rapi. Titik acak di ruang kode bisa didekode menjadi sesuatu yang tidak bermakna.
+
+\subsection{Variational autoencoder}
+
+VAE \citep{kingma2014} memperbaiki hal itu dengan memberi struktur probabilistik. Encoder
+mengeluarkan distribusi $q_\phi(\vz\mid\vx)=\N(\bm\mu,\mathrm{diag}\,\bm\sigma^2)$, decoder memodelkan
+$p_\theta(\vx\mid\vz)$, dan ruang kode diberi prior $p(\vz)=\N(\bm0,\bm I)$. Pelatihannya
+memaksimalkan \istilah{evidence lower bound}:
+\begin{equation}
+\log p_\theta(\vx)\ \ge\ \E_{q_\phi(\vz\mid\vx)}\big[\log p_\theta(\vx\mid\vz)\big]
+-\KL\big(q_\phi(\vz\mid\vx)\,\|\,p(\vz)\big).
+\label{eq:elbo6}
+\end{equation}
+Suku pertama mengukur rekonstruksi, suku kedua mengukur kedekatan ke prior. Untuk Gauss diagonal,
+divergensi KL punya bentuk tertutup,
+$\KL=\tfrac12\sum_j\big(\sigma_j^2+\mu_j^2-1-\log\sigma_j^2\big)$. Untuk satu dimensi, rumus ini
+didapat dari definisi $\KL(q\|p)=\E_q[\log q-\log p]$ dengan $q=\N(\mu,\sigma^2)$ dan $p=\N(0,1)$. Log
+kerapatan keduanya adalah $\log q=-\tfrac12\log(2\pi\sigma^2)-(z-\mu)^2/(2\sigma^2)$ dan
+$\log p=-\tfrac12\log2\pi-z^2/2$. Di bawah $q$, $\E[(z-\mu)^2]=\sigma^2$ dan $\E[z^2]=\sigma^2+\mu^2$, sehingga
+$\E_q[\log q-\log p]=-\tfrac12\log\sigma^2-\tfrac12+\tfrac12(\sigma^2+\mu^2)$, yang sama dengan rumus di
+atas. Untuk dimensi yang independen, KL-nya tinggal dijumlahkan. Satu dimensi laten dengan
+$\mu=1$ dan $\sigma=1$ memberi KL sebesar $0{,}5$. Dengan $\mu=0$ dan $\sigma=0{,}5$, hasilnya
+$\tfrac12(0{,}25-1+1{,}386)\approx0{,}318$. KL bernilai nol hanya kalau $\mu=0$ dan $\sigma=1$, yaitu
+tepat sama dengan prior.
+
+Untuk membawa gradien melewati pengambilan sampel acak, VAE memakai \istilah{reparameterization trick}.
+Sampel ditulis sebagai $\vz=\bm\mu+\bm\sigma\odot\bm\epsilon$ dengan $\bm\epsilon\sim\N(\bm0,\bm I)$.
+Keacakan dipindahkan ke $\bm\epsilon$, sehingga $\vz$ menjadi fungsi yang bisa diturunkan terhadap
+$\bm\mu$ dan $\bm\sigma$.
+
+Saya membayangkan encoder sebagai orang yang melihat foto lalu menulis deskripsi singkat yang
+sengaja agak samar, misalnya ``wajah bulat, rambut pendek, kira-kira tersenyum''. Decoder adalah
+pelukis yang menggambar dari deskripsi itu. Suku KL memaksa semua deskripsi memakai kosakata yang
+sama dan tidak terlalu spesifik, sehingga deskripsi baru yang dikarang bebas pun tetap
+menghasilkan wajah yang masuk akal.
+
+Latihan menekankan satu kenop praktis: bobot keseimbangan antara rekonstruksi dan KL. Bobot KL yang
+terlalu besar membuat gambar kabur dan ruang laten tidak terpakai. Bobot yang terlalu kecil
+membuat VAE kembali menjadi autoencoder biasa. Penurunan ELBO yang lebih teliti, termasuk versi
+hierarkis yang mengarah ke model difusi, ada di \cref{ch:mlat}.
+
+\subsection{Generative adversarial networks}
+
+GAN \citep{goodfellow2014} mempertandingkan dua jaringan. Generator $G$ mengubah noise $\vz$ menjadi
+sampel palsu, dan diskriminator $D$ menebak apakah sebuah sampel asli atau palsu:
+\begin{equation}
+\min_G\max_D\ \E_{\vx\sim p_{\mathrm{data}}}\big[\log D(\vx)\big]+\E_{\vz}\big[\log\big(1-D(G(\vz))\big)\big].
+\end{equation}
+Bentuk ini tidak lain adalah binary cross-entropy diskriminator yang tandanya dibalik untuk
+generator. Di awal pelatihan, diskriminator mudah menang dan $\log(1-D(G(\vz)))$ jenuh, sehingga
+gradien generator kecil. Jalan keluarnya adalah \istilah{non-saturating loss}, di mana generator
+memaksimalkan $\log D(G(\vz))$ saja.
+
+Apa yang sebenarnya dioptimalkan permainan ini? Untuk generator yang tetap, dengan distribusi sampel
+palsu $p_g$, tujuan diskriminator bisa ditulis sebagai integral
+$\int\big[p_{\mathrm{data}}(\vx)\log D(\vx)+p_g(\vx)\log(1-D(\vx))\big]\dd\vx$. Di setiap titik $\vx$,
+fungsi $a\log D+b\log(1-D)$ maksimal pada $D=a/(a+b)$, sehingga diskriminator terbaik adalah
+\begin{equation}
+D^*(\vx)=\frac{p_{\mathrm{data}}(\vx)}{p_{\mathrm{data}}(\vx)+p_g(\vx)}.
+\end{equation}
+Memasukkan $D^*$ kembali ke tujuan permainan memberi $-\log4+2\,\mathrm{JS}(p_{\mathrm{data}}\|p_g)$, dengan
+JS divergensi Jensen--Shannon \citep{goodfellow2014}. Jadi generator, ketika melawan diskriminator yang
+sempurna, sebenarnya meminimalkan jarak antara distribusi data dan distribusi sampelnya, dan
+minimumnya tercapai tepat ketika keduanya sama, saat $D^*=\tfrac12$ di mana-mana: diskriminator hanya bisa
+menebak dengan melempar koin.
+
+Pemalsu uang belajar mencetak uang yang lolos pemeriksaan, sementara detektif belajar membedakan
+uang asli dan palsu. Setiap kali detektif menemukan cacat baru, pemalsu memperbaikinya. Kalau
+keduanya seimbang, uang palsu akhirnya tidak bisa dibedakan dari yang asli. Masalah khas GAN
+adalah \istilah{mode collapse}, ketika generator menemukan beberapa sampel yang selalu lolos lalu
+berhenti menghasilkan variasi lain. Pelatihannya juga tidak stabil, karena tidak ada satu fungsi
+loss yang turun secara monoton.
+
+\subsection{Normalizing flows}
+
+Flow membangun distribusi yang rumit dengan mengubah distribusi sederhana melalui fungsi yang bisa
+dibalik \citep{rezende2015}. Kalau $\vx=g(\vz)$ dengan $g$ bijektif, rumus perubahan variabel
+memberi kerapatan yang eksak,
+\begin{equation}
+\log p_X(\vx)=\log p_Z\big(g^{-1}(\vx)\big)+\log\Big|\det\frac{\partial g^{-1}}{\partial\vx}\Big|.
+\end{equation}
+Dalam satu dimensi, rumus ini berasal dari kekekalan peluang. Peluang yang jatuh di selang kecil
+$[z,z+\dd z]$ harus sama dengan peluang di selang padanannya $[x,x+\dd x]$, sehingga
+$p_X(x)|\dd x|=p_Z(z)|\dd z|$, atau $p_X(x)=p_Z(z)\,|\dd z/\dd x|$. Kalau $x=2z$ dengan $z\sim\N(0,1)$, setiap
+selang diregangkan dua kali, sehingga kerapatannya harus turun separuh: $p_X(x)=\tfrac12p_Z(x/2)$, yang
+memang kerapatan $\N(0,4)$. Determinan Jacobian adalah versi banyak dimensi dari faktor regangan ini,
+dan ia mengukur perubahan volume lokal. Untuk dimensi besar, determinan umum mahal
+dihitung, jadi lapisan flow dirancang agar Jacobian-nya segitiga. \istilah{Coupling layer} membagi
+vektor menjadi dua bagian, membiarkan bagian pertama apa adanya, dan mengubah bagian kedua dengan
+fungsi dari bagian pertama. Untuk coupling aditif, $\vx_2'=\vx_2+t(\vx_1)$, determinannya bernilai
+satu dan inversnya analitis. Syarat bijeksi berarti dimensi tidak boleh berubah. Imbalannya,
+flow memberi likelihood yang eksak, bukan batas bawah seperti ELBO.
+
+\subsection{Model difusi dan model energi}
+
+Model difusi \citep{sohldickstein2015,ho2020} merusak data perlahan-lahan dengan noise Gauss, lalu
+melatih jaringan untuk membalik proses itu langkah demi langkah. Mereka kini menjadi model
+generatif gambar yang paling kuat, dan matematikanya, yang melibatkan persamaan diferensial
+stokastik dan persamaan Fokker--Planck, dibahas lengkap di \cref{ch:mlat}. Model berbasis energi,
+termasuk mesin Boltzmann, mendefinisikan $p(\vx)\propto\exp(-E(\vx))$. Mudah ditulis, tetapi sulit
+dilatih, karena konstanta normalisasinya adalah integral atas seluruh ruang.
+
+\Cref{tab:generatif} merangkum kelima keluarga ini.
+
+\begin{table}[ht]
+\centering\small
+\caption{Lima keluarga model generatif.}
+\label{tab:generatif}
+\begin{tabularx}{\linewidth}{@{}lXXX@{}}
+\toprule
+Model & Dilatih dengan & Kekuatan & Kelemahan \\
+\midrule
+VAE & ELBO & ruang laten terstruktur, stabil & sampel cenderung kabur \\
+GAN & permainan minimax & sampel tajam & tidak stabil, mode collapse \\
+Flow & likelihood eksak & kerapatan eksak, bisa dibalik & arsitektur terbatas, dimensi tetap \\
+Difusi & denoising & kualitas dan keragaman & sampling lambat \\
+Energi & beragam, sering MCMC & fleksibel & normalisasi sulit \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Contoh adversarial}
+
+Jaringan yang akurat bisa dibohongi dengan perubahan yang tidak terlihat oleh mata.
+\istilah{Fast gradient sign method} menggeser input ke arah yang paling menaikkan loss,
+\begin{equation}
+\vx'=\vx+\epsilon\,\mathrm{sign}\big(\nabla_{\vx}\Loss(\vx,y)\big).
+\end{equation}
+\istilah{Projected gradient ascent} mengulang langkah ini beberapa kali, dan setiap kali
+memproyeksikan hasilnya kembali ke bola $\|\vx'-\vx\|_\infty\le\epsilon$ serta ke rentang piksel
+yang sah. Serangan seperti ini bekerja juga di dunia fisik \citep{eykholt2018}. Melatih model dengan
+contoh adversarial membuatnya lebih tahan, dengan harga akurasi yang sedikit turun pada data
+bersih.
+
+\section{Sedikit teori}
+
+Naskah kuliah ditutup dengan beberapa hasil teoretis yang menjelaskan mengapa semua ini bekerja.
+Jaringan dalam paling mudah dilatih kalau nilai singular Jacobian input--output mendekati satu,
+sehingga sinyal maju dan gradien mundur sama-sama tidak menyusut atau meledak. Sifat ini disebut
+isometri dinamis, dan ia adalah versi matriks dari argumen varians di \cref{ch:dlbasic}. Pada
+lebar tak hingga dan laju belajar kecil, pelatihan jaringan berperilaku seperti regresi kernel
+dengan kernel yang tetap, yaitu \istilah{neural tangent kernel} \citep{jacot2018}. Teori ini
+menjelaskan konvergensi jaringan yang lebar sekali dan, seperti akan kita lihat di \cref{ch:pinn},
+juga kegagalan pelatihan PINN. Sebelum dilatih, keluaran jaringan acak yang lebar mendekati
+proses Gauss, sebuah hubungan yang menjembatani deep learning dengan statistik Bayesian
+\citep{rasmussen2006}.
+
+Jaringan biasa hanya memberi satu tebakan, tanpa keterangan seberapa yakin ia. MC dropout
+menjalankan dropout saat inferensi dan memperlakukan variasi keluarannya sebagai ketidakpastian
+\citep{gal2016}. Deep ensembles melatih beberapa jaringan dari inisialisasi yang berbeda dan melihat
+seberapa jauh mereka berbeda pendapat \citep{lakshminarayanan2017}.
+
+\section{Di luar kelas}
+
+Arsitektur dan model generatif di bab ini menyebar ke hampir semua bidang. U-Net lahir untuk citra
+biomedis dan tetap menjadi standar segmentasi organ dan tumor (\cref{ch:medis}). Transfer learning
+membuat jaringan visi yang dilatih pada foto sehari-hari berguna untuk citra mikroskop dan citra medis
+yang datanya sedikit. VAE dan model generatif berbasis teks dipakai untuk merancang molekul baru, dan
+metrik seperti Fréchet ChemNet Distance meminjam cara mengevaluasi GAN untuk kimia (\cref{ch:hayati}).
+Contoh adversarial mengingatkan bahwa sensor dan sistem persepsi kendaraan otonom bisa diserang
+(\cref{ch:robot}).
+
+Di simulasi, untuk medan pada grid teratur, U-Net adalah pilihan bawaan sebagai model pengganti. Ia
+menggabungkan konteks yang luas, penting karena tekanan di satu titik dipengaruhi seluruh domain,
+dengan detail lokal seperti lapisan batas. Blok residual cocok untuk model langkah waktu, karena
+$\vu_{t+1}=\vu_t+F(\vu_t)$ tidak lain adalah integrator Euler dengan $F$ yang dipelajari.
+
+Encoder sebuah autoencoder bisa memetakan medan aliran ke ruang laten berdimensi kecil.
+Dinamikanya lalu dipelajari di ruang laten itu, dan decoder mengembalikannya ke medan penuh. Ini
+salah satu bentuk model tereduksi yang dibahas di \cref{ch:penemuan}.
+
+Turbulensi bersifat chaos, sehingga lebih jujur memprediksi distribusi keadaan masa depan daripada
+satu keadaan tunggal. Model difusi kini dipakai untuk prakiraan cuaca probabilistik
+\citep{price2025} dan untuk simulasi aliran turbulen \citep{kohl2023}. Model pengganti yang dipakai
+untuk keputusan teknik juga harus bisa mengatakan bahwa ia tidak yakin, dan ensemble serta model
+generatif memberi kemampuan itu.
+
+\sumberbab{Bab ini mengikuti bagian kedua naskah kuliah Deep Learning and Neural Nets II, yang kini
+bernama Deep Learning: Architectures and Generative Techniques (arsitektur lanjut, model generatif,
+teori deep learning, optimasi orde tinggi, Bayesian deep learning), beserta enam tugas latihannya.
+Bacaan pendamping: \citet{goodfellow2016}, \citet{prince2023}, dan \citet{kingma2019}.}

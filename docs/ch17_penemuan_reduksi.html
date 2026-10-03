@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menemukan dan Memampatkan
+Dinamika · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 27</p>
+<h1>Menemukan dan Memampatkan Dinamika</h1>
+<p><span id="ch:penemuan" data-label="ch:penemuan"></span></p>
+<p>Makalah SINDy <span class="citation"
+data-cites="brunton2016">(Brunton, Proctor, dan Kutz 2016)</span> sudah
+saya simpan sejak musim panas 2024, sebelum kuliah pertama dimulai, dan
+buku <span class="citation" data-cites="brunton2022">Brunton dan Kutz
+(2022)</span> menyusul ke folder bacaan tidak lama kemudian. Bab ini
+membahas gagasan-gagasan dari buku itu yang menyambung dengan banyak
+kuliah: PCA dari kuliah unsupervised dan computer vision, nilai eigen
+dari fisika komputasi, lasso dari dasar-dasar machine learning, dan
+sistem dinamis dari kuliah kendali.</p>
+<p>Model pengganti di <a href="ch16_operator.html">Bab 26</a> umumnya
+kotak hitam yang besar sekali. Bab ini menempuh arah sebaliknya.
+Pertanyaannya bukan “bisakah jaringan meniru simulasi?”, melainkan
+“berapa sedikit yang sebenarnya kita butuhkan untuk menjelaskan dinamika
+ini?”. Jawabannya sering mengejutkan: medan aliran dengan jutaan derajat
+kebebasan kadang bisa dijelaskan oleh beberapa mode saja, dan
+dinamikanya oleh persamaan dengan beberapa suku.</p>
+<h1 id="proper-orthogonal-decomposition">Proper orthogonal
+decomposition</h1>
+<p>Simpan <span class="math inline">\(m\)</span> potret medan aliran,
+masing-masing dengan <span class="math inline">\(n\)</span> nilai,
+sebagai kolom-kolom matriks <span
+class="math inline">\(\boldsymbol{X}\in\mathbb{R}^{n\times m}\)</span>
+setelah rata-ratanya dikurangkan. Dekomposisi nilai singular memberi
+<span class="math display">\[\boldsymbol{X}=\boldsymbol
+U\boldsymbol\Sigma\boldsymbol V^\top,\]</span> dengan kolom-kolom <span
+class="math inline">\(\boldsymbol U\)</span> sebagai mode ruang, nilai
+singular <span class="math inline">\(\sigma_k\)</span> di diagonal <span
+class="math inline">\(\boldsymbol\Sigma\)</span>, dan baris-baris <span
+class="math inline">\(\boldsymbol V^\top\)</span> sebagai evolusi waktu
+setiap mode. Dalam mekanika fluida, prosedur ini disebut <em>proper
+orthogonal decomposition</em> <span class="citation"
+data-cites="berkooz1993 taira2017">(Berkooz, Holmes, dan Lumley 1993;
+Taira dkk. 2017)</span>. Ia tidak lain adalah PCA dari <a
+href="ch02c_unsupervised.html">Bab 4</a>, diterapkan pada potret-potret
+medan.</p>
+<p>Mengapa mode-mode ini istimewa? Teorema Eckart–Young menyatakan bahwa
+di antara semua matriks berpangkat <span
+class="math inline">\(r\)</span>, potongan SVD yang hanya menyimpan
+<span class="math inline">\(r\)</span> mode pertama adalah yang paling
+dekat ke <span class="math inline">\(\boldsymbol{X}\)</span>, dengan
+galat kuadrat sama dengan jumlah kuadrat nilai singular yang dibuang,
+<span class="math inline">\(\sum_{k&gt;r}\sigma_k^2\)</span>. Kalau
+medan berupa kecepatan, <span class="math inline">\(\sigma_k^2\)</span>
+sebanding dengan energi kinetik yang ditangkap mode ke-<span
+class="math inline">\(k\)</span>, sehingga fraksi <span
+class="math inline">\(\sum_{k\le r}\sigma_k^2/\sum_k\sigma_k^2\)</span>
+dibaca sebagai fraksi energi yang ditangkap. Untuk aliran melewati
+silinder pada bilangan Reynolds rendah, beberapa mode pertama datang
+berpasangan dan bersama-sama menangkap hampir seluruh energi fluktuasi,
+karena pelepasan pusaran adalah gelombang yang berjalan, dan gelombang
+berjalan butuh dua mode yang bergeser seperempat periode.</p>
+<p>Mode POD bisa dipakai untuk membangun <em>reduced-order model</em>.
+Tuliskan <span
+class="math inline">\(\boldsymbol{u}(\boldsymbol{x},t)\approx\bar\boldsymbol{u}(\boldsymbol{x})+\sum_{k=1}^ra_k(t)\boldsymbol\varphi_k(\boldsymbol{x})\)</span>,
+masukkan ke persamaan Navier–Stokes, lalu proyeksikan ke setiap mode.
+Proyeksi Galerkin ini menghasilkan sistem ODE kecil untuk koefisien
+<span class="math inline">\(a_k(t)\)</span>, dengan suku linear dari
+viskositas dan suku kuadratik dari konveksi. Model seperti ini bisa
+ribuan kali lebih cepat, tetapi sering tidak stabil untuk waktu panjang,
+karena mode-mode kecil yang dibuang adalah tempat energi seharusnya
+dibuang, sama seperti pusaran kecil dalam kaskade turbulensi (<a
+href="ch13_numerik_fluida.html">Bab 23</a>). Model penutup untuk mode
+yang hilang, atau model deret seperti LSTM pada koefisien <span
+class="math inline">\(a_k\)</span> (<a
+href="ch04_lstm_transformer.html">Bab 6</a>), dipakai untuk
+memperbaikinya.</p>
+<h1 id="dynamic-mode-decomposition">Dynamic mode decomposition</h1>
+<p>POD memilih mode menurut energi, tanpa peduli dinamikanya.
+<em>Dynamic mode decomposition</em> <span class="citation"
+data-cites="schmid2010">(SCHMID 2010)</span> memilih mode menurut
+dinamika. Misalkan potret-potret berurutan dengan jarak waktu <span
+class="math inline">\(\Delta t\)</span>, dan susun dua matriks yang
+bergeser satu langkah, <span
+class="math inline">\(\boldsymbol{X}=[\boldsymbol{x}_1,\dots,\boldsymbol{x}_{m-1}]\)</span>
+dan <span
+class="math inline">\(\boldsymbol{X}&#39;=[\boldsymbol{x}_2,\dots,\boldsymbol{x}_m]\)</span>.
+Kita mencari operator linear <span
+class="math inline">\(\boldsymbol{A}\)</span> sehingga <span
+class="math inline">\(\boldsymbol{X}&#39;\approx\boldsymbol{A}\boldsymbol{X}\)</span>,
+yaitu <span
+class="math inline">\(\boldsymbol{A}=\boldsymbol{X}&#39;\boldsymbol{X}^+\)</span>
+dengan pseudo-invers <span
+class="math inline">\(\boldsymbol{X}^+\)</span>. Untuk medan besar,
+<span class="math inline">\(\boldsymbol{A}\)</span> berukuran <span
+class="math inline">\(n\times n\)</span> dan terlalu besar untuk
+dibentuk, sehingga kita memproyeksikannya ke <span
+class="math inline">\(r\)</span> mode POD pertama. Dengan <span
+class="math inline">\(\boldsymbol{X}\approx\boldsymbol
+U_r\boldsymbol\Sigma_r\boldsymbol V_r^\top\)</span>, diperoleh <span
+class="math display">\[\tilde{\boldsymbol{A}}=\boldsymbol
+U_r^\top\boldsymbol{X}&#39;\boldsymbol
+V_r\boldsymbol\Sigma_r^{-1},\]</span> matriks kecil <span
+class="math inline">\(r\times r\)</span> yang nilai eigennya sama dengan
+nilai eigen utama <span class="math inline">\(\boldsymbol{A}\)</span>.
+Setiap nilai eigen <span class="math inline">\(\lambda_k\)</span>
+membawa satu mode yang berkembang seperti <span
+class="math inline">\(\lambda_k^t\)</span> per langkah. Dalam waktu
+kontinu, <span class="math inline">\(\omega_k=\ln\lambda_k/\Delta
+t\)</span>, dengan bagian real sebagai laju tumbuh atau luruh dan bagian
+imajiner sebagai frekuensi. Sebagai contoh, <span
+class="math inline">\(\lambda=0{,}99\,e^{0{,}1i}\)</span> dengan <span
+class="math inline">\(\Delta t=0{,}01\)</span> detik memberi laju luruh
+<span class="math inline">\(\ln0{,}99/0{,}01\approx-1{,}0\)</span> per
+detik dan frekuensi sudut 10 radian per detik.</p>
+<p>DMD seperti mendengarkan sebuah orkestra lalu menuliskan partitur:
+nada mana yang dimainkan, seberapa keras, dan apakah ia menguat atau
+memudar. POD, sebaliknya, hanya mencatat alat musik mana yang paling
+banyak bersuara.</p>
+<h1 id="koopman-linear-di-ruang-yang-lebih-besar">Koopman: linear di
+ruang yang lebih besar</h1>
+<p>DMD mendekati dinamika dengan operator linear, padahal kebanyakan
+sistem nonlinear. Teori operator Koopman <span class="citation"
+data-cites="koopman1931">(Koopman 1931)</span> memberi pembenarannya.
+Alih-alih melacak keadaan <span
+class="math inline">\(\boldsymbol{x}\)</span>, kita melacak
+fungsi-fungsi pengamatan <span
+class="math inline">\(g(\boldsymbol{x})\)</span>. Operator Koopman
+memajukan pengamatan dalam waktu, dan operator itu selalu linear, walau
+dinamikanya nonlinear, dengan harga bahwa ruang fungsi pengamatan
+umumnya berdimensi tak hingga.</p>
+<p>Contoh dari <span class="citation" data-cites="brunton2022">Brunton
+dan Kutz (2022)</span> memperlihatkan kapan ruang itu ternyata
+berhingga. Ambil sistem <span class="math inline">\(\dot x=\mu
+x\)</span> dan <span class="math inline">\(\dot
+y=\lambda(y-x^2)\)</span>, yang nonlinear karena suku <span
+class="math inline">\(x^2\)</span>. Tambahkan pengamatan baru <span
+class="math inline">\(z=x^2\)</span>. Turunannya <span
+class="math inline">\(\dot z=2x\dot x=2\mu x^2=2\mu z\)</span>. Dalam
+koordinat <span class="math inline">\((x,y,z)\)</span>, sistemnya
+menjadi <span class="math display">\[\dot x=\mu x,\qquad \dot y=\lambda
+y-\lambda z,\qquad \dot z=2\mu z,\]</span> sepenuhnya linear. Dalam
+praktik, pengamatan yang membuat dinamika linear jarang bisa ditebak,
+sehingga <span class="citation" data-cites="lusch2018">Lusch, Kutz, dan
+Brunton (2018)</span> melatih autoencoder untuk menemukannya: encoder
+memetakan keadaan ke koordinat di mana dinamikanya adalah perkalian
+matriks, dan decoder mengembalikannya. Kalau berhasil, semua alat
+kendali linear dari <a href="ch31_kendali.html">Bab 15</a> bisa dipakai
+pada sistem nonlinear.</p>
+<h1 id="menemukan-persamaan-sindy">Menemukan persamaan: SINDy</h1>
+<p>Kadang kita ingin lebih dari model yang meniru: kita ingin
+persamaannya. <em>Sparse identification of nonlinear dynamics</em> <span
+class="citation" data-cites="brunton2016">(Brunton, Proctor, dan Kutz
+2016)</span> berangkat dari pengamatan bahwa kebanyakan persamaan fisika
+hanya punya sedikit suku. Susun pustaka fungsi kandidat dari data,
+misalnya <span
+class="math inline">\(\boldsymbol\Theta(\boldsymbol{X})=[\boldsymbol1,\
+\boldsymbol{x},\ \boldsymbol{x}^2,\ \boldsymbol{x}^3,\
+\sin\boldsymbol{x},\dots]\)</span>, dan cari koefisien jarang <span
+class="math inline">\(\boldsymbol\Xi\)</span> sehingga <span
+class="math display">\[\dot{\boldsymbol{X}}\approx\boldsymbol\Theta(\boldsymbol{X})\,\boldsymbol\Xi.\]</span>
+Ini masalah regresi linear dengan prior jarang, persis lasso dari <a
+href="ch01_belajar_dari_data.html">Bab 1</a>. Algoritme yang dipakai
+dalam makalah aslinya lebih sederhana: selesaikan kuadrat terkecil,
+nolkan koefisien yang kecil di bawah ambang, lalu ulangi kuadrat
+terkecil hanya dengan suku yang tersisa.</p>
+<p>Contoh kecil memperlihatkan logikanya. Misalkan data berasal dari
+<span class="math inline">\(\dot x=-2x\)</span>, dan pustakanya <span
+class="math inline">\([1,x,x^2]\)</span>. Pada data tanpa noise, <span
+class="math inline">\(\dot x\)</span> di setiap titik tepat <span
+class="math inline">\(-2\)</span> kali <span
+class="math inline">\(x\)</span>, sehingga kuadrat terkecil memberi
+koefisien <span class="math inline">\((0,-2,0)\)</span> dan pengambangan
+tidak mengubah apa pun. Dengan noise, kuadrat terkecil biasa memberi
+koefisien kecil pada <span class="math inline">\(1\)</span> dan <span
+class="math inline">\(x^2\)</span> yang mencoba menjelaskan noise.
+Pengambangan membuangnya, dan regresi ulang hanya dengan <span
+class="math inline">\(x\)</span> memulihkan <span
+class="math inline">\(-2\)</span> dengan baik. Hasilnya bukan jaringan
+dengan ribuan bobot, melainkan persamaan yang bisa dibaca, diperiksa,
+dan diekstrapolasi. Pada data sistem Lorenz yang chaos, SINDy memulihkan
+ketiga persamaannya hanya dari lintasan yang diukur.</p>
+<p>SINDy punya tiga syarat yang sering menjadi titik lemah. Turunan
+waktu harus diperkirakan dari data, dan diferensiasi numerik memperbesar
+noise. Pustakanya harus memuat suku yang benar. Dan koordinatnya harus
+tepat, karena dalam koordinat yang salah, dinamika sederhana bisa tampak
+rumit. Untuk masalah terakhir, <span class="citation"
+data-cites="champion2019">Champion dkk. (2019)</span> melatih
+autoencoder bersama SINDy, sehingga koordinat dan persamaan ditemukan
+bersamaan. PDE-FIND <span class="citation" data-cites="rudy2017">(Rudy
+dkk. 2017)</span> memperluas gagasan ini ke persamaan diferensial
+parsial dengan memasukkan turunan ruang ke dalam pustaka.</p>
+<h1 id="memilih-alat">Memilih alat</h1>
+<p>Ketiga keluarga ini mengisi tempat yang berbeda. POD dan model
+tereduksi cocok ketika kita punya persamaan dan ingin mempercepatnya.
+DMD dan Koopman cocok untuk menganalisis dan meramalkan dinamika yang
+hampir periodik atau berosilasi, dan untuk kendali. SINDy cocok ketika
+persamaannya belum diketahui dan datanya cukup bersih. Semuanya
+menghasilkan model yang jauh lebih kecil dan lebih mudah ditafsirkan
+daripada jaringan dalam, dan karena itulah mereka masih dipakai
+berdampingan dengan neural operator di <a href="ch16_operator.html">Bab
+26</a>, sering sebagai lapisan di dalamnya.</p>
+<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<p>Bab ini dirangkai dari kuliah Machine Learning: Unsupervised
+Techniques (PCA), Control Systems (sistem linear dan nilai eigen),
+Computational Physics I (SVD dan masalah nilai eigen), dan bacaan selama
+tugas akhir. Rujukan utama: <span class="citation"
+data-cites="brunton2022">Brunton dan Kutz (2022)</span>, <span
+class="citation" data-cites="taira2017">Taira dkk. (2017)</span>, <span
+class="citation" data-cites="schmid2010">SCHMID (2010)</span>, dan <span
+class="citation" data-cites="brunton2016">Brunton, Proctor, dan Kutz
+(2016)</span>.</p>
+<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-berkooz1993" class="csl-entry" role="listitem">
+Berkooz, G, P Holmes, dan J L Lumley. 1993. <span>“The Proper Orthogonal
+Decomposition in the Analysis of Turbulent Flows.”</span> <em>Annual
+Review of Fluid Mechanics</em> 25 (1): 539–75. <a
+href="https://doi.org/10.1146/annurev.fl.25.010193.002543">https://doi.org/10.1146/annurev.fl.25.010193.002543</a>.
+</div>
+<div id="ref-brunton2022" class="csl-entry" role="listitem">
+Brunton, Steven L., dan J. Nathan Kutz. 2022. <em>Data-Driven Science
+and Engineering: Machine Learning, Dynamical Systems, and Control</em>.
+2 ed. Cambridge University Press.
+</div>
+<div id="ref-brunton2016" class="csl-entry" role="listitem">
+Brunton, Steven L., Joshua L. Proctor, dan J. Nathan Kutz. 2016.
+<span>“Discovering governing equations from data by sparse
+identification of nonlinear dynamical systems.”</span> <em>Proceedings
+of the National Academy of Sciences</em> 113 (15): 3932–37. <a
+href="https://doi.org/10.1073/pnas.1517384113">https://doi.org/10.1073/pnas.1517384113</a>.
+</div>
+<div id="ref-champion2019" class="csl-entry" role="listitem">
+Champion, Kathleen, Bethany Lusch, J. Nathan Kutz, dan Steven L.
+Brunton. 2019. <span>“Data-driven discovery of coordinates and governing
+equations.”</span> <em>Proceedings of the National Academy of
+Sciences</em> 116 (45): 22445–51. <a
+href="https://doi.org/10.1073/pnas.1906995116">https://doi.org/10.1073/pnas.1906995116</a>.
+</div>
+<div id="ref-koopman1931" class="csl-entry" role="listitem">
+Koopman, B. O. 1931. <span>“Hamiltonian Systems and Transformation in
+Hilbert Space.”</span> <em>Proceedings of the National Academy of
+Sciences</em> 17 (5): 315–18. <a
+href="https://doi.org/10.1073/pnas.17.5.315">https://doi.org/10.1073/pnas.17.5.315</a>.
+</div>
+<div id="ref-lusch2018" class="csl-entry" role="listitem">
+Lusch, Bethany, J. Nathan Kutz, dan Steven L. Brunton. 2018. <span>“Deep
+learning for universal linear embeddings of nonlinear dynamics.”</span>
+<em>Nature Communications</em> 9 (1). <a
+href="https://doi.org/10.1038/s41467-018-07210-0">https://doi.org/10.1038/s41467-018-07210-0</a>.
+</div>
+<div id="ref-rudy2017" class="csl-entry" role="listitem">
+Rudy, Samuel H., Steven L. Brunton, Joshua L. Proctor, dan J. Nathan
+Kutz. 2017. <span>“Data-driven discovery of partial differential
+equations.”</span> <em>Science Advances</em> 3 (4). <a
+href="https://doi.org/10.1126/sciadv.1602614">https://doi.org/10.1126/sciadv.1602614</a>.
+</div>
+<div id="ref-schmid2010" class="csl-entry" role="listitem">
+SCHMID, PETER J. 2010. <span>“Dynamic mode decomposition of numerical
+and experimental data.”</span> <em>Journal of Fluid Mechanics</em> 656:
+5–28. <a
+href="https://doi.org/10.1017/S0022112010001217">https://doi.org/10.1017/S0022112010001217</a>.
+</div>
+<div id="ref-taira2017" class="csl-entry" role="listitem">
+Taira, Kunihiko, Steven L. Brunton, Scott T. M. Dawson, Clarence W.
+Rowley, Tim Colonius, Beverley J. McKeon, Oliver T. Schmidt, Stanislav
+Gordeyev, Vassilios Theofilis, dan Lawrence S. Ukeiley. 2017.
+<span>“Modal Analysis of Fluid Flows: An Overview.”</span> <em>AIAA
+Journal</em> 55 (12): 4013–41. <a
+href="https://doi.org/10.2514/1.J056060">https://doi.org/10.2514/1.J056060</a>.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch16_operator.html"><span>Sebelumnya</span>Belajar Menyelesaikan: Neural Operator dan Simulator</a>
+  <a class="next" href="ch18_hibrida.html"><span>Berikutnya</span>Model Hibrida: Fisika dan Data Bersama</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

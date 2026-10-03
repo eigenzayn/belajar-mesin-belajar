@@ -1,0 +1,145 @@
+\chapter{Ke Mana Arah AI}
+\label{ch:terbaru}
+
+Selama dua tahun kuliah, bidang ini bergerak lebih cepat daripada slide yang mengajarkannya. Ketika
+kuliah LSTM membahas xLSTM sebagai pesaing transformer, model bahasa besar sudah dipakai jutaan orang
+setiap hari. Ketika kuliah AI and law membahas usulan aturan untuk model serbaguna, aturan itu sudah
+berlaku. Bab penutup ini mencoba merangkum perkembangan besar beberapa tahun terakhir dan menghubungkannya
+kembali dengan fondasi di bab-bab sebelumnya. Isinya pasti cepat usang, dan memang itulah intinya.
+
+\section{Model fondasi dan hukum penskalaan}
+
+Istilah \istilah{foundation model} \citep{bommasani2021} menamai pergeseran cara membangun AI. Alih-alih
+melatih model khusus untuk setiap tugas, kita melatih satu model besar pada data yang luas,
+biasanya dengan self-supervised learning (\cref{ch:data}), lalu menyesuaikannya untuk banyak tugas. GPT-4
+\citep{openai2023}, model-model terbuka seperti LLaMA \citep{touvron2023}, CLIP untuk gambar dan teks
+\citep{radford2021}, dan AlphaFold untuk protein adalah contoh-contohnya.
+
+Pendorong utamanya adalah pengamatan empiris yang disebut \istilah{scaling laws}. \citet{kaplan2020}
+menemukan bahwa loss model bahasa turun mengikuti hukum pangkat terhadap jumlah parameter $N$, jumlah
+data $D$, dan komputasi $C$, misalnya $L(N)\approx(N_c/N)^{\alpha}$ dengan $\alpha$ kecil. Hukum pangkat
+berarti garis lurus pada skala log--log: setiap kali model diperbesar sepuluh kali, loss turun dengan
+faktor yang kira-kira tetap. Komputasi pelatihan transformer bisa diperkirakan dengan aturan praktis
+$C\approx6ND$ operasi floating point: sekitar dua operasi per parameter per token untuk lintasan maju,
+dan sekitar empat untuk lintasan mundur. \citet{hoffmann2022} menunjukkan bahwa untuk anggaran komputasi
+tertentu, banyak model sebelumnya terlalu besar dan dilatih dengan terlalu sedikit data, dan bahwa
+jumlah token yang optimal kira-kira dua puluh kali jumlah parameter. Model dengan 70 miliar parameter
+dengan demikian butuh sekitar 1,4 triliun token, dan komputasinya $6\times7\times10^{10}\times1{,}4\times10^{12}
+\approx5{,}9\times10^{23}$ operasi. Angka ini menarik dibandingkan dengan ambang $10^{25}$ operasi yang dipakai
+AI Act untuk menandai model dengan risiko sistemik (\cref{ch:manusia}): ambang itu kira-kira tujuh belas
+kali lebih besar.
+
+Supaya model raksasa lebih murah dijalankan, arsitektur \istilah{mixture of experts} \citep{fedus2022}
+hanya mengaktifkan sebagian kecil subjaringan untuk setiap token, sehingga jumlah parameter total bisa
+besar sekali sementara komputasi per token tetap terkendali. Untuk menyesuaikan model ke tugas baru tanpa
+melatih ulang semua parameternya, LoRA \citep{hu2022} membekukan matriks bobot $\mW\in\R^{d\times d}$ dan
+hanya mempelajari koreksi berpangkat rendah $\bm B\bm A$ dengan $\bm B\in\R^{d\times r}$ dan
+$\bm A\in\R^{r\times d}$. Untuk $d=4096$ dan $r=8$, satu matriks penuh punya sekitar 16,8 juta parameter,
+sedangkan koreksinya hanya $2\times4096\times8=65\,536$, kurang dari setengah persen.
+
+\section{Menyelaraskan model dengan manusia}
+
+Model bahasa yang hanya dilatih menebak kata berikutnya belum tentu membantu, jujur, atau aman.
+InstructGPT \citep{ouyang2022} memperkenalkan resep tiga langkah: penyetelan dengan contoh jawaban yang
+ditulis manusia, pelatihan model ganjaran dari perbandingan pasangan jawaban \citep{christiano2017}, lalu
+optimasi model bahasa terhadap model ganjaran itu dengan PPO (\cref{ch:rl}), sambil menjaga agar ia tidak
+terlalu jauh dari model awal.
+
+Direct preference optimization \citep{rafailov2023} memperlihatkan bahwa langkah reinforcement learning
+bisa dilewati. Penurunannya elegan. Tujuan RLHF adalah memaksimalkan ganjaran harapan dikurangi penalti
+KL terhadap model acuan $\pi_{\mathrm{ref}}$:
+\begin{equation}
+\max_\pi\ \E_{y\sim\pi(\cdot\mid x)}\big[r(x,y)\big]-\beta\,\KL\big(\pi(\cdot\mid x)\,\|\,\pi_{\mathrm{ref}}(\cdot\mid x)\big).
+\end{equation}
+Masalah ini punya solusi tertutup, $\pi^*(y\mid x)\propto\pi_{\mathrm{ref}}(y\mid x)\exp\big(r(x,y)/\beta\big)$.
+Membalik persamaan ini memberi ganjaran dalam bentuk policy, $r(x,y)=\beta\log\big(\pi^*(y\mid x)/\pi_{\mathrm{ref}}(y\mid x)\big)$
+ditambah suku yang hanya bergantung pada $x$. Dalam model preferensi Bradley--Terry, peluang jawaban $y_w$
+lebih disukai dari $y_l$ adalah $\sigma\big(r(x,y_w)-r(x,y_l)\big)$, dan suku yang hanya bergantung pada $x$
+saling menghapus dalam selisih itu. Hasilnya, preferensi bisa dipelajari langsung pada policy dengan loss
+\begin{equation}
+\Loss_{\mathrm{DPO}}=-\log\sigma\Big(\beta\log\frac{\pi_\theta(y_w\mid x)}{\pi_{\mathrm{ref}}(y_w\mid x)}-\beta\log\frac{\pi_\theta(y_l\mid x)}{\pi_{\mathrm{ref}}(y_l\mid x)}\Big),
+\end{equation}
+sebuah binary cross-entropy biasa, tanpa model ganjaran terpisah dan tanpa sampling selama pelatihan.
+
+\section{Model yang bernalar}
+
+\citet{wei2022} menunjukkan bahwa meminta model menuliskan langkah-langkah penalarannya sebelum menjawab,
+\istilah{chain-of-thought}, memperbaiki kinerja pada soal matematika dan logika secara nyata. Generasi
+berikutnya melatih kemampuan ini secara langsung. DeepSeek-R1 \citep{deepseek2025} memperlihatkan bahwa
+reinforcement learning dengan ganjaran yang bisa diperiksa secara otomatis, misalnya apakah jawaban akhir
+sebuah soal matematika benar atau apakah sebuah program lolos uji, membuat model belajar menulis rantai
+penalaran panjang, memeriksa ulang, dan mencoba jalan lain ketika buntu. Pola ini mengingatkan pada
+pelajaran dari AlphaZero di \cref{ch:klasik}: memberi model lebih banyak waktu untuk ``berpikir'' saat
+menjawab, dengan mencari dan memeriksa, menjadi sumbu penskalaan baru di samping ukuran model.
+
+Hasilnya terlihat jelas dalam matematika. AlphaGeometry \citep{trinh2024} menggabungkan model bahasa dengan
+mesin deduksi simbolik untuk menyelesaikan soal geometri olimpiade. Pada Olimpiade Matematika
+Internasional Juli 2025, sebuah versi Gemini Deep Think dari Google DeepMind menyelesaikan lima dari
+enam soal dalam bahasa alami dan diakui panitia mencapai standar medali emas\footnote{Pengumuman Google
+DeepMind, Juli 2025: \url{https://deepmind.google/blog/advanced-version-of-gemini-with-deep-think-officially-achieves-gold-medal-standard-at-the-international-mathematical-olympiad/}.
+OpenAI melaporkan hasil setara dengan model eksperimentalnya, tetapi hasil itu tidak disertifikasi oleh
+koordinator IMO.}.
+
+\section{Agen}
+
+Model bahasa yang bisa memakai alat berubah dari penjawab pertanyaan menjadi agen. ReAct \citep{yao2023}
+merangkai penalaran dan tindakan secara bergantian: model menulis pikiran, memanggil alat seperti
+pencarian web atau kalkulator, membaca hasilnya, lalu berpikir lagi. Retrieval-augmented generation
+\citep{lewis2020} memberi model akses ke basis dokumen sehingga jawabannya bisa bersandar pada sumber yang
+dikutip, bukan hanya pada ingatan parameternya. Agen pemrograman yang bisa membaca kode, menjalankan uji,
+dan memperbaiki kesalahannya sendiri menjadi salah satu penerapan yang paling cepat berkembang. Sebagian
+besar masalah lama muncul kembali dalam bentuk baru: credit assignment untuk tugas panjang (\cref{ch:rl}),
+galat yang menumpuk sepanjang banyak langkah seperti pada rollout simulator (\cref{ch:operator}), dan
+pertanyaan siapa yang bertanggung jawab ketika agen bertindak (\cref{ch:manusia}).
+
+\section{Gambar, video, dan model dunia}
+
+Model difusi dari \cref{ch:mlat} menjadi mesin di balik generator gambar modern. Latent diffusion
+\citep{rombach2022} menjalankan difusi di ruang laten sebuah autoencoder, bukan di ruang piksel, sehingga
+jauh lebih murah. Diffusion transformer \citep{peebles2023} mengganti U-Net dengan transformer dan
+memperlihatkan bahwa model difusi juga mengikuti hukum penskalaan. Generator video adalah perpanjangan
+alami dari gagasan yang sama ke dimensi waktu.
+
+Model yang membangkitkan video yang konsisten secara fisis mulai disebut \istilah{world models}, sebuah
+istilah yang dipakai \citet{ha2018} untuk agen yang belajar model internal lingkungannya lalu berlatih di
+dalam ``mimpi''-nya sendiri. Apakah model video benar-benar memahami fisika atau hanya meniru
+penampilannya adalah pertanyaan terbuka, dan alat dari Bagian V, seperti uji kekekalan dan ekstrapolasi,
+adalah cara yang baik untuk mengujinya.
+
+\section{AI untuk sains}
+
+Tahun 2024 memberi penanda simbolis. Hadiah Nobel Fisika diberikan kepada John Hopfield dan Geoffrey
+Hinton untuk penemuan dasar yang memungkinkan machine learning dengan jaringan saraf tiruan, dan
+setengah Hadiah Nobel Kimia diberikan kepada Demis Hassabis dan John Jumper untuk prediksi struktur
+protein (\cref{ch:protein}). Jaringan Hopfield yang dihargai itu adalah leluhur langsung jaringan Hopfield
+modern di \cref{ch:lstm}.
+
+Di bidang cuaca, model berbasis machine learning seperti GraphCast \citep{lam2023}, GenCast
+\citep{price2025}, dan Aurora \citep{bodnar2024} kini bersaing dengan sistem numerik operasional, dan
+beberapa pusat prakiraan cuaca mulai menjalankannya berdampingan. Model fondasi untuk fisika umum
+\citep{mccabe2023,alkin2024} dan kumpulan data simulasi besar \citep{ohana2024} mencoba mengulang
+kesuksesan itu untuk PDE secara umum. Di kimia dan biologi, AlphaFold3 \citep{abramson2024} memperluas
+prediksi struktur ke interaksi antar molekul. Pola yang sama muncul di semua bidang ini: data simulasi
+dan pengukuran yang terkumpul selama puluhan tahun menjadi bahan bakar, dan struktur fisika, seperti
+simetri dan kekekalan, menjadi kemudi.
+
+\section{Yang tidak berubah}
+
+Di tengah semua perubahan ini, pelajaran dari kuliah-kuliah dasar tetap berlaku, bahkan semakin penting.
+Generalisasi di luar data latih tetap sulit (\cref{ch:data}). Model besar tetap bisa belajar jalan pintas
+yang salah, dan evaluasi yang jujur tetap memerlukan pembagian data yang hati-hati. Optimasi tetap
+bergantung pada condition number dan noise (\cref{ch:optimasi}). Model generatif tetap bisa
+berhalusinasi, sehingga penalaran yang bisa diperiksa dan sumber yang bisa dikutip menjadi semakin
+berharga. Dan sistem yang kuat tetap harus dijelaskan dengan jujur kepada orang-orang yang hidupnya
+terdampak (\cref{ch:xai,ch:manusia}).
+
+Kalau ada satu benang merah yang saya bawa dari empat semester ini, mungkin begini: kemajuan terbesar
+jarang datang dari membuang apa yang sudah diketahui. LSTM bertahan karena constant error carousel adalah
+gagasan yang benar. Konvolusi bertahan karena simetri geser adalah sifat dunia. Persamaan Navier--Stokes
+tidak berhenti berlaku karena ada jaringan saraf. Model terbaik adalah yang belajar dari data sambil
+menghormati apa yang sudah kita ketahui tentang dunia.
+
+\sumberbab{Bab ini disusun dari bacaan, bukan dari satu mata kuliah. Sebagian topiknya disinggung di kuliah
+LSTM (xLSTM dan Mamba), NLP (model bahasa besar), AI and Law (model AI serbaguna), dan AI in Life Sciences
+(model bahasa untuk kimia). Perkembangan yang baru diperiksa dengan pengumuman resminya pada saat
+penulisan, Oktober 2026.}

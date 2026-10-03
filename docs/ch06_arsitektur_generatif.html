@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arsitektur Modern dan Model
+Generatif · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 8</p>
+<h1>Arsitektur Modern dan Model Generatif</h1>
+<p><span id="ch:arsitektur" data-label="ch:arsitektur"></span></p>
+<p>Kuliah lanjutan deep learning saya ikuti pada musim panas 2025, dan
+latihannya setahun kemudian. Tugas-tugas latihannya membentuk sebuah
+tangga: PyTorch dan training loop, jaringan visi dan transfer learning,
+pemantauan eksperimen dan CNN lanjutan, autoencoder dan VAE, contoh
+adversarial dan GAN, lalu normalizing flow. Bab ini menaiki tangga yang
+sama.</p>
+<p><a href="ch03_dl_basic.html">Bab 5</a> membangun jaringan dari
+bata-bata dasarnya. Bab ini membahas dua hal yang membuat deep learning
+modern berbeda: arsitektur yang memungkinkan jaringan amat dalam dilatih
+dengan stabil, dan model yang tidak hanya mengenali data tetapi juga
+membangkitkan data baru.</p>
+<h1 id="dari-lenet-ke-resnet">Dari LeNet ke ResNet</h1>
+<p>LeNet <span class="citation" data-cites="lecun1998">(Lecun dkk.
+1998)</span> dan AlexNet <span class="citation"
+data-cites="krizhevsky2017">(Krizhevsky, Sutskever, dan Hinton
+2017)</span> masih memakai kernel yang relatif besar. Keluarga VGG hanya
+memakai kernel <span class="math inline">\(3\times3\)</span> yang
+ditumpuk. Dua lapisan <span class="math inline">\(3\times3\)</span>
+melihat daerah <span class="math inline">\(5\times5\)</span>, tiga
+lapisan melihat <span class="math inline">\(7\times7\)</span>, dengan
+parameter yang lebih sedikit dan nonlinearitas yang lebih banyak. Dengan
+64 kanal masuk dan keluar, satu lapisan <span
+class="math inline">\(5\times5\)</span> membutuhkan <span
+class="math inline">\(25\cdot64^2=102\,400\)</span> bobot, sedangkan dua
+lapisan <span class="math inline">\(3\times3\)</span> dengan receptive
+field yang sama cukup dengan <span
+class="math inline">\(2\cdot9\cdot64^2=73\,728\)</span> bobot, sekitar
+28 persen lebih sedikit, dan memberi dua nonlinearitas alih-alih
+satu.</p>
+<p>Menambah lapisan seharusnya tidak merugikan, karena lapisan tambahan
+bisa saja belajar menjadi fungsi identitas. Kenyataannya, jaringan polos
+yang dalam justru punya galat <em>latih</em> lebih tinggi, jadi
+masalahnya terletak pada optimasi, bukan overfitting. ResNet <span
+class="citation" data-cites="he2016">(He dkk. 2016)</span> mengubah
+tugas setiap blok dari mempelajari <span
+class="math inline">\(H(\boldsymbol{x})\)</span> menjadi mempelajari
+selisihnya, <span
+class="math display">\[\boldsymbol{y}=\boldsymbol{x}+F(\boldsymbol{x}).\]</span>
+Kalau identitas sudah cukup baik, blok cukup mendorong <span
+class="math inline">\(F\)</span> ke nol. Gradien pun mendapat jalan tol,
+<span
+class="math inline">\(\partial\boldsymbol{y}/\partial\boldsymbol{x}=\boldsymbol
+I+\partial F/\partial\boldsymbol{x}\)</span>, sehingga sinyal mundur
+tidak harus melewati semua nonlinearitas. Gagasannya sama dengan
+constant error carousel pada LSTM (<a
+href="ch04_lstm_transformer.html">Bab 6</a>), hanya saja kali ini di
+sepanjang kedalaman, bukan di sepanjang waktu.</p>
+<p>Editor yang baik tidak menulis ulang seluruh esai setiap kali
+merevisi. Ia menulis catatan perubahan di pinggir halaman, dan kalau
+esainya sudah bagus, catatannya kosong. Blok residual bekerja seperti
+editor itu: ia hanya menambahkan koreksi pada apa yang sudah ada.</p>
+<p>Latihan membahas dua variasi. Pada ResNet <em>pre-activation</em>,
+normalisasi dan aktivasi diletakkan sebelum konvolusi, sehingga bloknya
+berbentuk <span
+class="math inline">\(\boldsymbol{x}+F(\phi(\boldsymbol{x}))\)</span>
+alih-alih <span
+class="math inline">\(\phi(\boldsymbol{x}+F(\boldsymbol{x}))\)</span>.
+Ketika jalur pintas dan jalur utama berbeda jumlah kanal, konvolusi
+<span class="math inline">\(1\times1\)</span> dipakai untuk
+menyamakannya.</p>
+<p>Ada juga blok yang dirancang untuk efisiensi. <em>Depthwise-separable
+convolution</em> memecah konvolusi menjadi dua langkah. Setiap kanal
+dikonvolusi sendiri-sendiri, lalu kanal-kanal dicampur dengan konvolusi
+<span class="math inline">\(1\times1\)</span>. Untuk kernel <span
+class="math inline">\(3\times3\)</span> dan 64 kanal, jumlah bobot turun
+dari <span class="math inline">\(9\cdot64\cdot64=36\,864\)</span>
+menjadi <span class="math inline">\(9\cdot64+64\cdot64=4\,672\)</span>.
+Blok <em>squeeze-and-excitation</em> merata-ratakan setiap kanal menjadi
+satu angka, melewatkannya ke MLP kecil, lalu memakai hasilnya untuk
+menskalakan kanal, sehingga jaringan belajar kanal mana yang penting
+untuk gambar tertentu. <em>Vision transformer</em> memotong gambar
+menjadi petak-petak <span class="math inline">\(P\times P\)</span> dan
+memperlakukan setiap petak sebagai token <span class="citation"
+data-cites="dosovitskiy2021">(Dosovitskiy dkk. 2020)</span>. Gambar
+<span class="math inline">\(224\times224\)</span> dengan <span
+class="math inline">\(P=16\)</span> menghasilkan <span
+class="math inline">\(14\times14=196\)</span> token. MLP-Mixer
+bergantian mencampur informasi antar token dan antar kanal dengan MLP
+biasa, tanpa konvolusi dan tanpa attention.</p>
+<p>Melatih jaringan besar dari nol membutuhkan data besar. <em>Transfer
+learning</em> memakai jaringan yang sudah dilatih pada ImageNet,
+membekukan sebagian besar lapisannya, lalu melatih ulang kepala
+klasifikasinya saja. Fitur umum seperti tepi dan tekstur sudah
+dipelajari, sehingga data yang sedikit pun cukup untuk tugas baru.</p>
+<h1 id="dari-mengenali-ke-membangkitkan">Dari mengenali ke
+membangkitkan</h1>
+<p>Model diskriminatif mempelajari <span
+class="math inline">\(p(y\mid\boldsymbol{x})\)</span>. Model generatif
+mempelajari <span class="math inline">\(p(\boldsymbol{x})\)</span> itu
+sendiri, sehingga bisa membangkitkan contoh baru, mengisi bagian yang
+hilang, atau menilai seberapa wajar sebuah data. Kuliah membahas lima
+keluarga.</p>
+<h2 id="autoencoder">Autoencoder</h2>
+<p>Autoencoder memampatkan <span
+class="math inline">\(\boldsymbol{x}\)</span> menjadi kode <span
+class="math inline">\(\boldsymbol{z}=e(\boldsymbol{x})\)</span> yang
+berdimensi kecil, lalu merekonstruksinya menjadi <span
+class="math inline">\(\hat\boldsymbol{x}=d(\boldsymbol{z})\)</span>.
+Loss rekonstruksinya mengikuti asumsi noise (Tabel 1.1): MSE untuk data
+kontinu yang dianggap Gauss, binary cross-entropy dengan keluaran
+sigmoid untuk data di antara nol dan satu. Autoencoder linear dengan
+loss kuadrat menemukan subruang yang sama dengan PCA. Kelemahannya,
+autoencoder biasa tidak menjamin ruang kode yang rapi. Titik acak di
+ruang kode bisa didekode menjadi sesuatu yang tidak bermakna.</p>
+<h2 id="variational-autoencoder">Variational autoencoder</h2>
+<p>VAE <span class="citation" data-cites="kingma2014">(Diederik P.
+Kingma dan Welling 2013)</span> memperbaiki hal itu dengan memberi
+struktur probabilistik. Encoder mengeluarkan distribusi <span
+class="math inline">\(q_\phi(\boldsymbol{z}\mid\boldsymbol{x})=\mathcal{N}(\boldsymbol\mu,\mathrm{diag}\,\boldsymbol\sigma^2)\)</span>,
+decoder memodelkan <span
+class="math inline">\(p_\theta(\boldsymbol{x}\mid\boldsymbol{z})\)</span>,
+dan ruang kode diberi prior <span
+class="math inline">\(p(\boldsymbol{z})=\mathcal{N}(\boldsymbol0,\boldsymbol
+I)\)</span>. Pelatihannya memaksimalkan <em>evidence lower bound</em>:
+<span class="math display">\[\log p_\theta(\boldsymbol{x})\ \ge\
+\mathbb{E}_{q_\phi(\boldsymbol{z}\mid\boldsymbol{x})}\big[\log
+p_\theta(\boldsymbol{x}\mid\boldsymbol{z})\big]
+-\mathrm{KL}\big(q_\phi(\boldsymbol{z}\mid\boldsymbol{x})\,\|\,p(\boldsymbol{z})\big).
+\label{eq:elbo6}\]</span> Suku pertama mengukur rekonstruksi, suku kedua
+mengukur kedekatan ke prior. Untuk Gauss diagonal, divergensi KL punya
+bentuk tertutup, <span
+class="math inline">\(\mathrm{KL}=\tfrac12\sum_j\big(\sigma_j^2+\mu_j^2-1-\log\sigma_j^2\big)\)</span>.
+Untuk satu dimensi, rumus ini didapat dari definisi <span
+class="math inline">\(\mathrm{KL}(q\|p)=\mathbb{E}_q[\log q-\log
+p]\)</span> dengan <span
+class="math inline">\(q=\mathcal{N}(\mu,\sigma^2)\)</span> dan <span
+class="math inline">\(p=\mathcal{N}(0,1)\)</span>. Log kerapatan
+keduanya adalah <span class="math inline">\(\log
+q=-\tfrac12\log(2\pi\sigma^2)-(z-\mu)^2/(2\sigma^2)\)</span> dan <span
+class="math inline">\(\log p=-\tfrac12\log2\pi-z^2/2\)</span>. Di bawah
+<span class="math inline">\(q\)</span>, <span
+class="math inline">\(\mathbb{E}[(z-\mu)^2]=\sigma^2\)</span> dan <span
+class="math inline">\(\mathbb{E}[z^2]=\sigma^2+\mu^2\)</span>, sehingga
+<span class="math inline">\(\mathbb{E}_q[\log q-\log
+p]=-\tfrac12\log\sigma^2-\tfrac12+\tfrac12(\sigma^2+\mu^2)\)</span>,
+yang sama dengan rumus di atas. Untuk dimensi yang independen, KL-nya
+tinggal dijumlahkan. Satu dimensi laten dengan <span
+class="math inline">\(\mu=1\)</span> dan <span
+class="math inline">\(\sigma=1\)</span> memberi KL sebesar <span
+class="math inline">\(0{,}5\)</span>. Dengan <span
+class="math inline">\(\mu=0\)</span> dan <span
+class="math inline">\(\sigma=0{,}5\)</span>, hasilnya <span
+class="math inline">\(\tfrac12(0{,}25-1+1{,}386)\approx0{,}318\)</span>.
+KL bernilai nol hanya kalau <span class="math inline">\(\mu=0\)</span>
+dan <span class="math inline">\(\sigma=1\)</span>, yaitu tepat sama
+dengan prior.</p>
+<p>Untuk membawa gradien melewati pengambilan sampel acak, VAE memakai
+<em>reparameterization trick</em>. Sampel ditulis sebagai <span
+class="math inline">\(\boldsymbol{z}=\boldsymbol\mu+\boldsymbol\sigma\odot\boldsymbol\epsilon\)</span>
+dengan <span
+class="math inline">\(\boldsymbol\epsilon\sim\mathcal{N}(\boldsymbol0,\boldsymbol
+I)\)</span>. Keacakan dipindahkan ke <span
+class="math inline">\(\boldsymbol\epsilon\)</span>, sehingga <span
+class="math inline">\(\boldsymbol{z}\)</span> menjadi fungsi yang bisa
+diturunkan terhadap <span class="math inline">\(\boldsymbol\mu\)</span>
+dan <span class="math inline">\(\boldsymbol\sigma\)</span>.</p>
+<p>Saya membayangkan encoder sebagai orang yang melihat foto lalu
+menulis deskripsi singkat yang sengaja agak samar, misalnya “wajah
+bulat, rambut pendek, kira-kira tersenyum”. Decoder adalah pelukis yang
+menggambar dari deskripsi itu. Suku KL memaksa semua deskripsi memakai
+kosakata yang sama dan tidak terlalu spesifik, sehingga deskripsi baru
+yang dikarang bebas pun tetap menghasilkan wajah yang masuk akal.</p>
+<p>Latihan menekankan satu kenop praktis: bobot keseimbangan antara
+rekonstruksi dan KL. Bobot KL yang terlalu besar membuat gambar kabur
+dan ruang laten tidak terpakai. Bobot yang terlalu kecil membuat VAE
+kembali menjadi autoencoder biasa. Penurunan ELBO yang lebih teliti,
+termasuk versi hierarkis yang mengarah ke model difusi, ada di <a
+href="ch09_ml_advanced.html">Bab 11</a>.</p>
+<h2 id="generative-adversarial-networks">Generative adversarial
+networks</h2>
+<p>GAN <span class="citation" data-cites="goodfellow2014">(I. J.
+Goodfellow dkk. 2014)</span> mempertandingkan dua jaringan. Generator
+<span class="math inline">\(G\)</span> mengubah noise <span
+class="math inline">\(\boldsymbol{z}\)</span> menjadi sampel palsu, dan
+diskriminator <span class="math inline">\(D\)</span> menebak apakah
+sebuah sampel asli atau palsu: <span
+class="math display">\[\min_G\max_D\ \mathbb{E}_{\boldsymbol{x}\sim
+p_{\mathrm{data}}}\big[\log
+D(\boldsymbol{x})\big]+\mathbb{E}_{\boldsymbol{z}}\big[\log\big(1-D(G(\boldsymbol{z}))\big)\big].\]</span>
+Bentuk ini tidak lain adalah binary cross-entropy diskriminator yang
+tandanya dibalik untuk generator. Di awal pelatihan, diskriminator mudah
+menang dan <span
+class="math inline">\(\log(1-D(G(\boldsymbol{z})))\)</span> jenuh,
+sehingga gradien generator kecil. Jalan keluarnya adalah
+<em>non-saturating loss</em>, di mana generator memaksimalkan <span
+class="math inline">\(\log D(G(\boldsymbol{z}))\)</span> saja.</p>
+<p>Apa yang sebenarnya dioptimalkan permainan ini? Untuk generator yang
+tetap, dengan distribusi sampel palsu <span
+class="math inline">\(p_g\)</span>, tujuan diskriminator bisa ditulis
+sebagai integral <span
+class="math inline">\(\int\big[p_{\mathrm{data}}(\boldsymbol{x})\log
+D(\boldsymbol{x})+p_g(\boldsymbol{x})\log(1-D(\boldsymbol{x}))\big]\,\mathrm{d}\boldsymbol{x}\)</span>.
+Di setiap titik <span class="math inline">\(\boldsymbol{x}\)</span>,
+fungsi <span class="math inline">\(a\log D+b\log(1-D)\)</span> maksimal
+pada <span class="math inline">\(D=a/(a+b)\)</span>, sehingga
+diskriminator terbaik adalah <span
+class="math display">\[D^*(\boldsymbol{x})=\frac{p_{\mathrm{data}}(\boldsymbol{x})}{p_{\mathrm{data}}(\boldsymbol{x})+p_g(\boldsymbol{x})}.\]</span>
+Memasukkan <span class="math inline">\(D^*\)</span> kembali ke tujuan
+permainan memberi <span
+class="math inline">\(-\log4+2\,\mathrm{JS}(p_{\mathrm{data}}\|p_g)\)</span>,
+dengan JS divergensi Jensen–Shannon <span class="citation"
+data-cites="goodfellow2014">(I. J. Goodfellow dkk. 2014)</span>. Jadi
+generator, ketika melawan diskriminator yang sempurna, sebenarnya
+meminimalkan jarak antara distribusi data dan distribusi sampelnya, dan
+minimumnya tercapai tepat ketika keduanya sama, saat <span
+class="math inline">\(D^*=\tfrac12\)</span> di mana-mana: diskriminator
+hanya bisa menebak dengan melempar koin.</p>
+<p>Pemalsu uang belajar mencetak uang yang lolos pemeriksaan, sementara
+detektif belajar membedakan uang asli dan palsu. Setiap kali detektif
+menemukan cacat baru, pemalsu memperbaikinya. Kalau keduanya seimbang,
+uang palsu akhirnya tidak bisa dibedakan dari yang asli. Masalah khas
+GAN adalah <em>mode collapse</em>, ketika generator menemukan beberapa
+sampel yang selalu lolos lalu berhenti menghasilkan variasi lain.
+Pelatihannya juga tidak stabil, karena tidak ada satu fungsi loss yang
+turun secara monoton.</p>
+<h2 id="normalizing-flows">Normalizing flows</h2>
+<p>Flow membangun distribusi yang rumit dengan mengubah distribusi
+sederhana melalui fungsi yang bisa dibalik <span class="citation"
+data-cites="rezende2015">(Rezende dan Mohamed 2015)</span>. Kalau <span
+class="math inline">\(\boldsymbol{x}=g(\boldsymbol{z})\)</span> dengan
+<span class="math inline">\(g\)</span> bijektif, rumus perubahan
+variabel memberi kerapatan yang eksak, <span class="math display">\[\log
+p_X(\boldsymbol{x})=\log
+p_Z\big(g^{-1}(\boldsymbol{x})\big)+\log\Big|\det\frac{\partial
+g^{-1}}{\partial\boldsymbol{x}}\Big|.\]</span> Dalam satu dimensi, rumus
+ini berasal dari kekekalan peluang. Peluang yang jatuh di selang kecil
+<span class="math inline">\([z,z+\,\mathrm{d}z]\)</span> harus sama
+dengan peluang di selang padanannya <span
+class="math inline">\([x,x+\,\mathrm{d}x]\)</span>, sehingga <span
+class="math inline">\(p_X(x)|\,\mathrm{d}x|=p_Z(z)|\,\mathrm{d}z|\)</span>,
+atau <span
+class="math inline">\(p_X(x)=p_Z(z)\,|\,\mathrm{d}z/\,\mathrm{d}x|\)</span>.
+Kalau <span class="math inline">\(x=2z\)</span> dengan <span
+class="math inline">\(z\sim\mathcal{N}(0,1)\)</span>, setiap selang
+diregangkan dua kali, sehingga kerapatannya harus turun separuh: <span
+class="math inline">\(p_X(x)=\tfrac12p_Z(x/2)\)</span>, yang memang
+kerapatan <span class="math inline">\(\mathcal{N}(0,4)\)</span>.
+Determinan Jacobian adalah versi banyak dimensi dari faktor regangan
+ini, dan ia mengukur perubahan volume lokal. Untuk dimensi besar,
+determinan umum mahal dihitung, jadi lapisan flow dirancang agar
+Jacobian-nya segitiga. <em>Coupling layer</em> membagi vektor menjadi
+dua bagian, membiarkan bagian pertama apa adanya, dan mengubah bagian
+kedua dengan fungsi dari bagian pertama. Untuk coupling aditif, <span
+class="math inline">\(\boldsymbol{x}_2&#39;=\boldsymbol{x}_2+t(\boldsymbol{x}_1)\)</span>,
+determinannya bernilai satu dan inversnya analitis. Syarat bijeksi
+berarti dimensi tidak boleh berubah. Imbalannya, flow memberi likelihood
+yang eksak, bukan batas bawah seperti ELBO.</p>
+<h2 id="model-difusi-dan-model-energi">Model difusi dan model
+energi</h2>
+<p>Model difusi <span class="citation"
+data-cites="sohldickstein2015 ho2020">(Sohl-Dickstein dkk. 2015; Ho,
+Jain, dan Abbeel 2020)</span> merusak data perlahan-lahan dengan noise
+Gauss, lalu melatih jaringan untuk membalik proses itu langkah demi
+langkah. Mereka kini menjadi model generatif gambar yang paling kuat,
+dan matematikanya, yang melibatkan persamaan diferensial stokastik dan
+persamaan Fokker–Planck, dibahas lengkap di <a
+href="ch09_ml_advanced.html">Bab 11</a>. Model berbasis energi, termasuk
+mesin Boltzmann, mendefinisikan <span
+class="math inline">\(p(\boldsymbol{x})\propto\exp(-E(\boldsymbol{x}))\)</span>.
+Mudah ditulis, tetapi sulit dilatih, karena konstanta normalisasinya
+adalah integral atas seluruh ruang.</p>
+<p>Tabel 8.1 merangkum kelima keluarga ini.</p>
+<div id="tab:generatif">
+<table>
+<caption>Lima keluarga model generatif.</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Model</th>
+<th style="text-align: left;">Dilatih dengan</th>
+<th style="text-align: left;">Kekuatan</th>
+<th style="text-align: left;">Kelemahan</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">VAE</td>
+<td style="text-align: left;">ELBO</td>
+<td style="text-align: left;">ruang laten terstruktur, stabil</td>
+<td style="text-align: left;">sampel cenderung kabur</td>
+</tr>
+<tr>
+<td style="text-align: left;">GAN</td>
+<td style="text-align: left;">permainan minimax</td>
+<td style="text-align: left;">sampel tajam</td>
+<td style="text-align: left;">tidak stabil, mode collapse</td>
+</tr>
+<tr>
+<td style="text-align: left;">Flow</td>
+<td style="text-align: left;">likelihood eksak</td>
+<td style="text-align: left;">kerapatan eksak, bisa dibalik</td>
+<td style="text-align: left;">arsitektur terbatas, dimensi tetap</td>
+</tr>
+<tr>
+<td style="text-align: left;">Difusi</td>
+<td style="text-align: left;">denoising</td>
+<td style="text-align: left;">kualitas dan keragaman</td>
+<td style="text-align: left;">sampling lambat</td>
+</tr>
+<tr>
+<td style="text-align: left;">Energi</td>
+<td style="text-align: left;">beragam, sering MCMC</td>
+<td style="text-align: left;">fleksibel</td>
+<td style="text-align: left;">normalisasi sulit</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h1 id="contoh-adversarial">Contoh adversarial</h1>
+<p>Jaringan yang akurat bisa dibohongi dengan perubahan yang tidak
+terlihat oleh mata. <em>Fast gradient sign method</em> menggeser input
+ke arah yang paling menaikkan loss, <span
+class="math display">\[\boldsymbol{x}&#39;=\boldsymbol{x}+\epsilon\,\mathrm{sign}\big(\nabla_{\boldsymbol{x}}\mathcal{L}(\boldsymbol{x},y)\big).\]</span>
+<em>Projected gradient ascent</em> mengulang langkah ini beberapa kali,
+dan setiap kali memproyeksikan hasilnya kembali ke bola <span
+class="math inline">\(\|\boldsymbol{x}&#39;-\boldsymbol{x}\|_\infty\le\epsilon\)</span>
+serta ke rentang piksel yang sah. Serangan seperti ini bekerja juga di
+dunia fisik <span class="citation" data-cites="eykholt2018">(Eykholt
+dkk. 2017)</span>. Melatih model dengan contoh adversarial membuatnya
+lebih tahan, dengan harga akurasi yang sedikit turun pada data
+bersih.</p>
+<h1 id="sedikit-teori">Sedikit teori</h1>
+<p>Naskah kuliah ditutup dengan beberapa hasil teoretis yang menjelaskan
+mengapa semua ini bekerja. Jaringan dalam paling mudah dilatih kalau
+nilai singular Jacobian input–output mendekati satu, sehingga sinyal
+maju dan gradien mundur sama-sama tidak menyusut atau meledak. Sifat ini
+disebut isometri dinamis, dan ia adalah versi matriks dari argumen
+varians di <a href="ch03_dl_basic.html">Bab 5</a>. Pada lebar tak hingga
+dan laju belajar kecil, pelatihan jaringan berperilaku seperti regresi
+kernel dengan kernel yang tetap, yaitu <em>neural tangent kernel</em>
+<span class="citation" data-cites="jacot2018">(Jacot, Gabriel, dan
+Hongler 2018)</span>. Teori ini menjelaskan konvergensi jaringan yang
+lebar sekali dan, seperti akan kita lihat di <a
+href="ch15_pinn.html">Bab 25</a>, juga kegagalan pelatihan PINN. Sebelum
+dilatih, keluaran jaringan acak yang lebar mendekati proses Gauss,
+sebuah hubungan yang menjembatani deep learning dengan statistik
+Bayesian <span class="citation" data-cites="rasmussen2006">(Rasmussen
+dan Williams 2006)</span>.</p>
+<p>Jaringan biasa hanya memberi satu tebakan, tanpa keterangan seberapa
+yakin ia. MC dropout menjalankan dropout saat inferensi dan
+memperlakukan variasi keluarannya sebagai ketidakpastian <span
+class="citation" data-cites="gal2016">(Gal dan Ghahramani 2015)</span>.
+Deep ensembles melatih beberapa jaringan dari inisialisasi yang berbeda
+dan melihat seberapa jauh mereka berbeda pendapat <span class="citation"
+data-cites="lakshminarayanan2017">(Lakshminarayanan, Pritzel, dan
+Blundell 2016)</span>.</p>
+<h1 id="di-luar-kelas">Di luar kelas</h1>
+<p>Arsitektur dan model generatif di bab ini menyebar ke hampir semua
+bidang. U-Net lahir untuk citra biomedis dan tetap menjadi standar
+segmentasi organ dan tumor (<a href="ch43_medis.html">Bab 21</a>).
+Transfer learning membuat jaringan visi yang dilatih pada foto
+sehari-hari berguna untuk citra mikroskop dan citra medis yang datanya
+sedikit. VAE dan model generatif berbasis teks dipakai untuk merancang
+molekul baru, dan metrik seperti Fréchet ChemNet Distance meminjam cara
+mengevaluasi GAN untuk kimia (<a href="ch41_molekul.html">Bab 19</a>).
+Contoh adversarial mengingatkan bahwa sensor dan sistem persepsi
+kendaraan otonom bisa diserang (<a href="ch33_robot.html">Bab
+17</a>).</p>
+<p>Di simulasi, untuk medan pada grid teratur, U-Net adalah pilihan
+bawaan sebagai model pengganti. Ia menggabungkan konteks yang luas,
+penting karena tekanan di satu titik dipengaruhi seluruh domain, dengan
+detail lokal seperti lapisan batas. Blok residual cocok untuk model
+langkah waktu, karena <span
+class="math inline">\(\boldsymbol{u}_{t+1}=\boldsymbol{u}_t+F(\boldsymbol{u}_t)\)</span>
+tidak lain adalah integrator Euler dengan <span
+class="math inline">\(F\)</span> yang dipelajari.</p>
+<p>Encoder sebuah autoencoder bisa memetakan medan aliran ke ruang laten
+berdimensi kecil. Dinamikanya lalu dipelajari di ruang laten itu, dan
+decoder mengembalikannya ke medan penuh. Ini salah satu bentuk model
+tereduksi yang dibahas di <a href="ch17_penemuan_reduksi.html">Bab
+27</a>.</p>
+<p>Turbulensi bersifat chaos, sehingga lebih jujur memprediksi
+distribusi keadaan masa depan daripada satu keadaan tunggal. Model
+difusi kini dipakai untuk prakiraan cuaca probabilistik <span
+class="citation" data-cites="price2025">(Price dkk. 2025)</span> dan
+untuk simulasi aliran turbulen <span class="citation"
+data-cites="kohl2023">(Kohl, Chen, dan Thuerey 2023)</span>. Model
+pengganti yang dipakai untuk keputusan teknik juga harus bisa mengatakan
+bahwa ia tidak yakin, dan ensemble serta model generatif memberi
+kemampuan itu.</p>
+<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<p>Bab ini mengikuti bagian kedua naskah kuliah Deep Learning and Neural
+Nets II, yang kini bernama Deep Learning: Architectures and Generative
+Techniques (arsitektur lanjut, model generatif, teori deep learning,
+optimasi orde tinggi, Bayesian deep learning), beserta enam tugas
+latihannya. Bacaan pendamping: <span class="citation"
+data-cites="goodfellow2016">I. Goodfellow, Bengio, dan Courville
+(2016)</span>, <span class="citation" data-cites="prince2023">Prince
+(2023)</span>, dan <span class="citation"
+data-cites="kingma2019">Diederik P. Kingma dan Welling
+(2019)</span>.</p>
+<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-dosovitskiy2021" class="csl-entry" role="listitem">
+Dosovitskiy, Alexey, Lucas Beyer, Alexander Kolesnikov, Dirk
+Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, dkk.
+2020. <span>“An Image is Worth 16x16 Words: Transformers for Image
+Recognition at Scale.”</span> arXiv:2010.11929. <a
+href="https://arxiv.org/abs/2010.11929">https://arxiv.org/abs/2010.11929</a>.
+</div>
+<div id="ref-eykholt2018" class="csl-entry" role="listitem">
+Eykholt, Kevin, Ivan Evtimov, Earlence Fernandes, Bo Li, Amir Rahmati,
+Chaowei Xiao, Atul Prakash, Tadayoshi Kohno, dan Dawn Song. 2017.
+<span>“Robust Physical-World Attacks on Deep Learning Models.”</span>
+arXiv:1707.08945. <a
+href="https://arxiv.org/abs/1707.08945">https://arxiv.org/abs/1707.08945</a>.
+</div>
+<div id="ref-gal2016" class="csl-entry" role="listitem">
+Gal, Yarin, dan Zoubin Ghahramani. 2015. <span>“Dropout as a Bayesian
+Approximation: Representing Model Uncertainty in Deep Learning.”</span>
+arXiv:1506.02142. <a
+href="https://arxiv.org/abs/1506.02142">https://arxiv.org/abs/1506.02142</a>.
+</div>
+<div id="ref-goodfellow2014" class="csl-entry" role="listitem">
+Goodfellow, Ian J., Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David
+Warde-Farley, Sherjil Ozair, Aaron Courville, dan Yoshua Bengio. 2014.
+<span>“Generative Adversarial Networks.”</span> arXiv:1406.2661. <a
+href="https://arxiv.org/abs/1406.2661">https://arxiv.org/abs/1406.2661</a>.
+</div>
+<div id="ref-goodfellow2016" class="csl-entry" role="listitem">
+Goodfellow, Ian, Yoshua Bengio, dan Aaron Courville. 2016. <em>Deep
+Learning</em>. MIT Press.
+</div>
+<div id="ref-he2016" class="csl-entry" role="listitem">
+He, Kaiming, Xiangyu Zhang, Shaoqing Ren, dan Jian Sun. 2016.
+<span>“Deep Residual Learning for Image Recognition.”</span> Dalam
+<em>2016 IEEE Conference on Computer Vision and Pattern Recognition
+(CVPR)</em>, 770–78. <a
+href="https://doi.org/10.1109/CVPR.2016.90">https://doi.org/10.1109/CVPR.2016.90</a>.
+</div>
+<div id="ref-ho2020" class="csl-entry" role="listitem">
+Ho, Jonathan, Ajay Jain, dan Pieter Abbeel. 2020. <span>“Denoising
+Diffusion Probabilistic Models.”</span> arXiv:2006.11239. <a
+href="https://arxiv.org/abs/2006.11239">https://arxiv.org/abs/2006.11239</a>.
+</div>
+<div id="ref-jacot2018" class="csl-entry" role="listitem">
+Jacot, Arthur, Franck Gabriel, dan Clément Hongler. 2018. <span>“Neural
+Tangent Kernel: Convergence and Generalization in Neural
+Networks.”</span> arXiv:1806.07572. <a
+href="https://arxiv.org/abs/1806.07572">https://arxiv.org/abs/1806.07572</a>.
+</div>
+<div id="ref-kingma2019" class="csl-entry" role="listitem">
+Kingma, Diederik P., dan Max Welling. 2019. <span>“An Introduction to
+Variational Autoencoders.”</span> arXiv:1906.02691. <a
+href="https://arxiv.org/abs/1906.02691">https://arxiv.org/abs/1906.02691</a>.
+</div>
+<div id="ref-kingma2014" class="csl-entry" role="listitem">
+Kingma, Diederik P, dan Max Welling. 2013. <span>“Auto-Encoding
+Variational Bayes.”</span> arXiv:1312.6114. <a
+href="https://arxiv.org/abs/1312.6114">https://arxiv.org/abs/1312.6114</a>.
+</div>
+<div id="ref-kohl2023" class="csl-entry" role="listitem">
+Kohl, Georg, Li-Wei Chen, dan Nils Thuerey. 2023. <span>“Benchmarking
+Autoregressive Conditional Diffusion Models for Turbulent Flow
+Simulation.”</span> arXiv:2309.01745. <a
+href="https://arxiv.org/abs/2309.01745">https://arxiv.org/abs/2309.01745</a>.
+</div>
+<div id="ref-krizhevsky2017" class="csl-entry" role="listitem">
+Krizhevsky, Alex, Ilya Sutskever, dan Geoffrey E. Hinton. 2017.
+<span>“ImageNet classification with deep convolutional neural
+networks.”</span> <em>Communications of the ACM</em> 60 (6): 84–90. <a
+href="https://doi.org/10.1145/3065386">https://doi.org/10.1145/3065386</a>.
+</div>
+<div id="ref-lakshminarayanan2017" class="csl-entry" role="listitem">
+Lakshminarayanan, Balaji, Alexander Pritzel, dan Charles Blundell. 2016.
+<span>“Simple and Scalable Predictive Uncertainty Estimation using Deep
+Ensembles.”</span> arXiv:1612.01474. <a
+href="https://arxiv.org/abs/1612.01474">https://arxiv.org/abs/1612.01474</a>.
+</div>
+<div id="ref-lecun1998" class="csl-entry" role="listitem">
+Lecun, Y., L. Bottou, Y. Bengio, dan P. Haffner. 1998.
+<span>“Gradient-based learning applied to document recognition.”</span>
+<em>Proceedings of the IEEE</em> 86 (11): 2278–2324. <a
+href="https://doi.org/10.1109/5.726791">https://doi.org/10.1109/5.726791</a>.
+</div>
+<div id="ref-price2025" class="csl-entry" role="listitem">
+Price, Ilan, Alvaro Sanchez-Gonzalez, Ferran Alet, Tom R. Andersson,
+Andrew El-Kadi, Dominic Masters, Timo Ewalds, dkk. 2025.
+<span>“Probabilistic weather forecasting with machine learning.”</span>
+<em>Nature</em> 637 (8044): 84–90. <a
+href="https://doi.org/10.1038/s41586-024-08252-9">https://doi.org/10.1038/s41586-024-08252-9</a>.
+</div>
+<div id="ref-prince2023" class="csl-entry" role="listitem">
+Prince, Simon J. D. 2023. <em>Understanding Deep Learning</em>. MIT
+Press.
+</div>
+<div id="ref-rasmussen2006" class="csl-entry" role="listitem">
+Rasmussen, Carl Edward, dan Christopher K. I. Williams. 2006.
+<em>Gaussian Processes for Machine Learning</em>. MIT Press.
+</div>
+<div id="ref-rezende2015" class="csl-entry" role="listitem">
+Rezende, Danilo Jimenez, dan Shakir Mohamed. 2015. <span>“Variational
+Inference with Normalizing Flows.”</span> arXiv:1505.05770. <a
+href="https://arxiv.org/abs/1505.05770">https://arxiv.org/abs/1505.05770</a>.
+</div>
+<div id="ref-sohldickstein2015" class="csl-entry" role="listitem">
+Sohl-Dickstein, Jascha, Eric A. Weiss, Niru Maheswaranathan, dan Surya
+Ganguli. 2015. <span>“Deep Unsupervised Learning using Nonequilibrium
+Thermodynamics.”</span> arXiv:1503.03585. <a
+href="https://arxiv.org/abs/1503.03585">https://arxiv.org/abs/1503.03585</a>.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch05_computer_vision.html"><span>Sebelumnya</span>Melihat: Computer Vision</a>
+  <a class="next" href="ch07_geometric.html"><span>Berikutnya</span>Geometri dan Simetri</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

@@ -1,0 +1,20 @@
+% Shared TikZ setup. Used by the book and by tools/tikz2svg.py (standalone figures for the web).
+\usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric,shapes.misc,decorations.pathreplacing,fit,backgrounds,patterns,matrix}
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.18}
+\definecolor{biru}{HTML}{1F5A8C}
+\definecolor{hijau}{HTML}{1E7A5A}
+\definecolor{oranye}{HTML}{C0661E}
+\definecolor{ungu}{HTML}{6A3D9A}
+\definecolor{merah}{HTML}{B03A3A}
+\definecolor{abu}{HTML}{6B6B6B}
+\definecolor{pasir}{HTML}{F4EDE2}
+\tikzset{
+  >={Stealth[length=2.2mm]},
+  kotak/.style={draw=#1!80!black,fill=#1!8,rounded corners=2pt,minimum height=7mm,minimum width=14mm,align=center,font=\sffamily\small},
+  kotak/.default=biru,
+  bulat/.style={draw=#1!80!black,fill=#1!10,circle,minimum size=7mm,inner sep=1pt,font=\sffamily\small},
+  bulat/.default=biru,
+  panah/.style={->,thick,draw=abu},
+  label/.style={font=\sffamily\footnotesize,text=abu},
+}

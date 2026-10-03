@@ -1,0 +1,43 @@
+\begin{titlepage}
+\thispagestyle{empty}
+\begin{tikzpicture}[remember picture,overlay]
+  \fill[pasir] (current page.south west) rectangle (current page.north east);
+  % a quiet motif: points that slowly organise into a flow
+  \begin{scope}[shift={($(current page.south west)+(1.5,2.2)$)}]
+    \foreach \i in {0,...,17}{
+      \foreach \j in {0,...,6}{
+        \pgfmathsetmacro{\yy}{\j*0.85+0.35*sin(\i*25+\j*40)}
+        \pgfmathsetmacro{\op}{0.12+0.04*\i}
+        \fill[biru,opacity=\op] (\i*1.0,\yy) circle (0.06+0.004*\i);
+      }
+    }
+    \draw[oranye,line width=1.1pt,opacity=0.8]
+      plot[smooth,domain=0:17,samples=80] (\x,{2.8+1.1*sin(\x*28)*exp(-0.04*\x)});
+  \end{scope}
+\end{tikzpicture}
+
+\vspace*{28mm}
+{\large\scshape\color{abu} catatan kuliah master artificial intelligence di linz\par}
+\vspace{8mm}
+{\fontsize{44}{50}\selectfont\color{biru!80!black} Belajar\\[2mm] Mesin Belajar\par}
+\vspace{9mm}
+{\Large\itshape\color{oranye!80!black} dari neuron sampai difusi,\\ dengan analogi sehari-hari\par}
+\vspace{18mm}
+{\large Eigenzayn\par}
+\vspace{2mm}
+{\small\color{abu} Edisi pertama, Oktober 2026\par}
+\vfill
+\end{titlepage}
+
+\thispagestyle{empty}
+\vspace*{\fill}
+{\small\color{abu}
+\textit{Belajar Mesin Belajar}\\
+Catatan kuliah Master Artificial Intelligence di Linz\\[3mm]
+Isi buku ini ditulis ulang dengan kata-kata sendiri dari kuliah yang diikuti, lalu diperkaya
+dengan rujukan dari literatur. Slide, naskah, dan soal ujian asli tetap milik para pengajarnya
+dan tidak disertakan. Semua rujukan di daftar pustaka diperiksa terhadap Crossref, arXiv, atau
+halaman hak cipta bukunya.\\[3mm]
+Disusun dengan \LaTeX.
+}
+\clearpage

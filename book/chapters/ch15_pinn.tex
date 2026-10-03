@@ -1,0 +1,123 @@
+\chapter{Physics-Informed Neural Networks}
+\label{ch:pinn}
+
+PINN tidak punya mata kuliahnya sendiri dalam perjalanan saya. Ia muncul sedikit-sedikit: sebagai
+neural field yang diatur persamaan di akhir kuliah machine learning lanjut (\cref{ch:mlat}), sebagai
+kemampuan autodiff menurunkan keluaran terhadap input di kuliah deep learning dasar (\cref{ch:dlbasic}),
+dan sebagai salah satu pendekatan yang terus muncul dalam bacaan tentang machine learning untuk
+mekanika fluida selama mengerjakan tugas akhir. Bab ini merangkai potongan-potongan itu.
+
+Gagasan PINN sederhana. Alih-alih menyelesaikan persamaan diferensial di grid, kita mewakili solusinya
+dengan jaringan saraf dan melatih jaringan itu agar memenuhi persamaannya. Gagasan ini sudah dicoba pada
+akhir 1990-an \citep{lagaris1998}, dan dipopulerkan kembali dengan nama physics-informed neural networks
+oleh \citet{raissi2019}, setelah autodiff dan GPU membuatnya praktis.
+
+\section{Resep dasar}
+
+Ambil persamaan panas satu dimensi, $\partial_tu=\kappa\,\partial_{xx}u$ pada $x\in[0,1]$ dan
+$t\in[0,T]$, dengan syarat awal $u(x,0)=u_0(x)$ dan syarat batas $u(0,t)=u(1,t)=0$. Sebuah MLP
+$u_\theta(x,t)$ menerima koordinat dan mengeluarkan temperatur. Untuk titik mana pun, autodiff memberi
+$\partial_tu_\theta$ dan $\partial_{xx}u_\theta$ secara eksak, sehingga kita bisa menghitung
+\istilah{residual} persamaan,
+\begin{equation}
+r_\theta(x,t)=\partial_tu_\theta(x,t)-\kappa\,\partial_{xx}u_\theta(x,t).
+\end{equation}
+Solusi sejati membuat residual nol di mana-mana. Maka kita meminimalkan jumlah kuadrat residual di
+sekumpulan titik acak di dalam domain, yang disebut \istilah{collocation points}, ditambah suku untuk syarat
+awal dan syarat batas:
+\begin{equation}
+\Loss(\theta)=\frac{\lambda_r}{N_r}\sum_{i=1}^{N_r}r_\theta(x_i,t_i)^2
++\frac{\lambda_0}{N_0}\sum_{j=1}^{N_0}\big(u_\theta(x_j,0)-u_0(x_j)\big)^2
++\frac{\lambda_b}{N_b}\sum_{k=1}^{N_b}u_\theta(x_k^b,t_k)^2.
+\label{eq:pinnloss}
+\end{equation}
+Kalau ada pengukuran, suku keempat menambahkan selisih kuadrat antara $u_\theta$ dan data di titik-titik
+pengukuran. Bobot $\lambda$ menentukan seberapa penting masing-masing suku, dan seperti akan kita lihat,
+memilihnya ternyata salah satu bagian tersulit.
+
+Mengapa ini masuk akal? Dari sudut pandang \cref{ch:data}, suku residual adalah prior: di antara semua
+fungsi yang cocok dengan data dan syarat batas, pilih yang memenuhi hukum fisika. Dari sudut pandang
+\cref{ch:mlat}, $u_\theta$ adalah neural field, dan persamaan diferensial adalah aturan yang ditegakkan
+pada field itu, persis seperti persamaan Eikonal pada signed distance field.
+
+\section{Contoh kecil yang bisa dihitung tangan}
+
+Supaya terasa konkret, ambil persamaan peluruhan $\dot u=-ku$ dengan $u(0)=1$ dan $k=1$, pada
+$t\in[0,1]$. Solusi sejatinya $e^{-t}$, sehingga $u(1)=e^{-1}\approx0{,}368$. \citet{lagaris1998}
+menyarankan bentuk solusi yang memenuhi syarat awal secara otomatis, $u(t)=1+t\,N(t)$, dengan $N$ sebuah
+jaringan. Untuk contoh tangan, kita ganti jaringan itu dengan konstanta $a$ saja, sehingga
+$u(t)=1+at$. Residualnya
+\begin{equation}
+r(t)=\dot u+u=a+1+at=a(1+t)+1.
+\end{equation}
+Kita cari $a$ yang meminimalkan $J(a)=\int_0^1r(t)^2\dd t$, versi kontinu dari suku residual dalam
+\cref{eq:pinnloss}. Turunan terhadap $a$ adalah $2\int_0^1\big(a(1+t)+1\big)(1+t)\dd t$. Menyamakannya
+dengan nol memberi
+\begin{equation}
+a\int_0^1(1+t)^2\dd t=-\int_0^1(1+t)\dd t
+\quad\Longrightarrow\quad a\cdot\frac73=-\frac32
+\quad\Longrightarrow\quad a=-\frac9{14}\approx-0{,}643.
+\end{equation}
+Maka $u(1)\approx1-0{,}643=0{,}357$, hanya sekitar tiga persen di bawah nilai sebenarnya, padahal
+``jaringan''-nya hanya satu bilangan. Jaringan sungguhan dengan ribuan parameter bisa mendekati
+lengkungan eksponensial dengan jauh lebih baik. Contoh ini memperlihatkan inti PINN: tidak ada data
+solusi sama sekali, hanya persamaan dan syarat awal, dan meminimalkan residual sudah cukup untuk
+menemukan solusi yang masuk akal.
+
+\section{Masalah invers}
+
+Kekuatan PINN yang paling meyakinkan terletak pada masalah invers. Misalkan konduktivitas $\kappa$ tidak
+diketahui, tetapi kita punya beberapa pengukuran temperatur. Cukup jadikan $\kappa$ parameter yang ikut
+dilatih bersama bobot jaringan. Suku data memaksa $u_\theta$ cocok dengan pengukuran, suku residual
+memaksa $u_\theta$ memenuhi persamaan panas dengan $\kappa$ yang sedang ditaksir, dan optimasi menemukan
+$\kappa$ yang membuat keduanya konsisten. Solver klasik harus dijalankan berulang kali di dalam lingkar
+optimasi untuk masalah yang sama, sedangkan PINN menyelesaikan masalah maju dan invers sekaligus.
+
+Contoh paling terkenal adalah \citet{raissi2020}, yang disinggung di \cref{ch:cv}. Dari video konsentrasi
+zat pewarna di sekitar sebuah benda, PINN memulihkan medan kecepatan dan tekanan yang tidak pernah
+diukur, karena persamaan transport zat pewarna dan persamaan Navier--Stokes menghubungkan ketiganya.
+
+\section{Mengapa PINN sulit dilatih}
+
+Kalau PINN begitu sederhana, mengapa tidak menggantikan semua solver? Pengalaman komunitas selama
+beberapa tahun memperlihatkan sejumlah kesulitan yang serius \citep{cuomo2022}.
+
+Kesulitan pertama adalah keseimbangan suku-suku loss. \citet{wang2021} memperlihatkan bahwa gradien suku
+residual bisa jauh lebih besar dari gradien suku batas, sehingga jaringan memenuhi persamaan di dalam
+domain tetapi mengabaikan syarat batas. Ini masalah condition number dari \cref{ch:optimasi} dalam bentuk
+yang khas. Mereka mengusulkan bobot $\lambda$ yang disesuaikan otomatis berdasarkan besar gradien
+masing-masing suku. Pendekatan lain memberi setiap titik collocation bobotnya sendiri yang ikut dilatih
+dengan arah berlawanan, sehingga titik yang sulit mendapat perhatian lebih \citep{mcclenny2023}.
+
+Kesulitan kedua berasal dari spectral bias (\cref{ch:mlat}). Analisis neural tangent kernel untuk PINN
+\citep{wang2022} menunjukkan bahwa komponen solusi dengan frekuensi tinggi dipelajari jauh lebih lambat.
+Solusi dengan gradien tajam atau osilasi cepat, yang justru menarik dalam fluida, menjadi sulit. Fourier
+features dan aktivasi sinus membantu.
+
+Kesulitan ketiga diperlihatkan \citet{krishnapriyan2021}. Untuk persamaan konveksi dengan koefisien
+konveksi yang besar, PINN standar gagal total meski arsitekturnya cukup ekspresif. Masalahnya terletak
+pada lanskap loss yang sulit sekali dioptimasi, bukan pada kapasitas jaringan. Melatih bertahap, mulai
+dari koefisien kecil lalu dinaikkan, atau memecah domain waktu menjadi potongan yang dilatih berurutan,
+memperbaiki keadaan. Gagasan terakhir ini juga menyentuh masalah kausalitas: PINN melatih seluruh rentang
+waktu sekaligus, sehingga bisa saja ``memenuhi'' persamaan di waktu akhir sebelum benar di waktu awal,
+padahal informasi fisik mengalir dari masa lalu ke masa depan.
+
+Ada beberapa trik lain yang sering dipakai: syarat batas yang dibangun langsung ke dalam bentuk solusi,
+seperti $1+tN(t)$ pada contoh di atas, sehingga suku batas tidak lagi dibutuhkan; pemilihan titik
+collocation secara adaptif, dengan menambah titik di tempat residualnya besar; dan resep optimasi Adam
+lalu L-BFGS dari \cref{ch:optimasi}.
+
+\section{Penilaian yang jujur}
+
+Untuk masalah maju yang tipikal, misalnya aliran di sekitar benda pada bilangan Reynolds menengah, PINN
+umumnya lebih lambat dan kurang akurat daripada solver klasik yang sudah matang. Setiap kasus baru juga
+butuh pelatihan baru, karena PINN mempelajari satu solusi, bukan cara menyelesaikan. PINN paling
+bernilai di tempat lain: masalah invers dan asimilasi data, masalah dengan data sebaran yang tidak
+lengkap, geometri yang sulit di-mesh, dan masalah berdimensi tinggi di mana grid tidak mungkin dibangun
+\citep{karniadakis2021}. Untuk mempelajari cara menyelesaikan sebuah keluarga persamaan sekaligus,
+kita butuh pendekatan lain: neural operator dan simulator yang dipelajari, tema bab berikutnya.
+
+\sumberbab{Bab ini dirangkai dari kuliah Machine Learning: Advanced Techniques (neural field dan loss
+yang diinformasikan fisika), kuliah deep learning dasar (autodiff), dan bacaan selama tugas akhir. Bacaan
+utama: \citet{raissi2019}, ulasan \citet{karniadakis2021} dan \citet{cuomo2022}, serta studi tentang
+kegagalan pelatihan oleh \citet{wang2021}, \citet{wang2022}, dan \citet{krishnapriyan2021}.}

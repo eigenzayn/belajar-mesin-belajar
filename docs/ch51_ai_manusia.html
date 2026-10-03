@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI, Hukum, dan Manusia · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 31</p>
+<h1>AI, Hukum, dan Manusia</h1>
+<p><span id="ch:manusia" data-label="ch:manusia"></span></p>
+<p>Di sela kuliah teknis, saya mengikuti serangkaian mata kuliah yang
+melihat AI dari luar: AI and law, yang diberikan oleh pengacara dan ahli
+hukum teknologi; AI in society dan technology and society dari kacamata
+sosiologi; robopsychology dan communicating AI dari Martina Mara, yang
+laboratoriumnya meneliti bagaimana manusia memandang dan memperlakukan
+mesin. Bab ini merangkum apa yang saya bawa pulang dari kuliah-kuliah
+itu. Ia lebih sedikit rumusnya, tetapi pertanyaannya tidak kalah
+sulit.</p>
+<h1 id="apa-itu-sistem-ai-menurut-hukum">Apa itu sistem AI menurut
+hukum</h1>
+<p>Hukum butuh definisi, dan definisi AI ternyata sulit. AI Act Uni
+Eropa <span class="citation" data-cites="aiact2024">(European Parliament
+and Council of the European Union 2024)</span> memakai definisi yang
+berakar pada pekerjaan kelompok ahli tingkat tinggi Komisi Eropa <span
+class="citation" data-cites="hleg2019">(High-Level Expert Group on
+Artificial Intelligence 2019)</span>: sistem berbasis mesin yang
+dirancang untuk beroperasi dengan berbagai tingkat otonomi, mungkin
+beradaptasi setelah dipasang, dan untuk tujuan tertentu menyimpulkan
+dari input yang diterimanya cara menghasilkan keluaran seperti prediksi,
+konten, rekomendasi, atau keputusan yang bisa memengaruhi lingkungan
+fisik atau virtual. Kata kuncinya adalah <em>menyimpulkan</em>. Program
+yang hanya menjalankan aturan yang ditulis manusia secara eksplisit
+umumnya tidak termasuk, sedangkan model yang dilatih dari data
+termasuk.</p>
+<h1 id="ai-act-regulasi-berbasis-risiko">AI Act: regulasi berbasis
+risiko</h1>
+<p>Slide kuliah menyusun linimasa AI Act: diusulkan Komisi Eropa pada
+April 2021, diterbitkan di Lembaran Resmi Uni Eropa pada 12 Juli 2024,
+dan mulai berlaku pada 1 Agustus 2024, dengan ketentuan-ketentuannya
+berlaku bertahap. Larangan untuk sistem dengan risiko yang tidak dapat
+diterima berlaku sejak Februari 2025, kewajiban bagi penyedia model AI
+serbaguna sejak Agustus 2025, dan menurut jadwal awal sebagian besar
+ketentuan lainnya mulai Agustus 2026. Jadwal ini kemudian diubah. Paket
+penyederhanaan yang dikenal sebagai Digital Omnibus on AI, yang
+disepakati pada Mei 2026 dan diterbitkan di Lembaran Resmi pada akhir
+Juli 2026, menunda kewajiban untuk sistem berisiko tinggi yang berdiri
+sendiri ke 2 Desember 2027, dan untuk AI yang tertanam di produk yang
+sudah diatur regulasi lain ke 2 Agustus 2028. Kewajiban transparansi,
+misalnya untuk konten sintetis, tetap berjalan sejak Agustus 2026,
+dengan masa transisi sampai Desember 2026 untuk sistem yang sudah
+beredar. Ketika buku ini ditulis, peraturannya masih bergerak, sehingga
+pembaca sebaiknya selalu memeriksa versi terbarunya.</p>
+<p>Inti AI Act adalah piramida risiko. Di puncak ada praktik yang
+dilarang sama sekali: penilaian sosial warga negara (<em>social
+scoring</em>), manipulasi yang mengeksploitasi kerentanan orang,
+pengenalan emosi di tempat kerja dan sekolah, kategorisasi biometrik
+untuk menyimpulkan ras, keyakinan politik, atau orientasi seksual, serta
+pengumpulan gambar wajah secara tidak tertarget. Di bawahnya ada sistem
+berisiko tinggi, misalnya AI dalam rekrutmen, penilaian kredit,
+pendidikan, infrastruktur kritis, dan alat kesehatan. Sistem ini boleh
+dipakai, tetapi penyedianya wajib menjalankan manajemen risiko, menjaga
+kualitas data, membuat dokumentasi teknis, mencatat log, memastikan
+pengawasan manusia, serta memenuhi syarat akurasi dan ketahanan. Lebih
+ke bawah, sistem dengan risiko terbatas seperti chatbot terutama dikenai
+kewajiban transparansi: pengguna harus tahu bahwa mereka berbicara
+dengan mesin. Sistem lainnya praktis bebas.</p>
+<p>Model AI serbaguna, seperti model bahasa besar, ditambahkan menjelang
+akhir perundingan. Penyedianya wajib menyiapkan dokumentasi teknis dan
+informasi bagi pihak yang membangun aplikasi di atasnya. Model yang
+dilatih dengan total komputasi lebih dari <span
+class="math inline">\(10^{25}\)</span> operasi floating point dianggap
+berpotensi membawa risiko sistemik dan dikenai kewajiban tambahan:
+evaluasi model, mitigasi risiko, pelaporan insiden serius, dan keamanan
+siber. Untuk pelanggaran, denda bisa mencapai 35 juta euro atau tujuh
+persen omzet global tahunan, mana yang lebih tinggi.</p>
+<h1 id="data-pribadi-dan-gdpr">Data pribadi dan GDPR</h1>
+<p>Sebelum AI Act, perangkat hukum utama untuk AI di Eropa adalah GDPR
+<span class="citation" data-cites="gdpr2016">(European Parliament and
+Council of the European Union 2016)</span>, yang berlaku sejak 25 Mei
+2018. GDPR mengatur pemrosesan data pribadi, yaitu informasi apa pun
+yang berkaitan dengan orang yang bisa diidentifikasi. Enam prinsipnya
+menjadi kerangka berpikir yang berguna bagi siapa pun yang melatih
+model: pemrosesan harus sah, adil, dan transparan; data hanya dipakai
+untuk tujuan yang dinyatakan; data yang dikumpulkan sesedikit mungkin;
+data harus akurat; data tidak disimpan lebih lama dari perlu; dan
+integritas serta kerahasiaannya dijaga. Pengendali data bertanggung
+jawab membuktikan kepatuhan pada semua prinsip itu.</p>
+<p>Satu ketentuan berbicara langsung tentang AI. Seseorang berhak untuk
+tidak tunduk pada keputusan yang semata-mata didasarkan pada pemrosesan
+otomatis, termasuk profiling, kalau keputusan itu berakibat hukum atau
+berdampak signifikan baginya. Ada pengecualian, misalnya kalau
+diperlukan untuk kontrak, diizinkan undang-undang, atau disetujui secara
+eksplisit, tetapi pesannya jelas: manusia harus tetap punya tempat dalam
+keputusan penting. Bagi pengembang, ini berarti penilaian dampak
+perlindungan data sebelum sistem berisiko dijalankan, dan perlindungan
+privasi yang dirancang sejak awal (<em>privacy by design</em>) alih-alih
+ditambal belakangan.</p>
+<p>Kuliah juga membahas pertanggungjawaban. Arahan tanggung jawab produk
+Uni Eropa yang direvisi memperluas definisi produk sehingga mencakup
+perangkat lunak, termasuk sistem AI, dan meringankan beban pembuktian
+bagi korban dalam kasus yang secara teknis rumit. Usulan arahan tanggung
+jawab AI membahas pengungkapan bukti dan anggapan hubungan sebab-akibat
+yang bisa dibantah ketika sistem AI terlibat dalam kerugian.</p>
+<h1 id="teknologi-dan-masyarakat">Teknologi dan masyarakat</h1>
+<p>Kuliah sosiologi dimulai dengan konsep <em>sociological
+imagination</em> dari <span class="citation"
+data-cites="mills1959">Mills (1959)</span>: kemampuan melihat bagaimana
+masalah pribadi terhubung dengan isu sosial yang lebih besar. Orang yang
+ditolak kreditnya oleh algoritme mengalami masalah pribadi. Kalau ribuan
+orang dari lingkungan yang sama ditolak dengan cara serupa, itu isu
+sosial.</p>
+<p>Dari sana kuliah menolak <em>technological determinism</em>,
+pandangan bahwa teknologi berkembang menurut logikanya sendiri lalu
+mengubah masyarakat. Sebaliknya, teknologi dibentuk oleh pilihan sosial:
+siapa yang mendanai riset, data apa yang dikumpulkan, masalah siapa yang
+dianggap penting, dan bagaimana sebuah sistem akhirnya dipakai. Strategi
+AI nasional berbagai negara menunjukkan bahwa satu teknologi yang sama
+dibayangkan dengan berbeda di tempat yang berbeda. <span
+class="citation" data-cites="benjamin2019">Benjamin (2019)</span>
+memperlihatkan bagaimana sistem yang tampak netral bisa mereproduksi
+ketidakadilan rasial, karena ia belajar dari data dan keputusan masa
+lalu. <span class="citation" data-cites="zuboff2019">Zuboff
+(2019)</span> menyebut ekonomi yang mengubah perilaku manusia menjadi
+data untuk memprediksi dan memengaruhinya sebagai kapitalisme
+pengawasan. Kita sudah melihat contoh kecilnya: embedding kata yang
+menyerap stereotip gender <span class="citation"
+data-cites="bolukbasi2016">(Bolukbasi dkk. 2016)</span>, sistem
+rekomendasi yang memperkuat popularitas (<a
+href="ch50_rekomendasi.html">Bab 30</a>), dan model medis yang belajar
+penanda rumah sakit alih-alih penyakit (<a href="ch43_medis.html">Bab
+21</a>).</p>
+<h1 id="bagaimana-manusia-memandang-mesin">Bagaimana manusia memandang
+mesin</h1>
+<p>Robopsychology bukan psikologi untuk robot, melainkan psikologi
+manusia ketika berhadapan dengan mesin yang tampak cerdas. Kuliahnya
+dimulai dengan metode: perbedaan antara psikologi sehari-hari dan
+psikologi ilmiah, antara korelasi dan sebab-akibat, dan mengapa
+eksperimen dengan kelompok yang diacak dibutuhkan untuk menyimpulkan
+efek. Laboratorium Mara, misalnya, memakai realitas virtual untuk
+menguji bagaimana sinyal-sinyal sebuah robot kolaboratif memengaruhi
+perasaan aman pekerja di dekatnya.</p>
+<p>Temuan klasik bidang ini adalah bahwa manusia memperlakukan komputer
+secara sosial hampir secara otomatis. Orang bersikap sopan kepada
+komputer, menerapkan stereotip gender pada suara mesin, dan merasa
+tersanjung oleh pujian dari program, meski tahu itu hanya program <span
+class="citation" data-cites="reeves1996 nass2000">(Reeves dan Nass 1996;
+Nass dan Moon 2000)</span>. <em>Anthropomorphism</em>, kecenderungan
+memberi sifat manusia pada benda, diperkuat oleh tiga faktor menurut
+<span class="citation" data-cites="epley2007">Epley, Waytz, dan Cacioppo
+(2007)</span>: ketersediaan pengetahuan tentang manusia sebagai kerangka
+penjelasan, kebutuhan untuk memahami dan meramalkan perilaku sesuatu,
+dan kebutuhan akan hubungan sosial. Semakin mirip manusia sebuah robot,
+semakin ia disukai, sampai titik di mana kemiripan yang hampir tetapi
+tidak sempurna justru terasa menyeramkan. Lembah ganjil ini, <em>uncanny
+valley</em>, diusulkan <span class="citation"
+data-cites="mori2012">Mori, MacDorman, dan Kageki (2012)</span> pada
+1970. Kuliah juga membahas kepercayaan, kreativitas mesin, dan kebutuhan
+psikologis dasar manusia seperti otonomi dan kompetensi ketika bekerja
+bersama teknologi.</p>
+<h1 id="berbicara-tentang-ai">Berbicara tentang AI</h1>
+<p>Kuliah communicating AI membahas literasi AI: kompetensi yang
+dibutuhkan orang awam untuk memahami, menilai, dan memakai AI secara
+kritis <span class="citation" data-cites="long2020">(Long dan Magerko
+2020)</span>. Kuliah memperlihatkan bahwa liputan media tentang AI
+meningkat tajam sejak sekitar 2015, dan bahwa gambar yang dipakai media
+untuk mewakili AI didominasi robot humanoid, otak bercahaya, dan warna
+biru. Sebuah survei yang dibahas di kuliah meminta peserta menilai
+gambar-gambar seperti ini menurut seberapa mirip manusia, seberapa
+menyeramkan, dan seberapa tepat mereka mewakili AI, lalu melihat
+bagaimana penilaian-penilaian itu saling berkaitan. Narasi fiksi dan
+berita tentang AI cenderung berayun antara harapan berlebihan dan
+ketakutan akan kepunahan, dan teori kultivasi menjelaskan bagaimana
+paparan berulang membentuk keyakinan publik.</p>
+<p>Salah satu tugas kuliah meminta kami menganalisis artikel berita
+tentang AI, dan tugas kelompoknya merancang kampanye literasi AI untuk
+kelompok sasaran tertentu. Pelajarannya relevan bagi siapa pun yang
+bekerja dengan AI: cara kita menjelaskan sebuah sistem memengaruhi
+apakah orang terlalu percaya, terlalu takut, atau memakainya dengan
+bijak.</p>
+<h1 id="apa-artinya-bagi-pengembang">Apa artinya bagi pengembang</h1>
+<p>Kuliah-kuliah ini meninggalkan beberapa kebiasaan yang patut dibawa
+ke pekerjaan teknis. Tanyakan sejak awal siapa yang terdampak sistem
+yang dibangun dan bagaimana mereka bisa menggugat keputusannya. Periksa
+kinerja model untuk setiap kelompok, bukan hanya rata-ratanya. Kumpulkan
+data seperlunya. Dokumentasikan apa yang dilakukan model dan di mana
+batasnya, karena regulasi semakin mewajibkannya dan karena itu adalah
+praktik teknik yang baik. Dan jelaskan sistem dengan jujur, tanpa
+melebih-lebihkan kecerdasannya dan tanpa meremehkan risikonya.</p>
+<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<p>Bab ini mengikuti kuliah AI and Law I dan II (definisi AI, AI Act,
+GDPR, kontrak, tanggung jawab produk), AI in Society dan Technology and
+Society (imajinasi sosiologis, pembentukan sosial teknologi, AI dan
+ketidakadilan, kapitalisme pengawasan), Robopsychology (metode
+psikologi, antropomorfisme, kepercayaan, kreativitas), dan Communicating
+AI (literasi AI, citra dan narasi AI di media).</p>
+<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-benjamin2019" class="csl-entry" role="listitem">
+Benjamin, Ruha. 2019. <em>Race After Technology: Abolitionist Tools for
+the New Jim Code</em>. Polity.
+</div>
+<div id="ref-bolukbasi2016" class="csl-entry" role="listitem">
+Bolukbasi, Tolga, Kai-Wei Chang, James Zou, Venkatesh Saligrama, dan
+Adam Kalai. 2016. <span>“Man is to Computer Programmer as Woman is to
+Homemaker? Debiasing Word Embeddings.”</span> arXiv:1607.06520. <a
+href="https://arxiv.org/abs/1607.06520">https://arxiv.org/abs/1607.06520</a>.
+</div>
+<div id="ref-epley2007" class="csl-entry" role="listitem">
+Epley, Nicholas, Adam Waytz, dan John T. Cacioppo. 2007. <span>“On
+seeing human: A three-factor theory of anthropomorphism.”</span>
+<em>Psychological Review</em> 114 (4): 864–86. <a
+href="https://doi.org/10.1037/0033-295X.114.4.864">https://doi.org/10.1037/0033-295X.114.4.864</a>.
+</div>
+<div id="ref-gdpr2016" class="csl-entry" role="listitem">
+European Parliament and Council of the European Union. 2016.
+<span>“Regulation (EU) 2016/679 on the protection of natural persons
+with regard to the processing of personal data and on the free movement
+of such data (General Data Protection Regulation).”</span> Official
+Journal of the European Union, L 119.
+</div>
+<div id="ref-aiact2024" class="csl-entry" role="listitem">
+———. 2024. <span>“Regulation (EU) 2024/1689 laying down harmonised rules
+on artificial intelligence (Artificial Intelligence Act).”</span>
+Official Journal of the European Union, 12 July 2024.
+</div>
+<div id="ref-hleg2019" class="csl-entry" role="listitem">
+High-Level Expert Group on Artificial Intelligence. 2019. <span>“A
+definition of <span>AI</span>: Main capabilities and
+disciplines.”</span> European Commission.
+</div>
+<div id="ref-long2020" class="csl-entry" role="listitem">
+Long, Duri, dan Brian Magerko. 2020. <span>“What is AI Literacy?
+Competencies and Design Considerations.”</span> Dalam <em>Proceedings of
+the 2020 CHI Conference on Human Factors in Computing Systems</em>,
+1–16. <a
+href="https://doi.org/10.1145/3313831.3376727">https://doi.org/10.1145/3313831.3376727</a>.
+</div>
+<div id="ref-mills1959" class="csl-entry" role="listitem">
+Mills, C. Wright. 1959. <em>The Sociological Imagination</em>. Oxford
+University Press.
+</div>
+<div id="ref-mori2012" class="csl-entry" role="listitem">
+Mori, Masahiro, Karl MacDorman, dan Norri Kageki. 2012. <span>“The
+Uncanny Valley [From the Field].”</span> <em>IEEE Robotics &amp;amp;
+Automation Magazine</em> 19 (2): 98–100. <a
+href="https://doi.org/10.1109/MRA.2012.2192811">https://doi.org/10.1109/MRA.2012.2192811</a>.
+</div>
+<div id="ref-nass2000" class="csl-entry" role="listitem">
+Nass, Clifford, dan Youngme Moon. 2000. <span>“Machines and
+Mindlessness: Social Responses to Computers.”</span> <em>Journal of
+Social Issues</em> 56 (1): 81–103. <a
+href="https://doi.org/10.1111/0022-4537.00153">https://doi.org/10.1111/0022-4537.00153</a>.
+</div>
+<div id="ref-reeves1996" class="csl-entry" role="listitem">
+Reeves, Byron, dan Clifford Nass. 1996. <em>The Media Equation: How
+People Treat Computers, Television, and New Media Like Real People and
+Places</em>. Cambridge University Press.
+</div>
+<div id="ref-zuboff2019" class="csl-entry" role="listitem">
+Zuboff, Shoshana. 2019. <em>The Age of Surveillance Capitalism: The
+Fight for a Human Future at the New Frontier of Power</em>.
+PublicAffairs.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch50_rekomendasi.html"><span>Sebelumnya</span>Belajar dari Jejak Pengguna</a>
+  <a class="next" href="ch52_terbaru.html"><span>Berikutnya</span>Ke Mana Arah AI</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

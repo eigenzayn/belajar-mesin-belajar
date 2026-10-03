@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Geometri dan Simetri · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 9</p>
+<h1>Geometri dan Simetri</h1>
+<p><span id="ch:gdl" data-label="ch:gdl"></span></p>
+<p>Kuliah geometric deep learning datang di semester terakhir, pada
+musim panas 2026. Materinya mengikuti kursus Geometric Deep Learning
+dari Oxford yang dikembangkan Michael Bronstein dan rekan-rekannya,
+dengan buku proto karya <span class="citation"
+data-cites="bronstein2021">Bronstein dkk. (2021)</span> sebagai acuan.
+Kuliah-kuliah sebelumnya membahas arsitektur satu per satu. Kuliah ini
+menunjukkan bahwa konvolusi, DeepSets, jaringan graf, dan transformer
+adalah anak-anak dari satu resep yang sama.</p>
+<p>Resep itu bertumpu pada satu pengamatan. Di <a
+href="ch01_belajar_dari_data.html">Bab 1</a> kita melihat bahwa belajar
+di dimensi tinggi hampir mustahil tanpa asumsi. Asumsi yang paling
+berharga ternyata adalah simetri: kita sering tahu transformasi apa yang
+tidak mengubah jawaban. Kucing yang digeser tetap kucing. Molekul yang
+diputar tetap molekul yang sama. Urutan penomoran atom dalam berkas
+tidak mengubah sifat kimianya. Kalau pengetahuan seperti ini ditanamkan
+ke dalam arsitektur, ruang yang harus dicari menyusut drastis.</p>
+<h1 id="sinyal-domain-dan-grup">Sinyal, domain, dan grup</h1>
+<p>Bahasa geometric deep learning dimulai dengan memisahkan dua hal:
+domain dan sinyal. Domain <span class="math inline">\(\Omega\)</span>
+adalah tempat data hidup, misalnya grid piksel, himpunan titik, graf,
+atau permukaan. Sinyal adalah fungsi <span
+class="math inline">\(x:\Omega\to\mathbb{R}^c\)</span> yang memberi
+setiap titik domain sebuah vektor fitur, misalnya warna untuk setiap
+piksel atau sifat kimia untuk setiap atom. Ruang semua sinyal pada
+sebuah domain, <span class="math inline">\(\mathcal X(\Omega)\)</span>,
+adalah ruang vektor: dua sinyal bisa dijumlahkan dan dikalikan skalar
+titik demi titik. Struktur linear inilah yang memungkinkan kita
+berbicara tentang lapisan linear.</p>
+<p>Simetri dirumuskan dengan <em>grup</em>. Grup adalah himpunan <span
+class="math inline">\(G\)</span> dengan operasi komposisi yang memenuhi
+empat aksioma: hasil komposisi dua anggota tetap di dalam <span
+class="math inline">\(G\)</span>, komposisinya asosiatif, ada anggota
+identitas, dan setiap anggota punya invers. Rotasi bidang membentuk
+grup, begitu pula pergeseran grid dan permutasi himpunan. Dua grup bisa
+memiliki struktur yang sama walau anggotanya berbeda, dan kesamaan ini
+dinyatakan dengan <em>homomorphism</em>, pemetaan <span
+class="math inline">\(\varphi\)</span> yang menghormati komposisi, <span
+class="math inline">\(\varphi(gh)=\varphi(g)\varphi(h)\)</span>.
+Determinan adalah contohnya: ia memetakan matriks yang bisa dibalik ke
+bilangan real tak nol, dan <span class="math inline">\(\det(\boldsymbol
+A\boldsymbol B)=\det\boldsymbol A\det\boldsymbol B\)</span>. Fungsi
+eksponensial memberi contoh yang lebih menarik, karena ia memetakan
+bilangan real dengan penjumlahan ke bilangan positif dengan perkalian,
+<span class="math inline">\(e^{a+b}=e^ae^b\)</span>, dan bisa dibalik
+dengan logaritma. Homomorfisme yang bisa dibalik disebut isomorfisme,
+dan dua grup yang isomorfik secara struktural sama.</p>
+<p>Grup bekerja pada domain melalui <em>group action</em>: setiap <span
+class="math inline">\(g\)</span> memindahkan titik <span
+class="math inline">\(u\)</span> ke <span
+class="math inline">\(g.u\)</span>, dengan identitas tidak memindahkan
+apa pun dan aksi dua anggota berturut-turut sama dengan aksi
+komposisinya. Dari aksi pada domain, kita mendapat aksi pada sinyal,
+<span class="math display">\[\big(\rho(g)x\big)(u)=x\big(g^{-1}.u\big).
+\label{eq:representasi}\]</span> Pemetaan <span
+class="math inline">\(g\mapsto\rho(g)\)</span> ke operator linear pada
+ruang sinyal disebut <em>representasi</em>. Invers pada Persamaan (9.1)
+bukan hiasan. Untuk menggeser sebuah gambar ke kanan, nilai piksel di
+posisi baru diambil dari posisi lama di sebelah kirinya. Tanpa invers,
+komposisi dua pergeseran akan keluar dengan urutan terbalik, dan <span
+class="math inline">\(\rho\)</span> tidak lagi menjadi homomorfisme.</p>
+<h1 id="invariansi-dan-ekuivariansi">Invariansi dan ekuivariansi</h1>
+<p>Misalkan <span class="math inline">\(\rho\)</span> dan <span
+class="math inline">\(\rho&#39;\)</span> representasi grup yang sama
+pada ruang input dan ruang output. Fungsi <span
+class="math inline">\(f\)</span> disebut <em>invariant</em> kalau <span
+class="math inline">\(f(\rho(g)x)=f(x)\)</span> untuk setiap <span
+class="math inline">\(g\)</span>, dan <em>equivariant</em> kalau <span
+class="math display">\[f\big(\rho(g)x\big)=\rho&#39;(g)\,f(x)\qquad\text{untuk
+setiap }g\in G.\]</span> Klasifikasi gambar seharusnya invarian terhadap
+pergeseran: labelnya tidak berubah. Segmentasi seharusnya ekuivarian:
+kalau gambar digeser, peta segmentasinya ikut bergeser. Secara visual,
+ekuivariansi berarti diagram berikut komut: menerapkan transformasi lalu
+<span class="math inline">\(f\)</span> memberi hasil yang sama dengan
+menerapkan <span class="math inline">\(f\)</span> lalu transformasi
+padanannya. Sinyal-sinyal yang hanya berbeda karena transformasi grup
+membentuk sebuah <em>orbit</em>. Peta ekuivarian memetakan setiap orbit
+di ruang input ke sebuah orbit di ruang fitur, sehingga struktur
+simetrinya terbawa utuh.</p>
+<p>Ada cara umum untuk membuat sembarang fungsi menjadi invarian
+terhadap grup yang terbatas, yaitu merata-ratakannya atas seluruh grup,
+<span class="math display">\[(S_Gf)(x)=\frac1{|G|}\sum_{g\in
+G}f\big(\rho(g)x\big).\]</span> Operator ini kadang disebut operator
+simetrisasi. Ambil himpunan dua elemen dan fungsi <span
+class="math inline">\(f(x_1,x_2)=x_1\)</span> yang jelas tidak peduli
+pada simetri. Rata-rata atas dua permutasi memberi <span
+class="math inline">\((x_1+x_2)/2\)</span>, yang invarian. Kalau fungsi
+target memang invarian, membatasi diri pada kelas fungsi invarian tidak
+menambah galat aproksimasi, karena targetnya masih ada di dalam kelas.
+Galat estimasi justru bisa turun, karena setiap contoh data kini
+“mewakili” seluruh orbitnya. Hanya saja, kalau grupnya kecil dibanding
+dimensi masalah, galat estimasi tetap bisa terkena kutukan dimensi.
+Simetri membantu, tetapi tidak membebaskan sepenuhnya.</p>
+<h1 id="skala-dan-cetak-biru">Skala dan cetak biru</h1>
+<p>Simetri saja belum cukup. Prior kedua adalah <em>scale
+separation</em>: banyak sinyal bisa dipahami secara bertingkat. Detail
+lokal memengaruhi detail lokal di sekitarnya, dan struktur besar bisa
+diringkas dari versi sinyal yang lebih kasar. Dua bahan dasarnya adalah
+operator lokal yang bekerja di lingkungan kecil, dan operasi <em>coarse
+graining</em> yang meringkas sinyal ke domain yang lebih kasar, seperti
+pooling pada gambar. Gabungan simetri dan skala lebih kuat dari
+masing-masing, karena fungsi yang bekerja secara lokal dan bertingkat
+hanya perlu belajar interaksi jarak pendek di setiap tingkat.</p>
+<p>Dari kedua prior ini, <span class="citation"
+data-cites="bronstein2021">Bronstein dkk. (2021)</span> merumuskan
+sebuah cetak biru. Jaringan disusun dari lapisan linear yang ekuivarian
+terhadap <span class="math inline">\(G\)</span> (sebut <span
+class="math inline">\(B\)</span>), nonlinearitas yang diterapkan titik
+demi titik (<span class="math inline">\(\sigma\)</span>), pooling lokal
+yang mengasarkan domain (<span class="math inline">\(P\)</span>), dan di
+ujungnya pooling global yang invarian (<span
+class="math inline">\(A\)</span>), sehingga <span
+class="math display">\[f=A\circ\sigma\circ B_J\circ
+P_{J-1}\circ\cdots\circ P_1\circ\sigma\circ B_1.\]</span> CNN adalah
+cetak biru ini pada grid dengan grup translasi. DeepSets adalah cetak
+biru pada himpunan dengan grup permutasi. Jaringan graf adalah cetak
+biru pada graf. Kita akan melihat ketiganya satu per satu.</p>
+<p>Ada satu kehalusan lagi. Gambar nyata jarang bertransformasi persis
+menurut grup. Wajah yang sedikit tersenyum bukan rotasi atau pergeseran
+dari wajah yang datar, melainkan deformasi kecil. Representasi yang baik
+sebaiknya <em>hampir</em> invarian terhadap transformasi yang
+<em>hampir</em> berada di dalam grup: perubahan keluarannya sebanding
+dengan seberapa jauh deformasi itu dari transformasi grup. Sifat ini
+disebut stabilitas terhadap deformasi, dan ia menjadi ukuran kualitas
+representasi yang akan muncul lagi pada wavelet dan pada filter
+spektral.</p>
+<h1 id="himpunan">Himpunan</h1>
+<p>Domain paling sederhana adalah himpunan tanpa struktur. Simetrinya
+adalah grup permutasi: penomoran elemen tidak boleh berpengaruh. Sinyal
+pada himpunan <span class="math inline">\(n\)</span> elemen bisa ditulis
+sebagai matriks fitur <span
+class="math inline">\(\boldsymbol{X}\in\mathbb{R}^{n\times c}\)</span>,
+satu baris per elemen. Kalau elemen dipermutasi, baris-baris matriks
+ikut dipermutasi, <span
+class="math inline">\(\boldsymbol{X}\mapsto\boldsymbol
+P\boldsymbol{X}\)</span>, dengan <span class="math inline">\(\boldsymbol
+P\)</span> matriks permutasi yang berisi tepat satu angka satu di setiap
+baris dan kolom.</p>
+<p>Peta linear yang ekuivarian terhadap semua permutasi ternyata hanya
+punya dua derajat kebebasan per pasangan kanal: satu bagian yang bekerja
+pada setiap elemen sendiri, dan satu bagian yang melihat jumlah seluruh
+elemen, <span
+class="math display">\[F(\boldsymbol{X})=\boldsymbol{X}\boldsymbol\Lambda+\tfrac1n\boldsymbol
+1\boldsymbol 1^\top\boldsymbol{X}\,\boldsymbol\Gamma.\]</span> DeepSets
+<span class="citation" data-cites="zaheer2017">(Zaheer dkk. 2017)</span>
+membangun fungsi invarian dari bagian-bagian ini: <span
+class="math inline">\(f(\boldsymbol{X})=\phi\big(\sum_i\psi(\boldsymbol{x}_i)\big)\)</span>.
+Fungsi <span class="math inline">\(\psi\)</span> dipakai bersama untuk
+setiap elemen dan bersifat ekuivarian, penjumlahan adalah pooling yang
+invarian, dan <span class="math inline">\(\phi\)</span> bekerja pada
+ringkasan global. Kedua fungsi dipelajari, sedangkan penjumlahannya
+tetap.</p>
+<h1 id="graf">Graf</h1>
+<p>Graf menambahkan satu bahan ke himpunan: hubungan antar elemen. Graf
+tak berarah dengan atribut simpul bisa ditulis sebagai matriks fitur
+<span class="math inline">\(\boldsymbol{X}\)</span> dan matriks
+ketetanggaan <span class="math inline">\(\boldsymbol A\)</span>, dengan
+<span class="math inline">\(a_{uv}=1\)</span> kalau simpul <span
+class="math inline">\(u\)</span> dan <span
+class="math inline">\(v\)</span> terhubung. Grup simetrinya tetap
+permutasi, tetapi sekarang permutasi bekerja pada keduanya: <span
+class="math inline">\(\boldsymbol{X}\mapsto\boldsymbol
+P\boldsymbol{X}\)</span> dan <span class="math inline">\(\boldsymbol
+A\mapsto\boldsymbol P\boldsymbol A\boldsymbol P^\top\)</span>. Fungsi
+tingkat graf harus invarian, <span class="math inline">\(f(\boldsymbol
+P\boldsymbol{X},\boldsymbol P\boldsymbol A\boldsymbol
+P^\top)=f(\boldsymbol{X},\boldsymbol A)\)</span>, dan fungsi tingkat
+simpul harus ekuivarian, <span class="math inline">\(F(\boldsymbol
+P\boldsymbol{X},\boldsymbol P\boldsymbol A\boldsymbol
+P^\top)=\boldsymbol P\,F(\boldsymbol{X},\boldsymbol A)\)</span>.</p>
+<h2 id="message-passing">Message passing</h2>
+<p>Graph neural network modern hampir semuanya mengikuti pola
+<em>message passing</em> <span class="citation"
+data-cites="gilmer2017 battaglia2018">(Gilmer dkk. 2017; Battaglia dkk.
+2018)</span>. Setiap simpul <span class="math inline">\(u\)</span>
+mengumpulkan pesan dari tetangganya, lalu memperbarui keadaannya: <span
+class="math display">\[\boldsymbol{h}_u=\phi\Big(\boldsymbol{x}_u,\
+\bigoplus_{v\in\mathcal
+N_u}\psi(\boldsymbol{x}_u,\boldsymbol{x}_v)\Big),\]</span> dengan <span
+class="math inline">\(\bigoplus\)</span> operator agregasi yang tidak
+peduli urutan, seperti jumlah, rata-rata, atau maksimum. Bedanya dengan
+DeepSets ada di sini: setiap simpul tidak lagi meringkas seluruh
+himpunan, tetapi hanya tetangganya, sehingga sisi graf menentukan siapa
+berbicara dengan siapa.</p>
+<p>Pembagian yang dipakai di kuliah membedakan tiga rasa. Pada varian
+konvolusional, pesan dari tetangga dikalikan bobot tetap yang bergantung
+pada struktur graf, seperti pada GCN <span class="citation"
+data-cites="kipf2017">(Kipf dan Welling 2016)</span>. Pada varian
+attentional, bobotnya dihitung dari fitur kedua simpul, seperti pada GAT
+<span class="citation" data-cites="velickovic2018">(Veličković dkk.
+2017)</span>. Pada varian message passing yang paling umum, pesan <span
+class="math inline">\(\psi\)</span> adalah fungsi sembarang dari kedua
+simpul, dan kedua varian sebelumnya adalah kasus khususnya.</p>
+<p>Sebagai contoh kecil, ambil graf garis dengan tiga simpul, <span
+class="math inline">\(1-2-3\)</span>, dengan fitur skalar <span
+class="math inline">\(x=(1,2,3)\)</span>. Dengan aturan <span
+class="math inline">\(h_u=x_u+\sum_{v\in\mathcal N_u}x_v\)</span>,
+simpul pertama mendapat <span class="math inline">\(1+2=3\)</span>,
+simpul kedua <span class="math inline">\(2+1+3=6\)</span>, dan simpul
+ketiga <span class="math inline">\(3+2=5\)</span>. Kalau penomoran
+dibalik menjadi <span class="math inline">\(3-2-1\)</span>, fitur
+menjadi <span class="math inline">\((3,2,1)\)</span> dan hasilnya <span
+class="math inline">\((5,6,3)\)</span>, yaitu hasil semula dalam urutan
+baru. Itulah ekuivariansi.</p>
+<p>Contoh ini bukan kebetulan. Dalam bentuk matriks, aturan tadi adalah
+<span class="math inline">\(\boldsymbol{h}=(\boldsymbol I+\boldsymbol
+A)\boldsymbol{x}\)</span>. Kalau simpul dipermutasi dengan <span
+class="math inline">\(\boldsymbol P\)</span>, input menjadi <span
+class="math inline">\(\boldsymbol P\boldsymbol{x}\)</span> dan
+ketetanggaan menjadi <span class="math inline">\(\boldsymbol
+P\boldsymbol A\boldsymbol P^\top\)</span>, sehingga keluarannya <span
+class="math inline">\((\boldsymbol I+\boldsymbol P\boldsymbol
+A\boldsymbol P^\top)\boldsymbol P\boldsymbol{x}=\boldsymbol
+P\boldsymbol{x}+\boldsymbol P\boldsymbol A\boldsymbol{x}=\boldsymbol
+P(\boldsymbol I+\boldsymbol A)\boldsymbol{x}=\boldsymbol
+P\boldsymbol{h}\)</span>, karena <span class="math inline">\(\boldsymbol
+P^\top\boldsymbol P=\boldsymbol I\)</span>. Argumen yang sama berlaku
+untuk message passing umum: fungsi <span
+class="math inline">\(\psi\)</span> dan <span
+class="math inline">\(\phi\)</span> yang dipakai bersama di semua simpul
+tidak peduli nomor simpulnya, dan agregasi atas tetangga tidak peduli
+urutan tetangganya. Satu-satunya hal yang bisa membuat jaringan
+bergantung pada penomoran adalah memberi setiap simpul bobot pribadinya
+sendiri, dan itulah yang dihindari.</p>
+<p>Teman yang mengabarkan berita di sebuah desa adalah gambaran yang
+cocok. Setiap pagi, setiap orang mendengar kabar dari tetangga sebelah
+rumahnya dan memperbarui pengetahuannya. Setelah satu pagi, kabar dari
+rumah sebelah sudah sampai. Setelah tiga pagi, kabar dari rumah yang
+berjarak tiga sudah sampai. Satu lapisan message passing adalah satu
+pagi.</p>
+<h2 id="seberapa-kuat-jaringan-graf">Seberapa kuat jaringan graf?</h2>
+<p>Bisakah jaringan graf membedakan dua graf yang tidak isomorfik?
+Pertanyaan ini terhubung dengan uji klasik <em>Weisfeiler–Leman</em>
+(WL). Uji ini mewarnai setiap simpul, lalu berulang kali memberi warna
+baru berdasarkan warna lama simpul itu dan multihimpunan warna
+tetangganya. Kalau histogram warna dua graf berbeda, graf itu pasti
+tidak isomorfik. Kalau sama, kita tidak bisa menyimpulkan apa-apa. <span
+class="citation" data-cites="xu2019">Xu dkk. (2018)</span> dan <span
+class="citation" data-cites="morris2019">Morris dkk. (2018)</span>
+menunjukkan bahwa message passing paling banter sekuat WL, dan mencapai
+kekuatan itu kalau agregasinya injektif terhadap multihimpunan.
+Penjumlahan memenuhi syarat ini, sedangkan rata-rata dan maksimum tidak,
+karena keduanya tidak bisa membedakan, misalnya, satu tetangga berfitur
+satu dari dua tetangga berfitur satu.</p>
+<p>Batas WL mudah diperlihatkan. Bandingkan dua segitiga yang terpisah
+dengan satu lingkaran enam simpul. Keduanya punya enam simpul, dan
+setiap simpul punya tepat dua tetangga. Pada setiap iterasi WL, semua
+simpul menerima informasi yang sama, sehingga semua warna tetap identik
+dan uji tidak bisa membedakan keduanya, padahal yang satu berisi
+segitiga dan yang lain tidak. Jaringan message passing biasa pun gagal
+di sini.</p>
+<p>Ada beberapa cara melampaui batas ini. <em>Positional encoding</em>
+memberi setiap simpul “alamat”, misalnya dari vektor eigen Laplacian
+graf atau dari langkah acak, sehingga simpul yang strukturnya sama tetap
+bisa dibedakan. Jaringan substruktur menghitung kemunculan pola kecil,
+seperti segitiga atau siklus, di sekitar setiap simpul. Subgraph GNN
+menjalankan jaringan pada banyak versi graf yang sedikit diubah,
+misalnya dengan satu simpul dihapus, lalu menggabungkan hasilnya.
+Gagasan ini berkerabat dengan <em>reconstruction conjecture</em>, dugaan
+lama dalam teori graf bahwa sebuah graf dengan setidaknya tiga simpul
+ditentukan sepenuhnya oleh kumpulan subgraf yang masing-masing
+kehilangan satu simpul.</p>
+<p>Transformer pun bisa dilihat sebagai message passing pada graf
+lengkap, di mana setiap token adalah simpul yang menerima pesan dari
+semua simpul lain dengan bobot attention. Tanpa positional encoding,
+attention memang ekuivarian terhadap permutasi. Dengan positional
+encoding seperti yang dipakai dalam praktik, sifat itu sengaja dilepas,
+karena urutan kata memang bermakna.</p>
+<h2 id="oversquashing">Oversquashing</h2>
+<p>Untuk menangkap interaksi jarak jauh, kita menambah lapisan. Tetapi
+jumlah simpul dalam radius <span class="math inline">\(r\)</span> bisa
+tumbuh secara eksponensial, sementara semua informasinya harus
+dimampatkan ke vektor berukuran tetap. Gejala ini disebut
+<em>oversquashing</em> <span class="citation"
+data-cites="alon2021">(Alon dan Yahav 2020)</span>. Secara formal,
+kepekaan keadaan simpul <span class="math inline">\(u\)</span> setelah
+<span class="math inline">\(r\)</span> lapisan terhadap fitur awal
+simpul <span class="math inline">\(v\)</span>, <span
+class="math inline">\(\|\partial\boldsymbol{h}_u^{(r)}/\partial\boldsymbol{x}_v\|\)</span>,
+dibatasi oleh entri matriks ketetanggaan ternormalisasi yang
+dipangkatkan, <span class="math inline">\((\hat{\boldsymbol
+A}^r)_{uv}\)</span>, dikalikan konstanta yang bergantung pada bobot dan
+nonlinearitas. Lebar jaringan dan kedalaman ikut berperan, tetapi faktor
+yang paling menentukan adalah topologi graf: leher botol, yaitu sedikit
+sisi yang menghubungkan dua kelompok besar, dan daerah dengan
+kelengkungan negatif <span class="citation"
+data-cites="topping2022">(Topping dkk. 2021)</span>. Kabar dari desa
+sebelah harus lewat satu jembatan sempit, dan di jembatan itu sebagian
+besar berita hilang.</p>
+<h1 id="grid">Grid</h1>
+<p>Grid adalah kasus yang paling kita kenal. Grid satu dimensi bisa
+dilihat sebagai graf berbentuk lingkaran, kalau tepinya disambung secara
+periodik. Grup simetrinya adalah pergeseran siklik. Gambar <span
+class="math inline">\(\boldsymbol I\)</span> yang digeser satu piksel ke
+kanan bisa ditulis <span class="math inline">\(\boldsymbol
+I&#39;=\boldsymbol A\boldsymbol I\boldsymbol B\)</span>, dengan <span
+class="math inline">\(\boldsymbol A\)</span> matriks identitas karena
+baris tidak berubah, dan <span class="math inline">\(\boldsymbol
+B\)</span> matriks pergeseran siklik yang memindahkan setiap kolom satu
+tempat. Pergeseran ke bawah memakai matriks pergeseran di sisi kiri.</p>
+<p>Peta linear yang ekuivarian terhadap pergeseran adalah tepat peta
+yang komut dengan operator geser <span class="math inline">\(\boldsymbol
+S\)</span>, yaitu <span class="math inline">\(\boldsymbol C\boldsymbol
+S=\boldsymbol S\boldsymbol C\)</span>. Matriks seperti ini adalah
+<em>circulant matrix</em>: setiap barisnya adalah baris sebelumnya yang
+digeser satu tempat. Mengalikan dengan matriks sirkulan sama dengan
+konvolusi. Inilah alasan mendalam mengapa konvolusi muncul di CNN: ia
+bukan sekadar pilihan desain, melainkan satu-satunya operasi linear yang
+menghormati simetri geser. Semua matriks sirkulan punya vektor eigen
+yang sama, yaitu basis Fourier, sehingga transformasi Fourier diskret
+mendiagonalkan semuanya sekaligus. Akibatnya, konvolusi di ruang menjadi
+perkalian titik demi titik di frekuensi, dan dengan FFT <span
+class="citation" data-cites="cooley1965">(Cooley dan Tukey 1965)</span>,
+konvolusi panjang bisa dihitung dalam <span
+class="math inline">\(\mathcal O(n\log n)\)</span> operasi.</p>
+<p>Fourier punya keterbatasan. Basisnya tersebar di seluruh ruang,
+sehingga lokalisasi sempurna di frekuensi berarti tidak ada lokalisasi
+di ruang. Prinsip ketidakpastian membatasi seberapa sempit sebuah fungsi
+bisa sekaligus di kedua domain. Transformasi Fourier berjendela memotong
+sinyal menjadi potongan pendek, tetapi lebar jendelanya sama untuk semua
+frekuensi. Lebih penting lagi, modulus Fourier tidak stabil terhadap
+dilatasi kecil. Meregangkan sinyal sedikit menggeser frekuensi rendah
+sedikit, tetapi menggeser frekuensi tinggi jauh, sehingga dua sinyal
+yang hampir sama bisa punya spektrum frekuensi tinggi yang berbeda.</p>
+<p>Wavelet menyelesaikan ini dengan memakai satu fungsi induk yang
+digeser dan diskalakan. Di frekuensi tinggi, wavelet sempit di ruang dan
+lebar di frekuensi. Di frekuensi rendah, sebaliknya. Wavelet Haar,
+misalnya, adalah tangga naik-turun yang cocok sekali untuk mendeteksi
+tepi dan struktur lokal. <em>Scattering transform</em> <span
+class="citation" data-cites="mallat2012">(Mallat 2012)</span> menumpuk
+tiga bahan: konvolusi wavelet, modulus, dan rata-rata. Modulus adalah
+nonlinearitas yang krusial. Tanpanya, rata-rata dari koefisien wavelet
+akan bernilai nol, karena wavelet berosilasi. Modulus memindahkan energi
+frekuensi tinggi ke frekuensi rendah, sehingga informasinya selamat dari
+rata-rata. Hasilnya adalah representasi yang invarian terhadap
+pergeseran dan stabil terhadap deformasi, sebuah CNN yang filternya
+tidak dipelajari tetapi dirancang, dan dalam banyak hal menjadi model
+teoretis untuk memahami CNN.</p>
+<h1 id="konvolusi-grup">Konvolusi grup</h1>
+<p>Konvolusi bisa dipandang sebagai “transformasikan lalu cocokkan”:
+geser filter ke setiap posisi, lalu ukur kecocokannya dengan sinyal.
+Kalau grupnya lebih besar dari pergeseran, misalnya pergeseran ditambah
+rotasi, kita bisa melakukan hal yang sama untuk setiap anggota grup
+<span class="citation" data-cites="cohen2016">(Cohen dan Welling
+2016)</span>: <span class="math display">\[(x\star\psi)(g)=\int_\Omega
+x(u)\,\psi(g^{-1}.u)\,\mathrm{d}u.\]</span> Keluarannya kini adalah
+fungsi pada grup, bukan pada domain asal. Pada grup p4, yang terdiri
+atas pergeseran dan empat rotasi kelipatan sembilan puluh derajat,
+lapisan pertama mengubah gambar menjadi empat peta fitur, satu untuk
+setiap orientasi filter. Lapisan berikutnya bekerja pada fungsi di grup
+itu sendiri, sehingga filternya juga punya dimensi orientasi. Kalau
+gambar input diputar sembilan puluh derajat, setiap peta fitur ikut
+berputar, dan keempat orientasi bergeser secara siklis.</p>
+<p>Konsep pendukungnya adalah <em>homogeneous space</em>. Grup bekerja
+secara transitif pada sebuah domain kalau setiap titik bisa dicapai dari
+titik lain oleh suatu anggota grup. Stabilizer sebuah titik adalah
+subgrup yang membiarkan titik itu di tempatnya. Bola <span
+class="math inline">\(S^2\)</span> di bawah rotasi tiga dimensi adalah
+contoh homogeneous space, dan stabilizer kutub utaranya adalah rotasi di
+sekitar sumbu yang melewati kutub. Bidang di bawah gerak kaku, yaitu
+pergeseran dan rotasi, adalah contoh lainnya, dengan stabilizer setiap
+titik berupa rotasi di sekitar titik itu.</p>
+<h1 id="manifold-dan-mesh">Manifold dan mesh</h1>
+<p>Banyak data hidup di permukaan melengkung: tubuh manusia, sayap
+pesawat, permukaan bumi. Manifold adalah model matematisnya. Secara
+informal, manifold adalah ruang yang di sekitar setiap titik tampak
+seperti ruang Euklides. <em>Chart</em> adalah peta lokal yang meratakan
+sepotong manifold, seperti halaman atlas yang meratakan sepotong bumi.
+Di setiap titik ada <em>tangent space</em>, ruang semua arah yang
+mungkin di titik itu. Untuk mengukur panjang dan sudut vektor singgung,
+kita butuh <em>Riemannian metric</em>, sebuah hasil kali dalam yang
+bervariasi mulus dari titik ke titik. Dengan metrik, kita bisa
+mendefinisikan panjang kurva, <em>geodesic</em> sebagai jalur terpendek,
+dan jarak geodesik.</p>
+<p>Besaran yang hanya bergantung pada metrik disebut intrinsik. Ia tidak
+berubah kalau permukaan ditekuk tanpa diregangkan. Selembar kertas yang
+digulung menjadi silinder punya geometri intrinsik yang sama dengan
+kertas datar, sehingga jarak geodesik antara dua titik di atasnya tidak
+berubah. Deformasi yang mempertahankan metrik disebut isometri. Berbeda
+dari homogeneous space, manifold umumnya tidak punya grup simetri
+global, sehingga stabilitas terhadap deformasi menjadi lebih penting
+daripada ekuivariansi yang persis.</p>
+<p>Kalkulus pada manifold bertumpu pada tiga operator. Gradien <span
+class="math inline">\(\nabla f\)</span> sebuah medan skalar menunjuk ke
+arah kenaikan tercepat dan didefinisikan melalui metrik, sehingga
+intrinsik. Divergensi sebuah medan vektor mengukur sumber dan sumur
+lokal. Keduanya saling adjoin, <span class="math inline">\(\langle\nabla
+f,X\rangle=-\langle f,\operatorname{div}X\rangle\)</span>, persis
+seperti integrasi parsial. Gabungannya adalah <em>Laplace–Beltrami
+operator</em>, <span class="math inline">\(\Delta
+f=-\operatorname{div}\nabla f\)</span>, yang mengukur seberapa jauh
+nilai fungsi di sebuah titik berbeda dari rata-rata di sekitarnya.
+Laplacian ini simetris dan semidefinit positif, sehingga punya basis
+fungsi eigen yang ortogonal, generalisasi alami dari basis Fourier.</p>
+<p>Dengan basis itu, konvolusi bisa didefinisikan secara spektral:
+transformasikan sinyal ke basis eigen Laplacian, kalikan dengan filter
+di setiap frekuensi, lalu kembalikan <span class="citation"
+data-cites="bruna2014">(Bruna dkk. 2013)</span>. Konvolusi spektral ini
+intrinsik, tetapi naif. Basis eigen bisa berubah drastis karena
+deformasi kecil, terutama untuk frekuensi tinggi, sehingga filter yang
+dipelajari pada satu bentuk tidak berpindah ke bentuk lain. Jalan
+keluarnya adalah filter yang mulus terhadap frekuensi, misalnya
+polinomial dalam Laplacian. Filter polinomial berderajat <span
+class="math inline">\(K\)</span> hanya melihat tetangga dalam radius
+<span class="math inline">\(K\)</span>, sehingga lokal dan stabil, dan
+ChebNet <span class="citation" data-cites="defferrard2016">(Defferrard,
+Bresson, dan Vandergheynst 2016)</span> memakai polinomial Chebyshev
+untuk tujuan ini.</p>
+<p>Dalam praktik, manifold didiskretisasi menjadi mesh segitiga atau
+graf. Laplacian graf yang paling sederhana adalah <span
+class="math inline">\(\boldsymbol L=\boldsymbol D-\boldsymbol
+A\)</span>, dengan <span class="math inline">\(\boldsymbol D\)</span>
+matriks diagonal derajat simpul, sehingga <span
+class="math display">\[(\boldsymbol
+L\boldsymbol{x})_u=\sum_{v\in\mathcal N_u}a_{uv}\,(x_u-x_v).\]</span>
+Pada mesh, bobot <span class="math inline">\(a_{uv}\)</span> dipilih
+dari geometri segitiga, misalnya dengan rumus kotangen, agar Laplacian
+diskret mendekati Laplace–Beltrami yang kontinu. Bentuk di atas sudah
+memperlihatkan bahwa Laplacian adalah sebuah langkah message passing:
+setiap simpul menjumlahkan selisih dirinya dengan tetangganya. Konvolusi
+spektral, jaringan graf, dan operator diferensial pada permukaan
+ternyata adalah satu keluarga.</p>
+<h1 id="simetri-di-luar-kelas">Simetri di luar kelas</h1>
+<p>Cetak biru ini muncul di banyak bidang dengan nama yang berbeda.
+Molekul adalah graf atom, dan sifatnya tidak berubah kalau molekul
+diputar atau atom-atomnya dinomori ulang, sehingga jaringan graf dan
+jaringan ekuivarian menjadi standar dalam kimia komputasi (<a
+href="ch41_molekul.html">Bab 19</a>). AlphaFold menempatkan residu
+protein sebagai benda kaku di ruang dengan attention yang tidak peduli
+rotasi global (<a href="ch42_protein.html">Bab 20</a>). Awan titik lidar
+pada kendaraan otonom adalah himpunan tanpa urutan, dan PointNet adalah
+DeepSets untuk awan titik (<a href="ch33_robot.html">Bab 17</a>).
+Pengguna dan item dalam sistem rekomendasi membentuk graf bipartit, dan
+message passing di atasnya menyebarkan selera (<a
+href="ch50_rekomendasi.html">Bab 30</a>).</p>
+<p>Bagi simulasi, bab ini barangkali yang paling penting di Bagian II.
+Hukum fisika punya simetri: persamaan Navier–Stokes tidak berubah kalau
+sistem digeser atau diputar, dan gaya antar partikel tidak bergantung
+pada urutan penomoran partikel. Model pengganti yang tidak menghormati
+simetri ini harus mempelajarinya dari data, dan sering gagal di luar
+data latihnya. Jaringan graf yang ekuivarian terhadap rotasi dan
+translasi tiga dimensi, seperti EGNN <span class="citation"
+data-cites="satorras2021">(Satorras, Hoogeboom, dan Welling
+2021)</span>, membangunnya langsung ke dalam arsitektur.</p>
+<p>Mesh simulasi pada dasarnya adalah graf. Metode volume hingga, yang
+akan kita bahas di <a href="ch13_numerik_fluida.html">Bab 23</a>,
+menghitung perubahan di setiap sel dari fluks yang melewati sisi-sisinya
+ke sel tetangga. Bentuknya persis message passing: setiap sel
+mengumpulkan “pesan” fluks dari tetangganya, lalu memperbarui
+keadaannya. Tidak mengherankan bahwa simulator yang dipelajari dengan
+jaringan graf menjadi salah satu keberhasilan terbesar di bidang ini.
+Graph Network-based Simulator <span class="citation"
+data-cites="sanchez2020">(Sanchez-Gonzalez dkk. 2020)</span> meniru
+dinamika partikel cairan dan pasir, MeshGraphNets <span class="citation"
+data-cites="pfaff2021">(Pfaff dkk. 2020)</span> bekerja pada mesh
+simulasi aerodinamika dan struktur, dan Message Passing Neural PDE
+Solvers <span class="citation"
+data-cites="brandstetter2022">(Brandstetter, Worrall, dan Welling
+2022)</span> memakai message passing sebagai solver PDE umum. GraphCast
+<span class="citation" data-cites="lam2023">(Lam dkk. 2023)</span>
+membawa gagasan yang sama ke prakiraan cuaca global, dengan graf di atas
+mesh ikosahedral yang membungkus bumi. Semuanya dibahas lebih dalam di
+<a href="ch16_operator.html">Bab 26</a>.</p>
+<p>Laplacian graf juga punya makna fisik yang langsung. Persamaan difusi
+panas pada graf, <span
+class="math inline">\(\dot{\boldsymbol{x}}=-\kappa\boldsymbol
+L\boldsymbol{x}\)</span>, didiskretisasi dengan Euler eksplisit menjadi
+<span
+class="math inline">\(\boldsymbol{x}^{n+1}=\boldsymbol{x}^n-\kappa\Delta
+t\,\boldsymbol L\boldsymbol{x}^n\)</span>. Satu langkah waktu difusi
+adalah satu lapisan message passing dengan bobot yang sudah ditentukan.
+Pandangan ini juga menjelaskan gejala <em>oversmoothing</em> pada
+jaringan graf yang terlalu dalam: seperti panas yang lama-lama merata,
+fitur semua simpul menjadi semakin mirip.</p>
+<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<p>Bab ini mengikuti kuliah Deep Learning: Geometric Techniques, yang
+memakai materi kursus Geometric Deep Learning dari Oxford dan daftar
+topik ujiannya: kutukan dimensi, prior geometris, himpunan, graf, grid,
+konvolusi grup, manifold, dan konvolusi spektral. Acuan utama adalah
+<span class="citation" data-cites="bronstein2021">Bronstein dkk.
+(2021)</span>, dengan latar belakang di <span class="citation"
+data-cites="bronstein2017">Bronstein dkk. (2017)</span>.</p>
+<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-alon2021" class="csl-entry" role="listitem">
+Alon, Uri, dan Eran Yahav. 2020. <span>“On the Bottleneck of Graph
+Neural Networks and its Practical Implications.”</span>
+arXiv:2006.05205. <a
+href="https://arxiv.org/abs/2006.05205">https://arxiv.org/abs/2006.05205</a>.
+</div>
+<div id="ref-battaglia2018" class="csl-entry" role="listitem">
+Battaglia, Peter W., Jessica B. Hamrick, Victor Bapst, Alvaro
+Sanchez-Gonzalez, Vinicius Zambaldi, Mateusz Malinowski, Andrea
+Tacchetti, dkk. 2018. <span>“Relational inductive biases, deep learning,
+and graph networks.”</span> arXiv:1806.01261. <a
+href="https://arxiv.org/abs/1806.01261">https://arxiv.org/abs/1806.01261</a>.
+</div>
+<div id="ref-brandstetter2022" class="csl-entry" role="listitem">
+Brandstetter, Johannes, Daniel Worrall, dan Max Welling. 2022.
+<span>“Message Passing Neural PDE Solvers.”</span> arXiv:2202.03376. <a
+href="https://arxiv.org/abs/2202.03376">https://arxiv.org/abs/2202.03376</a>.
+</div>
+<div id="ref-bronstein2021" class="csl-entry" role="listitem">
+Bronstein, Michael M., Joan Bruna, Taco Cohen, dan Petar Veličković.
+2021. <span>“Geometric Deep Learning: Grids, Groups, Graphs, Geodesics,
+and Gauges.”</span> arXiv:2104.13478. <a
+href="https://arxiv.org/abs/2104.13478">https://arxiv.org/abs/2104.13478</a>.
+</div>
+<div id="ref-bronstein2017" class="csl-entry" role="listitem">
+Bronstein, Michael M., Joan Bruna, Yann LeCun, Arthur Szlam, dan Pierre
+Vandergheynst. 2017. <span>“Geometric Deep Learning: Going beyond
+Euclidean data.”</span> <em>IEEE Signal Processing Magazine</em> 34 (4):
+18–42. <a
+href="https://doi.org/10.1109/MSP.2017.2693418">https://doi.org/10.1109/MSP.2017.2693418</a>.
+</div>
+<div id="ref-bruna2014" class="csl-entry" role="listitem">
+Bruna, Joan, Wojciech Zaremba, Arthur Szlam, dan Yann LeCun. 2013.
+<span>“Spectral Networks and Locally Connected Networks on
+Graphs.”</span> arXiv:1312.6203. <a
+href="https://arxiv.org/abs/1312.6203">https://arxiv.org/abs/1312.6203</a>.
+</div>
+<div id="ref-cohen2016" class="csl-entry" role="listitem">
+Cohen, Taco S., dan Max Welling. 2016. <span>“Group Equivariant
+Convolutional Networks.”</span> arXiv:1602.07576. <a
+href="https://arxiv.org/abs/1602.07576">https://arxiv.org/abs/1602.07576</a>.
+</div>
+<div id="ref-cooley1965" class="csl-entry" role="listitem">
+Cooley, James W., dan John W. Tukey. 1965. <span>“An algorithm for the
+machine calculation of complex Fourier series.”</span> <em>Mathematics
+of Computation</em> 19 (90): 297–301. <a
+href="https://doi.org/10.1090/S0025-5718-1965-0178586-1">https://doi.org/10.1090/S0025-5718-1965-0178586-1</a>.
+</div>
+<div id="ref-defferrard2016" class="csl-entry" role="listitem">
+Defferrard, Michaël, Xavier Bresson, dan Pierre Vandergheynst. 2016.
+<span>“Convolutional Neural Networks on Graphs with Fast Localized
+Spectral Filtering.”</span> arXiv:1606.09375. <a
+href="https://arxiv.org/abs/1606.09375">https://arxiv.org/abs/1606.09375</a>.
+</div>
+<div id="ref-gilmer2017" class="csl-entry" role="listitem">
+Gilmer, Justin, Samuel S. Schoenholz, Patrick F. Riley, Oriol Vinyals,
+dan George E. Dahl. 2017. <span>“Neural Message Passing for Quantum
+Chemistry.”</span> arXiv:1704.01212. <a
+href="https://arxiv.org/abs/1704.01212">https://arxiv.org/abs/1704.01212</a>.
+</div>
+<div id="ref-kipf2017" class="csl-entry" role="listitem">
+Kipf, Thomas N., dan Max Welling. 2016. <span>“Semi-Supervised
+Classification with Graph Convolutional Networks.”</span>
+arXiv:1609.02907. <a
+href="https://arxiv.org/abs/1609.02907">https://arxiv.org/abs/1609.02907</a>.
+</div>
+<div id="ref-lam2023" class="csl-entry" role="listitem">
+Lam, Remi, Alvaro Sanchez-Gonzalez, Matthew Willson, Peter Wirnsberger,
+Meire Fortunato, Ferran Alet, Suman Ravuri, dkk. 2023. <span>“Learning
+skillful medium-range global weather forecasting.”</span>
+<em>Science</em> 382 (6677): 1416–21. <a
+href="https://doi.org/10.1126/science.adi2336">https://doi.org/10.1126/science.adi2336</a>.
+</div>
+<div id="ref-mallat2012" class="csl-entry" role="listitem">
+Mallat, Stéphane. 2012. <span>“Group Invariant Scattering.”</span>
+<em>Communications on Pure and Applied Mathematics</em> 65 (10):
+1331–98. <a
+href="https://doi.org/10.1002/cpa.21413">https://doi.org/10.1002/cpa.21413</a>.
+</div>
+<div id="ref-morris2019" class="csl-entry" role="listitem">
+Morris, Christopher, Martin Ritzert, Matthias Fey, William L. Hamilton,
+Jan Eric Lenssen, Gaurav Rattan, dan Martin Grohe. 2018.
+<span>“Weisfeiler and Leman Go Neural: Higher-order Graph Neural
+Networks.”</span> arXiv:1810.02244. <a
+href="https://arxiv.org/abs/1810.02244">https://arxiv.org/abs/1810.02244</a>.
+</div>
+<div id="ref-pfaff2021" class="csl-entry" role="listitem">
+Pfaff, Tobias, Meire Fortunato, Alvaro Sanchez-Gonzalez, dan Peter W.
+Battaglia. 2020. <span>“Learning Mesh-Based Simulation with Graph
+Networks.”</span> arXiv:2010.03409. <a
+href="https://arxiv.org/abs/2010.03409">https://arxiv.org/abs/2010.03409</a>.
+</div>
+<div id="ref-sanchez2020" class="csl-entry" role="listitem">
+Sanchez-Gonzalez, Alvaro, Jonathan Godwin, Tobias Pfaff, Rex Ying, Jure
+Leskovec, dan Peter W. Battaglia. 2020. <span>“Learning to Simulate
+Complex Physics with Graph Networks.”</span> arXiv:2002.09405. <a
+href="https://arxiv.org/abs/2002.09405">https://arxiv.org/abs/2002.09405</a>.
+</div>
+<div id="ref-satorras2021" class="csl-entry" role="listitem">
+Satorras, Victor Garcia, Emiel Hoogeboom, dan Max Welling. 2021.
+<span>“E(n) Equivariant Graph Neural Networks.”</span> arXiv:2102.09844.
+<a
+href="https://arxiv.org/abs/2102.09844">https://arxiv.org/abs/2102.09844</a>.
+</div>
+<div id="ref-topping2022" class="csl-entry" role="listitem">
+Topping, Jake, Francesco Di Giovanni, Benjamin Paul Chamberlain, Xiaowen
+Dong, dan Michael M. Bronstein. 2021. <span>“Understanding
+over-squashing and bottlenecks on graphs via curvature.”</span>
+arXiv:2111.14522. <a
+href="https://arxiv.org/abs/2111.14522">https://arxiv.org/abs/2111.14522</a>.
+</div>
+<div id="ref-velickovic2018" class="csl-entry" role="listitem">
+Veličković, Petar, Guillem Cucurull, Arantxa Casanova, Adriana Romero,
+Pietro Liò, dan Yoshua Bengio. 2017. <span>“Graph Attention
+Networks.”</span> arXiv:1710.10903. <a
+href="https://arxiv.org/abs/1710.10903">https://arxiv.org/abs/1710.10903</a>.
+</div>
+<div id="ref-xu2019" class="csl-entry" role="listitem">
+Xu, Keyulu, Weihua Hu, Jure Leskovec, dan Stefanie Jegelka. 2018.
+<span>“How Powerful are Graph Neural Networks?”</span> arXiv:1810.00826.
+<a
+href="https://arxiv.org/abs/1810.00826">https://arxiv.org/abs/1810.00826</a>.
+</div>
+<div id="ref-zaheer2017" class="csl-entry" role="listitem">
+Zaheer, Manzil, Satwik Kottur, Siamak Ravanbakhsh, Barnabas Poczos,
+Ruslan Salakhutdinov, dan Alexander Smola. 2017. <span>“Deep
+Sets.”</span> arXiv:1703.06114. <a
+href="https://arxiv.org/abs/1703.06114">https://arxiv.org/abs/1703.06114</a>.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch06_arsitektur_generatif.html"><span>Sebelumnya</span>Arsitektur Modern dan Model Generatif</a>
+  <a class="next" href="ch08_probabilistik.html"><span>Berikutnya</span>Bernalar dalam Ketidakpastian</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

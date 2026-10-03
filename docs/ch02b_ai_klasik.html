@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Klasik: Mencari, Merencanakan,
+Memutuskan · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 3</p>
+<h1>AI Klasik: Mencari, Merencanakan, Memutuskan</h1>
+<p><span id="ch:klasik" data-label="ch:klasik"></span></p>
+<p>Kuliah pengantar AI baru saya ikuti di semester terakhir, pada musim
+panas 2026, setelah hampir semua kuliah deep learning selesai. Dengan
+urutan terbalik seperti itu, search, planning, game playing, dan
+representasi pengetahuan tidak tampil sebagai masa lalu yang usang,
+melainkan sebagai fondasi yang masih dipakai di dalam sistem modern,
+dari AlphaGo sampai agen berbasis model bahasa. Setahun sebelumnya,
+kuliah operations research memberi sisi lain dari cerita yang sama:
+mencari keputusan terbaik di antara pilihan yang terhingga tetapi banyak
+sekali.</p>
+<p>Sebelum jaringan saraf mendominasi, AI berarti program yang bernalar
+secara eksplisit: mencari jalan di ruang kemungkinan, menyusun rencana
+langkah demi langkah, dan menarik kesimpulan dari fakta. Bab ini
+membahas gagasan-gagasan itu, karena tanpa mereka sulit memahami mengapa
+sistem AI paling kuat hari ini menggabungkan pembelajaran dengan
+pencarian.</p>
+<h1 id="dari-turing-ke-dartmouth">Dari Turing ke Dartmouth</h1>
+<p><span class="citation" data-cites="turing1950">TURING (1950)</span>
+mengganti pertanyaan “bisakah mesin berpikir?” dengan permainan tiruan:
+kalau seorang penanya tidak bisa membedakan mesin dari manusia lewat
+percakapan tertulis, apa alasan kita menolak menyebut mesin itu cerdas?
+Istilah <em>artificial intelligence</em> sendiri lahir dari proposal
+lokakarya musim panas di Dartmouth pada 1956. Sejak itu, sejarah AI
+bergerak dalam gelombang optimisme dan kekecewaan. Sistem pakar pada
+1980-an menyimpan pengetahuan manusia dalam ribuan aturan jika-maka,
+lalu tersandung pada sulitnya menulis semua aturan itu dengan tangan.
+Gelombang statistik dan kemudian deep learning menggeser fokus dari
+aturan yang ditulis ke pola yang dipelajari <span class="citation"
+data-cites="russell2021">(Russell dan Norvig 2021)</span>.</p>
+<p>Kuliah juga menyinggung perdebatan filosofisnya. <span
+class="citation" data-cites="searle1980">Searle (1980)</span> mengajukan
+eksperimen pikiran ruang Cina. Seseorang yang tidak mengerti bahasa Cina
+duduk di dalam ruangan dan menjawab pesan dalam bahasa Cina dengan
+mengikuti buku aturan yang lengkap. Dari luar, jawabannya sempurna. Dari
+dalam, tidak ada pemahaman sama sekali. Searle berargumen bahwa
+memanipulasi simbol tidak sama dengan memahami. Perdebatan antara AI
+lemah, yang hanya meniru perilaku cerdas, dan AI kuat, yang sungguh
+memahami, belum selesai sampai sekarang, dan model bahasa besar
+membuatnya kembali hangat.</p>
+<h1 id="pencarian">Pencarian</h1>
+<p>Banyak masalah bisa dirumuskan sebagai pencarian: ada keadaan awal,
+sekumpulan aksi, fungsi transisi yang mengatakan ke mana sebuah aksi
+membawa kita, uji tujuan, dan biaya setiap langkah. Teka-teki geser
+delapan angka, rute navigasi, dan penyusunan jadwal semuanya cocok
+dengan bentuk ini. Solusinya adalah jalur dari keadaan awal ke keadaan
+tujuan.</p>
+<p>Pencarian tanpa informasi tidak tahu apa-apa tentang di mana tujuan
+berada. <em>Breadth-first search</em> menjelajah lapis demi lapis dan
+menjamin jalur terpendek dalam jumlah langkah, tetapi memorinya tumbuh
+eksponensial. <em>Depth-first search</em> masuk sedalam mungkin lebih
+dulu, hemat memori, tetapi bisa tersesat di cabang yang tak berujung.
+<em>Uniform-cost search</em> selalu memperluas simpul dengan biaya
+kumulatif terkecil, sehingga menemukan jalur termurah.</p>
+<p>Pencarian dengan informasi memakai <em>heuristic</em> <span
+class="math inline">\(h(n)\)</span>, perkiraan biaya dari simpul <span
+class="math inline">\(n\)</span> ke tujuan. Algoritme A* <span
+class="citation" data-cites="hart1968">(Hart, Nilsson, dan Raphael
+1968)</span> memperluas simpul dengan nilai <span
+class="math display">\[f(n)=g(n)+h(n)\]</span> terkecil, dengan <span
+class="math inline">\(g(n)\)</span> biaya yang sudah ditempuh. Kalau
+heuristik tidak pernah melebihi biaya sebenarnya, yaitu
+<em>admissible</em>, A* dijamin menemukan jalur optimal. Pada teka-teki
+delapan angka, jumlah ubin yang salah tempat adalah heuristik
+admissible, dan jumlah jarak Manhattan setiap ubin ke posisi seharusnya
+juga admissible tetapi lebih informatif, karena selalu sama atau lebih
+besar. Heuristik yang lebih informatif memangkas jauh lebih banyak
+simpul.</p>
+<p>A* mirip pengemudi yang memilih belokan berdasarkan dua hal
+sekaligus: jarak yang sudah ditempuh di odometer, dan jarak garis lurus
+yang tersisa ke tujuan. Karena garis lurus tidak pernah lebih panjang
+dari jalan sebenarnya, ia tidak akan tertipu untuk mengabaikan rute yang
+sebenarnya baik.</p>
+<p>Ketika jalurnya tidak penting dan yang dicari hanya keadaan terbaik,
+misalnya susunan jadwal yang paling sedikit bentrok, <em>local
+search</em> lebih cocok. Hill climbing terus bergerak ke tetangga yang
+lebih baik sampai tidak ada lagi, dan sering terjebak di puncak lokal.
+Simulated annealing <span class="citation"
+data-cites="kirkpatrick1983">(Kirkpatrick, Gelatt, dan Vecchi
+1983)</span> kadang menerima langkah yang memburuk dengan peluang yang
+menurun perlahan, seperti logam yang didinginkan pelan-pelan agar
+atomnya menemukan susunan berenergi rendah. Tabu search <span
+class="citation" data-cites="glover1989">(Glover 1989)</span> mengingat
+langkah-langkah terakhir dan melarang kembali ke sana, sehingga tidak
+berputar-putar di sekitar puncak yang sama.</p>
+<h1 id="bermain-melawan-lawan">Bermain melawan lawan</h1>
+<p>Dalam permainan dua pemain, keadaan berikutnya juga ditentukan oleh
+lawan yang berusaha mengalahkan kita. Algoritme <em>minimax</em>
+mengasumsikan lawan bermain sempurna: di giliran kita pilih langkah
+dengan nilai maksimum, di giliran lawan anggap ia memilih nilai minimum.
+Contoh dari <span class="citation" data-cites="russell2021">Russell dan
+Norvig (2021)</span> memperlihatkannya. Misalkan kita punya tiga
+langkah, dan lawan menjawab setiap langkah dengan tiga kemungkinan yang
+nilainya <span class="math inline">\((3,12,8)\)</span>, <span
+class="math inline">\((2,4,6)\)</span>, dan <span
+class="math inline">\((14,5,2)\)</span>. Lawan akan memilih minimum di
+setiap cabang, yaitu 3, 2, dan 2, sehingga kita memilih cabang pertama
+dengan nilai 3.</p>
+<p><em>Alpha-beta pruning</em> <span class="citation"
+data-cites="knuth1975">(Knuth dan Moore 1975)</span> memperoleh jawaban
+yang sama tanpa melihat semua daun. Setelah cabang pertama memberi nilai
+3, kita tahu kita bisa mendapat setidaknya 3. Di cabang kedua, begitu
+kita melihat daun bernilai 2, kita tahu lawan akan memberi paling banyak
+2 di cabang itu, sehingga sisa daunnya tidak perlu diperiksa. Dengan
+urutan langkah yang baik, alpha-beta bisa menggandakan kedalaman
+pencarian dengan waktu yang sama.</p>
+<p>Untuk permainan dengan cabang banyak seperti Go, minimax tidak
+mungkin dijalankan sampai akhir permainan. <em>Monte Carlo tree
+search</em> membangun pohon pencarian secara bertahap dengan memainkan
+banyak permainan acak sampai selesai, lalu memusatkan pencarian pada
+langkah yang menjanjikan. Aturan UCT <span class="citation"
+data-cites="kocsis2006">(Kocsis dan Szepesvári 2006)</span>
+menyeimbangkan eksploitasi langkah yang sejauh ini terbaik dengan
+eksplorasi langkah yang belum banyak dicoba, mengikuti teori bandit.
+AlphaGo <span class="citation" data-cites="silver2016">(Silver dkk.
+2016)</span> menggabungkan MCTS dengan jaringan saraf yang menilai
+posisi dan menyarankan langkah, lalu AlphaZero <span class="citation"
+data-cites="silver2018">(Silver dkk. 2018)</span> mempelajari catur,
+shogi, dan Go hanya dari bermain melawan dirinya sendiri. Kuliah
+menekankan pelajaran yang lebih umum: pembelajaran memberi intuisi,
+pencarian memberi ketelitian, dan sistem terkuat memakai keduanya.</p>
+<h1 id="perencanaan">Perencanaan</h1>
+<p>Perencanaan adalah pencarian dengan bahasa yang lebih kaya. Alih-alih
+keadaan sebagai kotak hitam, keadaan dijelaskan dengan fakta-fakta
+logis, dan setiap aksi punya prasyarat dan efek. Bahasa STRIPS <span
+class="citation" data-cites="fikes1971">(Fikes dan Nilsson 1971)</span>,
+dan penerusnya PDDL, menulis aksi seperti “pindahkan balok A dari meja
+ke atas balok B” dengan prasyarat bahwa A dan B kosong di atasnya, dan
+efek bahwa A sekarang di atas B. Representasi ini memungkinkan heuristik
+umum yang tidak bergantung pada domain, misalnya dengan menyelesaikan
+versi masalah yang dilonggarkan, di mana efek negatif aksi diabaikan.
+Panjang rencana untuk masalah yang dilonggarkan memberi perkiraan biaya
+untuk masalah aslinya.</p>
+<h1 id="pengetahuan-dan-logika">Pengetahuan dan logika</h1>
+<p>Representasi pengetahuan menyimpan fakta tentang dunia dalam bentuk
+yang bisa dipakai untuk bernalar. Logika proposisi bekerja dengan
+pernyataan benar atau salah, sedangkan logika predikat orde pertama
+menambahkan objek, relasi, dan kuantor, sehingga bisa menyatakan “setiap
+manusia fana”. Mesin inferensi menurunkan fakta baru dari fakta lama,
+misalnya dengan resolusi atau dengan rantai aturan maju dan mundur.
+Ontologi dan graf pengetahuan menyusun konsep ke dalam hierarki dan
+relasi, dan bentuk modernnya dipakai mesin pencari untuk menjawab
+pertanyaan faktual secara langsung. Kekuatan pendekatan simbolik adalah
+ketelitian dan kemampuan menjelaskan penalarannya. Kelemahannya adalah
+kerapuhan di hadapan dunia nyata yang berisik dan tidak lengkap, persis
+di tempat machine learning unggul.</p>
+<h1 id="keputusan-optimal-operations-research">Keputusan optimal:
+operations research</h1>
+<p>Kuliah operations research membahas keputusan yang bisa dirumuskan
+sebagai optimasi dengan kendala. Bentuk paling penting adalah <em>linear
+programming</em>: maksimalkan fungsi linear dengan kendala
+pertidaksamaan linear. Contoh klasik dari <span class="citation"
+data-cites="hillier2015">Hillier dan Lieberman (2015)</span> adalah
+pabrik yang membuat dua produk dengan keuntungan 3 dan 5 per unit, dan
+tiga pabrik pendukung dengan kapasitas terbatas: <span
+class="math display">\[\max\ 3x+5y\quad\text{dengan}\quad x\le4,\quad
+2y\le12,\quad 3x+2y\le18,\quad x,y\ge0.\]</span> Daerah yang memenuhi
+semua kendala adalah sebuah poligon, dan karena fungsi tujuannya linear,
+optimumnya selalu berada di salah satu titik sudut. Di sini titik
+terbaiknya <span class="math inline">\((x,y)=(2,6)\)</span> dengan
+keuntungan 36. Metode simpleks berjalan dari satu titik sudut ke titik
+sudut tetangga yang lebih baik sampai tidak ada lagi perbaikan.</p>
+<p>Setiap program linear punya pasangan, yaitu program dual, yang
+variabelnya bisa dibaca sebagai harga bayangan setiap sumber daya:
+berapa keuntungan bertambah kalau kapasitas satu pabrik dinaikkan satu
+unit. Pada optimum, nilai primal dan dual sama, dan teori dualitas ini
+menjadi dasar banyak algoritme optimasi modern.</p>
+<p>Kalau variabel harus bilangan bulat, misalnya jumlah truk, masalahnya
+menjadi <em>integer programming</em>, yang jauh lebih sulit. <em>Branch
+and bound</em> memecah masalah menjadi cabang dengan menambahkan kendala
+seperti <span class="math inline">\(x\le2\)</span> atau <span
+class="math inline">\(x\ge3\)</span>, memakai solusi relaksasi linear
+sebagai batas, dan membuang cabang yang batasnya sudah lebih buruk dari
+solusi terbaik yang ditemukan. <em>Dynamic programming</em> <span
+class="citation" data-cites="bellman1957">(Bellman 1957)</span> memecah
+keputusan berurutan menjadi submasalah dengan prinsip optimalitas:
+bagian akhir dari kebijakan optimal juga optimal untuk keadaan tempat
+bagian itu dimulai. Prinsip yang sama menjadi persamaan Bellman di
+reinforcement learning (<a href="ch10_rl.html">Bab 12</a>). Untuk
+masalah yang terlalu besar, heuristik seperti simulated annealing dan
+tabu search kembali menjadi pilihan, dan analisis keputusan menambahkan
+ketidakpastian dengan pohon keputusan dan nilai harapan.</p>
+<h1 id="mengapa-semua-ini-masih-penting">Mengapa semua ini masih
+penting</h1>
+<p>Sistem AI modern jarang murni simbolik atau murni statistik.
+AlphaZero adalah pencarian pohon yang dipandu jaringan saraf. Model
+bahasa yang menyelesaikan soal matematika sering menghasilkan beberapa
+kemungkinan langkah lalu memilih yang terbaik, sebuah bentuk pencarian.
+Robot gudang memakai A* untuk rute dan pembelajaran untuk persepsi.
+Dalam simulasi teknik, keputusan tentang desain dan jadwal operasi
+sering diselesaikan dengan program linear atau integer yang dibangun di
+atas prediksi dari model pengganti. Pembelajaran dan penalaran tidak
+bersaing. Keduanya saling melengkapi.</p>
+<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<p>Bab ini mengikuti kuliah Introduction to AI (sejarah, search, game
+playing, planning, representasi pengetahuan, machine learning untuk
+permainan, filsafat AI) dan kuliah KS Operations Research (linear
+programming dan dualitas, integer programming, dynamic programming,
+heuristik, analisis keputusan). Buku rujukan utamanya adalah <span
+class="citation" data-cites="russell2021">Russell dan Norvig
+(2021)</span> dan <span class="citation"
+data-cites="hillier2015">Hillier dan Lieberman (2015)</span>.</p>
+<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-bellman1957" class="csl-entry" role="listitem">
+Bellman, Richard. 1957. <em>Dynamic Programming</em>. Princeton
+University Press.
+</div>
+<div id="ref-fikes1971" class="csl-entry" role="listitem">
+Fikes, Richard E., dan Nils J. Nilsson. 1971. <span>“Strips: A new
+approach to the application of theorem proving to problem
+solving.”</span> <em>Artificial Intelligence</em> 2 (3–4): 189–208. <a
+href="https://doi.org/10.1016/0004-3702(71)90010-5">https://doi.org/10.1016/0004-3702(71)90010-5</a>.
+</div>
+<div id="ref-glover1989" class="csl-entry" role="listitem">
+Glover, Fred. 1989. <span>“Tabu Search—Part I.”</span> <em>ORSA Journal
+on Computing</em> 1 (3): 190–206. <a
+href="https://doi.org/10.1287/ijoc.1.3.190">https://doi.org/10.1287/ijoc.1.3.190</a>.
+</div>
+<div id="ref-hart1968" class="csl-entry" role="listitem">
+Hart, Peter, Nils Nilsson, dan Bertram Raphael. 1968. <span>“A Formal
+Basis for the Heuristic Determination of Minimum Cost Paths.”</span>
+<em>IEEE Transactions on Systems Science and Cybernetics</em> 4 (2):
+100–107. <a
+href="https://doi.org/10.1109/TSSC.1968.300136">https://doi.org/10.1109/TSSC.1968.300136</a>.
+</div>
+<div id="ref-hillier2015" class="csl-entry" role="listitem">
+Hillier, Frederick S., dan Gerald J. Lieberman. 2015. <em>Introduction
+to Operations Research</em>. 10 ed. McGraw-Hill.
+</div>
+<div id="ref-kirkpatrick1983" class="csl-entry" role="listitem">
+Kirkpatrick, S., C. D. Gelatt, dan M. P. Vecchi. 1983.
+<span>“Optimization by Simulated Annealing.”</span> <em>Science</em> 220
+(4598): 671–80. <a
+href="https://doi.org/10.1126/science.220.4598.671">https://doi.org/10.1126/science.220.4598.671</a>.
+</div>
+<div id="ref-knuth1975" class="csl-entry" role="listitem">
+Knuth, Donald E., dan Ronald W. Moore. 1975. <span>“An analysis of
+alpha-beta pruning.”</span> <em>Artificial Intelligence</em> 6 (4):
+293–326. <a
+href="https://doi.org/10.1016/0004-3702(75)90019-3">https://doi.org/10.1016/0004-3702(75)90019-3</a>.
+</div>
+<div id="ref-kocsis2006" class="csl-entry" role="listitem">
+Kocsis, Levente, dan Csaba Szepesvári. 2006. <span>“Bandit Based
+Monte-Carlo Planning.”</span> <em>Lecture Notes in Computer
+Science</em>, 282–93. <a
+href="https://doi.org/10.1007/11871842_29">https://doi.org/10.1007/11871842_29</a>.
+</div>
+<div id="ref-russell2021" class="csl-entry" role="listitem">
+Russell, Stuart, dan Peter Norvig. 2021. <em>Artificial Intelligence: A
+Modern Approach</em>. 4 ed. Pearson.
+</div>
+<div id="ref-searle1980" class="csl-entry" role="listitem">
+Searle, John R. 1980. <span>“Minds, brains, and programs.”</span>
+<em>Behavioral and Brain Sciences</em> 3 (3): 417–24. <a
+href="https://doi.org/10.1017/S0140525X00005756">https://doi.org/10.1017/S0140525X00005756</a>.
+</div>
+<div id="ref-silver2016" class="csl-entry" role="listitem">
+Silver, David, Aja Huang, Chris J. Maddison, Arthur Guez, Laurent Sifre,
+George van den Driessche, Julian Schrittwieser, dkk. 2016.
+<span>“Mastering the game of Go with deep neural networks and tree
+search.”</span> <em>Nature</em> 529 (7587): 484–89. <a
+href="https://doi.org/10.1038/nature16961">https://doi.org/10.1038/nature16961</a>.
+</div>
+<div id="ref-silver2018" class="csl-entry" role="listitem">
+Silver, David, Thomas Hubert, Julian Schrittwieser, Ioannis Antonoglou,
+Matthew Lai, Arthur Guez, Marc Lanctot, dkk. 2018. <span>“A general
+reinforcement learning algorithm that masters chess, shogi, and Go
+through self-play.”</span> <em>Science</em> 362 (6419): 1140–44. <a
+href="https://doi.org/10.1126/science.aar6404">https://doi.org/10.1126/science.aar6404</a>.
+</div>
+<div id="ref-turing1950" class="csl-entry" role="listitem">
+TURING, A. M. 1950. <span>“I.—COMPUTING MACHINERY AND
+INTELLIGENCE.”</span> <em>Mind</em> LIX (236): 433–60. <a
+href="https://doi.org/10.1093/mind/LIX.236.433">https://doi.org/10.1093/mind/LIX.236.433</a>.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch02_optimasi.html"><span>Sebelumnya</span>Optimasi: Turun Gunung dalam Kabut</a>
+  <a class="next" href="ch02c_unsupervised.html"><span>Berikutnya</span>Belajar Tanpa Label</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

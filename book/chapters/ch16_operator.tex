@@ -1,0 +1,129 @@
+\chapter{Belajar Menyelesaikan: Neural Operator dan Simulator}
+\label{ch:operator}
+
+Bab ini juga tidak berasal dari satu mata kuliah. Kuliah geometric deep learning memberi bahasa graf dan
+ekuivariansi, kuliah machine learning lanjut memberi transformasi Fourier dan neural ODE, dan dosennya
+sendiri, Johannes Brandstetter, termasuk peneliti yang membentuk bidang ini, dari message passing PDE
+solver sampai transformer untuk fisika. Sisanya datang dari bacaan.
+
+PINN mempelajari satu solusi. Kalau syarat awalnya berubah sedikit, pelatihan harus diulang. Neural
+operator dan simulator yang dipelajari mengambil tujuan yang lebih ambisius: belajar \emph{cara}
+menyelesaikan sebuah keluarga persamaan, sehingga solusi untuk syarat awal, parameter, atau geometri baru
+bisa diperoleh dalam satu lintasan maju, sering ribuan kali lebih cepat dari solver klasik.
+
+\section{Dari fungsi ke fungsi}
+
+Solver numerik pada dasarnya adalah sebuah \istilah{operator}: ia memetakan satu fungsi, misalnya medan
+temperatur awal atau distribusi konduktivitas, ke fungsi lain, yaitu solusinya. Jaringan saraf biasa
+memetakan vektor berukuran tetap ke vektor berukuran tetap, sehingga terikat pada satu resolusi grid.
+\istilah{Operator learning} ingin belajar pemetaan antar ruang fungsi itu sendiri, sehingga model yang
+dilatih pada grid kasar bisa dievaluasi pada grid yang lebih halus \citep{kovachki2023}.
+
+\subsection{DeepONet}
+
+DeepONet \citep{lu2021} bertumpu pada teorema aproksimasi universal untuk operator. Operator $G$ yang
+memetakan fungsi input $v$ ke solusi $G(v)$, dievaluasi di titik $y$, didekati sebagai
+\begin{equation}
+G(v)(y)\approx\sum_{k=1}^pb_k(v)\,t_k(y).
+\end{equation}
+Jaringan \istilah{branch} menerima nilai $v$ di sejumlah titik sensor tetap dan mengeluarkan koefisien
+$b_k$. Jaringan \istilah{trunk} menerima koordinat $y$ dan mengeluarkan fungsi basis $t_k(y)$. Bentuk ini
+mengingatkan pada ekspansi deret seperti Fourier atau POD (\cref{ch:penemuan}), dengan perbedaan bahwa
+basis dan koefisiennya sama-sama dipelajari. Karena trunk menerima koordinat kontinu, keluarannya bisa
+dievaluasi di titik mana pun.
+
+\subsection{Fourier neural operator}
+
+Fourier neural operator \citep{li2021} berangkat dari bentuk solusi banyak PDE linear: konvolusi syarat
+awal dengan sebuah kernel, seperti kernel Gauss pada persamaan panas di \cref{ch:mlat}. Satu lapisan FNO
+memakai operator integral dengan kernel yang dipelajari,
+\begin{equation}
+(\mathcal Kv)(x)=\int\kappa(x-y)\,v(y)\dd y.
+\end{equation}
+Karena kernel hanya bergantung pada selisih $x-y$, operator ini adalah konvolusi, dan teorema konvolusi
+(\cref{ch:cv}) mengubahnya menjadi perkalian di domain frekuensi:
+\begin{equation}
+\mathcal Kv=\mathcal F^{-1}\big(\bm R\cdot\mathcal Fv\big),
+\end{equation}
+dengan $\bm R$ bobot yang dipelajari untuk setiap frekuensi. FNO hanya menyimpan bobot untuk sejumlah
+kecil frekuensi terendah dan membuang sisanya. Satu lapisan lengkap menjumlahkan operator spektral ini
+dengan transformasi linear lokal, lalu menerapkan nonlinearitas. Dengan FFT, biayanya sebanding dengan
+$N\log N$ untuk $N$ titik grid, dan karena bobotnya didefinisikan per frekuensi, bukan per titik grid,
+model yang sama bisa dijalankan pada resolusi yang berbeda. Pemotongan frekuensi juga punya sisi buruk:
+struktur yang tajam, seperti gelombang kejut, sulit diwakili oleh sedikit mode Fourier.
+
+\section{Simulator berbasis graf}
+
+Grid teratur jarang ditemui dalam simulasi teknik. Mesh menyesuaikan diri dengan geometri, dan partikel
+bergerak bebas. Di sini jaringan graf (\cref{ch:gdl}) menjadi alat alami. Graph Network-based Simulator
+\citep{sanchez2020} memperlakukan setiap partikel sebagai simpul dan menghubungkan partikel yang
+berdekatan dengan sisi. Arsitekturnya mengikuti pola \istilah{encode--process--decode}: keadaan setiap
+partikel dikodekan menjadi vektor laten, beberapa langkah message passing menyebarkan informasi
+interaksi, lalu decoder mengeluarkan percepatan setiap partikel. Posisi baru dihitung dengan integrator
+sederhana, dan langkah itu diulang. Model yang dilatih pada air, pasir, dan cairan kental ini
+menghasilkan rollout yang stabil untuk ribuan langkah.
+
+MeshGraphNets \citep{pfaff2021} membawa gagasan yang sama ke mesh simulasi, dengan dua jenis sisi:
+sisi mesh yang mengikuti konektivitas elemen, dan sisi ``dunia'' antara simpul yang berdekatan di ruang
+walau tidak tersambung di mesh, misalnya untuk kain yang menyentuh dirinya sendiri. Model ini bahkan
+belajar menyesuaikan resolusi mesh. Message Passing Neural PDE Solvers \citep{brandstetter2022} merumuskan
+message passing sebagai solver PDE umum dan menunjukkan bahwa ia mencakup skema numerik klasik seperti
+beda hingga dan volume hingga sebagai kasus khusus. Hubungan ini sudah kita lihat di \cref{ch:numerik}:
+volume hingga adalah message passing fluks.
+
+\section{Masalah rollout}
+
+Hampir semua simulator yang dipelajari bekerja secara autoregresif: tebak langkah berikutnya, lalu
+pakai tebakan itu sebagai input untuk langkah selanjutnya. Galat kecil di setiap langkah tidak hanya
+menumpuk, tetapi juga bisa diperbesar. Misalkan galat di langkah $t$ adalah $e_t$, model menambahkan galat
+baru $\delta$ di setiap langkah, dan kepekaan langkah model terhadap inputnya diwakili faktor $J$. Maka
+$e_{t+1}\approx Je_t+\delta$, dan setelah $T$ langkah
+\begin{equation}
+e_T\approx\delta\sum_{k=0}^{T-1}J^k.
+\end{equation}
+Kalau $|J|<1$, galat jenuh di sekitar $\delta/(1-|J|)$. Kalau $|J|$ sedikit lebih besar dari satu,
+galat tumbuh eksponensial. Dengan $J=1{,}01$, setelah 500 langkah faktor $J^{500}\approx145$. Model yang
+tampak sempurna dalam uji satu langkah bisa meledak dalam rollout panjang.
+
+Ada masalah yang lebih halus. Selama pelatihan, model hanya melihat input dari simulasi sejati. Selama
+rollout, ia melihat input dari tebakannya sendiri, yang sedikit berbeda distribusinya. Ini covariate
+shift yang sama dengan behavioral cloning di \cref{ch:rl}. Beberapa obat sudah dicoba: menambahkan noise
+pada input selama pelatihan agar model terbiasa dengan input yang tidak sempurna \citep{sanchez2020},
+melatih dengan rollout beberapa langkah, atau, seperti PDE-Refiner \citep{lippe2023}, memperhalus
+setiap tebakan dengan beberapa langkah denoising mirip model difusi, supaya komponen frekuensi tinggi
+dengan amplitudo kecil tidak diabaikan. Analisis spektrum sering menunjukkan bahwa model kehilangan
+detail halus lebih dulu, dan detail itulah yang kemudian merusak stabilitas.
+
+\section{Model fondasi untuk fisika dan cuaca}
+
+Keberhasilan paling mencolok terjadi di prakiraan cuaca, di mana data reanalisis global berpuluh tahun
+tersedia. FourCastNet \citep{pathak2022} memakai operator Fourier yang adaptif. GraphCast \citep{lam2023}
+memakai message passing di atas mesh ikosahedral berjenjang yang membungkus bumi, dan dalam banyak ukuran
+mengungguli sistem prakiraan numerik operasional untuk sepuluh hari ke depan, dengan waktu hitung kurang
+dari satu menit. GenCast \citep{price2025} memakai model difusi untuk menghasilkan ensemble prakiraan
+yang probabilistik. Aurora \citep{bodnar2024} dilatih pada beragam data atmosfer sebagai model fondasi yang
+bisa disetel ke tugas-tugas baru, seperti kualitas udara.
+
+Gagasan model fondasi juga dibawa ke PDE secara umum. Pretraining pada banyak sistem fisika sekaligus
+\citep{mccabe2023} ternyata membantu ketika model disetel ke sistem baru dengan data sedikit. Kumpulan
+data besar seperti The Well \citep{ohana2024} menyediakan simulasi dari banyak bidang fisika untuk
+melatih dan menguji model seperti ini. Universal Physics Transformers \citep{alkin2024} memisahkan model
+dari diskretisasi: titik mesh atau partikel dikodekan ke ruang laten berukuran tetap, dinamika berjalan di
+ruang laten, dan decoder bisa ditanya di titik mana pun. \citet{gupta2022} membandingkan arsitektur
+secara sistematis pada berbagai skala ruang dan waktu.
+
+\section{Pertanyaan yang tetap harus diajukan}
+
+Kembali ke tiga pertanyaan di \cref{ch:peta}. Fisika masuk ke model-model ini terutama lewat data dan
+arsitektur: simulasi yang benar sebagai data latih, dan ekuivariansi, lokalitas, serta konservasi sebagai
+struktur jaringan. Di luar jangkauan data latih, misalnya pada bilangan Reynolds lain atau geometri yang
+jauh berbeda, jaminannya tipis, dan pengujian harus dilakukan secara eksplisit. Biaya pelatihannya
+besar, sering setara ribuan simulasi klasik untuk menghasilkan data, sehingga keuntungan baru muncul
+kalau model dipakai berkali-kali, misalnya untuk optimasi desain, kendali waktu nyata, atau ensemble
+besar. Ulasan \citet{lino2023} dan \citet{vinuesa2022} memberi gambaran yang seimbang tentang kekuatan
+dan batas pendekatan ini dalam mekanika fluida.
+
+\sumberbab{Bab ini dirangkai dari kuliah Deep Learning: Geometric Techniques, Machine Learning: Advanced
+Techniques, dan bacaan selama tugas akhir. Makalah utamanya: \citet{lu2021}, \citet{li2021},
+\citet{kovachki2023}, \citet{sanchez2020}, \citet{pfaff2021}, \citet{brandstetter2022}, \citet{lippe2023},
+dan \citet{lam2023}.}

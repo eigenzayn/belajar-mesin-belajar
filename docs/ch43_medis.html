@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Melihat ke Dalam Tubuh · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 21</p>
+<h1>Melihat ke Dalam Tubuh</h1>
+<p><span id="ch:medis" data-label="ch:medis"></span></p>
+<p>Kuliah deep learning for medical imaging dimulai bukan dengan
+jaringan saraf, melainkan dengan fisika. Naskah dasarnya membahas
+osilasi dan gelombang, analisis Fourier, gelombang elektromagnetik,
+fenomena gelombang seperti pembiasan, interferensi, hamburan, dan
+penyerapan, lalu cara menghasilkan gambar dengan sinar-X, tomografi
+komputer, dan kedokteran nuklir. Pilihannya masuk akal: kita tidak bisa
+menilai apa yang dilakukan sebuah jaringan pada citra CT tanpa memahami
+dari mana angka-angka di citra itu datang.</p>
+<p>Citra medis berbeda dari foto biasa. Setiap piksel adalah hasil
+pengukuran fisik dengan satuan dan noise yang khas, gambar sering
+berbentuk volume tiga dimensi, data berlabel mahal karena butuh dokter
+ahli, dan kesalahan bisa berakibat fatal. Bab ini mengikuti jalan dari
+foton ke diagnosis.</p>
+<h1 id="sinar-x-dan-penyerapan">Sinar-X dan penyerapan</h1>
+<p>Sinar-X dihasilkan dengan menembakkan elektron yang dipercepat
+tegangan tinggi ke sebuah anoda. Energi foton terbesar yang bisa muncul
+sama dengan energi kinetik elektron, <span
+class="math inline">\(E=h\nu=eU\)</span>, sehingga tabung dengan
+tegangan 100 kilovolt menghasilkan foton sampai 100 kiloelektronvolt.
+Ketika berkas sinar-X melewati tubuh, sebagian foton diserap atau
+dihamburkan. Penurunan intensitas di setiap irisan tipis sebanding
+dengan intensitas yang datang dan dengan ketebalan irisan, <span
+class="math inline">\(\,\mathrm{d}I=-\mu I\,\mathrm{d}s\)</span>, dengan
+<span class="math inline">\(\mu\)</span> koefisien atenuasi jaringan.
+Memisahkan variabel dan mengintegrasikan memberi hukum Beer–Lambert,
+<span
+class="math display">\[I=I_0\exp\Big(-\int\mu(s)\,\mathrm{d}s\Big).\]</span>
+Untuk jaringan seragam dengan <span class="math inline">\(\mu=0{,}2\
+\mathrm{cm}^{-1}\)</span> setebal 10 cm, hanya <span
+class="math inline">\(e^{-2}\approx13{,}5\)</span> persen foton yang
+tembus. Tulang menyerap jauh lebih kuat dari jaringan lunak, itulah
+sebabnya tulang tampak terang pada foto rontgen. Kuliah juga membahas
+sisi praktisnya: grid anti hamburan yang menyaring foton yang berbelok
+arah, detektor digital, dan dosis radiasi, yang di Eropa Tengah secara
+alami sekitar dua milisievert per tahun.</p>
+<h1 id="tomografi-komputer">Tomografi komputer</h1>
+<p>Foto rontgen biasa menumpuk seluruh tubuh menjadi satu bayangan.
+Tomografi komputer mengukur banyak proyeksi dari berbagai sudut lalu
+merekonstruksi peta <span class="math inline">\(\mu\)</span> di setiap
+titik irisan. Dari hukum Beer–Lambert, setiap pengukuran memberi
+integral garis koefisien atenuasi, <span
+class="math display">\[p(\theta,r)=-\ln\frac{I}{I_0}=\int_{\text{garis}(\theta,r)}\mu(x,y)\,\mathrm{d}s,\]</span>
+dan kumpulan semua integral garis disebut transformasi Radon. Masalah
+utama CT adalah membalik transformasi ini.</p>
+<p>Cara paling naif adalah <em>backprojection</em>: setiap proyeksi
+“dioleskan” kembali sepanjang garisnya, lalu semua sudut dijumlahkan.
+Hasilnya kabur, karena setiap titik terang ikut menyebar ke seluruh
+garis yang melewatinya, dengan kekaburan yang meluruh seperti <span
+class="math inline">\(1/r\)</span>. Teorema irisan pusat menjelaskan
+obatnya: transformasi Fourier satu dimensi dari sebuah proyeksi sama
+dengan satu irisan melalui pusat dari transformasi Fourier dua dimensi
+gambar. Karena irisan-irisan itu berkumpul rapat di dekat pusat dan
+jarang di frekuensi tinggi, frekuensi rendah terwakili berlebihan.
+Mengalikan setiap proyeksi dengan filter yang naik linear terhadap
+frekuensi, <span class="math inline">\(|k|\)</span>, sebelum
+backprojection mengoreksi ketidakseimbangan itu. Inilah <em>filtered
+backprojection</em> <span class="citation" data-cites="kak1988">(Kak dan
+Slaney 1988)</span>, algoritme yang bekerja di dalam hampir semua
+pemindai CT sejak pemindai pertama yang dibangun Hounsfield <span
+class="citation" data-cites="hounsfield1973">(Hounsfield
+1973)</span>.</p>
+<p>Nilai yang ditampilkan bukan <span class="math inline">\(\mu\)</span>
+langsung, melainkan satuan Hounsfield, <span
+class="math inline">\(\mathrm{HU}=1000\,(\mu-\mu_{\mathrm{air}})/\mu_{\mathrm{air}}\)</span>,
+dengan <span class="math inline">\(\mu_{\mathrm{air}}\)</span> koefisien
+atenuasi air. Air bernilai 0 dan udara sekitar <span
+class="math inline">\(-1000\)</span>, sedangkan tulang padat bisa
+beberapa ratus sampai lebih dari seribu. Skala yang dibakukan ini
+membuat citra dari pemindai berbeda bisa dibandingkan, dan menjadi
+alasan mengapa normalisasi intensitas untuk jaringan saraf pada CT
+berbeda dari normalisasi pada foto biasa. Benda logam seperti tambalan
+gigi menyerap hampir semua foton dan merusak asumsi rekonstruksi,
+sehingga muncul artefak bergaris yang khas.</p>
+<h1 id="kedokteran-nuklir">Kedokteran nuklir</h1>
+<p>Pada skintigrafi dan PET, sumber radiasinya ada di dalam tubuh.
+Pasien diberi zat penanda radioaktif yang terkumpul di jaringan dengan
+aktivitas tertentu, misalnya sel tumor yang memakan banyak glukosa. Pada
+PET, positron yang dipancarkan bertemu elektron dan musnah menjadi dua
+foton yang terbang ke arah berlawanan. Detektor yang menangkap kedua
+foton pada saat yang hampir bersamaan tahu bahwa peristiwanya terjadi di
+sepanjang garis penghubung keduanya, sehingga rekonstruksinya kembali
+menjadi masalah tomografi. Gambarnya menunjukkan fungsi, bukan anatomi,
+dan sering digabung dengan CT yang memberi anatomi.</p>
+<h1 id="deep-learning-untuk-citra-medis">Deep learning untuk citra
+medis</h1>
+<p>Tugas-tugas utama di citra medis sama dengan di <a
+href="ch05_computer_vision.html">Bab 7</a>: klasifikasi, deteksi, dan
+segmentasi, dengan rekonstruksi sebagai tugas tambahan yang khas.
+Klasifikasi lesi kulit dengan jaringan konvolusi yang dilatih pada lebih
+dari seratus ribu gambar mencapai kinerja setara dokter kulit dalam
+percobaan <span class="citation" data-cites="esteva2017">Esteva dkk.
+(2017)</span>. Untuk segmentasi organ dan tumor, U-Net <span
+class="citation" data-cites="ronneberger2015">(Ronneberger, Fischer, dan
+Brox 2015)</span> yang awalnya dirancang untuk citra biomedis menjadi
+standar. nnU-Net <span class="citation"
+data-cites="isensee2021">(Isensee dkk. 2021)</span> menunjukkan bahwa
+sebagian besar keberhasilan datang dari menyetel resep dengan benar
+untuk setiap himpunan data, yaitu resolusi, normalisasi, augmentasi, dan
+arsitektur, dan bahwa resep itu bisa dibuat otomatis dari sifat-sifat
+datanya.</p>
+<p>Segmentasi dinilai dengan koefisien Dice, <span
+class="math inline">\(2|A\cap B|/(|A|+|B|)\)</span>, ukuran tumpang
+tindih antara daerah tebakan <span class="math inline">\(A\)</span> dan
+daerah yang benar <span class="math inline">\(B\)</span>. Dice
+berkerabat dekat dengan Tanimoto di <a href="ch41_molekul.html">Bab
+19</a>: kalau Tanimoto <span class="math inline">\(T=|A\cap B|/|A\cup
+B|\)</span>, maka Dice <span class="math inline">\(=2T/(1+T)\)</span>,
+karena <span class="math inline">\(|A|+|B|=|A\cup B|+|A\cap B|\)</span>.
+Tumor yang kecil membuat Dice peka sekali: meleset beberapa voxel saja
+sudah menurunkan skor dengan tajam.</p>
+<p>Rekonstruksi juga mulai dibantu jaringan saraf. CT dosis rendah
+memakai lebih sedikit foton sehingga lebih aman, tetapi gambarnya lebih
+berisik. Jaringan bisa membersihkan noise setelah rekonstruksi, atau
+algoritme rekonstruksi iteratif bisa dibuka menjadi lapisan-lapisan yang
+dipelajari, seperti yang disinggung di <a href="ch30_sinyal.html">Bab
+14</a>. Di semua penerapan ini, pengetahuan fisika tentang bagaimana
+citra terbentuk tetap menjadi pegangan untuk memeriksa apakah sebuah
+hasil masuk akal.</p>
+<h1 id="batas-dan-tanggung-jawab">Batas dan tanggung jawab</h1>
+<p>Kuliah AI dalam ilmu hayati dan kuliah tentang AI dan masyarakat
+sama-sama menyoroti batas sistem seperti ini. Model bisa belajar jalan
+pintas, misalnya penanda di sudut gambar yang hanya muncul pada pasien
+dari rumah sakit tertentu. Model yang dilatih di satu rumah sakit bisa
+jatuh kinerjanya di rumah sakit lain dengan pemindai berbeda. Dan model
+bisa bekerja lebih buruk untuk kelompok pasien yang kurang terwakili
+dalam data latih. Alat-alat XAI di <a href="ch11_xai.html">Bab 13</a>
+membantu menemukan masalah seperti ini, dan regulasi di <a
+href="ch51_ai_manusia.html">Bab 31</a> menetapkan kewajiban bagi sistem
+AI berisiko tinggi, termasuk alat diagnosis.</p>
+<h4 id="catatan-sumber.">Catatan sumber.</h4>
+<p>Bab ini mengikuti naskah dasar Deep Learning for Medical Imaging
+(gelombang, analisis Fourier, gelombang elektromagnetik, pencitraan
+sinar-X, tomografi komputer, kedokteran nuklir). Untuk rekonstruksi
+tomografi, <span class="citation" data-cites="kak1988">Kak dan Slaney
+(1988)</span> adalah rujukan klasik.</p>
+<h1 class="unnumbered" id="bibliography">Pustaka bab ini</h1>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-esteva2017" class="csl-entry" role="listitem">
+Esteva, Andre, Brett Kuprel, Roberto A. Novoa, Justin Ko, Susan M.
+Swetter, Helen M. Blau, dan Sebastian Thrun. 2017.
+<span>“Dermatologist-level classification of skin cancer with deep
+neural networks.”</span> <em>Nature</em> 542 (7639): 115–18. <a
+href="https://doi.org/10.1038/nature21056">https://doi.org/10.1038/nature21056</a>.
+</div>
+<div id="ref-hounsfield1973" class="csl-entry" role="listitem">
+Hounsfield, G. N. 1973. <span>“Computerized transverse axial scanning
+(tomography): Part 1. Description of system.”</span> <em>The British
+Journal of Radiology</em> 46 (552): 1016–22. <a
+href="https://doi.org/10.1259/0007-1285-46-552-1016">https://doi.org/10.1259/0007-1285-46-552-1016</a>.
+</div>
+<div id="ref-isensee2021" class="csl-entry" role="listitem">
+Isensee, Fabian, Paul F. Jaeger, Simon A. A. Kohl, Jens Petersen, dan
+Klaus H. Maier-Hein. 2021. <span>“nnU-Net: a self-configuring method for
+deep learning-based biomedical image segmentation.”</span> <em>Nature
+Methods</em> 18 (2): 203–11. <a
+href="https://doi.org/10.1038/s41592-020-01008-z">https://doi.org/10.1038/s41592-020-01008-z</a>.
+</div>
+<div id="ref-kak1988" class="csl-entry" role="listitem">
+Kak, Avinash C., dan Malcolm Slaney. 1988. <em>Principles of
+Computerized Tomographic Imaging</em>. IEEE Press.
+</div>
+<div id="ref-ronneberger2015" class="csl-entry" role="listitem">
+Ronneberger, Olaf, Philipp Fischer, dan Thomas Brox. 2015. <span>“U-Net:
+Convolutional Networks for Biomedical Image Segmentation.”</span>
+arXiv:1505.04597. <a
+href="https://arxiv.org/abs/1505.04597">https://arxiv.org/abs/1505.04597</a>.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch42_protein.html"><span>Sebelumnya</span>Bentuk Protein</a>
+  <a class="next" href="ch12_persamaan_fluida.html"><span>Berikutnya</span>Fluida yang Ingin Kita Tiru</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

@@ -1,0 +1,114 @@
+\chapter{Fluida yang Ingin Kita Tiru}
+\label{ch:fluida}
+
+Kuliah metode numerik dalam mekanika fluida saya ikuti pada musim dingin 2025/26, diberikan oleh
+Stefan Pirker, yang kemudian juga membimbing tugas akhir saya. Gaya kuliahnya khas. Setiap topik
+dibuka dengan pertanyaan seperti ``aliran apa yang terlintas di kepala Anda?'', dan beberapa slide
+meminta ChatGPT menulis puisi tentang neraca massa atau pidato perpisahan untuk persamaan
+Navier--Stokes, sebelum kembali ke persamaan yang sesungguhnya. Bab ini dan bab berikutnya merangkum
+kuliah itu. Bagian III secara keseluruhan memakai fluida sebagai contoh utama, karena di sanalah
+saya paling banyak bekerja, tetapi gagasan-gagasannya berlaku untuk banyak sistem fisika lain.
+
+Sebelum membicarakan bagaimana machine learning bisa membantu simulasi, kita perlu tahu apa yang
+disimulasikan. Bab ini membahas persamaan yang mengatur aliran fluida dan panas, serta bilangan tak
+berdimensi yang menentukan wataknya.
+
+\section{Wajah-wajah aliran}
+
+Aliran fluida punya banyak wajah. Madu yang dituang mengalir pelan dan teratur. Asap rokok naik lurus
+sebentar, lalu tiba-tiba pecah menjadi pusaran yang kacau. Awan di belakang pulau kecil di tengah
+samudra membentuk deretan pusaran yang bergantian ke kiri dan ke kanan, dan foto satelit pulau
+Alexander Selkirk di Pasifik selatan menjadi contoh yang sering dipakai. Jembatan Tacoma Narrows
+runtuh pada 1940 karena angin yang berinteraksi dengan getaran strukturnya. Semua ini diatur oleh
+persamaan yang sama. Yang membedakannya adalah perbandingan antara gaya-gaya yang bekerja.
+
+Bilangan Reynolds menyatakan perbandingan antara inersia dan gesekan kental,
+\begin{equation}
+\mathrm{Re}=\frac{UL}{\nu},
+\end{equation}
+dengan $U$ kecepatan khas, $L$ panjang khas, dan $\nu$ viskositas kinematik. Untuk Re di bawah
+sekitar sepuluh, aliran merayap dan gesekan mendominasi. Pada Re menengah, aliran laminar tetapi
+bisa melepaskan pusaran secara periodik. Pada Re tinggi, aliran menjadi turbulen. Air dengan
+viskositas kinematik sekitar $10^{-6}\,\mathrm{m^2/s}$ yang mengalir satu meter per detik di pipa
+berdiameter lima sentimeter punya Re sekitar lima puluh ribu, jauh di daerah turbulen.
+
+Untuk aliran yang digerakkan perbedaan temperatur, bilangan lain menjadi penting. Bilangan Prandtl
+membandingkan difusi momentum dengan difusi panas, bilangan Grashof atau Rayleigh mengukur kekuatan
+gaya apung dibanding gesekan, dan bilangan Péclet membandingkan perpindahan oleh aliran dengan
+perpindahan oleh difusi. Dua aliran dengan bilangan-bilangan tak berdimensi yang sama berperilaku
+sama, sekecil atau sebesar apa pun ukurannya. Prinsip kesamaan ini memungkinkan percobaan dengan
+model kecil di laboratorium, dan juga menentukan seberapa jauh sebuah model pengganti bisa
+diharapkan berlaku.
+
+\section{Hukum kekekalan}
+
+Semua persamaan fluida adalah neraca. Untuk sebuah volume kecil di ruang, perubahan jumlah suatu
+besaran di dalamnya sama dengan apa yang mengalir masuk dikurangi apa yang mengalir keluar,
+ditambah apa yang diproduksi di dalamnya. Ungkapan matematisnya adalah persamaan transport umum
+untuk besaran $\phi$ per satuan massa,
+\begin{equation}
+\frac{\partial(\rho\phi)}{\partial t}+\nabla\cdot(\rho\vu\phi)=\nabla\cdot(\Gamma\nabla\phi)+S_\phi,
+\label{eq:transport}
+\end{equation}
+dengan suku perubahan terhadap waktu, suku konveksi oleh aliran, suku difusi, dan suku sumber.
+Hampir semua persamaan di bab ini adalah kasus khusus bentuk ini.
+
+Kekekalan massa mengambil $\phi=1$, tanpa difusi dan sumber:
+\begin{equation}
+\frac{\partial\rho}{\partial t}+\nabla\cdot(\rho\vu)=0.
+\end{equation}
+Untuk fluida tak termampatkan dengan massa jenis tetap, persamaan ini menjadi syarat
+$\nabla\cdot\vu=0$: apa yang masuk ke sebuah volume harus keluar lagi.
+
+Kekekalan momentum adalah hukum Newton untuk sebuah paket fluida. Percepatan paket itu dikalikan
+massanya sama dengan gaya tekanan, gaya gesekan kental, dan gaya badan seperti gravitasi. Untuk
+fluida Newtonian tak termampatkan dengan viskositas tetap, kita mendapat persamaan Navier--Stokes,
+\begin{equation}
+\rho\Big(\frac{\partial\vu}{\partial t}+(\vu\cdot\nabla)\vu\Big)=-\nabla p+\mu\nabla^2\vu+\rho\bm g.
+\label{eq:ns}
+\end{equation}
+Suku $(\vu\cdot\nabla)\vu$ adalah sumber semua kesulitan. Ia nonlinear, karena kecepatan
+mengangkut dirinya sendiri, dan dialah yang melahirkan turbulensi. Tekanan tidak punya persamaan
+evolusinya sendiri dalam aliran tak termampatkan. Ia muncul sebagai pengali yang menjaga agar
+$\nabla\cdot\vu=0$ terpenuhi di setiap saat, dan kopling inilah yang membuat solver numerik rumit
+(\cref{ch:numerik}).
+
+Kekekalan energi untuk aliran dengan perpindahan panas, dalam bentuk temperatur, berbunyi
+\begin{equation}
+\rho c_p\Big(\frac{\partial T}{\partial t}+\vu\cdot\nabla T\Big)=\nabla\cdot(\lambda\nabla T)+S_T,
+\label{eq:energi}
+\end{equation}
+dengan $c_p$ kapasitas panas, $\lambda$ konduktivitas termal, dan $S_T$ sumber panas seperti reaksi
+kimia atau radiasi. Kekekalan spesies untuk fraksi massa $c_i$ sebuah zat terlarut mengikuti bentuk
+yang sama, dengan difusivitas massa sebagai pengganti konduktivitas dan laju reaksi sebagai sumber.
+
+Ketika perbedaan temperatur kecil, perubahan massa jenis bisa diabaikan di semua tempat kecuali
+di suku gravitasi. Pendekatan Boussinesq menulis $\rho=\rho_0\big(1-\beta(T-T_0)\big)$ hanya di suku
+gaya badan, dengan $\beta$ koefisien muai. Fluida yang lebih panas menjadi sedikit lebih ringan dan
+naik. Pendekatan ini cukup untuk menjelaskan sel konveksi di panci yang dipanaskan, angin laut, dan
+pancaran air hangat yang naik di dalam tangki.
+
+\section{Batas dan awal}
+
+Persamaan saja tidak menentukan sebuah aliran. Kita butuh syarat batas dan syarat awal. Di dinding
+padat, fluida menempel dan kecepatannya nol, syarat yang disebut \istilah{no-slip}. Di saluran masuk,
+kecepatan atau laju aliran ditentukan. Di saluran keluar, tekanan biasanya ditetapkan. Untuk
+temperatur, dinding bisa diberi temperatur tetap, fluks panas tetap, atau dibuat adiabatik, yaitu
+tanpa perpindahan panas sama sekali. Pilihan syarat batas sering lebih menentukan hasil simulasi
+daripada skema numeriknya, dan seperti akan kita lihat, sebagian besar galat dalam membandingkan
+simulasi dengan percobaan berasal dari sini.
+
+\section{Mengapa simulasi aliran mahal}
+
+Untuk aliran turbulen, pusaran terkecil yang membuang energi menjadi panas berukuran amat kecil
+dibanding ukuran domain. Menyelesaikan semua skala itu secara langsung, yang disebut \istilah{direct
+numerical simulation}, membutuhkan jumlah titik grid yang tumbuh kira-kira seperti $\mathrm{Re}^{9/4}$
+dalam tiga dimensi, dan langkah waktu yang ikut mengecil \citep{pope2000}. Untuk aliran industri
+dengan Re jutaan, itu jauh melampaui komputer mana pun. Simulasi praktis karena itu memodelkan efek
+skala kecil alih-alih menyelesaikannya, dan pemodelan itulah yang membuka pintu bagi machine
+learning: sebagai model untuk skala kecil, sebagai pengganti seluruh solver, atau sebagai cara
+mempercepat solver yang ada. Bab-bab berikutnya membahas ketiganya.
+
+\sumberbab{Bab ini mengikuti kuliah Numerical Methods in Fluid Mechanics bagian pengantar dan
+persamaan atur (neraca massa, momentum, energi, spesies). Buku rujukan yang baik adalah
+\citet{versteeg2007}, \citet{ferziger2020}, dan untuk turbulensi \citet{pope2000}.}

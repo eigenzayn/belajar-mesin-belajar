@@ -1,0 +1,126 @@
+\chapter{Menemukan dan Memampatkan Dinamika}
+\label{ch:penemuan}
+
+Makalah SINDy \citep{brunton2016} sudah saya simpan sejak musim panas 2024, sebelum kuliah pertama
+dimulai, dan buku \citet{brunton2022} menyusul ke folder bacaan tidak lama kemudian. Bab ini membahas
+gagasan-gagasan dari buku itu yang menyambung dengan banyak kuliah: PCA dari kuliah unsupervised dan
+computer vision, nilai eigen dari fisika komputasi, lasso dari dasar-dasar machine learning, dan sistem
+dinamis dari kuliah kendali.
+
+Model pengganti di \cref{ch:operator} umumnya kotak hitam yang besar sekali. Bab ini menempuh arah
+sebaliknya. Pertanyaannya bukan ``bisakah jaringan meniru simulasi?'', melainkan ``berapa sedikit yang
+sebenarnya kita butuhkan untuk menjelaskan dinamika ini?''. Jawabannya sering mengejutkan: medan aliran
+dengan jutaan derajat kebebasan kadang bisa dijelaskan oleh beberapa mode saja, dan dinamikanya oleh
+persamaan dengan beberapa suku.
+
+\section{Proper orthogonal decomposition}
+
+Simpan $m$ potret medan aliran, masing-masing dengan $n$ nilai, sebagai kolom-kolom matriks
+$\mX\in\R^{n\times m}$ setelah rata-ratanya dikurangkan. Dekomposisi nilai singular memberi
+\begin{equation}
+\mX=\bm U\bm\Sigma\bm V^\top,
+\end{equation}
+dengan kolom-kolom $\bm U$ sebagai mode ruang, nilai singular $\sigma_k$ di diagonal $\bm\Sigma$, dan
+baris-baris $\bm V^\top$ sebagai evolusi waktu setiap mode. Dalam mekanika fluida, prosedur ini disebut
+\istilah{proper orthogonal decomposition} \citep{berkooz1993,taira2017}. Ia tidak lain adalah PCA dari
+\cref{ch:unsup}, diterapkan pada potret-potret medan.
+
+Mengapa mode-mode ini istimewa? Teorema Eckart--Young menyatakan bahwa di antara semua matriks berpangkat
+$r$, potongan SVD yang hanya menyimpan $r$ mode pertama adalah yang paling dekat ke $\mX$, dengan galat
+kuadrat sama dengan jumlah kuadrat nilai singular yang dibuang, $\sum_{k>r}\sigma_k^2$. Kalau medan berupa
+kecepatan, $\sigma_k^2$ sebanding dengan energi kinetik yang ditangkap mode ke-$k$, sehingga fraksi
+$\sum_{k\le r}\sigma_k^2/\sum_k\sigma_k^2$ dibaca sebagai fraksi energi yang ditangkap. Untuk aliran
+melewati silinder pada bilangan Reynolds rendah, beberapa mode pertama datang berpasangan dan bersama-sama
+menangkap hampir seluruh energi fluktuasi, karena pelepasan pusaran adalah gelombang yang berjalan,
+dan gelombang berjalan butuh dua mode yang bergeser seperempat periode.
+
+Mode POD bisa dipakai untuk membangun \istilah{reduced-order model}. Tuliskan
+$\vu(\vx,t)\approx\bar\vu(\vx)+\sum_{k=1}^ra_k(t)\bm\varphi_k(\vx)$, masukkan ke persamaan Navier--Stokes,
+lalu proyeksikan ke setiap mode. Proyeksi Galerkin ini menghasilkan sistem ODE kecil untuk koefisien
+$a_k(t)$, dengan suku linear dari viskositas dan suku kuadratik dari konveksi. Model seperti ini bisa
+ribuan kali lebih cepat, tetapi sering tidak stabil untuk waktu panjang, karena mode-mode kecil yang
+dibuang adalah tempat energi seharusnya dibuang, sama seperti pusaran kecil dalam kaskade turbulensi
+(\cref{ch:numerik}). Model penutup untuk mode yang hilang, atau model deret seperti LSTM pada koefisien
+$a_k$ (\cref{ch:lstm}), dipakai untuk memperbaikinya.
+
+\section{Dynamic mode decomposition}
+
+POD memilih mode menurut energi, tanpa peduli dinamikanya. \istilah{Dynamic mode decomposition}
+\citep{schmid2010} memilih mode menurut dinamika. Misalkan potret-potret berurutan dengan jarak waktu
+$\Delta t$, dan susun dua matriks yang bergeser satu langkah, $\mX=[\vx_1,\dots,\vx_{m-1}]$ dan
+$\mX'=[\vx_2,\dots,\vx_m]$. Kita mencari operator linear $\mA$ sehingga $\mX'\approx\mA\mX$, yaitu
+$\mA=\mX'\mX^+$ dengan pseudo-invers $\mX^+$. Untuk medan besar, $\mA$ berukuran $n\times n$ dan
+terlalu besar untuk dibentuk, sehingga kita memproyeksikannya ke $r$ mode POD pertama. Dengan
+$\mX\approx\bm U_r\bm\Sigma_r\bm V_r^\top$, diperoleh
+\begin{equation}
+\tilde{\mA}=\bm U_r^\top\mX'\bm V_r\bm\Sigma_r^{-1},
+\end{equation}
+matriks kecil $r\times r$ yang nilai eigennya sama dengan nilai eigen utama $\mA$. Setiap nilai eigen
+$\lambda_k$ membawa satu mode yang berkembang seperti $\lambda_k^t$ per langkah. Dalam waktu kontinu,
+$\omega_k=\ln\lambda_k/\Delta t$, dengan bagian real sebagai laju tumbuh atau luruh dan bagian imajiner
+sebagai frekuensi. Sebagai contoh, $\lambda=0{,}99\,e^{0{,}1i}$ dengan $\Delta t=0{,}01$ detik memberi
+laju luruh $\ln0{,}99/0{,}01\approx-1{,}0$ per detik dan frekuensi sudut 10 radian per detik.
+
+DMD seperti mendengarkan sebuah orkestra lalu menuliskan partitur: nada mana yang dimainkan, seberapa
+keras, dan apakah ia menguat atau memudar. POD, sebaliknya, hanya mencatat alat musik mana yang paling
+banyak bersuara.
+
+\section{Koopman: linear di ruang yang lebih besar}
+
+DMD mendekati dinamika dengan operator linear, padahal kebanyakan sistem nonlinear. Teori operator
+Koopman \citep{koopman1931} memberi pembenarannya. Alih-alih melacak keadaan $\vx$, kita melacak fungsi-fungsi
+pengamatan $g(\vx)$. Operator Koopman memajukan pengamatan dalam waktu, dan operator itu selalu linear,
+walau dinamikanya nonlinear, dengan harga bahwa ruang fungsi pengamatan umumnya berdimensi tak hingga.
+
+Contoh dari \citet{brunton2022} memperlihatkan kapan ruang itu ternyata berhingga. Ambil sistem
+$\dot x=\mu x$ dan $\dot y=\lambda(y-x^2)$, yang nonlinear karena suku $x^2$. Tambahkan pengamatan baru
+$z=x^2$. Turunannya $\dot z=2x\dot x=2\mu x^2=2\mu z$. Dalam koordinat $(x,y,z)$, sistemnya menjadi
+\begin{equation}
+\dot x=\mu x,\qquad \dot y=\lambda y-\lambda z,\qquad \dot z=2\mu z,
+\end{equation}
+sepenuhnya linear. Dalam praktik, pengamatan yang membuat dinamika linear jarang bisa ditebak, sehingga
+\citet{lusch2018} melatih autoencoder untuk menemukannya: encoder memetakan keadaan ke koordinat di mana
+dinamikanya adalah perkalian matriks, dan decoder mengembalikannya. Kalau berhasil, semua alat kendali
+linear dari \cref{ch:kendali} bisa dipakai pada sistem nonlinear.
+
+\section{Menemukan persamaan: SINDy}
+
+Kadang kita ingin lebih dari model yang meniru: kita ingin persamaannya. \istilah{Sparse identification
+of nonlinear dynamics} \citep{brunton2016} berangkat dari pengamatan bahwa kebanyakan persamaan fisika
+hanya punya sedikit suku. Susun pustaka fungsi kandidat dari data, misalnya
+$\bm\Theta(\mX)=[\bm1,\ \vx,\ \vx^2,\ \vx^3,\ \sin\vx,\dots]$, dan cari koefisien jarang $\bm\Xi$ sehingga
+\begin{equation}
+\dot{\mX}\approx\bm\Theta(\mX)\,\bm\Xi.
+\end{equation}
+Ini masalah regresi linear dengan prior jarang, persis lasso dari \cref{ch:data}. Algoritme yang dipakai
+dalam makalah aslinya lebih sederhana: selesaikan kuadrat terkecil, nolkan koefisien yang kecil di bawah
+ambang, lalu ulangi kuadrat terkecil hanya dengan suku yang tersisa.
+
+Contoh kecil memperlihatkan logikanya. Misalkan data berasal dari $\dot x=-2x$, dan pustakanya
+$[1,x,x^2]$. Pada data tanpa noise, $\dot x$ di setiap titik tepat $-2$ kali $x$, sehingga kuadrat
+terkecil memberi koefisien $(0,-2,0)$ dan pengambangan tidak mengubah apa pun. Dengan noise, kuadrat
+terkecil biasa memberi koefisien kecil pada $1$ dan $x^2$ yang mencoba menjelaskan noise. Pengambangan
+membuangnya, dan regresi ulang hanya dengan $x$ memulihkan $-2$ dengan baik. Hasilnya bukan jaringan
+dengan ribuan bobot, melainkan persamaan yang bisa dibaca, diperiksa, dan diekstrapolasi. Pada data
+sistem Lorenz yang chaos, SINDy memulihkan ketiga persamaannya hanya dari lintasan yang diukur.
+
+SINDy punya tiga syarat yang sering menjadi titik lemah. Turunan waktu harus diperkirakan dari data,
+dan diferensiasi numerik memperbesar noise. Pustakanya harus memuat suku yang benar. Dan koordinatnya
+harus tepat, karena dalam koordinat yang salah, dinamika sederhana bisa tampak rumit. Untuk masalah
+terakhir, \citet{champion2019} melatih autoencoder bersama SINDy, sehingga koordinat dan persamaan
+ditemukan bersamaan. PDE-FIND \citep{rudy2017} memperluas gagasan ini ke persamaan diferensial parsial
+dengan memasukkan turunan ruang ke dalam pustaka.
+
+\section{Memilih alat}
+
+Ketiga keluarga ini mengisi tempat yang berbeda. POD dan model tereduksi cocok ketika kita punya
+persamaan dan ingin mempercepatnya. DMD dan Koopman cocok untuk menganalisis dan meramalkan dinamika
+yang hampir periodik atau berosilasi, dan untuk kendali. SINDy cocok ketika persamaannya belum diketahui
+dan datanya cukup bersih. Semuanya menghasilkan model yang jauh lebih kecil dan lebih mudah ditafsirkan
+daripada jaringan dalam, dan karena itulah mereka masih dipakai berdampingan dengan neural operator di
+\cref{ch:operator}, sering sebagai lapisan di dalamnya.
+
+\sumberbab{Bab ini dirangkai dari kuliah Machine Learning: Unsupervised Techniques (PCA), Control Systems
+(sistem linear dan nilai eigen), Computational Physics I (SVD dan masalah nilai eigen), dan bacaan selama
+tugas akhir. Rujukan utama: \citet{brunton2022}, \citet{taira2017}, \citet{schmid2010}, dan
+\citet{brunton2016}.}

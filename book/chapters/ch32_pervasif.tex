@@ -1,0 +1,111 @@
+\chapter{Komputasi yang Menghilang}
+\label{ch:pervasif}
+
+Pada musim dingin 2025/26 saya mengikuti dua kuliah pervasive computing dari Alois Ferscha. Yang
+satu membahas sistem dan lingkungan: visi komputasi pervasif, sensor dan modalitas, jaringan sensor,
+cara mengenali manusia dan benda, arsitektur pengenalan konteks, dan komputer yang dikenakan di
+kepala. Yang lain membahas perancangan dari sisi manusia: persepsi visual, gerak mata, pendengaran,
+perabaan, atensi, emosi, antarmuka yang bisa disentuh, dan gerakan motorik. Latihannya meminta kami
+mengumpulkan data sensor sendiri, lalu membangun pengenal aktivitas dan sistem pelacak gerak.
+
+\section{Visi Weiser}
+
+\citet{weiser1991} membuka artikelnya dengan kalimat yang sering dikutip: teknologi yang paling
+mendalam adalah teknologi yang menghilang, yang menenun dirinya ke dalam kehidupan sehari-hari sampai
+tidak bisa dibedakan darinya. Menulis adalah contohnya. Kita tidak lagi memikirkan teknologi tulisan
+ketika membaca papan nama jalan. Weiser membayangkan komputer yang sama: tersebar di dinding, di
+meja, di pakaian, bekerja tanpa diminta, dan tidak menuntut perhatian. Hari ini ponsel, jam pintar,
+dan rumah pintar mendekati visi itu, dengan semua manfaat dan masalahnya.
+
+Komputasi pervasif membutuhkan tiga kemampuan: merasakan dunia lewat sensor, memahami konteksnya,
+dan bertindak dengan cara yang tidak mengganggu. Bagian tengah, memahami konteks, adalah tempat
+machine learning bekerja.
+
+\section{Sensor dan modalitas}
+
+Ponsel biasa membawa akselerometer, giroskop, magnetometer, mikrofon, kamera, GPS, dan sensor cahaya
+serta jarak. Di luar ponsel, ada label RFID yang bisa dibaca tanpa kontak, pelacak mata, sensor
+tekanan di lantai, dan sensor fisiologis seperti detak jantung dan konduktansi kulit. Setiap modalitas
+punya kelebihan dan kekurangannya. Kamera kaya informasi tetapi mengganggu privasi dan boros energi.
+Akselerometer murah dan hemat, tetapi sinyalnya sulit ditafsirkan. Kuliah menekankan satu hal: tidak
+ada sensor yang langsung mengukur konteks. Tidak ada ``sensor rapat'' atau ``sensor sedang
+memasak''. Konteks harus disimpulkan dari kombinasi sinyal mentah.
+
+Jaringan sensor menambahkan masalah komunikasi dan energi. Simpul-simpul kecil bertenaga baterai harus
+memutuskan kapan mengukur, kapan mengirim, dan kapan tidur. Memproses data di simpul itu sendiri,
+alih-alih mengirim semuanya ke server, sering menghemat energi karena mengirim satu bit lewat radio
+lebih mahal daripada banyak operasi hitung.
+
+\section{Rantai pengenalan konteks}
+
+Arsitektur pengenalan konteks yang dibahas kuliah mengikuti rantai yang juga dijelaskan dalam tutorial
+\citet{bulling2014}. Data mentah dari sensor dipotong menjadi jendela-jendela waktu yang tumpang tindih,
+misalnya dua detik dengan geseran satu detik. Pada frekuensi sampling 50 Hz, setiap jendela berisi
+seratus sampel per sumbu. Dari setiap jendela dihitung fitur: rata-rata, simpangan baku, korelasi
+antar sumbu, energi di pita frekuensi tertentu dari FFT, atau jumlah puncak. Fitur-fitur itu
+dimasukkan ke pengklasifikasi, misalnya $k$-nearest neighbour, pohon keputusan, SVM, atau jaringan
+saraf, yang menghasilkan label aktivitas untuk setiap jendela. Langkah terakhir menghaluskan urutan
+label, karena seseorang tidak berganti dari berjalan ke duduk lalu ke berjalan lagi dalam tiga detik.
+
+Rantai ini terlihat sederhana, tetapi kuliah dan latihan memperlihatkan jebakannya. Yang paling penting
+adalah cara evaluasi. Kalau jendela-jendela dari orang yang sama masuk ke data latih dan data uji
+sekaligus, model belajar mengenali gaya gerak orang itu, bukan aktivitasnya, dan skornya tampak
+terlalu bagus. Evaluasi yang jujur meninggalkan satu orang di luar pelatihan, lalu mengujinya pada
+orang itu, sebuah variasi dari pembagian data yang hati-hati di \cref{ch:data}. Dalam latihan kami,
+yang dikenali adalah cara menggenggam dan gerakan memasang sekrup, direkam dengan akselerometer ponsel.
+Setiap jendela diringkas menjadi sekitar empat puluh fitur, dari rata-rata, simpangan baku, kemiringan
+distribusi, dan laju perpotongan nol di setiap sumbu, sampai korelasi antar sumbu, frekuensi dominan,
+dan entropi spektral.
+
+\section{Melacak gerak}
+
+Sensor inersia memberi kecepatan sudut dari giroskop dan percepatan dari akselerometer. Mengintegrasikan
+kecepatan sudut memberi orientasi, tetapi setiap bias kecil ikut terintegrasi dan orientasi perlahan
+melenceng. Akselerometer, saat sensor diam atau bergerak pelan, mengukur arah gravitasi dan memberi
+orientasi kemiringan yang tidak melenceng, tetapi berisik. Kedua sumber ini saling melengkapi.
+Filter komplementer menggabungkannya dengan cara yang sederhana:
+\begin{equation}
+\theta_k=\alpha\big(\theta_{k-1}+\omega_k\Delta t\big)+(1-\alpha)\,\theta^{\mathrm{acc}}_k,
+\end{equation}
+dengan $\alpha$ dekat satu, misalnya $0{,}98$. Giroskop dipercaya untuk perubahan cepat, akselerometer
+untuk kebenaran jangka panjang. Ini versi tangan dari Kalman filter di \cref{ch:prob}, dengan gain yang
+dipilih sendiri alih-alih dihitung dari kovarians. Untuk melacak posisi, percepatan harus diintegrasikan
+dua kali, dan galatnya tumbuh kuadratik terhadap waktu, sehingga pelacak posisi inersia murni hanya
+berguna untuk waktu singkat kecuali ada sumber koreksi lain seperti kamera atau GPS.
+
+\section{Manusia di dalam lingkaran}
+
+Separuh kedua materi membahas sisi manusia, karena sistem pervasif berinteraksi langsung dengan
+persepsi dan perhatian kita. Mata tidak bergerak mulus. Ia melompat dalam gerakan cepat yang disebut
+sakade, lalu berhenti dalam fiksasi, dan hanya di daerah kecil di tengah penglihatan kita melihat
+dengan tajam. Pelacak mata merekam pola ini, dan pola itu mengungkap apa yang menarik perhatian,
+seberapa berat beban pikiran, atau apakah seseorang mengantuk. Memakai pandangan mata sebagai
+input punya masalah klasik yang disebut masalah sentuhan Midas: mata kita melihat banyak hal tanpa
+bermaksud memilihnya, sehingga sistem harus bisa membedakan melihat dari memilih.
+
+Komputasi afektif mencoba mengenali emosi. Model emosi yang dipakai beragam, dari kategori emosi dasar
+seperti senang, sedih, marah, dan takut, sampai ruang dua dimensi valensi dan gairah, di mana setiap
+emosi adalah sebuah titik. Sinyalnya bisa berupa wajah, suara, postur, atau sinyal fisiologis. Kuliah
+mengingatkan bahwa emosi yang diungkapkan tidak selalu sama dengan yang dirasakan, dan bahwa
+pengenalan emosi menyentuh wilayah privasi yang pribadi.
+
+Antarmuka yang bisa disentuh, atau \istilah{tangible user interface}, memberi bentuk fisik pada informasi
+digital, sehingga kita bisa memegang, memindah, dan menyusun benda nyata untuk mengendalikan komputer.
+Kuliah juga melihat ke depan, ke materi yang bisa diprogram dan mengubah bentuknya sendiri.
+
+\section{Di mana machine learning masuk}
+
+Hampir seluruh rantai pengenalan konteks kini bisa diganti jaringan saraf yang belajar fiturnya sendiri
+dari sinyal mentah, seperti jaringan konvolusi satu dimensi atau LSTM pada data akselerometer
+(\cref{ch:lstm}). Analisis adegan akustik mengenali tempat dan kejadian dari suara, dan pada prinsipnya
+memakai jaringan visi pada spektrogram. Tantangan khas bidang ini tetap ada: data berlabel mahal karena
+harus direkam dengan orang sungguhan, setiap orang bergerak berbeda, sensor bergeser posisinya, dan
+perangkatnya punya baterai dan memori kecil. Model kecil yang bisa berjalan di mikrokontroler, sering
+disebut TinyML, menjadi cabang tersendiri. Dan karena sensornya melekat di tubuh dan di rumah,
+pertanyaan privasi dan persetujuan tidak bisa dipisahkan dari pertanyaan teknis (\cref{ch:manusia}).
+
+\sumberbab{Bab ini mengikuti kuliah Pervasive Computing: Systems and Environments (visi, sensor,
+jaringan sensor, identifikasi manusia dan benda, arsitektur pengenalan konteks, komputasi yang
+dikenakan di kepala) dan Pervasive Computing: Design and Development (persepsi, pelacakan mata,
+pendengaran, perabaan, atensi, komputasi afektif, antarmuka tangible, gerak motorik), beserta latihan
+pengenalan aktivitas dan pelacakan gerak.}
