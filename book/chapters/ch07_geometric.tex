@@ -74,6 +74,30 @@ estimasi justru bisa turun, karena setiap contoh data kini ``mewakili'' seluruh 
 saja, kalau grupnya kecil dibanding dimensi masalah, galat estimasi tetap bisa terkena kutukan
 dimensi. Simetri membantu, tetapi tidak membebaskan sepenuhnya.
 
+\section{Simetri sebagai penghemat data}
+
+Tugas pertama kuliah ini membuat kutukan dimensi dari \cref{ch:data} terasa dengan angka. Untuk dua titik acak di hiperkubus satuan
+$[0,1]^n$, setiap koordinat menyumbang selisih kuadrat dengan rata-rata $1/6$, sehingga rata-rata kuadrat jaraknya $n/6$. Jarak tumbuh
+seperti $\sqrt n$, sementara sebarannya relatif terhadap rata-rata justru menyempit, sehingga semua pasangan titik tampak sama jauhnya.
+
+Tugas itu juga memperlihatkan apa yang dilakukan fitur yang tidak berguna. Dua kelas yang terpisah dengan baik dalam dua fitur,
+misalnya dengan kuadrat jarak antarkelas sekitar 4 dan dalam kelas sekitar 1, menjadi sulit dipisahkan begitu ditambahi fitur derau.
+Setiap fitur derau dengan simpangan baku $\sigma$ menambah rata-rata $2\sigma^2$ pada kuadrat jarak \emph{setiap} pasangan, sama untuk
+pasangan sekelas maupun beda kelas. Seratus fitur derau dengan $\sigma=0{,}5$ menambah 50 pada keduanya, sehingga rasio jarak beda kelas
+terhadap jarak sekelas turun dari 4 menjadi $54/51\approx1{,}06$. Tetangga terdekat praktis menjadi acak. Inilah sebabnya
+$k$-nearest neighbour dan pengelompokan peka sekali terhadap pemilihan fitur (\cref{ch:unsup}).
+
+Bagian kedua tugas memakai integrasi Monte Carlo (\cref{ch:fiskom}) untuk fungsi berupa gumpalan Gauss yang tersusun simetris di
+dalam hiperkubus, dan meminta kami memanfaatkan simetrinya. Kalau fungsi tidak berubah ketika setiap koordinat dicerminkan dan ketika
+koordinat-koordinat ditukar urutannya, integralnya atas seluruh kubus sama dengan integral atas satu ``potongan dasar'' dikali jumlah
+transformasi itu. Dalam $d$ dimensi ada $2^d$ pencerminan dan $d!$ permutasi. Untuk $d=8$, itu $2^8\cdot8!\approx10^7$ potongan yang
+identik. Sampel cukup ditarik dari satu potongan, yang volumenya sepersepuluh juta volume kubus, tanpa kehilangan informasi apa pun.
+
+Pelajaran yang sama berlaku untuk belajar, bukan hanya untuk integrasi. Model yang invarian terhadap sebuah grup tidak perlu melihat
+setiap versi yang ditransformasi dari setiap contoh, karena satu contoh sudah mewakili seluruh orbitnya. Augmentasi data mencoba
+mencapai hal yang sama dengan memperlihatkan versi-versi itu secara eksplisit. Arsitektur yang ekuivarian mencapainya dengan
+konstruksi, dan untuk grup yang besar, selisihnya bisa berorde jutaan, seperti contoh di atas.
+
 \section{Skala dan cetak biru}
 
 Simetri saja belum cukup. Prior kedua adalah \istilah{scale separation}: banyak sinyal bisa
@@ -351,6 +375,24 @@ $\vx^{n+1}=\vx^n-\kappa\Delta t\,\bm L\vx^n$. Satu langkah waktu difusi adalah s
 passing dengan bobot yang sudah ditentukan. Pandangan ini juga menjelaskan gejala
 \istilah{oversmoothing} pada jaringan graf yang terlalu dalam: seperti panas yang lama-lama merata,
 fitur semua simpul menjadi semakin mirip.
+
+\section{Perkembangan riset}
+
+Di dunia atom dan molekul, jaringan ekuivarian kini menjadi alat standar. MACE \citep{batatia2022} memakai pesan dengan
+orde badan yang lebih tinggi: alih-alih hanya pasangan atom, setiap pesan sudah memuat interaksi sampai empat atom
+sekaligus. Dengan begitu, dua langkah message passing sudah cukup, sehingga model lebih cepat dan lebih mudah
+diparalelkan, dengan akurasi medan gaya yang setara atau lebih baik dari model sebelumnya. Equiformer
+\citep{liao2023equiformer} membawa transformer ke graf atom tiga dimensi dengan mengganti operasi transformer dengan versi
+ekuivarian berbasis representasi tak tereduksi dan hasil kali tensor, sesuai teori grup di awal bab ini.
+
+Untuk graf umum, GraphGPS \citep{rampasek2022} memisahkan dua mekanisme: message passing lokal di sepanjang sisi graf,
+dan attention global antar semua simpul, ditambah encoding posisi dan struktur. Pemisahan ini membuat biayanya linear
+terhadap jumlah simpul dan sisi, sekaligus menjadi salah satu jawaban atas masalah oversquashing, karena informasi bisa
+melompat lewat attention global. Geometric Algebra Transformer \citep{brehmer2023} mewakili titik, arah, translasi, dan
+rotasi sebagai elemen aljabar Clifford proyektif berdimensi 16, sehingga satu arsitektur ekuivarian terhadap E(3) bisa
+menangani banyak jenis objek geometris. Contoh penerapannya mencakup simulasi banyak benda, perencanaan gerak robot,
+dan estimasi tegangan geser dinding pada mesh arteri, sebuah masalah aliran darah yang menyambung langsung ke
+\cref{ch:operator}.
 
 \sumberbab{Bab ini mengikuti kuliah Deep Learning: Geometric Techniques, yang memakai materi kursus
 Geometric Deep Learning dari Oxford dan daftar topik ujiannya: kutukan dimensi, prior geometris,

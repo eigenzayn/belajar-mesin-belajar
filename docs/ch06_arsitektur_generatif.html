@@ -18,7 +18,7 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 8</p>
+<p class="chapnum">Bab 12</p>
 <h1>Arsitektur Modern dan Model Generatif</h1>
 <p><span id="ch:arsitektur" data-label="ch:arsitektur"></span></p>
 <p>Kuliah lanjutan deep learning saya ikuti pada musim panas 2025, dan
@@ -27,7 +27,7 @@ tangga: PyTorch dan training loop, jaringan visi dan transfer learning,
 pemantauan eksperimen dan CNN lanjutan, autoencoder dan VAE, contoh
 adversarial dan GAN, lalu normalizing flow. Bab ini menaiki tangga yang
 sama.</p>
-<p><a href="ch03_dl_basic.html">Bab 5</a> membangun jaringan dari
+<p><a href="ch03_dl_basic.html">Bab 7</a> membangun jaringan dari
 bata-bata dasarnya. Bab ini membahas dua hal yang membuat deep learning
 modern berbeda: arsitektur yang memungkinkan jaringan amat dalam dilatih
 dengan stabil, dan model yang tidak hanya mengenali data tetapi juga
@@ -66,7 +66,7 @@ class="math inline">\(\partial\boldsymbol{y}/\partial\boldsymbol{x}=\boldsymbol
 I+\partial F/\partial\boldsymbol{x}\)</span>, sehingga sinyal mundur
 tidak harus melewati semua nonlinearitas. Gagasannya sama dengan
 constant error carousel pada LSTM (<a
-href="ch04_lstm_transformer.html">Bab 6</a>), hanya saja kali ini di
+href="ch04_lstm_transformer.html">Bab 9</a>), hanya saja kali ini di
 sepanjang kedalaman, bukan di sepanjang waktu.</p>
 <p>Editor yang baik tidak menulis ulang seluruh esai setiap kali
 merevisi. Ia menulis catatan perubahan di pinggir halaman, dan kalau
@@ -177,6 +177,19 @@ class="math inline">\(\boldsymbol\epsilon\)</span>, sehingga <span
 class="math inline">\(\boldsymbol{z}\)</span> menjadi fungsi yang bisa
 diturunkan terhadap <span class="math inline">\(\boldsymbol\mu\)</span>
 dan <span class="math inline">\(\boldsymbol\sigma\)</span>.</p>
+<p>Contoh dengan angka: kalau encoder mengeluarkan <span
+class="math inline">\(\mu=1{,}2\)</span> dan <span
+class="math inline">\(\sigma=0{,}5\)</span> untuk sebuah gambar, dan
+noise yang ditarik adalah <span
+class="math inline">\(\epsilon=-0{,}4\)</span>, maka <span
+class="math inline">\(z=1{,}2+0{,}5\cdot(-0{,}4)=1{,}0\)</span>. Turunan
+<span class="math inline">\(z\)</span> terhadap <span
+class="math inline">\(\mu\)</span> adalah satu dan terhadap <span
+class="math inline">\(\sigma\)</span> adalah <span
+class="math inline">\(\epsilon=-0{,}4\)</span>. Gradien loss
+rekonstruksi yang mengalir ke <span class="math inline">\(z\)</span>
+bisa diteruskan ke encoder lewat dua turunan sederhana ini, padahal
+tanpa trik ini, “menarik sampel” bukan operasi yang punya turunan.</p>
 <p>Saya membayangkan encoder sebagai orang yang melihat foto lalu
 menulis deskripsi singkat yang sengaja agak samar, misalnya “wajah
 bulat, rambut pendek, kira-kira tersenyum”. Decoder adalah pelukis yang
@@ -188,7 +201,7 @@ rekonstruksi dan KL. Bobot KL yang terlalu besar membuat gambar kabur
 dan ruang laten tidak terpakai. Bobot yang terlalu kecil membuat VAE
 kembali menjadi autoencoder biasa. Penurunan ELBO yang lebih teliti,
 termasuk versi hierarkis yang mengarah ke model difusi, ada di <a
-href="ch09_ml_advanced.html">Bab 11</a>.</p>
+href="ch09_ml_advanced.html">Bab 15</a>.</p>
 <h3 id="generative-adversarial-networks">Generative adversarial
 networks</h3>
 <p>GAN <span class="citation" data-cites="goodfellow2014">(I. J.
@@ -277,12 +290,12 @@ Gauss, lalu melatih jaringan untuk membalik proses itu langkah demi
 langkah. Mereka kini menjadi model generatif gambar yang paling kuat,
 dan matematikanya, yang melibatkan persamaan diferensial stokastik dan
 persamaan Fokker–Planck, dibahas lengkap di <a
-href="ch09_ml_advanced.html">Bab 11</a>. Model berbasis energi, termasuk
+href="ch09_ml_advanced.html">Bab 15</a>. Model berbasis energi, termasuk
 mesin Boltzmann, mendefinisikan <span
 class="math inline">\(p(\boldsymbol{x})\propto\exp(-E(\boldsymbol{x}))\)</span>.
 Mudah ditulis, tetapi sulit dilatih, karena konstanta normalisasinya
 adalah integral atas seluruh ruang.</p>
-<p>Tabel 8.1 merangkum kelima keluarga ini.</p>
+<p>Tabel 12.1 merangkum kelima keluarga ini.</p>
 <div id="tab:generatif">
 <table>
 <caption>Lima keluarga model generatif.</caption>
@@ -328,6 +341,59 @@ adalah integral atas seluruh ruang.</p>
 </tbody>
 </table>
 </div>
+<h3 id="melatih-gan-dengan-jarak-yang-lebih-baik">Melatih GAN dengan
+jarak yang lebih baik</h3>
+<p>Kesulitan klasik GAN punya penjelasan geometris. Kalau distribusi
+data dan distribusi generator terletak di permukaan berdimensi rendah
+yang tidak beririsan, seperti dua garis di bidang, diskriminator yang
+sempurna selalu bisa memisahkan keduanya, dan gradien yang ia berikan ke
+generator hampir nol di mana-mana. Wasserstein GAN <span
+class="citation" data-cites="arjovsky2017">(Arjovsky, Chintala, dan
+Bottou 2017)</span> mengganti tujuan pertandingan dengan jarak
+Wasserstein, atau jarak <em>earth mover</em>: biaya minimum untuk
+memindahkan massa satu distribusi agar menjadi distribusi lain, seperti
+memindahkan tumpukan pasir. Untuk dua titik massa di posisi <span
+class="math inline">\(0\)</span> dan <span
+class="math inline">\(\theta\)</span>, jarak Wasserstein-nya <span
+class="math inline">\(|\theta|\)</span>, yang mengecil mulus ketika
+generator mendekat, sementara divergensi Jensen–Shannon yang
+dioptimalkan GAN asli bernilai tetap <span
+class="math inline">\(\log2\)</span> selama keduanya tidak berimpit,
+sehingga tidak memberi arah sama sekali. Dalam praktik, jarak
+Wasserstein ditaksir oleh sebuah <em>critic</em> yang dibatasi
+Lipschitz, mula-mula dengan memotong bobotnya, lalu dengan penalti pada
+norma gradiennya.</p>
+<p>Kualitas model generatif gambar biasanya diukur dengan Fréchet
+Inception Distance <span class="citation"
+data-cites="heusel2017">(Heusel dkk. 2017)</span>. Gambar asli dan
+gambar yang dibangkitkan sama-sama dilewatkan ke jaringan klasifikasi
+yang sudah dilatih, aktivasi lapisan dalamnya dianggap berdistribusi
+Gauss, dan jarak Fréchet antara dua Gauss itu dihitung dengan rumus yang
+sama dengan FCD di <a href="ch41_molekul.html">Bab 23</a>. Angka yang
+lebih kecil berarti statistik gambar yang dibangkitkan lebih mirip
+gambar asli.</p>
+<h3 id="mengarahkan-model-difusi">Mengarahkan model difusi</h3>
+<p>Model difusi bersyarat, misalnya yang dibimbing teks, sering
+menghasilkan gambar yang kurang patuh pada syaratnya.
+<em>Classifier-free guidance</em> <span class="citation"
+data-cites="ho2022cfg">(Ho dan Salimans 2022)</span> melatih satu
+jaringan untuk dua tugas sekaligus: memprediksi noise dengan syarat
+<span class="math inline">\(c\)</span>, dan tanpa syarat, dengan
+sesekali membuang syaratnya selama pelatihan. Saat membangkitkan, kedua
+prediksi digabung, <span
+class="math display">\[\tilde{\boldsymbol\epsilon}=(1+w)\,\boldsymbol\epsilon_\theta(\boldsymbol{x}_t,c)-w\,\boldsymbol\epsilon_\theta(\boldsymbol{x}_t),\]</span>
+dengan <span class="math inline">\(w\)</span> kekuatan bimbingan. Arah
+<span
+class="math inline">\(\boldsymbol\epsilon_\theta(\boldsymbol{x}_t,c)-\boldsymbol\epsilon_\theta(\boldsymbol{x}_t)\)</span>
+adalah apa yang “ditambahkan” syarat itu, dan rumus di atas melangkah
+lebih jauh ke arah tersebut. Dalam bahasa score dari <a
+href="ch09_ml_advanced.html">Bab 15</a>, ini setara dengan mengambil
+sampel dari distribusi yang dipertajam, sebanding dengan <span
+class="math inline">\(p(\boldsymbol{x}\mid
+c)\,p(c\mid\boldsymbol{x})^{w}\)</span>. Nilai <span
+class="math inline">\(w\)</span> yang lebih besar membuat gambar lebih
+patuh pada teks tetapi kurang beragam, tawar-menawar yang sama dengan
+suhu pada softmax.</p>
 <h2 id="contoh-adversarial">Contoh adversarial</h2>
 <p>Jaringan yang akurat bisa dibohongi dengan perubahan yang tidak
 terlihat oleh mata. <em>Fast gradient sign method</em> menggeser input
@@ -347,13 +413,13 @@ mengapa semua ini bekerja. Jaringan dalam paling mudah dilatih kalau
 nilai singular Jacobian input–output mendekati satu, sehingga sinyal
 maju dan gradien mundur sama-sama tidak menyusut atau meledak. Sifat ini
 disebut isometri dinamis, dan ia adalah versi matriks dari argumen
-varians di <a href="ch03_dl_basic.html">Bab 5</a>. Pada lebar tak hingga
+varians di <a href="ch03_dl_basic.html">Bab 7</a>. Pada lebar tak hingga
 dan laju belajar kecil, pelatihan jaringan berperilaku seperti regresi
 kernel dengan kernel yang tetap, yaitu <em>neural tangent kernel</em>
 <span class="citation" data-cites="jacot2018">(Jacot, Gabriel, dan
 Hongler 2018)</span>. Teori ini menjelaskan konvergensi jaringan yang
 lebar sekali dan, seperti akan kita lihat di <a
-href="ch15_pinn.html">Bab 25</a>, juga kegagalan pelatihan PINN. Sebelum
+href="ch15_pinn.html">Bab 29</a>, juga kegagalan pelatihan PINN. Sebelum
 dilatih, keluaran jaringan acak yang lebar mendekati proses Gauss,
 sebuah hubungan yang menjembatani deep learning dengan statistik
 Bayesian <span class="citation" data-cites="rasmussen2006">(Rasmussen
@@ -369,15 +435,15 @@ Blundell 2016)</span>.</p>
 <h2 id="di-luar-kelas">Di luar kelas</h2>
 <p>Arsitektur dan model generatif di bab ini menyebar ke hampir semua
 bidang. U-Net lahir untuk citra biomedis dan tetap menjadi standar
-segmentasi organ dan tumor (<a href="ch43_medis.html">Bab 21</a>).
+segmentasi organ dan tumor (<a href="ch43_medis.html">Bab 25</a>).
 Transfer learning membuat jaringan visi yang dilatih pada foto
 sehari-hari berguna untuk citra mikroskop dan citra medis yang datanya
 sedikit. VAE dan model generatif berbasis teks dipakai untuk merancang
 molekul baru, dan metrik seperti Fréchet ChemNet Distance meminjam cara
-mengevaluasi GAN untuk kimia (<a href="ch41_molekul.html">Bab 19</a>).
+mengevaluasi GAN untuk kimia (<a href="ch41_molekul.html">Bab 23</a>).
 Contoh adversarial mengingatkan bahwa sensor dan sistem persepsi
 kendaraan otonom bisa diserang (<a href="ch33_robot.html">Bab
-17</a>).</p>
+21</a>).</p>
 <p>Di simulasi, untuk medan pada grid teratur, U-Net adalah pilihan
 bawaan sebagai model pengganti. Ia menggabungkan konteks yang luas,
 penting karena tekanan di satu titik dipengaruhi seluruh domain, dengan
@@ -390,7 +456,7 @@ class="math inline">\(F\)</span> yang dipelajari.</p>
 berdimensi kecil. Dinamikanya lalu dipelajari di ruang laten itu, dan
 decoder mengembalikannya ke medan penuh. Ini salah satu bentuk model
 tereduksi yang dibahas di <a href="ch17_penemuan_reduksi.html">Bab
-27</a>.</p>
+31</a>.</p>
 <p>Turbulensi bersifat chaos, sehingga lebih jujur memprediksi
 distribusi keadaan masa depan daripada satu keadaan tunggal. Model
 difusi kini dipakai untuk prakiraan cuaca probabilistik <span
@@ -400,6 +466,36 @@ data-cites="kohl2023">(Kohl, Chen, dan Thuerey 2023)</span>. Model
 pengganti yang dipakai untuk keputusan teknik juga harus bisa mengatakan
 bahwa ia tidak yakin, dan ensemble serta model generatif memberi
 kemampuan itu.</p>
+<h2 id="perkembangan-riset">Perkembangan riset</h2>
+<p>Model difusi mahal karena membangkitkan sampel butuh puluhan sampai
+ratusan langkah. Dua arah riset mencoba memotongnya. Rectified flow
+<span class="citation" data-cites="liu2023">(Liu, Gong, dan Liu
+2022)</span> melatih medan kecepatan agar mengikuti garis lurus antara
+titik noise <span class="math inline">\(\boldsymbol{x}_0\)</span> dan
+titik data <span class="math inline">\(\boldsymbol{x}_1\)</span>: untuk
+<span
+class="math inline">\(\boldsymbol{x}_t=(1-t)\boldsymbol{x}_0+t\boldsymbol{x}_1\)</span>,
+jaringan <span class="math inline">\(v_\theta\)</span> dilatih
+meminimalkan <span
+class="math inline">\(\mathbb{E}\|v_\theta(\boldsymbol{x}_t,t)-(\boldsymbol{x}_1-\boldsymbol{x}_0)\|^2\)</span>.
+Jalur yang lurus bisa diintegrasikan dengan sedikit langkah, dan proses
+“meluruskan” bisa diulang untuk membuat jalurnya makin lurus. Stable
+Diffusion 3 <span class="citation" data-cites="esser2024">(Esser dkk.
+2024)</span> memakai formulasi ini pada skala besar dengan transformer
+yang memproses token teks dan token gambar dengan bobot terpisah tetapi
+saling memperhatikan, dan melaporkan bahwa model ini mengikuti hukum
+penskalaan yang dapat diramalkan.</p>
+<p>Consistency models <span class="citation"
+data-cites="song2023consistency">(Song dkk. 2023)</span> mengambil jalan
+lebih radikal. Untuk lintasan ODE yang sama, setiap titik di sepanjang
+lintasan harus dipetakan ke titik akhir yang sama. Jaringan dilatih
+menegakkan sifat konsistensi ini, sehingga satu evaluasi jaringan sudah
+memetakan noise langsung ke data, sementara beberapa langkah tambahan
+bisa memperbaiki kualitas. Model ini bisa dilatih dengan menyuling model
+difusi yang sudah ada, atau dari nol. Ketiga pendekatan memperlihatkan
+bahwa bahasa persamaan diferensial dari <a
+href="ch09_ml_advanced.html">Bab 15</a> menjadi bahasa bersama model
+generatif modern.</p>
 <h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti bagian kedua naskah kuliah Deep Learning and Neural
 Nets II, yang kini bernama Deep Learning: Architectures and Generative
@@ -414,12 +510,24 @@ data-cites="kingma2019">Diederik P. Kingma dan Welling
 <h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
+<div id="ref-arjovsky2017" class="csl-entry" role="listitem">
+Arjovsky, Martin, Soumith Chintala, dan Léon Bottou. 2017.
+<span>“Wasserstein GAN.”</span> arXiv:1701.07875. <a
+href="https://arxiv.org/abs/1701.07875">https://arxiv.org/abs/1701.07875</a>.
+</div>
 <div id="ref-dosovitskiy2021" class="csl-entry" role="listitem">
 Dosovitskiy, Alexey, Lucas Beyer, Alexander Kolesnikov, Dirk
 Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, dkk.
 2020. <span>“An Image is Worth 16x16 Words: Transformers for Image
 Recognition at Scale.”</span> arXiv:2010.11929. <a
 href="https://arxiv.org/abs/2010.11929">https://arxiv.org/abs/2010.11929</a>.
+</div>
+<div id="ref-esser2024" class="csl-entry" role="listitem">
+Esser, Patrick, Sumith Kulal, Andreas Blattmann, Rahim Entezari, Jonas
+Müller, Harry Saini, Yam Levi, dkk. 2024. <span>“Scaling Rectified Flow
+Transformers for High-Resolution Image Synthesis.”</span>
+arXiv:2403.03206. <a
+href="https://arxiv.org/abs/2403.03206">https://arxiv.org/abs/2403.03206</a>.
 </div>
 <div id="ref-eykholt2018" class="csl-entry" role="listitem">
 Eykholt, Kevin, Ivan Evtimov, Earlence Fernandes, Bo Li, Amir Rahmati,
@@ -451,10 +559,22 @@ He, Kaiming, Xiangyu Zhang, Shaoqing Ren, dan Jian Sun. 2016.
 (CVPR)</em>, 770–78. <a
 href="https://doi.org/10.1109/CVPR.2016.90">https://doi.org/10.1109/CVPR.2016.90</a>.
 </div>
+<div id="ref-heusel2017" class="csl-entry" role="listitem">
+Heusel, Martin, Hubert Ramsauer, Thomas Unterthiner, Bernhard Nessler,
+dan Sepp Hochreiter. 2017. <span>“GANs Trained by a Two Time-Scale
+Update Rule Converge to a Local Nash Equilibrium.”</span>
+arXiv:1706.08500. <a
+href="https://arxiv.org/abs/1706.08500">https://arxiv.org/abs/1706.08500</a>.
+</div>
 <div id="ref-ho2020" class="csl-entry" role="listitem">
 Ho, Jonathan, Ajay Jain, dan Pieter Abbeel. 2020. <span>“Denoising
 Diffusion Probabilistic Models.”</span> arXiv:2006.11239. <a
 href="https://arxiv.org/abs/2006.11239">https://arxiv.org/abs/2006.11239</a>.
+</div>
+<div id="ref-ho2022cfg" class="csl-entry" role="listitem">
+Ho, Jonathan, dan Tim Salimans. 2022. <span>“Classifier-Free Diffusion
+Guidance.”</span> arXiv:2207.12598. <a
+href="https://arxiv.org/abs/2207.12598">https://arxiv.org/abs/2207.12598</a>.
 </div>
 <div id="ref-jacot2018" class="csl-entry" role="listitem">
 Jacot, Arthur, Franck Gabriel, dan Clément Hongler. 2018. <span>“Neural
@@ -496,6 +616,12 @@ Lecun, Y., L. Bottou, Y. Bengio, dan P. Haffner. 1998.
 <em>Proceedings of the IEEE</em> 86 (11): 2278–2324. <a
 href="https://doi.org/10.1109/5.726791">https://doi.org/10.1109/5.726791</a>.
 </div>
+<div id="ref-liu2023" class="csl-entry" role="listitem">
+Liu, Xingchao, Chengyue Gong, dan Qiang Liu. 2022. <span>“Flow Straight
+and Fast: Learning to Generate and Transfer Data with Rectified
+Flow.”</span> arXiv:2209.03003. <a
+href="https://arxiv.org/abs/2209.03003">https://arxiv.org/abs/2209.03003</a>.
+</div>
 <div id="ref-price2025" class="csl-entry" role="listitem">
 Price, Ilan, Alvaro Sanchez-Gonzalez, Ferran Alet, Tom R. Andersson,
 Andrew El-Kadi, Dominic Masters, Timo Ewalds, dkk. 2025.
@@ -521,6 +647,11 @@ Sohl-Dickstein, Jascha, Eric A. Weiss, Niru Maheswaranathan, dan Surya
 Ganguli. 2015. <span>“Deep Unsupervised Learning using Nonequilibrium
 Thermodynamics.”</span> arXiv:1503.03585. <a
 href="https://arxiv.org/abs/1503.03585">https://arxiv.org/abs/1503.03585</a>.
+</div>
+<div id="ref-song2023consistency" class="csl-entry" role="listitem">
+Song, Yang, Prafulla Dhariwal, Mark Chen, dan Ilya Sutskever. 2023.
+<span>“Consistency Models.”</span> arXiv:2303.01469. <a
+href="https://arxiv.org/abs/2303.01469">https://arxiv.org/abs/2303.01469</a>.
 </div>
 </div>
 </main>

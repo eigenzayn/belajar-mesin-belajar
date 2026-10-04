@@ -23,6 +23,18 @@ rekonstruksi kuadrat rata-rata ketika data diproyeksikan ke subruang itu lalu di
 masalah punya jawaban yang sama, karena varians total tetap, dan varians yang tidak tertangkap oleh
 proyeksi adalah tepat galat rekonstruksinya.
 
+Penurunan cara pertama memakai pengali Lagrange dari \cref{ch:optimasi}. Kita memaksimalkan $\bm v^\top\bm\Sigma\bm v$
+dengan kendala $\bm v^\top\bm v=1$. Menyamakan gradien fungsi tujuan dengan $\lambda$ kali gradien kendala memberi
+$2\bm\Sigma\bm v=2\lambda\bm v$, yaitu $\bm\Sigma\bm v=\lambda\bm v$: setiap titik stasioner adalah vektor eigen. Varians
+proyeksi pada vektor eigen itu $\bm v^\top\bm\Sigma\bm v=\lambda$, sehingga yang terbesar adalah vektor eigen dengan
+nilai eigen terbesar.
+
+Contoh dua dimensi membuatnya konkret. Untuk data dengan kovarians
+$\bm\Sigma=\begin{pmatrix}2&1\\1&2\end{pmatrix}$, nilai eigennya $3$ dan $1$, dengan vektor eigen $(1,1)/\sqrt2$ dan
+$(1,-1)/\sqrt2$. Data membentang paling lebar sepanjang diagonal, dan komponen utama pertama menangkap $3/(3+1)=75$
+persen varians. Memproyeksikan ke satu dimensi itu membuang seperempat varians, dan galat rekonstruksi rata-ratanya
+tepat sama dengan nilai eigen yang dibuang, yaitu satu.
+
 PCA unik hanya sampai tanda setiap komponen, dan kalau dua nilai eigen sama, arah-arahnya bisa
 diputar bebas di dalam subruang mereka. Komponen utama tidak berkorelasi satu sama lain, tetapi
 tidak berarti independen. PCA juga linear. Untuk struktur yang melengkung, \istilah{kernel PCA}
@@ -42,7 +54,11 @@ independen.
 
 Kuncinya adalah teorema limit pusat. Campuran dari beberapa sumber independen cenderung lebih
 mirip Gauss daripada sumber-sumber aslinya. Jadi kita bisa membalik logikanya: cari arah proyeksi
-yang hasilnya paling \emph{tidak} Gauss. Ketidak-Gaussan diukur dengan kurtosis atau negentropi.
+yang hasilnya paling \emph{tidak} Gauss. Ketidak-Gaussan diukur dengan kurtosis atau negentropi. Kurtosis berlebih, $\E[y^4]/\E[y^2]^2-3$,
+bernilai nol untuk distribusi Gauss, negatif untuk distribusi yang ``rata'' seperti distribusi seragam ($-1{,}2$), dan
+positif untuk distribusi yang runcing dengan ekor tebal seperti distribusi Laplace ($+3$). Suara manusia cenderung
+runcing: kebanyakan waktu hampir diam, sesekali keras. Campuran dua suara sudah lebih dekat ke Gauss, dan kurtosisnya
+lebih kecil. Memaksimalkan nilai mutlak kurtosis berarti mencari arah yang paling mirip satu suara saja.
 Langkah praktisnya dimulai dengan \istilah{whitening}, yaitu mentransformasi data agar
 kovariansnya menjadi matriks identitas. Setelah itu, yang tersisa hanya mencari rotasi, dan
 algoritme seperti FastICA atau Infomax menemukannya. ICA tidak bisa memulihkan urutan dan skala
@@ -105,9 +121,25 @@ berbeda.
 $k$-means adalah versi keras dari model campuran Gauss. Pada model campuran, setiap titik punya
 peluang menjadi anggota setiap kelompok, dan kelompoknya boleh lonjong dengan kovarians sendiri.
 Algoritme EM bergantian antara menghitung peluang keanggotaan (langkah E) dan memperbarui rata-rata,
-kovarians, dan bobot setiap komponen dengan rata-rata berbobot (langkah M). Ketika kovarians semua
+kovarians, dan bobot setiap komponen dengan rata-rata berbobot (langkah M):
+\begin{equation}
+\gamma_{nk}=\frac{\pi_k\,\N(\vx_n\mid\bm\mu_k,\bm\Sigma_k)}{\sum_j\pi_j\,\N(\vx_n\mid\bm\mu_j,\bm\Sigma_j)},\qquad
+\bm\mu_k=\frac{\sum_n\gamma_{nk}\vx_n}{\sum_n\gamma_{nk}},\qquad \pi_k=\frac1N\sum_n\gamma_{nk}.
+\end{equation}
+Langkah E adalah teorema Bayes: peluang titik $n$ berasal dari komponen $k$ sebanding dengan bobot komponen itu dikali
+seberapa mungkin titik itu dihasilkannya. Langkah M adalah estimasi maksimum likelihood biasa, hanya dengan setiap titik
+dihitung sebagian untuk setiap komponen. Setiap putaran EM tidak pernah menurunkan likelihood, alasan yang sama dengan
+batas bawah ELBO di \cref{ch:mlat}. Ketika kovarians semua
 komponen dibuat sama dan kecil sekali, keanggotaan menjadi nol atau satu, dan EM berubah menjadi
 $k$-means.
+
+Berapa banyak kelompok yang sebaiknya dipakai? Jumlah kuadrat jarak ke pusat selalu turun kalau $k$ ditambah, sampai
+nol ketika setiap titik menjadi kelompoknya sendiri, sehingga ukuran itu tidak bisa dipakai langsung. Metode siku mencari
+titik di mana penurunannya tiba-tiba melandai. Koefisien silhouette membandingkan, untuk setiap titik, jarak rata-rata
+ke anggota kelompoknya sendiri, $a$, dengan jarak rata-rata ke kelompok terdekat lainnya, $b$, sebagai $(b-a)/\max(a,b)$.
+Nilainya mendekati satu kalau titik itu jelas berada di kelompok yang benar. Untuk contoh empat titik tadi, titik 1 punya
+$a=1$ dan $b=(9+10)/2=9{,}5$, sehingga silhouette-nya $8{,}5/9{,}5\approx0{,}89$. Untuk model campuran, kriteria informasi
+seperti BIC menimbang likelihood terhadap jumlah parameter.
 
 \subsection{Hierarki dan kemiripan}
 
@@ -142,13 +174,26 @@ Pengklasifikasi dasar yang dibahas punya karakter yang berbeda-beda. $k$-nearest
 belajar apa pun dan hanya mengingat data latih, lalu meminjam label tetangga terdekat. Naive Bayes
 menganggap semua fitur independen bersyarat terhadap kelas, asumsi yang hampir selalu salah tetapi
 sering bekerja dengan baik. Analisis diskriminan linear \citep{fisher1936} mencari arah proyeksi
-yang memisahkan rata-rata kelas sejauh mungkin relatif terhadap sebaran di dalam kelas. Pohon
-keputusan memotong ruang fitur dengan pertanyaan ya atau tidak yang berurutan, dan random forest
+yang memisahkan rata-rata kelas sejauh mungkin relatif terhadap sebaran di dalam kelas. Untuk dua kelas,
+memaksimalkan rasio $(\bm w^\top(\bm\mu_1-\bm\mu_2))^2/(\bm w^\top\bm S_W\bm w)$ memberi arah
+$\bm w\propto\bm S_W^{-1}(\bm\mu_1-\bm\mu_2)$, dengan $\bm S_W$ matriks sebaran di dalam kelas. Kalau sebaran itu bulat,
+arahnya sekadar garis yang menghubungkan kedua rata-rata. Kalau sebaran lonjong, arahnya dimiringkan menjauhi arah
+sebaran yang lebar, karena perbedaan rata-rata di arah itu mudah tertutup noise. Pohon
+keputusan memotong ruang fitur dengan pertanyaan ya atau tidak yang berurutan. Pertanyaan di setiap simpul dipilih
+yang paling mengurangi ketidakmurnian label, misalnya entropi $H=-\sum_cp_c\log_2p_c$. Simpul dengan delapan contoh
+positif dan delapan negatif punya entropi satu bit. Kalau sebuah pertanyaan membaginya menjadi $(7,1)$ dan $(1,7)$,
+entropi setiap anak sekitar $0{,}54$ bit, sehingga perolehan informasinya sekitar $0{,}46$ bit. Pertanyaan yang membagi
+menjadi $(4,4)$ dan $(4,4)$ tidak memberi informasi sama sekali. Pohon tunggal mudah overfitting, dan random forest
 \citep{breiman2001} merata-ratakan banyak pohon yang dilatih pada sampel dan fitur acak. Support
 vector machine \citep{cortes1995} mencari bidang pemisah dengan margin terlebar, dan dengan kernel ia
 bisa memisahkan kelas yang tidak terpisah secara linear. Ide marginnya adalah regularisasi dalam
 bentuk geometris: di antara semua bidang yang memisahkan data latih, pilih yang paling jauh dari
-titik mana pun.
+titik mana pun. Jarak sebuah titik ke bidang $\bm w^\top\vx+b=0$ adalah $|\bm w^\top\vx+b|/\|\bm w\|$. Kalau skala $\bm w$
+diatur sehingga titik-titik terdekat memenuhi $y_n(\bm w^\top\vx_n+b)=1$, lebar margin di kedua sisi menjadi
+$2/\|\bm w\|$. Memaksimalkan margin sama dengan meminimalkan $\tfrac12\|\bm w\|^2$ dengan kendala
+$y_n(\bm w^\top\vx_n+b)\ge1$ untuk semua $n$, masalah kuadrat dengan kendala yang diselesaikan lewat bentuk dualnya
+(\cref{ch:optimasi}). Di bentuk dual, data hanya muncul sebagai hasil kali dalam $\vx_n^\top\vx_m$, dan mengganti hasil
+kali itu dengan kernel memberi SVM nonlinear tanpa pernah menghitung pemetaan fiturnya.
 
 Seleksi fitur bisa dilakukan dengan tiga cara. Metode filter menilai setiap fitur sendiri-sendiri,
 misalnya dari korelasinya dengan label. Metode wrapper mencoba berbagai himpunan fitur dengan
@@ -168,6 +213,23 @@ aliran berjuta sel menjadi beberapa puluh mode (\cref{ch:penemuan}). Dalam siste
 faktorisasi matriks yang mirip analisis faktor menemukan selera tersembunyi pengguna
 (\cref{ch:rekomendasi}). Di semua tempat itu, pertanyaannya sama: struktur apa yang tersembunyi di
 balik angka-angka ini?
+
+\section{Perkembangan riset}
+
+Batas antara unsupervised dan supervised learning kini kabur karena \istilah{self-supervised learning}: label dibuat dari
+data itu sendiri. SimCLR \citep{chen2020simclr} melatih encoder agar dua versi augmentasi dari gambar yang sama berdekatan
+dan versi dari gambar lain berjauhan, loss kontrastif yang sama dengan CLIP di \cref{ch:hayati}. Studi sistematisnya
+menemukan bahwa susunan augmentasi, satu proyeksi nonlinear tambahan, dan batch yang besar adalah kunci keberhasilannya.
+Masked autoencoder \citep{he2022mae} mengambil jalan lain: sembunyikan tiga perempat potongan gambar secara acak, lalu
+latih jaringan merekonstruksi piksel yang hilang. Karena encoder hanya melihat potongan yang terlihat, pelatihannya juga
+tiga kali lebih cepat.
+
+I-JEPA \citep{assran2023} berargumen bahwa merekonstruksi piksel membuang kapasitas untuk detail yang tidak penting.
+Ia meramalkan \emph{representasi} dari blok-blok yang disembunyikan, bukan pikselnya, dari satu blok konteks, sehingga
+yang dipelajari lebih semantik. DINOv2 \citep{oquab2023} menunjukkan bahwa dengan data yang dikurasi dengan cermat dan
+model miliaran parameter, fitur self-supervised bisa dipakai langsung untuk banyak tugas tanpa penyetelan ulang. Analisis
+faktor dan PCA di bab ini mencari struktur laten dengan model linear. Metode-metode ini mencari struktur yang sama dengan
+jaringan dalam, dan menjadi titik awal model fondasi di bidang visi, citra medis, dan sinyal sensor.
 
 \sumberbab{Bab ini mengikuti naskah kuliah Machine Learning: Unsupervised Techniques (PCA dan kernel
 PCA, ICA, analisis faktor, metode proyeksi, clustering, biclustering) dan kuliah Machine Learning and

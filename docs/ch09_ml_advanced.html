@@ -17,7 +17,7 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 11</p>
+<p class="chapnum">Bab 15</p>
 <h1>Dari Estimasi ke Difusi</h1>
 <p><span id="ch:mlat" data-label="ch:mlat"></span></p>
 <p>Kuliah machine learning lanjut saya ikuti pada musim dingin 2025/26,
@@ -144,9 +144,9 @@ class="math inline">\(p(\boldsymbol{z}\mid\boldsymbol{x})\)</span> pun
 tidak. Dari sinilah VAE lahir.</p>
 <h2 id="elbo-sekali-lagi-dan-lebih-teliti">ELBO, sekali lagi dan lebih
 teliti</h2>
-<p><a href="ch06_arsitektur_generatif.html">Bab 8</a> memperkenalkan VAE
-secara intuitif. Kuliah ini menurunkannya. Ambil sembarang distribusi
-<span
+<p><a href="ch06_arsitektur_generatif.html">Bab 12</a> memperkenalkan
+VAE secara intuitif. Kuliah ini menurunkannya. Ambil sembarang
+distribusi <span
 class="math inline">\(q(\boldsymbol{z}\mid\boldsymbol{x})\)</span>.
 Log-likelihood bisa ditulis sebagai <span class="math display">\[\log
 p(\boldsymbol{x})=\underbrace{\mathbb{E}_{q(\boldsymbol{z}\mid\boldsymbol{x})}\Big[\log\frac{p(\boldsymbol{x},\boldsymbol{z})}{q(\boldsymbol{z}\mid\boldsymbol{x})}\Big]}_{\mathrm{ELBO}}
@@ -189,7 +189,7 @@ class="math inline">\(p\)</span> dan mengabaikan puncak lain.</p>
 berasal dari salah satu dari <span class="math inline">\(K\)</span>
 distribusi Gauss, dan label komponennya adalah variabel laten diskret.
 Algoritme EM untuk model ini, yang sudah kita temui di <a
-href="ch08_probabilistik.html">Bab 10</a>, ternyata adalah maksimisasi
+href="ch08_probabilistik.html">Bab 14</a>, ternyata adalah maksimisasi
 ELBO bergantian: langkah E memilih <span
 class="math inline">\(q\)</span> sama dengan posterior yang tepat, dan
 langkah M memperbarui parameter. VAE melakukan hal yang sama, tetapi
@@ -206,6 +206,84 @@ dimensi setiap laten sama dengan dimensi data, dan encoder-nya tidak
 dipelajari, melainkan ditetapkan sebagai penambahan noise Gauss sedikit
 demi sedikit <span class="citation" data-cites="luo2022">(Luo
 2022)</span>.</p>
+<h2 id="gaussian-process">Gaussian process</h2>
+<p>Cara pandang Bayesian bisa dibawa satu langkah lebih jauh: alih-alih
+menaruh prior pada parameter sebuah model, taruh prior langsung pada
+fungsinya. Naskah kuliah deep learning lanjut menurunkannya dari regresi
+linear. Misalkan <span
+class="math inline">\(f(\boldsymbol{x})=\boldsymbol{w}^\top\boldsymbol
+h(\boldsymbol{x})\)</span> dengan fitur <span
+class="math inline">\(\boldsymbol h\)</span> yang tetap dan prior <span
+class="math inline">\(\boldsymbol{w}\sim\mathcal{N}(\boldsymbol0,\sigma_w^2\boldsymbol
+I)\)</span>. Karena <span class="math inline">\(f\)</span> linear dalam
+<span class="math inline">\(\boldsymbol{w}\)</span>, nilai-nilai <span
+class="math inline">\(f\)</span> di titik mana pun berdistribusi Gauss
+bersama, dengan rata-rata nol dan kovarians <span
+class="math display">\[\mathrm{Cov}\big(f(\boldsymbol{x}),f(\boldsymbol{x}&#39;)\big)=\sigma_w^2\,\boldsymbol
+h(\boldsymbol{x})^\top\boldsymbol
+h(\boldsymbol{x}&#39;)=k(\boldsymbol{x},\boldsymbol{x}&#39;).\]</span>
+Kumpulan variabel acak yang setiap himpunan berhingganya berdistribusi
+Gauss bersama disebut <em>Gaussian process</em>, dan ia ditentukan
+seluruhnya oleh fungsi rata-rata dan fungsi kovariansnya, yaitu kernel
+<span class="math inline">\(k\)</span> <span class="citation"
+data-cites="rasmussen2006">(Rasmussen dan Williams 2006)</span>. Kernel
+boleh dipilih langsung tanpa menulis fiturnya, kernel trick dari <a
+href="ch01c_teori_belajar.html">Bab 3</a>. Kernel Gauss, <span
+class="math inline">\(k(\boldsymbol{x},\boldsymbol{x}&#39;)=\exp(-\|\boldsymbol{x}-\boldsymbol{x}&#39;\|^2/2\ell^2)\)</span>,
+berarti titik yang berdekatan punya nilai fungsi yang hampir sama, dan
+lebar <span class="math inline">\(\ell\)</span> mengatur seberapa cepat
+korelasi itu memudar.</p>
+<p>Karena semuanya Gauss, posterior setelah melihat data punya bentuk
+tertutup, hasil langsung dari sifat kondisional Gauss di Lampiran B.
+Untuk data <span class="math inline">\(\boldsymbol{y}\)</span> di
+titik-titik latih dengan noise bervarians <span
+class="math inline">\(\sigma^2\)</span>, matriks kernel <span
+class="math inline">\(\boldsymbol K\)</span>, dan vektor <span
+class="math inline">\(\boldsymbol k_*\)</span> berisi kernel antara
+titik baru dan titik-titik latih, <span
+class="math display">\[\mu_*=\boldsymbol k_*^\top(\boldsymbol
+K+\sigma^2\boldsymbol I)^{-1}\boldsymbol{y},\qquad
+\sigma_*^2=k(\boldsymbol{x}_*,\boldsymbol{x}_*)-\boldsymbol
+k_*^\top(\boldsymbol K+\sigma^2\boldsymbol I)^{-1}\boldsymbol k_*
+.\]</span> Rata-ratanya adalah kernel ridge regression dari <a
+href="ch01c_teori_belajar.html">Bab 3</a>, dan variansnya adalah bonus
+yang diberikan sudut pandang Bayes. Contoh dengan satu titik data
+memperlihatkan perilakunya. Misalkan satu pengamatan <span
+class="math inline">\(y=1\)</span> di <span
+class="math inline">\(x=0\)</span>, kernel Gauss dengan <span
+class="math inline">\(\ell=1\)</span>, dan <span
+class="math inline">\(\sigma^2=0{,}1\)</span>. Di <span
+class="math inline">\(x_*=0\)</span>, <span
+class="math inline">\(\mu_*=1/1{,}1\approx0{,}91\)</span> dan <span
+class="math inline">\(\sigma_*^2=1-1/1{,}1\approx0{,}09\)</span>: dekat
+data, model yakin. Di <span class="math inline">\(x_*=2\)</span>, kernel
+ke titik data hanya <span
+class="math inline">\(e^{-2}\approx0{,}14\)</span>, sehingga <span
+class="math inline">\(\mu_*\approx0{,}12\)</span> dan <span
+class="math inline">\(\sigma_*^2\approx0{,}98\)</span>: jauh dari data,
+prediksi kembali ke rata-rata prior dan ketidakpastiannya kembali hampir
+penuh. Inilah pita yang melebar jauh dari data di <a
+href="ch01b_statistik_bayes.html">Bab 2</a>, sekarang tanpa harus
+memilih fitur sama sekali. Harganya adalah membalik matriks berukuran
+<span class="math inline">\(n\times n\)</span>, yang biayanya tumbuh
+seperti <span class="math inline">\(n^3\)</span>, sehingga GP biasa
+cocok untuk ratusan sampai beberapa ribu titik, dan untuk data lebih
+besar dipakai aproksimasi.</p>
+<p>Naskah kuliah juga menutup lingkaran antara GP dan jaringan saraf.
+Jaringan satu lapisan tersembunyi dengan bobot acak independen adalah
+jumlah dari banyak sumbangan neuron yang independen. Ketika lebarnya
+menuju tak hingga, teorema limit pusat membuat keluarannya berdistribusi
+Gauss, sehingga jaringan Bayes yang lebarnya tak hingga adalah Gaussian
+process dengan kernel yang ditentukan arsitektur dan aktivasinya. Untuk
+jaringan yang lebarnya terbatas, ketidakpastian ditaksir dengan cara
+lain, seperti MC dropout dan deep ensembles yang dibahas di <a
+href="ch06_arsitektur_generatif.html">Bab 12</a>. GP sendiri banyak
+dipakai di tempat data mahal dan ketidakpastian penting: sebagai model
+pengganti dalam Bayesian optimization (<a href="ch03b_praktik.html">Bab
+8</a>), sebagai model koreksi multi-fidelity (<a
+href="ch18_hibrida.html">Bab 32</a>), dan sebagai model dinamika dalam
+kendali berbasis pembelajaran (<a href="ch31_kendali.html">Bab
+19</a>).</p>
 <h2 id="persamaan-diferensial-biasa-parsial-dan-stokastik">Persamaan
 diferensial biasa, parsial, dan stokastik</h2>
 <p>Sebelum masuk ke model difusi, kuliah berhenti sejenak untuk
@@ -236,7 +314,7 @@ Untuk sistem kaku (<em>stiff</em>), yaitu yang punya skala waktu cepat
 sekali dan lambat sekaligus, metode eksplisit terpaksa memakai langkah
 kecil sekali agar stabil, dan metode implisit atau langkah adaptif
 menjadi pilihan yang lebih baik. Topik ini dibahas lebih dalam di <a
-href="ch14_fisika_komputasi.html">Bab 24</a>.</p>
+href="ch14_fisika_komputasi.html">Bab 28</a>.</p>
 <h3 id="pde-dan-persamaan-panas">PDE dan persamaan panas</h3>
 <p>Persamaan diferensial parsial melibatkan turunan terhadap lebih dari
 satu variabel. Contoh yang dibahas panjang lebar di kuliah adalah
@@ -335,7 +413,7 @@ Keadaan <span class="math inline">\(\boldsymbol{h}\)</span>, adjoint
 parameter diintegrasikan mundur bersama dalam satu sistem yang
 diperbesar. Memorinya konstan terhadap jumlah langkah. Persamaan adjoint
 ini tidak lain adalah delta backprop dari <a
-href="ch03_dl_basic.html">Bab 5</a> dalam waktu kontinu.</p>
+href="ch03_dl_basic.html">Bab 7</a> dalam waktu kontinu.</p>
 <p>Neural ODE cocok sekali untuk sistem fisika yang memang berevolusi
 secara kontinu. Data yang diambil pada waktu tidak teratur bisa langsung
 dipakai, dan model dinamika yang dipelajari bisa dijalankan dengan
@@ -510,11 +588,11 @@ memenuhi persamaan Eikonal, <span class="math inline">\(\|\nabla
 f(\boldsymbol{x})\|=1\)</span>. Menambahkan <span
 class="math inline">\((\|\nabla f_\theta\|-1)^2\)</span> ke loss di
 titik-titik acak memaksa jaringan menjadi fungsi jarak yang sah <span
-class="citation" data-cites="gropp2020">(Gropp dkk. 2020)</span>. Ini
-adalah loss yang diinformasikan fisika: sebuah persamaan diferensial
-parsial ditegakkan di dalam loss.</p>
+class="citation" data-cites="gropp2020">(Gropp dkk. 2020)</span>. Inilah
+loss yang diinformasikan fisika: sebuah persamaan diferensial parsial
+ditegakkan di dalam loss.</p>
 <p>NeRF, yang sudah kita lihat di <a
-href="ch05_computer_vision.html">Bab 7</a>, adalah neural field untuk
+href="ch05_computer_vision.html">Bab 11</a>, adalah neural field untuk
 kerapatan dan warna yang dilatih melalui persamaan volume rendering.
 Kuliah menutup dengan pernyataan yang menjembatani ke Bagian III: dari
 sudut pandang ini, PINN hanyalah neural field yang diatur oleh persamaan
@@ -530,16 +608,16 @@ class="citation" data-cites="tancik2020">(Tancik dkk. 2020)</span>, atau
 memakai fungsi sinus sebagai aktivasi seperti pada SIREN <span
 class="citation" data-cites="sitzmann2020">(Sitzmann dkk. 2020)</span>.
 Spectral bias juga menjadi salah satu alasan PINN sulit mempelajari
-solusi yang berosilasi cepat (<a href="ch15_pinn.html">Bab 25</a>).</p>
+solusi yang berosilasi cepat (<a href="ch15_pinn.html">Bab 29</a>).</p>
 <h2 id="di-luar-kelas">Di luar kelas</h2>
 <p>Alat-alat dari bab ini menyebar jauh. Model difusi membangkitkan
-gambar dan video (<a href="ch52_terbaru.html">Bab 32</a>), dan modul
+gambar dan video (<a href="ch52_terbaru.html">Bab 38</a>), dan modul
 struktur AlphaFold3 adalah model difusi yang membangkitkan koordinat
-atom (<a href="ch42_protein.html">Bab 20</a>). Teori estimasi dan batas
+atom (<a href="ch42_protein.html">Bab 24</a>). Teori estimasi dan batas
 Cramér–Rao adalah bahasa sehari-hari pemrosesan sinyal (<a
-href="ch30_sinyal.html">Bab 14</a>). Probabilistic PCA dan analisis
+href="ch30_sinyal.html">Bab 18</a>). Probabilistic PCA dan analisis
 faktor dipakai untuk meringkas data ekspresi gen yang berisik (<a
-href="ch40_genomik.html">Bab 18</a>). Neural ODE cocok untuk data medis
+href="ch40_genomik.html">Bab 22</a>). Neural ODE cocok untuk data medis
 yang diukur pada waktu tidak teratur, seperti kunjungan pasien yang
 jaraknya berbeda-beda.</p>
 <p>Bagi Bagian V, bab ini memberi hampir semua alatnya. Neural ODE
@@ -648,6 +726,10 @@ Rahaman, Nasim, Aristide Baratin, Devansh Arpit, Felix Draxler, Min Lin,
 Fred A. Hamprecht, Yoshua Bengio, dan Aaron Courville. 2018. <span>“On
 the Spectral Bias of Neural Networks.”</span> arXiv:1806.08734. <a
 href="https://arxiv.org/abs/1806.08734">https://arxiv.org/abs/1806.08734</a>.
+</div>
+<div id="ref-rasmussen2006" class="csl-entry" role="listitem">
+Rasmussen, Carl Edward, dan Christopher K. I. Williams. 2006.
+<em>Gaussian Processes for Machine Learning</em>. MIT Press.
 </div>
 <div id="ref-sitzmann2020" class="csl-entry" role="listitem">
 Sitzmann, Vincent, Julien N. P. Martel, Alexander W. Bergman, David B.

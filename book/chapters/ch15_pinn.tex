@@ -33,7 +33,36 @@ awal dan syarat batas:
 \end{equation}
 Kalau ada pengukuran, suku keempat menambahkan selisih kuadrat antara $u_\theta$ dan data di titik-titik
 pengukuran. Bobot $\lambda$ menentukan seberapa penting masing-masing suku, dan seperti akan kita lihat,
-memilihnya ternyata salah satu bagian tersulit.
+memilihnya ternyata salah satu bagian tersulit. \Cref{fig:pinn} merangkum alurnya.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[node distance=0.5cm and 0.7cm]
+  \node[kotak] (in) {$(x,t)$};
+  \node[kotak=biru,right=of in] (net) {MLP $u_\theta$};
+  \node[kotak,right=of net] (u) {$u_\theta(x,t)$};
+  \node[kotak=ungu,above right=0.2cm and 0.7cm of u] (ad) {autodiff:\\$\partial_tu_\theta,\ \partial_{xx}u_\theta$};
+  \node[kotak=hijau,below right=0.2cm and 0.7cm of u] (bc) {syarat awal,\\batas, data};
+  \node[kotak=oranye,right=3.4cm of u] (L) {$\Loss(\theta)$};
+  \draw[panah] (in) -- (net);
+  \draw[panah] (net) -- (u);
+  \draw[panah] (u) |- (ad);
+  \draw[panah] (u) |- (bc);
+  \draw[panah] (ad) -| node[label,above,pos=0.25]{residual} (L);
+  \draw[panah] (bc) -| (L);
+  \draw[panah,dashed] (L.south) -- ++(0,-1.2) -| node[label,below,pos=0.25]{gradien terhadap $\theta$} (net.south);
+\end{tikzpicture}
+\caption{Alur PINN. Jaringan menerima koordinat, autodiff memberi turunan yang dibutuhkan persamaan, dan loss
+menggabungkan residual persamaan dengan syarat awal, syarat batas, dan data.}
+\label{fig:pinn}
+\end{figure}
+
+Turunan terhadap input dihitung dengan autodiff yang sama dengan backpropagation (\cref{ch:dlbasic}), hanya
+dirantai sekali atau dua kali lagi. Untuk satu neuron $u=\tanh(wx+b)$, turunan pertamanya
+$u_x=w\,(1-u^2)$ dan turunan keduanya $u_{xx}=-2w^2u\,(1-u^2)$. Contoh kecil ini menjelaskan satu aturan praktis
+PINN: fungsi aktivasi harus mulus. Dengan ReLU, turunan kedua bernilai nol hampir di mana-mana, sehingga
+jaringan tidak bisa ``merasakan'' suku difusi sama sekali, dan residual persamaan panas hanya melihat
+$\partial_tu$. Karena itu PINN hampir selalu memakai tanh, sinus, atau aktivasi mulus lain.
 
 Mengapa ini masuk akal? Dari sudut pandang \cref{ch:data}, suku residual adalah prior: di antara semua
 fungsi yang cocok dengan data dan syarat batas, pilih yang memenuhi hukum fisika. Dari sudut pandang
@@ -77,6 +106,36 @@ Contoh paling terkenal adalah \citet{raissi2020}, yang disinggung di \cref{ch:cv
 zat pewarna di sekitar sebuah benda, PINN memulihkan medan kecepatan dan tekanan yang tidak pernah
 diukur, karena persamaan transport zat pewarna dan persamaan Navier--Stokes menghubungkan ketiganya.
 
+Contoh yang bisa diperiksa dengan tangan memperlihatkan logika masalah invers. Untuk persamaan panas dengan difusivitas
+$\alpha$ yang tidak diketahui di selang $[0,1]$ dengan ujung bernilai nol, fungsi $u(x,t)=e^{-\alpha\pi^2t}\sin(\pi x)$
+memenuhi persamaan dan syarat batasnya. Misalkan sensor di tengah batang mencatat $u=1$ pada $t=0$ dan $u=0{,}37$ pada $t=1$.
+Residual persamaan hanya bisa nol kalau amplitudo meluruh seperti $e^{-\alpha\pi^2t}$, dan suku data menuntut $e^{-\alpha\pi^2}=0{,}37$,
+sehingga $\alpha=-\ln0{,}37/\pi^2\approx0{,}10$. PINN menemukan angka yang sama dengan menurunkan kedua suku loss bersamaan,
+tanpa pernah diberi rumus solusinya. Pada masalah nyata, solusinya tidak punya bentuk tertutup, tetapi logikanya sama:
+persamaan memberi bentuk, data memberi angka.
+
+Contoh ini juga memperlihatkan bahaya masalah invers. Kalau sensor diletakkan tepat di $x=0$, di mana $\sin(\pi x)=0$,
+pengukurannya selalu nol, dan $\alpha$ tidak bisa ditentukan sama sekali. Pengukuran yang tidak peka terhadap parameter
+membuat masalahnya \istilah{ill-posed}, dan tidak ada jaringan saraf yang bisa mengatasinya. Memilih letak sensor sama
+pentingnya dengan memilih arsitektur.
+
+\section{Syarat batas yang ditegakkan}
+
+Daripada menghukum pelanggaran syarat batas di loss, syarat itu bisa dibangun ke dalam bentuk solusi, seperti $1+tN(t)$ di
+contoh tangan tadi. Untuk syarat Dirichlet $u(0)=a$ dan $u(1)=b$ di selang satuan, bentuk
+\begin{equation}
+u_\theta(x)=a(1-x)+bx+x(1-x)\,N_\theta(x)
+\end{equation}
+memenuhi kedua syarat untuk jaringan $N_\theta$ apa pun: dua suku pertama adalah garis yang menghubungkan kedua nilai batas,
+dan suku ketiga bernilai nol di kedua ujung. Loss tinggal suku residual saja, dan masalah keseimbangan bobot antara residual
+dan batas, yang dibahas di bawah, hilang dengan sendirinya. Untuk geometri yang rumit, fungsi $x(1-x)$ diganti fungsi jarak
+yang bernilai nol di batas, misalnya signed distance field dari \cref{ch:mlat}. Syarat Neumann, yang menetapkan turunan di
+batas, lebih sulit ditegakkan dengan cara ini dan biasanya tetap ditaruh di loss.
+
+Titik collocation juga tidak harus tetap. Pemilihan adaptif berbasis residual menambahkan titik baru di tempat residualnya
+paling besar, misalnya dengan menarik sampel dengan peluang sebanding dengan kuadrat residual. Daerah dengan gradien tajam,
+seperti lapisan batas atau muka gelombang, mendapat lebih banyak titik, mirip penghalusan mesh adaptif pada solver klasik.
+
 \section{Mengapa PINN sulit dilatih}
 
 Kalau PINN begitu sederhana, mengapa tidak menggantikan semua solver? Pengalaman komunitas selama
@@ -89,6 +148,12 @@ yang khas. Mereka mengusulkan bobot $\lambda$ yang disesuaikan otomatis berdasar
 masing-masing suku. Pendekatan lain memberi setiap titik collocation bobotnya sendiri yang ikut dilatih
 dengan arah berlawanan, sehingga titik yang sulit mendapat perhatian lebih \citep{mcclenny2023}.
 
+Skala masalahnya mudah diperkirakan. Misalkan solusinya mengandung komponen $\sin(n\pi x)$. Turunan
+keduanya $-(n\pi)^2\sin(n\pi x)$, sehingga galat kecil pada komponen ini diperbesar $(n\pi)^2$ kali dalam residual
+dan $(n\pi)^4$ kali dalam kuadratnya. Untuk $n=5$, faktor itu sekitar $6\times10^4$. Suku syarat batas, yang tidak
+melibatkan turunan, sama sekali tidak diperbesar. Optimizer melihat lanskap yang hampir seluruhnya ditentukan
+residual, dan syarat batas tenggelam.
+
 Kesulitan kedua berasal dari spectral bias (\cref{ch:mlat}). Analisis neural tangent kernel untuk PINN
 \citep{wang2022} menunjukkan bahwa komponen solusi dengan frekuensi tinggi dipelajari jauh lebih lambat.
 Solusi dengan gradien tajam atau osilasi cepat, yang justru menarik dalam fluida, menjadi sulit. Fourier
@@ -100,12 +165,36 @@ pada lanskap loss yang sulit sekali dioptimasi, bukan pada kapasitas jaringan. M
 dari koefisien kecil lalu dinaikkan, atau memecah domain waktu menjadi potongan yang dilatih berurutan,
 memperbaiki keadaan. Gagasan terakhir ini juga menyentuh masalah kausalitas: PINN melatih seluruh rentang
 waktu sekaligus, sehingga bisa saja ``memenuhi'' persamaan di waktu akhir sebelum benar di waktu awal,
-padahal informasi fisik mengalir dari masa lalu ke masa depan.
+padahal informasi fisik mengalir dari masa lalu ke masa depan. \citet{wang2024causal} mengusulkan bobot yang
+menegakkan urutan itu secara eksplisit. Rentang waktu dibagi menjadi potongan-potongan, dan residual potongan
+ke-$i$ diberi bobot $w_i=\exp\big(-\epsilon\sum_{k<i}\Loss_k\big)$. Selama potongan-potongan awal masih punya
+residual besar, bobot potongan yang lebih akhir hampir nol, sehingga jaringan dipaksa membereskan masa lalu
+lebih dulu.
 
 Ada beberapa trik lain yang sering dipakai: syarat batas yang dibangun langsung ke dalam bentuk solusi,
 seperti $1+tN(t)$ pada contoh di atas, sehingga suku batas tidak lagi dibutuhkan; pemilihan titik
 collocation secara adaptif, dengan menambah titik di tempat residualnya besar; dan resep optimasi Adam
 lalu L-BFGS dari \cref{ch:optimasi}.
+
+\section{Varian}
+
+Beberapa varian mengubah cara persamaan masuk ke dalam loss. Untuk persamaan yang berasal dari prinsip variasi,
+residual bisa diganti energi. Persamaan Poisson $-u''=f$ dengan $u(0)=u(1)=0$, misalnya, adalah syarat minimum dari
+\begin{equation}
+E[u]=\int_0^1\Big(\tfrac12u'(x)^2-f(x)\,u(x)\Big)\dd x .
+\end{equation}
+Untuk melihatnya, ganggu $u$ menjadi $u+\epsilon v$ dengan $v$ nol di kedua ujung. Turunan $E$ terhadap $\epsilon$ di
+$\epsilon=0$ adalah $\int(u'v'-fv)\dd x$. Integrasi parsial memindahkan turunan dari $v$ ke $u$, dan suku batasnya
+hilang karena $v$ nol di ujung, sehingga hasilnya $\int(-u''-f)v\dd x$. Supaya nol untuk setiap $v$, haruslah
+$-u''=f$. Deep Ritz \citep{e2018} meminimalkan $E[u_\theta]$ secara langsung dengan integrasi Monte Carlo. Keuntungannya,
+loss hanya butuh turunan pertama, bukan turunan kedua, sehingga lebih murah dan lebih stabil. Gagasan yang sama
+mendasari metode elemen hingga, yang juga bekerja dengan bentuk lemah persamaan.
+
+Untuk domain besar atau solusi yang berubah watak dari satu daerah ke daerah lain, domain bisa dipecah menjadi
+beberapa subdomain, masing-masing dengan jaringannya sendiri, yang dijahit dengan suku loss tambahan di
+antarmukanya. XPINN \citep{jagtap2020} adalah contoh pendekatan ini, dan ia juga memungkinkan pelatihan paralel.
+Gagasannya mirip dekomposisi domain pada solver klasik: masalah besar yang sulit dipecah menjadi masalah kecil
+yang lebih mudah.
 
 \section{Penilaian yang jujur}
 
@@ -116,6 +205,17 @@ bernilai di tempat lain: masalah invers dan asimilasi data, masalah dengan data 
 lengkap, geometri yang sulit di-mesh, dan masalah berdimensi tinggi di mana grid tidak mungkin dibangun
 \citep{karniadakis2021}. Untuk mempelajari cara menyelesaikan sebuah keluarga persamaan sekaligus,
 kita butuh pendekatan lain: neural operator dan simulator yang dipelajari, tema bab berikutnya.
+
+\section{Perkembangan riset}
+
+Riset PINN beberapa tahun terakhir banyak berfokus pada mengapa pelatihannya sulit dan bagaimana memperbaikinya.
+\citet{rathore2024} menghubungkan kesulitan itu dengan condition number: operator diferensial di suku residual membuat
+lanskap loss buruk kondisinya, persis contoh skala $(n\pi)^4$ di atas. Mereka membandingkan Adam, L-BFGS, dan gabungan
+keduanya, mendapati bahwa gabungan Adam lalu L-BFGS paling baik, dan mengusulkan optimizer orde dua baru yang memperbaiki
+kinerja lebih jauh. PirateNets \citep{wang2024pirate} menyerang masalah lain: PINN dengan jaringan yang lebih dalam sering
+justru lebih buruk, karena inisialisasi MLP biasa membuat turunan jaringan sulit dilatih. Koneksi residual adaptif mereka
+membuat jaringan mulai sebagai jaringan dangkal dan perlahan menjadi dalam selama pelatihan, sehingga kedalaman tambahan
+akhirnya memberi akurasi tambahan.
 
 \sumberbab{Bab ini dirangkai dari kuliah Machine Learning: Advanced Techniques (neural field dan loss
 yang diinformasikan fisika), kuliah deep learning dasar (autodiff), dan bacaan selama tugas akhir. Bacaan

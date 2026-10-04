@@ -69,6 +69,34 @@ nilai setiap petak mencerminkan rata-rata jumlah langkah yang dibutuhkan untuk m
 dengan berjalan acak. Policy yang serakah terhadap nilai-nilai itu sudah langsung menunjuk jalur
 terpendek.
 
+Value iteration bisa diikuti dengan tangan pada lorong empat petak (\cref{fig:lorong}). Agen bisa melangkah ke kiri atau
+ke kanan, setiap langkah memberi $-1$, petak paling kanan adalah tujuan dengan nilai nol, dan $\gamma=1$. Mulai dari
+$V=0$ di mana-mana. Setelah satu sapuan, setiap petak selain tujuan bernilai $-1$, karena satu langkah apa pun memberi
+$-1$ dan nilai petak tetangga masih nol. Setelah sapuan kedua, petak tepat di sebelah tujuan tetap $-1$ (melangkah ke
+tujuan), sedangkan petak lain menjadi $-2$. Setelah sapuan ketiga, nilainya $(-3,-2,-1,0)$, dan sapuan berikutnya tidak
+mengubah apa pun. Nilai setiap petak adalah minus jarak ke tujuan, dan policy serakah selalu melangkah ke kanan.
+Informasi menyebar mundur dari tujuan satu petak per sapuan, seperti gelombang. Pada MDP yang lebih besar, gelombang
+yang sama juga merambat, hanya lebih lama.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[x=1.6cm,y=1cm]
+  \foreach \i/\v in {0/$-3$,1/$-2$,2/$-1$}{
+    \draw[abu] (\i,0) rectangle (\i+1,1);
+    \node at (\i+0.5,0.5) {\v};
+    \draw[panah,oranye] (\i+0.62,0.15) -- (\i+0.95,0.15);
+  }
+  \fill[hijau!25] (3,0) rectangle (4,1);
+  \draw[abu] (3,0) rectangle (4,1);
+  \node at (3.5,0.5) {$0$};
+  \node[label,below] at (3.5,0) {tujuan};
+  \node[label,above] at (2,1) {setiap langkah: $-1$};
+\end{tikzpicture}
+\caption{Lorong empat petak setelah value iteration konvergen. Nilai setiap petak adalah minus jaraknya ke tujuan, dan
+policy serakah (panah) selalu melangkah ke kanan.}
+\label{fig:lorong}
+\end{figure}
+
 \section{Belajar dari pengalaman}
 
 Di dunia nyata, dinamika jarang diketahui. Agen harus belajar dari sampel.
@@ -76,7 +104,15 @@ Di dunia nyata, dinamika jarang diketahui. Agen harus belajar dari sampel.
 Metode \istilah{Monte Carlo} menunggu sampai satu episode selesai, lalu memakai return yang
 benar-benar diperoleh sebagai perkiraan nilai setiap keadaan yang dikunjungi. Perkiraan ini tak
 bias, tetapi variansnya besar, karena satu return bergantung pada semua keputusan acak sampai akhir
-episode. Metode \istilah{temporal difference} (TD) tidak menunggu. Setelah satu langkah, ia memperbarui
+episode. Kuliah memakai blackjack sebagai contoh: setelah ratusan ribu permainan acak dengan sebuah policy sederhana, rata-rata
+return dari setiap keadaan kartu menggambar permukaan nilai yang mulus, tanpa pernah menuliskan peluang kartu. Ada dua
+varian. \emph{First-visit} hanya memakai return sejak kunjungan pertama ke sebuah keadaan dalam satu episode, \emph{every-visit}
+memakai setiap kunjungan. Untuk episode $s_1,s_2,s_1,\text{selesai}$ dengan ganjaran $1$, $0$, dan $2$ dan $\gamma=1$, return sejak
+kunjungan pertama ke $s_1$ adalah $3$ dan sejak kunjungan kedua $2$. First-visit mencatat $3$, every-visit mencatat $3$ dan $2$.
+Keduanya konvergen ke nilai yang benar. Rata-rata ini bisa diperbarui bertahap, $V\leftarrow V+\tfrac1n(G-V)$, bentuk yang
+langsung menjadi model untuk TD di bawah dengan $\tfrac1n$ diganti laju belajar tetap.
+
+Metode \istilah{temporal difference} (TD) tidak menunggu. Setelah satu langkah, ia memperbarui
 perkiraan dengan memakai perkiraannya sendiri tentang keadaan berikutnya,
 \begin{equation}
 V(s_t)\leftarrow V(s_t)+\alpha\big[r_{t+1}+\gamma V(s_{t+1})-V(s_t)\big].
@@ -99,6 +135,19 @@ Q(s_t,a_t)\leftarrow Q(s_t,a_t)+\alpha\big[r_{t+1}+\gamma\max_{a'}Q(s_{t+1},a')-
 sehingga ia belajar nilai policy optimal sambil menjalankan policy lain yang lebih eksploratif.
 Perbedaan ini disebut on-policy dan off-policy.
 
+Satu update dengan angka: misalkan $Q(s,a)=2$, agen menerima $r=1$, dan di keadaan berikutnya nilai aksi terbaik
+$\max_{a'}Q(s',a')=5$. Dengan $\gamma=0{,}9$ dan $\alpha=0{,}1$, targetnya $1+0{,}9\cdot5=5{,}5$, TD error-nya $3{,}5$, dan
+$Q(s,a)$ naik menjadi $2{,}35$. Langkah kecil ke arah target, persis seperti SGD dengan target yang diambil dari
+perkiraan sendiri.
+
+Perbedaan on-policy dan off-policy terlihat jelas pada contoh klasik \citet{sutton2018}, berjalan di tepi tebing.
+Jalur terpendek menyusuri tepi tebing, dan setiap langkah yang jatuh ke tebing memberi hukuman besar. Dengan eksplorasi
+$\epsilon$-greedy, sesekali agen melangkah acak. Q-learning mempelajari nilai policy optimal yang tidak pernah salah
+langkah, sehingga ia memilih jalur di tepi tebing, lalu sesekali jatuh karena eksplorasinya. SARSA mempelajari nilai
+policy yang benar-benar dijalankan, termasuk langkah acaknya, sehingga ia memilih jalur yang lebih jauh dari tepi dan
+jarang jatuh. Selama eksplorasi masih berjalan, SARSA mendapat ganjaran rata-rata yang lebih baik. Kalau $\epsilon$
+diturunkan ke nol, keduanya bertemu di jalur optimal.
+
 Di sini muncul dilema yang tidak dikenal di supervised learning: \istilah{exploration} melawan
 \istilah{exploitation}. Kalau agen selalu memilih aksi yang sejauh ini terbaik, ia mungkin tidak pernah
 menemukan aksi yang sebenarnya lebih baik. Kalau ia terus mencoba hal baru, ia membuang ganjaran.
@@ -116,8 +165,11 @@ melatih jaringan dengan mini-batch acak dari buffer itu, sehingga korelasi terpu
 network} adalah salinan jaringan yang diperbarui jarang-jarang dan dipakai untuk menghitung target,
 sehingga target tidak bergeser di setiap langkah. Dengan dua trik ini, satu arsitektur yang sama
 belajar memainkan puluhan permainan Atari dari piksel. Operator maksimum dalam target Q-learning
-cenderung melebih-lebihkan nilai, dan varian-varian DQN selanjutnya memisahkan pemilihan aksi dari
-penilaian aksinya untuk mengurangi bias itu.
+cenderung melebih-lebihkan nilai. Alasannya statistik: kalau sepuluh aksi sebenarnya bernilai sama, tetapi perkiraannya
+berisik, maksimum dari sepuluh perkiraan berisik hampir selalu lebih besar dari nilai sebenarnya. Double DQN memisahkan
+pemilihan aksi dari penilaiannya: jaringan utama memilih aksi terbaik, $a^*=\argmax_{a'}Q_\theta(s',a')$, dan jaringan
+target menilai aksi itu, $Q_{\theta^-}(s',a^*)$. Karena noise kedua jaringan tidak sama, bias ke atas itu sebagian besar
+hilang.
 
 \section{Policy gradient}
 
@@ -160,7 +212,10 @@ L^{\mathrm{CLIP}}(\theta)=\E_t\Big[\min\big(\rho_tA_t,\ \mathrm{clip}(\rho_t,1-\
 \end{equation}
 Kalau sebuah aksi bagus ($A_t>0$), peluangnya boleh naik, tetapi tidak lebih dari faktor $1+\epsilon$
 dalam satu update. Kalau aksi buruk, peluangnya boleh turun, tetapi tidak lebih dari faktor
-$1-\epsilon$. PPO menjadi algoritme bawaan di banyak aplikasi karena kuat dan mudah disetel. Untuk
+$1-\epsilon$. Contoh dengan angka: dengan $\epsilon=0{,}2$ dan advantage $A_t=2$, kalau policy baru menaikkan peluang aksi itu menjadi
+$1{,}5$ kali, suku pertama memberi $3$, tetapi suku yang dipotong memberi $1{,}2\cdot2=2{,}4$, dan minimum keduanya, $2{,}4$, yang
+dipakai. Gradien terhadap $\rho_t$ di daerah itu nol, sehingga tidak ada dorongan untuk menaikkan peluangnya lebih jauh dalam
+update yang sama. PPO menjadi algoritme bawaan di banyak aplikasi karena kuat dan mudah disetel. Untuk
 aksi kontinu, soft actor-critic \citep{haarnoja2018} menambahkan entropi policy ke dalam tujuan,
 sehingga agen dihargai karena tetap acak selama hal itu tidak terlalu merugikan.
 
@@ -201,12 +256,60 @@ menjelaskan mengapa soft actor-critic menambahkan entropi ke dalam tujuannya.
 
 \section{Model, permainan, dan banyak agen}
 
-Buku \citet{plaat2022}, yang menjadi bacaan kuliah, menyusun deep RL menjadi beberapa keluarga.
-Metode berbasis model mempelajari dinamika lingkungan lalu merencanakan di dalam model itu, sehingga
-butuh jauh lebih sedikit interaksi. \istilah{Self-play} melatih agen melawan salinan dirinya sendiri,
-seperti AlphaZero \citep{silver2018}. RL multi-agen menghadapi lingkungan yang berubah karena agen
-lain juga belajar. RL hierarkis memecah tugas panjang menjadi subtugas, dan meta-learning melatih
-agen untuk cepat beradaptasi ke tugas baru.
+Buku \citet{plaat2022}, yang menjadi bacaan kuliah, menyusun deep RL menjadi beberapa keluarga. Setiap keluarga menjawab
+satu kelemahan metode model-free yang dibahas di atas.
+
+\subsection{Belajar dengan model}
+
+Metode model-free butuh interaksi yang amat banyak. DQN memainkan setiap permainan Atari puluhan juta langkah. Metode berbasis
+model mempelajari dinamika lingkungan, $\hat p(s',r\mid s,a)$, lalu memakai model itu untuk merencanakan atau untuk menghasilkan
+pengalaman buatan. Arsitektur Dyna \citep{sutton1990} adalah contoh paling sederhana. Setiap langkah nyata dipakai dua kali:
+sekali untuk memperbarui $Q$ seperti biasa, dan sekali untuk memperbarui model. Lalu, sebelum langkah nyata berikutnya, agen
+melakukan beberapa pembaruan $Q$ tambahan dengan pengalaman yang dibangkitkan model dari keadaan yang pernah dikunjungi. Kalau
+sepuluh langkah khayalan dilakukan untuk setiap langkah nyata, informasi dari satu interaksi menyebar jauh lebih cepat ke
+seluruh tabel nilai.
+
+Bahayanya adalah galat model. Policy yang dioptimalkan di dalam model yang keliru akan mengeksploitasi kekeliruan itu, persis
+seperti optimasi molekul yang mengeksploitasi celah model QSAR (\cref{ch:hayati}). Galat juga menumpuk sepanjang rencana yang
+panjang, masalah rollout yang sama dengan \cref{ch:operator}. Karena itu metode modern biasanya merencanakan hanya beberapa
+langkah ke depan, memakai ensemble model untuk menaksir ketidakpastiannya, atau seperti MuZero, mempelajari model yang hanya
+meramalkan besaran yang dibutuhkan untuk merencanakan, yaitu nilai, policy, dan ganjaran, bukan seluruh pengamatan.
+
+\subsection{Banyak agen}
+
+Ketika beberapa agen belajar bersamaan, lingkungan setiap agen berubah karena agen lain juga berubah, dan jaminan konvergensi
+dari MDP tunggal hilang. Teori permainan memberi bahasa untuk situasi ini. Sebuah \istilah{Nash equilibrium} adalah kombinasi
+strategi di mana tidak ada pemain yang bisa untung dengan mengubah strateginya sendiri sementara yang lain tetap.
+
+Batu-gunting-kertas memperlihatkan mengapa strategi acak bisa optimal. Misalkan lawan memainkan batu, gunting, dan kertas
+dengan peluang $p_b$, $p_g$, dan $p_k$, dengan menang bernilai $+1$, kalah $-1$, dan seri $0$. Nilai harapan memainkan batu
+adalah $p_g-p_k$, gunting $p_k-p_b$, dan kertas $p_b-p_g$. Kalau salah satu nilai ini positif, kita akan selalu memainkan aksi
+itu, dan lawan bisa mengeksploitasinya. Satu-satunya keadaan di mana tidak ada aksi yang lebih unggul adalah ketika ketiganya
+nol, yaitu $p_b=p_g=p_k=\tfrac13$. Ekuilibriumnya adalah bermain acak sempurna. Dalam permainan seperti ini, self-play yang
+naif bisa berputar-putar tanpa henti: agen belajar mengalahkan versi lamanya, lalu versi berikutnya belajar mengalahkan versi
+itu, dan seterusnya. Karena itu sistem seperti AlphaZero \citep{silver2018} dan agen permainan strategi modern melatih agen
+melawan kumpulan versi-versi lamanya, bukan hanya versi terakhir.
+
+\subsection{Hierarki, meta-learning, dan eksplorasi}
+
+Tugas yang panjang, seperti memasak sebuah resep, lebih mudah dipelajari kalau dipecah menjadi subtugas: ambil bahan, potong,
+panaskan. Kerangka \istilah{options} \citep{sutton1999} memperlakukan subtugas seperti itu sebagai aksi yang diperluas dalam
+waktu, masing-masing dengan policy dan syarat berhentinya sendiri. Policy tingkat tinggi memilih option, policy tingkat rendah
+menjalankannya. Credit assignment menjadi lebih mudah, karena keputusan tingkat tinggi lebih sedikit dan berjarak lebih dekat
+dengan ganjarannya.
+
+Meta-learning bertanya bagaimana agen bisa cepat beradaptasi ke tugas baru. MAML \citep{finn2017} mencari parameter awal $\theta$
+yang, setelah satu atau beberapa langkah gradien pada tugas baru, sudah bekerja baik di tugas itu. Untuk setiap tugas $i$,
+parameter yang sudah disesuaikan adalah $\theta_i'=\theta-\alpha\nabla_\theta\Loss_i(\theta)$, dan parameter awal diperbarui untuk
+meminimalkan $\sum_i\Loss_i(\theta_i')$, yaitu loss \emph{setelah} adaptasi. Yang dicari bukan parameter yang baik untuk semua
+tugas sekaligus, melainkan titik awal yang dekat ke solusi setiap tugas. Gagasan ini berlaku di luar RL, misalnya untuk
+klasifikasi dengan sedikit contoh.
+
+Eksplorasi yang cerdas menjadi penting ketika ganjaran jarang sekali. Bonus eksplorasi berbasis hitungan menambahkan ganjaran
+buatan $\beta/\sqrt{N(s)}$ untuk keadaan yang baru dikunjungi $N(s)$ kali, gagasan yang sama dengan bonus keingintahuan pada UCT
+di \cref{ch:klasik}. Untuk keadaan berupa piksel, setiap layar praktis unik, sehingga hitungan langsung tidak berguna.
+\citet{bellemare2016} menurunkan ``hitungan semu'' dari sebuah model kerapatan atas keadaan, dan memperlihatkan bahwa bonus
+seperti ini membuat agen menjelajahi permainan Atari yang ganjarannya jarang jauh lebih baik.
 
 \section{Reinforcement learning di dunia nyata}
 
@@ -222,6 +325,22 @@ yang sudah dilatih kemudian disetel dengan \istilah{reinforcement learning from 
 Manusia membandingkan pasangan jawaban model, sebuah model ganjaran dilatih dari preferensi itu
 \citep{christiano2017}, lalu model bahasa dioptimasi dengan PPO terhadap model ganjaran tersebut
 \citep{ouyang2022}. Perkembangan ini kita bahas lagi di \cref{ch:terbaru}.
+
+\section{Perkembangan riset}
+
+Dua arah riset yang menonjol beberapa tahun terakhir menyentuh dua pertanyaan besar bab ini: dari mana data datang, dan
+bagaimana memakai model. DreamerV3 \citep{hafner2023} mempelajari model dunia dari pengalaman, lalu memperbaiki
+perilakunya dengan membayangkan skenario masa depan di dalam model itu. Dengan teknik normalisasi dan transformasi yang
+membuat skala ganjaran dan nilai tidak lagi perlu disetel per tugas, satu konfigurasi yang sama bekerja di lebih dari 150
+tugas, dan untuk pertama kalinya sebuah algoritme mengumpulkan berlian di Minecraft dari nol tanpa data manusia atau
+kurikulum.
+
+Decision Transformer \citep{chen2021dt} membuang fungsi nilai dan policy gradient sama sekali. Untuk data yang sudah
+terkumpul (offline RL), setiap lintasan ditulis sebagai deret token berisi return yang tersisa, keadaan, dan aksi.
+Transformer dengan causal mask dilatih menebak aksi berikutnya. Saat dipakai, kita cukup memasukkan return yang
+diinginkan sebagai token pertama, dan model membangkitkan aksi yang konsisten dengan target itu. Reinforcement learning
+berubah menjadi pemodelan deret bersyarat, dan seluruh perkakas model bahasa dari \cref{ch:lstm} bisa dipakai. Pendekatan
+ini juga menjadi jembatan ke cara model bahasa besar dilatih dengan RL di \cref{ch:terbaru}.
 
 \sumberbab{Bab ini menggabungkan kuliah Reinforcement Learning (MDP, dynamic programming, Monte Carlo,
 temporal difference, policy gradient, PPO) dan kuliah serta latihan Deep Reinforcement Learning

@@ -1,123 +1,245 @@
 \chapter{Bentuk Protein}
 \label{ch:protein}
 
-Kuliah bioinformatika struktural saya ikuti pada musim panas 2025. Naskah kuliahnya, yang ditulis
-Sepp Hochreiter dan Noura Chelbat, bergerak dari ikatan kimia dan sudut torsi ke perbandingan struktur,
-prediksi struktur sekunder, pemodelan homologi, dan prediksi \emph{ab initio}. Bagian praktisnya berupa
-tantangan di sebuah server penilaian: untuk setiap protein, tebak residu mana yang membentuk
-\istilah{binding pocket}, kantong tempat molekul kecil seperti obat bisa menempel. Prediksi dikirim ke
-server dan langsung muncul di papan peringkat.
+Kuliah bioinformatika struktural saya ikuti pada musim panas 2025. Naskah kuliahnya, yang ditulis Sepp Hochreiter dan
+Noura Chelbat, bergerak dari ikatan kimia dan sudut torsi ke perbandingan struktur, prediksi struktur sekunder,
+pemodelan homologi dan threading, prediksi \emph{ab initio}, dan dinamika molekul. Bagian praktisnya berupa tantangan di
+sebuah server penilaian: untuk setiap protein, tebak residu mana yang membentuk \istilah{binding pocket}, kantong tempat
+molekul kecil seperti obat bisa menempel. Prediksi dikirim ke server dan langsung muncul di papan peringkat.
 
-Di \cref{ch:genomik} kita melihat bahwa gen menyandikan urutan asam amino. Urutan itu baru setengah
-cerita. Rantai asam amino melipat menjadi bentuk tiga dimensi yang khas, dan bentuk itulah yang
-menentukan apa yang bisa dilakukan sebuah protein: mengikat oksigen, memotong molekul lain, atau
-mengirim sinyal melintasi membran sel. Memprediksi bentuk dari urutan adalah salah satu masalah
-besar biologi selama setengah abad, sampai deep learning mengubahnya.
+Di \cref{ch:genomik} kita melihat bahwa gen menyandikan urutan asam amino. Urutan itu baru setengah cerita. Rantai asam
+amino melipat menjadi bentuk tiga dimensi yang khas, dan bentuk itulah yang menentukan apa yang bisa dilakukan sebuah
+protein: mengikat oksigen, memotong molekul lain, atau mengirim sinyal melintasi membran sel. Memprediksi bentuk dari
+urutan adalah salah satu masalah besar biologi selama setengah abad, sampai deep learning mengubahnya.
 
 \section{Dari rantai ke bentuk}
 
-Dua puluh jenis asam amino berbeda pada rantai sampingnya: ada yang suka air, ada yang menghindarinya,
-ada yang bermuatan. Asam amino tersambung lewat ikatan peptida, yang hampir datar dan kaku. Kebebasan
-rantai utama terletak pada dua sudut putar di setiap residu, yang disebut sudut torsi $\phi$ dan $\psi$.
-Tidak semua pasangan sudut mungkin, karena atom-atom akan bertabrakan, dan peta pasangan yang diizinkan,
-diagram Ramachandran, menunjukkan beberapa daerah yang padat.
+Dua puluh jenis asam amino berbeda pada rantai sampingnya: ada yang suka air, ada yang menghindarinya, ada yang bermuatan,
+ada yang kecil dan lentur seperti glisin, ada yang kaku seperti prolin. Asam amino tersambung lewat ikatan peptida. Karena
+elektronnya terbagi di antara beberapa atom, ikatan ini bersifat setengah rangkap, sehingga hampir datar dan tidak bisa
+berputar. Kebebasan rantai utama terletak pada dua sudut putar di setiap residu, sudut torsi $\phi$ dan $\psi$. Tidak
+semua pasangan sudut mungkin, karena atom-atom akan bertabrakan. Peta pasangan yang diizinkan, diagram Ramachandran,
+menunjukkan beberapa daerah padat yang sesuai dengan heliks dan lembaran.
 
-Struktur protein dijelaskan dalam beberapa tingkat. Struktur primer adalah urutan asam aminonya.
-Struktur sekunder adalah pola lokal yang berulang, terutama heliks alfa dan lembaran beta, yang distabilkan
-ikatan hidrogen antar rantai utama. Struktur tersier adalah lipatan tiga dimensi seluruh rantai, dan
-struktur kuarterner adalah susunan beberapa rantai menjadi satu kompleks. Gaya pendorong utama pelipatan
-adalah efek hidrofobik: residu yang menghindari air bersembunyi di dalam inti protein, sementara residu
-yang suka air berada di permukaan.
+Struktur protein dijelaskan dalam beberapa tingkat. Struktur primer adalah urutan asam aminonya. Struktur sekunder adalah
+pola lokal yang berulang, terutama heliks alfa dan lembaran beta. Struktur tersier adalah lipatan tiga dimensi seluruh
+rantai, dan struktur kuarterner adalah susunan beberapa rantai menjadi satu kompleks. Gaya pendorong utama pelipatan adalah
+efek hidrofobik: residu yang menghindari air bersembunyi di dalam inti protein, sementara residu yang suka air berada di
+permukaan. Ikatan hidrogen, jembatan garam, dan gaya van der Waals menstabilkan lipatan yang terbentuk.
 
-Seberapa sulit pelipatan itu? Kalau setiap residu dari protein seratus residu hanya punya tiga
-konformasi, jumlah kemungkinannya $3^{100}\approx5\times10^{47}$. Mencoba satu konformasi setiap
-$10^{-13}$ detik pun membutuhkan sekitar $5\times10^{34}$ detik, jauh lebih lama dari umur alam semesta.
-Padahal protein nyata melipat dalam mikrodetik sampai detik. Paradoks Levinthal ini menunjukkan bahwa
-pelipatan bukan pencarian acak, melainkan perjalanan menuruni lanskap energi berbentuk corong yang
-mengarahkan rantai ke lipatan aslinya.
+Heliks alfa punya geometri yang rapi. Rantai utama melilit dengan sekitar 3,6 residu per putaran, sehingga setiap residu
+diputar sekitar $360^\circ/3{,}6=100^\circ$ dari residu sebelumnya. Ikatan hidrogen menghubungkan gugus karbonil residu
+$i$ dengan gugus amida residu $i+4$. Periodisitas $100^\circ$ punya akibat yang bisa dibaca dari urutan: residu yang berjarak
+tiga atau empat dalam urutan mengarah ke sisi yang sama dari heliks. Kalau residu hidrofobik muncul dengan pola seperti itu,
+heliksnya amfipatik, dengan satu sisi suka air dan sisi lain menghindarinya, cocok untuk berbaring di permukaan protein atau
+membran. Lembaran beta tersusun dari untai-untai yang hampir lurus, yang diikat ikatan hidrogen ke untai tetangganya, baik
+searah maupun berlawanan arah.
+
+Seberapa sulit pelipatan itu? Kalau setiap residu dari protein seratus residu hanya punya tiga konformasi, jumlah
+kemungkinannya $3^{100}\approx5\times10^{47}$. Mencoba satu konformasi setiap $10^{-13}$ detik pun membutuhkan sekitar
+$5\times10^{34}$ detik, jauh lebih lama dari umur alam semesta. Padahal protein nyata melipat dalam mikrodetik sampai detik.
+Paradoks Levinthal ini menunjukkan bahwa pelipatan bukan pencarian acak, melainkan perjalanan menuruni lanskap energi
+berbentuk corong yang mengarahkan rantai ke lipatan aslinya.
 
 \section{Membandingkan struktur}
 
-Sebelum memprediksi, kita perlu cara mengukur seberapa mirip dua struktur. Ukuran paling umum adalah
-\istilah{root mean square deviation} setelah kedua struktur disuperposisikan sebaik mungkin,
+Sebelum memprediksi, kita perlu cara mengukur seberapa mirip dua struktur. Ukuran paling umum adalah \istilah{root mean square
+deviation} setelah kedua struktur disuperposisikan sebaik mungkin,
 \begin{equation}
 \mathrm{RMSD}=\sqrt{\frac1N\sum_{i=1}^N\|\bm R\vx_i+\bm t-\vy_i\|^2},
 \end{equation}
-dengan $\vx_i$ dan $\vy_i$ posisi atom padanan, biasanya atom karbon alfa, dan $\bm R$, $\bm t$ rotasi dan
-translasi yang meminimalkan jumlah itu. Translasi terbaik ternyata sederhana: geser kedua struktur
-sehingga pusat massanya berimpit. Untuk rotasinya, setelah keduanya dipusatkan, jumlah kuadrat bisa
-diuraikan menjadi $\sum\|\vx_i\|^2+\sum\|\vy_i\|^2-2\sum\vy_i^\top\bm R\vx_i$. Dua suku pertama tidak
-bergantung pada $\bm R$, jadi meminimalkan RMSD sama dengan memaksimalkan
-$\sum_i\vy_i^\top\bm R\vx_i=\mathrm{Tr}(\bm R\bm H)$ dengan $\bm H=\sum_i\vx_i\vy_i^\top$. Kalau
-$\bm H=\bm U\bm\Sigma\bm V^\top$ adalah dekomposisi nilai singularnya, maksimum tercapai pada
-$\bm R=\bm V\bm U^\top$, dengan koreksi tanda kalau determinannya negatif agar hasilnya rotasi sejati
-dan bukan pencerminan. Prosedur ini, yang dikenal sebagai algoritme Kabsch, sama dengan langkah inti
-ICP di \cref{ch:robot}.
+dengan $\vx_i$ dan $\vy_i$ posisi atom padanan, biasanya atom karbon alfa, dan $\bm R$, $\bm t$ rotasi dan translasi yang
+meminimalkan jumlah itu. Translasi terbaik ternyata sederhana: geser kedua struktur sehingga pusat massanya berimpit. Untuk
+rotasinya, setelah keduanya dipusatkan, jumlah kuadrat bisa diuraikan menjadi
+$\sum\|\vx_i\|^2+\sum\|\vy_i\|^2-2\sum\vy_i^\top\bm R\vx_i$. Dua suku pertama tidak bergantung pada $\bm R$, jadi meminimalkan
+RMSD sama dengan memaksimalkan $\sum_i\vy_i^\top\bm R\vx_i=\mathrm{Tr}(\bm R\bm H)$ dengan $\bm H=\sum_i\vx_i\vy_i^\top$. Kalau
+$\bm H=\bm U\bm\Sigma\bm V^\top$ adalah dekomposisi nilai singularnya, maksimum tercapai pada $\bm R=\bm V\bm U^\top$, dengan koreksi
+tanda kalau determinannya negatif agar hasilnya rotasi sejati dan bukan pencerminan. Prosedur ini, yang dikenal sebagai
+algoritme Kabsch, sama dengan langkah inti ICP di \cref{ch:robot}.
 
-RMSD punya kelemahan: satu bagian yang fleksibel, seperti ekor yang bergoyang, bisa membuat dua struktur
-yang intinya identik tampak jauh berbeda. Karena itu dipakai juga ukuran yang lebih tahan, misalnya
-fraksi residu yang posisinya berada dalam batas jarak tertentu dari posisi yang benar.
+RMSD punya kelemahan: satu bagian yang fleksibel, seperti ekor yang bergoyang, bisa membuat dua struktur yang intinya identik
+tampak jauh berbeda, dan nilainya cenderung naik dengan panjang protein. TM-score mengatasinya dengan menjumlahkan sumbangan
+setiap residu yang meluruh dengan jarak,
+\begin{equation}
+\mathrm{TM}=\frac1L\sum_{i=1}^{L}\frac1{1+(d_i/d_0)^2},
+\end{equation}
+dengan $d_i$ jarak residu ke-$i$ setelah superposisi dan $d_0$ skala jarak yang tumbuh perlahan dengan panjang protein $L$.
+Residu yang jauh menyumbang hampir nol, bukan hukuman besar, sehingga satu ekor yang bergoyang tidak merusak skor.
+Nilainya antara nol dan satu, dan skor di atas sekitar $0{,}5$ biasanya berarti kedua protein punya lipatan yang sama.
+
+Kalau urutan kedua protein berbeda, padanan residunya pun belum diketahui, dan struktur harus dijajarkan sebelum
+dibandingkan. DALI, salah satu metode yang dibahas, membandingkan matriks jarak antar residu di dalam masing-masing protein:
+dua struktur yang mirip punya pola jarak internal yang mirip, apa pun orientasinya di ruang, karena jarak tidak berubah
+ketika struktur diputar. CE merangkai potongan-potongan pendek yang cocok menjadi penjajaran yang lebih panjang.
 
 \section{Struktur sekunder}
 
-Prediksi struktur sekunder memberi setiap residu satu dari tiga label: heliks, lembaran, atau lainnya.
-Metode awal memakai kecenderungan statistik setiap asam amino untuk berada di heliks atau lembaran.
-Lompatan besar datang dari dua gagasan: memakai jendela residu di sekitar posisi yang diprediksi, dan
-memakai profil evolusi dari banyak urutan homolog alih-alih satu urutan saja. Naskah kuliah membahas
-arsitektur jaringan saraf dua tingkat, di mana tingkat pertama memprediksi dari jendela urutan dan
-tingkat kedua menghaluskan prediksi itu dengan melihat prediksi tetangganya, karena heliks dan lembaran
-selalu muncul dalam potongan yang berurutan. Kinerjanya diukur dengan Q3, fraksi residu yang labelnya
-benar.
+Struktur sekunder pertama-tama harus ditetapkan dari struktur yang sudah diukur. Program DSSP melakukannya dengan mencari pola
+ikatan hidrogen: deretan ikatan $i\to i+4$ menandai heliks alfa, dan pasangan ikatan antar untai menandai lembaran. Label
+dari DSSP menjadi data latih untuk prediksi.
+
+Prediksi struktur sekunder memberi setiap residu satu dari tiga label: heliks, lembaran, atau lainnya. Metode Chou--Fasman,
+yang paling awal, memakai kecenderungan statistik setiap asam amino untuk berada di heliks atau lembaran. Metode GOR menambahkan
+konteks dengan teori informasi: label sebuah residu ditebak dari asam amino di jendela sekitar delapan residu di kiri dan
+kanannya. Lompatan besar datang dari dua gagasan lain. Yang pertama adalah memakai profil evolusi dari banyak urutan homolog,
+yang dikumpulkan dengan pencarian seperti PSI-BLAST, alih-alih satu urutan saja. Posisi yang hanya mentoleransi residu
+hidrofobik di semua kerabat lebih informatif daripada satu residu dari satu protein. Yang kedua adalah jaringan saraf dua
+tingkat, yang dibahas rinci di naskah kuliah dan dipakai metode seperti PHD dan PSIPRED. Tingkat pertama memprediksi dari jendela
+profil, dan tingkat kedua menghaluskan prediksi itu dengan melihat prediksi tetangganya, karena heliks dan lembaran selalu
+muncul dalam potongan berurutan dan tidak pernah berupa satu residu yang terisolasi.
+
+Kinerjanya diukur dengan Q3, fraksi residu yang labelnya benar, dan akurasi per kelas. Karena Q3 tidak peduli apakah sebuah
+heliks terpotong-potong menjadi beberapa heliks pendek, ukuran SOV menilai tumpang tindih segmen, bukan residu satu per satu.
+Naskah kuliah juga mencatat bahwa kebanyakan metode paling kesulitan dengan lembaran beta, karena untai-untainya dipasangkan
+oleh residu yang berjauhan dalam urutan, informasi yang tidak terlihat dari jendela lokal.
 
 \section{Struktur tiga dimensi}
 
-Kalau sebuah protein punya kerabat evolusi yang strukturnya sudah diketahui, kita bisa meminjam
-strukturnya. Pemodelan homologi menjajarkan urutan baru dengan urutan kerabatnya, menyalin koordinat
-rantai utama untuk bagian yang terjajar, lalu membangun bagian yang berbeda, seperti lengkungan yang
-lebih panjang. Prinsip dasarnya adalah bahwa struktur dilestarikan evolusi jauh lebih kuat daripada
-urutan. Kalau tidak ada kerabat yang jelas, \istilah{threading} mencoba memasang urutan baru ke setiap
-lipatan yang dikenal dan menilai kecocokannya dengan potensial kontak statistik. Pendekatan
-\emph{ab initio} seperti Rosetta merakit struktur dari potongan-potongan pendek yang diambil dari
-struktur yang dikenal, lalu mencari konformasi berenergi rendah dengan Monte Carlo. Simulasi dinamika
-molekul (\cref{ch:fiskom}) bisa memperhalus struktur, tetapi terlalu mahal untuk melipat protein dari nol.
+Kalau sebuah protein punya kerabat evolusi yang strukturnya sudah diketahui, kita bisa meminjam strukturnya. Pemodelan homologi
+mencari kerabat itu dengan pencarian urutan seperti BLAST, menjajarkan urutan baru dengan urutan kerabatnya, menyalin koordinat
+rantai utama untuk bagian yang terjajar, lalu membangun bagian yang berbeda, seperti lengkungan yang lebih panjang, dan rantai
+samping. Prinsip dasarnya adalah bahwa struktur dilestarikan evolusi jauh lebih kuat daripada urutan: dua protein dengan
+identitas urutan tiga puluh persen sering masih berbagi lipatan yang sama.
 
-Perkembangan bidang ini diukur dengan kompetisi CASP, di mana kelompok-kelompok memprediksi struktur yang
-sudah dipecahkan secara eksperimen tetapi belum dipublikasikan. Selama bertahun-tahun, kemajuannya
-lambat.
+Kalau tidak ada kerabat yang jelas, \istilah{threading} mencoba memasang urutan baru ke setiap lipatan yang dikenal dan menilai
+kecocokannya. Penilaiannya memakai potensial kontak statistik, yang dibahas di lampiran naskah kuliah: dari ribuan struktur
+yang diketahui, dihitung seberapa sering setiap pasangan jenis asam amino bersentuhan dibanding yang diharapkan secara acak,
+lalu diubah menjadi energi semu dengan logaritma. Energi sebuah susunan adalah jumlah energi semua pasangan yang bersentuhan,
+$E=\sum_{\text{kontak }(i,j)}e(a_i,a_j)$. Pasangan dua residu hidrofobik yang sering bersentuhan di inti protein mendapat energi
+negatif, sehingga susunan yang mengubur residu hidrofobik dinilai baik.
+
+Pendekatan \emph{ab initio} seperti Rosetta merakit struktur dari potongan-potongan pendek sepanjang tiga sampai sembilan residu
+yang diambil dari struktur yang dikenal dengan urutan lokal yang mirip, lalu mencari konformasi berenergi rendah dengan Monte
+Carlo dan aturan penerimaan Metropolis (\cref{ch:fiskom}). Dinamika molekul mengintegrasikan persamaan Newton untuk setiap atom
+dengan medan gaya yang menjumlahkan energi ikatan, sudut, torsi, dan interaksi antar atom yang tidak terikat. Interaksi van der
+Waals biasanya dimodelkan dengan potensial Lennard-Jones,
+\begin{equation}
+V(r)=4\varepsilon\Big[\Big(\frac\sigma r\Big)^{12}-\Big(\frac\sigma r\Big)^{6}\Big],
+\end{equation}
+dengan suku pangkat dua belas untuk tolakan ketika atom terlalu dekat dan suku pangkat enam untuk tarikan lemah. Menyamakan
+turunannya dengan nol, $-12\sigma^{12}/r^{13}+6\sigma^6/r^7=0$, memberi jarak setimbang $r=2^{1/6}\sigma\approx1{,}12\,\sigma$,
+dan memasukkannya kembali memberi kedalaman sumur tepat $-\varepsilon$ (\cref{fig:lj}). Interaksi listrik antar muatan ditambahkan dengan hukum
+Coulomb. Simulasi seperti ini bisa memperhalus struktur dan memperlihatkan bagaimana protein bergerak, tetapi terlalu mahal untuk
+melipat protein besar dari nol, karena langkah waktunya harus sekitar satu femtodetik untuk mengikuti getaran ikatan.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=0.62\linewidth,height=4.6cm,axis lines=middle,xmin=0.85,xmax=2.6,ymin=-1.3,ymax=2,
+  xlabel={\small $r/\sigma$},ylabel={\small $V/\varepsilon$},xtick={1,1.12,2},xticklabels={$1$,$2^{1/6}$,$2$},
+  ytick={-1,1},every axis x label/.style={at={(ticklabel* cs:1)},anchor=north west},
+  every axis y label/.style={at={(ticklabel* cs:1)},anchor=south}]
+  \addplot[biru,thick,domain=0.9:2.6,samples=150] {4*((1/x)^12-(1/x)^6)};
+  \draw[dashed,abu] (axis cs:1.1225,0) -- (axis cs:1.1225,-1);
+\end{axis}
+\end{tikzpicture}
+\caption{Potensial Lennard-Jones. Tolakan yang curam di jarak pendek, sumur sedalam $\varepsilon$ di $r=2^{1/6}\sigma$,
+dan tarikan yang melemah di jarak jauh.}
+\label{fig:lj}
+\end{figure}
+
+Untuk membaca urutan secara geometris, \cref{fig:roda} memperlihatkan roda heliks: residu-residu heliks alfa dilihat dari
+ujung sumbunya, masing-masing diputar $100^\circ$ dari sebelumnya. Residu ke-1, ke-4, ke-5, dan ke-8 jatuh di sisi yang
+hampir sama, sehingga kalau keempatnya hidrofobik, heliksnya punya satu wajah berminyak.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \draw[abu] (0,0) circle (2.3);
+  \foreach \i in {1,...,11}{
+    \pgfmathsetmacro{\a}{90-(\i-1)*100}
+    \pgfmathsetmacro{\h}{(\i==1 || \i==4 || \i==5 || \i==8 || \i==11) ? 1 : 0}
+    \ifdim\h pt>0.5pt
+      \node[bulat,fill=oranye!35,minimum size=6.5mm,inner sep=0pt] at (\a:2.3) {\small\i};
+    \else
+      \node[bulat,minimum size=6.5mm,inner sep=0pt] at (\a:2.3) {\small\i};
+    \fi
+  }
+\end{tikzpicture}
+\caption{Roda heliks untuk sebelas residu. Residu yang diwarnai (1, 4, 5, 8, 11) berkumpul di satu sisi, pola yang
+menandai heliks amfipatik.}
+\label{fig:roda}
+\end{figure}
+
+Perkembangan bidang ini diukur dengan kompetisi CASP, di mana kelompok-kelompok memprediksi struktur yang sudah dipecahkan secara
+eksperimen tetapi belum dipublikasikan. Naskah kuliah, yang ditulis pada 2007, menutup dengan hasil CASP7, ketika prediksi tanpa
+kerabat yang jelas masih jauh dari akurat. Selama bertahun-tahun, kemajuannya lambat.
+
+\section{Dari mutasi yang berpasangan ke peta kontak}
+
+Gagasan bahwa evolusi menyimpan informasi tentang bentuk protein bisa dibuat kuantitatif. Susun ratusan urutan dari keluarga protein
+yang sama dalam satu penjajaran, sehingga setiap kolom adalah satu posisi residu. Kalau dua posisi bersentuhan di dalam struktur,
+asam amino di kedua kolom cenderung berubah bersama. Ukuran paling sederhananya adalah \istilah{mutual information} antara dua kolom,
+$\mathrm{MI}(i,j)=\sum_{a,b}p_{ij}(a,b)\log_2\frac{p_{ij}(a,b)}{p_i(a)p_j(b)}$, yaitu KL antara distribusi bersama dan hasil kali
+marginalnya (\cref{lamp:matematika}). Misalkan dalam empat urutan, kolom $i$ dan $j$ berisi pasangan (A,L), (A,L), (G,V), dan (G,V):
+setiap kali posisi $i$ berisi A, posisi $j$ berisi L, sehingga mengetahui satu kolom memberi tahu kolom lain sepenuhnya, dan MI-nya satu
+bit. Kalau pasangannya (A,L), (A,V), (G,L), dan (G,V), kedua kolom independen, dan MI-nya nol.
+
+Masalahnya adalah korelasi tidak langsung. Kalau posisi A bersentuhan dengan B, dan B bersentuhan dengan C, maka A dan C juga tampak
+berkorelasi walau tidak pernah bersentuhan, sama seperti dua anak dari orang tua yang sama tampak berkorelasi tanpa saling memengaruhi.
+\emph{Direct-coupling analysis} \citep{morcos2011} memisahkan keduanya dengan menyesuaikan model statistik global atas seluruh penjajaran,
+sejenis model Potts, sehingga setiap pasangan hanya mendapat sumbangan yang tidak bisa dijelaskan oleh pasangan lain. Hasilnya adalah
+peta kontak yang cukup akurat untuk merekonstruksi lipatan global banyak keluarga protein hanya dari urutan.
+
+Peta kontak adalah matriks $L\times L$, sehingga bisa diperlakukan seperti gambar, dan sejak pertengahan 2010-an jaringan konvolusi
+dilatih untuk meramalkan kontak, bahkan jarak antar residu, dari fitur-fitur penjajaran. Pola-pola khas dalam peta itu mudah dikenali:
+pita sejajar diagonal untuk heliks, karena residu $i$ bersentuhan dengan $i+3$ dan $i+4$, serta pita tegak lurus diagonal untuk untai beta
+yang saling berlawanan arah. Langkah dari meramal peta kontak ke meramal koordinat langsung adalah langkah yang diambil AlphaFold.
 
 \section{AlphaFold}
 
-Pada CASP14 tahun 2020, AlphaFold2 \citep{jumper2021} memprediksi banyak struktur dengan akurasi yang
-mendekati percobaan. Gagasan kuncinya sudah lama dikenal dalam bioinformatika, tetapi dimanfaatkan
-dengan cara baru. Kalau dua residu bersentuhan di dalam struktur, mutasi pada salah satunya sering
-diikuti mutasi pengimbang pada yang lain, supaya kontaknya tetap terjaga. Jadi pola mutasi yang
-berkorelasi dalam penjajaran banyak urutan homolog adalah petunjuk tentang residu mana yang berdekatan
-di ruang tiga dimensi.
+Pada CASP14 tahun 2020, AlphaFold2 \citep{jumper2021} memprediksi banyak struktur dengan akurasi yang mendekati percobaan. Gagasan
+kuncinya sudah lama dikenal dalam bioinformatika, tetapi dimanfaatkan dengan cara baru. Kalau dua residu bersentuhan di dalam
+struktur, mutasi pada salah satunya sering diikuti mutasi pengimbang pada yang lain, supaya kontaknya tetap terjaga. Jadi pola
+mutasi yang berkorelasi dalam penjajaran banyak urutan homolog adalah petunjuk tentang residu mana yang berdekatan di ruang tiga
+dimensi. Ini profil evolusi dari prediksi struktur sekunder, dibawa ke tingkat pasangan residu.
 
-AlphaFold2 memproses dua representasi sekaligus: penjajaran banyak urutan, dan representasi pasangan
-yang menyimpan hubungan antara setiap pasangan residu. Blok Evoformer bertukar informasi di antara
-keduanya dengan attention, termasuk operasi yang menegakkan konsistensi geometris, misalnya bahwa
-jarak-jarak di antara tiga residu harus memenuhi ketaksamaan segitiga. Modul struktur kemudian
-menempatkan setiap residu sebagai benda kaku di ruang dengan attention yang invarian terhadap rotasi
-dan translasi global, gagasan dari \cref{ch:gdl}. Model ini juga mengeluarkan perkiraan keyakinannya
-sendiri untuk setiap residu, sehingga pengguna tahu bagian mana yang bisa dipercaya. AlphaFold3
-\citep{abramson2024} memperluasnya ke kompleks protein dengan DNA, RNA, dan molekul kecil, dengan
-modul struktur berbasis difusi (\cref{ch:mlat}) yang membangkitkan koordinat atom secara langsung.
+AlphaFold2 memproses dua representasi sekaligus: penjajaran banyak urutan, dan representasi pasangan yang menyimpan hubungan antara
+setiap pasangan residu. Blok Evoformer bertukar informasi di antara keduanya dengan attention, termasuk operasi yang menegakkan
+konsistensi geometris, misalnya bahwa jarak-jarak di antara tiga residu harus memenuhi ketaksamaan segitiga. Modul struktur kemudian
+menempatkan setiap residu sebagai benda kaku di ruang dengan attention yang invarian terhadap rotasi dan translasi global, gagasan
+dari \cref{ch:gdl}. Model ini juga mengeluarkan perkiraan keyakinannya sendiri untuk setiap residu, sehingga pengguna tahu bagian
+mana yang bisa dipercaya dan bagian mana, sering ujung-ujung yang tidak berstruktur, yang sebaiknya diabaikan. AlphaFold3
+\citep{abramson2024} memperluasnya ke kompleks protein dengan DNA, RNA, dan molekul kecil, dengan modul struktur berbasis difusi
+(\cref{ch:mlat}) yang membangkitkan koordinat atom secara langsung.
 
-Hadiah Nobel Kimia 2024 sebagian diberikan untuk prediksi struktur protein ini, pengakuan bahwa sebuah
-metode machine learning telah menyelesaikan masalah ilmiah yang mendasar.
+Hadiah Nobel Kimia 2024 sebagian diberikan untuk prediksi struktur protein ini, pengakuan bahwa sebuah metode machine learning
+telah menyelesaikan masalah ilmiah yang mendasar.
 
 \section{Binding pocket dan obat}
 
-Untuk penemuan obat (\cref{ch:hayati}), yang paling penting sering bukan seluruh struktur, melainkan
-kantong tempat obat menempel. Tantangan di kuliah merumuskan prediksi binding pocket sebagai
-klasifikasi setiap residu: masuk kantong atau tidak. Fiturnya bisa berasal dari urutan, dari struktur
-tiga dimensi seperti seberapa terkubur sebuah residu, atau dari embedding model bahasa protein. Karena
-residu kantong hanya sebagian kecil dari seluruh protein, akurasi biasa menyesatkan, dan ukuran seperti
-F1 atau tumpang tindih antara himpunan residu tebakan dan himpunan yang benar lebih jujur, persis seperti
-pelajaran tentang kelas tidak seimbang di \cref{ch:data}.
+Untuk penemuan obat (\cref{ch:hayati}), yang paling penting sering bukan seluruh struktur, melainkan kantong tempat obat menempel.
+Tantangan di kuliah merumuskan prediksi binding pocket sebagai klasifikasi setiap residu: masuk kantong atau tidak. Data latihnya
+berupa daftar residu kantong untuk setiap protein, dan prediksi dikirim dalam format yang sama. Fiturnya bisa berasal dari urutan,
+dari struktur tiga dimensi seperti seberapa terkubur sebuah residu dan bentuk permukaan di sekitarnya, atau dari embedding model
+bahasa protein.
 
-\sumberbab{Bab ini mengikuti kuliah Structural Bioinformatics dan naskah Bioinformatics III (latar kimia
-dan fisika, perbandingan dan penjajaran struktur, prediksi struktur sekunder, pemodelan homologi dan
-threading, prediksi ab initio dan dinamika molekul), beserta tantangan prediksi binding pocket.
-Perkembangan terbaru diambil dari makalah AlphaFold \citep{jumper2021,abramson2024}.}
+Karena residu kantong hanya sebagian kecil dari seluruh protein, akurasi biasa menyesatkan, persis seperti pelajaran tentang kelas
+tidak seimbang di \cref{ch:data}. Kalau sebuah protein punya 300 residu dan 15 di antaranya membentuk kantong, model yang selalu
+menjawab ``bukan kantong'' sudah benar 95 persen. Ukuran yang lebih jujur membandingkan himpunan residu tebakan dengan himpunan
+yang benar. Kalau model menebak 12 residu dan 9 di antaranya benar, presisinya $9/12=0{,}75$, recall-nya $9/15=0{,}60$, dan F1-nya
+$2\cdot0{,}75\cdot0{,}60/(0{,}75+0{,}60)\approx0{,}67$. Pengetahuan kimia membantu di sini: kantong biasanya berupa cekungan di
+permukaan, dan residu-residunya berdekatan di ruang walau berjauhan dalam urutan, sehingga prediksi yang tersebar acak di
+permukaan protein hampir pasti salah.
+
+\section{Perkembangan riset}
+
+Setelah prediksi struktur, perhatian bergeser ke desain. ESMFold \citep{lin2023esm} menunjukkan bahwa model bahasa protein
+dengan sampai 15 miliar parameter menyimpan cukup informasi struktur untuk memprediksi struktur atom langsung dari satu
+urutan, tanpa penjajaran banyak urutan, dan jauh lebih cepat. Kecepatannya memungkinkan prediksi struktur lebih dari 617
+juta protein metagenomik. RFdiffusion \citep{watson2023} menyetel jaringan prediksi struktur RoseTTAFold sebagai model
+difusi untuk rangka protein, sehingga bisa membangkitkan rangka baru yang mengikat target tertentu atau membentuk susunan
+simetris, dan ratusan desainnya diuji di laboratorium. ProteinMPNN \citep{dauparas2022} menyelesaikan langkah berikutnya:
+diberikan sebuah rangka, cari urutan asam amino yang akan melipat ke bentuk itu, dengan message passing pada graf residu.
+Pada rangka protein alami, urutan aslinya dipulihkan 52 persen, dibanding 33 persen untuk Rosetta.
+
+ESM3 \citep{hayes2025} menggabungkan urutan, struktur, dan fungsi dalam satu model bahasa generatif. Salah satu protein
+fluoresen yang dibangkitkannya, setelah disintesis, ternyata bersinar terang walau hanya 58 persen identik dengan protein
+fluoresen yang dikenal, jarak yang menurut perkiraan penulisnya setara dengan sekitar 500 juta tahun evolusi. Alur kerja
+yang terbentuk, rangka dari model difusi, urutan dari model graf, lalu pemeriksaan dengan prediksi struktur, adalah
+gabungan hampir semua bab di bagian buku ini.
+
+\sumberbab{Bab ini mengikuti kuliah Structural Bioinformatics dan naskah Bioinformatics III (latar kimia dan fisika, struktur
+sekunder dan tersier, perbandingan dan penjajaran struktur, prediksi struktur sekunder dan evaluasinya, pemodelan homologi dan
+threading, prediksi ab initio dan dinamika molekul), beserta tantangan prediksi binding pocket. Perkembangan terbaru diambil
+dari makalah AlphaFold \citep{jumper2021,abramson2024}.}

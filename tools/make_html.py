@@ -109,7 +109,8 @@ def tikz_to_svg(code):
         os.makedirs(work, exist_ok=True)
         shutil.copy(os.path.join(BOOK, "tikzstyles.tex"), work)
         tex = os.path.join(work, h + ".tex")
-        open(tex, "w", encoding="utf-8").write(STANDALONE % code)
+        doc = (STANDALONE % code).replace("\\begin{document}", MACROS + "\n\\begin{document}", 1)
+        open(tex, "w", encoding="utf-8").write(doc)
         r = subprocess.run(["pdflatex", "-interaction=nonstopmode", "-halt-on-error", h + ".tex"],
                            cwd=work, capture_output=True, text=True, errors="replace")
         if r.returncode != 0:
@@ -121,6 +122,8 @@ def figures(s):
     def rep(m):
         code = m.group(0)
         # resolve refs inside the picture before compiling
+        for c in ("Cref", "cref"):
+            code = replace_cmd(code, c, lambda a: "Bab " + ", ".join(LABELS.get(x.strip(), "?") for x in a.split(",")))
         code = replace_cmd(code, "ref", lambda a: LABELS.get(a.strip(), "?"))
         src = tikz_to_svg(code)
         return f"\\includegraphics{{{src}}}" if src else ""
@@ -145,12 +148,15 @@ MACROS = r"""
 \newcommand{\mA}{\boldsymbol{A}}
 \newcommand{\mX}{\boldsymbol{X}}
 \newcommand{\KL}{\mathrm{KL}}
+\newcommand{\ket}[1]{\lvert #1\rangle}
+\newcommand{\braket}[2]{\langle #1\vert #2\rangle}
 \newcommand{\argmin}{\operatorname*{arg\,min}}
 \newcommand{\argmax}{\operatorname*{arg\,max}}
 """
 
 def simplify(s):
     s = re.sub(r"(?m)^%.*$", "", s)
+    s = s.replace(B + "label[appendix]{", B + "label{")
     s = re.sub(r"\\bm(?![A-Za-z])", lambda m: B + "boldsymbol", s)
     s = replace_cmd(s, "istilah", lambda a: B + "emph{" + a + "}")
     s = replace_cmd(s, "sumberbab", lambda a: "\n\n" + B + "paragraph{Catatan sumber.} " + a + "\n\n")

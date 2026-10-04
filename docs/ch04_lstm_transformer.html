@@ -18,7 +18,7 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 6</p>
+<p class="chapnum">Bab 9</p>
 <h1>Mengingat: dari RNN ke LSTM dan Transformer</h1>
 <p><span id="ch:lstm" data-label="ch:lstm"></span></p>
 <p>Di semester pertama, kuliah LSTM diberikan langsung oleh Sepp
@@ -69,7 +69,7 @@ maju bersama waktu. Gradien tersedia di setiap langkah tanpa menyimpan
 masa lalu, tetapi harganya mahal: untuk jaringan rekuren penuh dengan
 <span class="math inline">\(n\)</span> unit, biayanya tumbuh seperti
 <span class="math inline">\(n^4\)</span> per langkah. Dalam bahasa <a
-href="ch03_dl_basic.html">Bab 5</a>, RTRL adalah forward mode, sedangkan
+href="ch03_dl_basic.html">Bab 7</a>, RTRL adalah forward mode, sedangkan
 BPTT adalah reverse mode.</p>
 <h2 id="gradien-yang-hilang-dan-meledak">Gradien yang hilang dan
 meledak</h2>
@@ -145,7 +145,34 @@ c_t\)</span> adalah keadaan sel. Sepanjang jalur sel, <span
 class="math inline">\(\partial\boldsymbol c_t/\partial\boldsymbol
 c_{t-1}=\boldsymbol f_t\)</span>. Selama gerbang lupa dekat satu, error
 mengalir hampir tanpa hambatan, dan jaringan sendiri yang memutuskan
-kapan harus melupakan.</p>
+kapan harus melupakan. Gambar 9.1 menggambarkan aliran di dalam satu
+sel.</p>
+<figure id="fig:lstm">
+<img src="fig/dd8ff4580751.svg" />
+<figcaption>Satu sel LSTM. Jalur atas (biru) adalah constant error
+carousel: keadaan sel hanya dikalikan gerbang lupa dan ditambah isi
+baru, sehingga error bisa mengalir mundur tanpa melewati
+nonlinearitas.</figcaption>
+</figure>
+<p>Satu langkah dengan angka membantu. Misalkan sel skalar menyimpan
+<span class="math inline">\(c_{t-1}=2\)</span>, dan pada langkah ini
+gerbang lupa <span class="math inline">\(f_t=0{,}9\)</span>, gerbang
+input <span class="math inline">\(i_t=0{,}1\)</span>, input sel <span
+class="math inline">\(z_t=-1\)</span>, dan gerbang output <span
+class="math inline">\(o_t=0{,}5\)</span>. Keadaan baru <span
+class="math inline">\(c_t=0{,}9\cdot2+0{,}1\cdot(-1)=1{,}7\)</span>, dan
+keluaran <span
+class="math inline">\(h_t=0{,}5\tanh(1{,}7)\approx0{,}47\)</span>.
+Ingatan berubah sedikit saja. Kalau gerbang lupa tetap <span
+class="math inline">\(0{,}9\)</span> selama dua puluh langkah tanpa
+input baru, sisa ingatan tinggal <span
+class="math inline">\(0{,}9^{20}\approx0{,}12\)</span> dari semula, dan
+gradien sepanjang jalur sel menyusut dengan faktor yang sama. Dengan
+gerbang lupa <span class="math inline">\(0{,}99\)</span>, sisanya <span
+class="math inline">\(0{,}82\)</span>. Bandingkan dengan RNN di atas
+yang menyusut lebih dari sejuta kali dalam dua puluh langkah. Bedanya,
+faktor susutnya kini dipelajari jaringan sendiri dan bisa dibuat dekat
+ke satu.</p>
 <p>Saya membayangkan keadaan sel sebagai buku catatan. Gerbang input
 adalah stabilo: hanya hal yang ditandai yang ditulis ke buku. Gerbang
 lupa adalah penghapus, karena kadang halaman lama perlu dibersihkan.
@@ -232,9 +259,25 @@ beberapa attention paralel dengan proyeksi yang berbeda yang hasilnya
 digabung, lalu jaringan feed-forward yang bekerja per posisi. Keduanya
 dibungkus koneksi residual dan layer normalization. Karena attention
 tidak peduli urutan, informasi posisi ditambahkan lewat <em>positional
-encoding</em>. Untuk model bahasa yang menulis dari kiri ke kanan,
-sebuah <em>causal mask</em> mencegah setiap posisi melihat masa
-depan.</p>
+encoding</em>. Versi asli memakai gelombang sinus dan kosinus dengan
+frekuensi berbeda untuk setiap dimensi, <span
+class="math inline">\(\mathrm{PE}(p,2i)=\sin\big(p/10000^{2i/d}\big)\)</span>
+dan <span
+class="math inline">\(\mathrm{PE}(p,2i+1)=\cos\big(p/10000^{2i/d}\big)\)</span>,
+seperti jarum-jarum jam yang berputar dengan kecepatan berbeda: jarum
+cepat membedakan posisi yang bersebelahan, jarum lambat membedakan
+posisi yang berjauhan. Karena <span
+class="math inline">\(\sin(a+b)\)</span> dan <span
+class="math inline">\(\cos(a+b)\)</span> adalah kombinasi linear dari
+<span class="math inline">\(\sin a\)</span> dan <span
+class="math inline">\(\cos a\)</span>, posisi <span
+class="math inline">\(p+k\)</span> bisa diperoleh dari posisi <span
+class="math inline">\(p\)</span> dengan sebuah rotasi yang hanya
+bergantung pada <span class="math inline">\(k\)</span>, sehingga
+attention mudah mempelajari posisi relatif. Banyak model sekarang
+memakai gagasan ini secara langsung dengan memutar query dan key menurut
+posisinya. Untuk model bahasa yang menulis dari kiri ke kanan, sebuah
+<em>causal mask</em> mencegah setiap posisi melihat masa depan.</p>
 <p>Kelebihan transformer adalah semua posisi diproses paralel selama
 pelatihan, dan dua token mana pun hanya berjarak satu langkah attention.
 Kekurangannya, yang ditekankan di kuliah, adalah biaya attention yang
@@ -252,29 +295,19 @@ Biasanya satu langkah update sudah cukup untuk mengambil pola yang
 paling mirip. Dari sudut pandang ini, attention adalah cara membaca dari
 sebuah ingatan asosiatif yang kapasitasnya sangat besar.</p>
 <h2 id="dari-bahasa-ke-vektor">Dari bahasa ke vektor</h2>
-<p>Kuliah NLP mengisi sisi datanya. Kata harus diubah menjadi angka
-sebelum masuk ke jaringan. Cara paling sederhana adalah <em>bag of
-words</em>, yang menghitung frekuensi kata dalam dokumen dan mengabaikan
-urutannya. Model <em>n-gram</em> memprediksi kata berikutnya dari <span
-class="math inline">\(n-1\)</span> kata sebelumnya dengan menghitung
-frekuensi di sebuah korpus, tetapi jumlah konteks yang mungkin meledak
-seiring bertambahnya <span class="math inline">\(n\)</span>.</p>
-<p><em>Word embedding</em> memetakan setiap kata ke vektor padat
-berdimensi beberapa ratus, sedemikian sehingga kata-kata yang muncul
-dalam konteks serupa punya vektor yang berdekatan <span class="citation"
-data-cites="mikolov2013">(Mikolov dkk. 2013)</span>. Hubungan seperti
-“raja dikurangi pria ditambah wanita kira-kira sama dengan ratu” muncul
-dengan sendirinya. Embedding juga menyerap bias dari teks pelatihannya
-<span class="citation" data-cites="bolukbasi2016">(Bolukbasi dkk.
-2016)</span>, tema yang kembali di <a href="ch51_ai_manusia.html">Bab
-31</a>.</p>
-<p>Model bahasa besar menggabungkan semua ini. BERT <span
-class="citation" data-cites="devlin2019">(Devlin dkk. 2018)</span>
-dilatih menebak kata yang ditutup, sehingga ia melihat konteks kiri dan
-kanan. GPT-3 <span class="citation" data-cites="brown2020">(Brown dkk.
-2020)</span> dilatih menebak kata berikutnya, dan menunjukkan bahwa
-dengan skala yang cukup, sebuah model bisa mengerjakan tugas baru hanya
-dari beberapa contoh di dalam prompt.</p>
+<p>Agar bisa masuk ke jaringan rekuren atau transformer, kata harus
+lebih dulu diubah menjadi vektor. Jalan dari kantong kata, model bahasa
+<span class="math inline">\(n\)</span>-gram, dan perplexity, ke word
+embedding seperti word2vec <span class="citation"
+data-cites="mikolov2013">(Mikolov dkk. 2013)</span> dan GloVe, sampai
+model bahasa besar seperti BERT <span class="citation"
+data-cites="devlin2019">(Devlin dkk. 2018)</span> dan GPT <span
+class="citation" data-cites="brown2020">(Brown dkk. 2020)</span>,
+dibahas tersendiri di <a href="ch04b_nlp.html">Bab 10</a>. Untuk bab ini
+cukup satu gambaran: setiap token menjadi vektor padat berdimensi
+beberapa ratus, kata-kata yang muncul dalam konteks serupa mendapat
+vektor yang berdekatan, dan deret vektor itulah yang diproses oleh
+arsitektur-arsitektur di atas.</p>
 <h2 id="rekurensi-yang-kembali">Rekurensi yang kembali</h2>
 <p>Biaya kuadratik transformer mendorong pencarian arsitektur dengan
 biaya linear. <em>State space model</em> memakai rekurensi linear <span
@@ -290,60 +323,209 @@ ini tidak lain adalah diskretisasi persamaan diferensial biasa yang
 linear, <span
 class="math inline">\(\dot{\boldsymbol{h}}=\boldsymbol{A}\boldsymbol{h}+\boldsymbol
 Bx\)</span>, sebuah objek yang akan kita temui lagi di <a
-href="ch09_ml_advanced.html">Bab 11</a> dan <a
-href="ch17_penemuan_reduksi.html">Bab 27</a>.</p>
+href="ch09_ml_advanced.html">Bab 15</a> dan <a
+href="ch17_penemuan_reduksi.html">Bab 31</a>.</p>
+<h2 id="xlstm-lstm-untuk-era-model-bahasa-besar">xLSTM: LSTM untuk era
+model bahasa besar</h2>
+<h2 id="xlstm-lstm-untuk-era-model-bahasa-besar-1">xLSTM: LSTM untuk era
+model bahasa besar</h2>
 <p>Kuliah ditutup dengan xLSTM <span class="citation"
-data-cites="beck2024">(Beck dkk. 2024)</span>, yang berangkat dari tiga
-keterbatasan LSTM yang disebut terang-terangan di slide. Keterbatasan
-pertama adalah ketidakmampuan merevisi keputusan penyimpanan. Kalau
-vektor yang lebih cocok datang belakangan, LSTM sulit menimpa isi lama.
-Jawabannya adalah <em>exponential gating</em>. Gerbang input <span
+data-cites="beck2024">(Beck dkk. 2024)</span>, yang dikembangkan di Linz
+pada 2024. Pertanyaan yang diajukan slide terakhir kuliah sederhana:
+seberapa jauh LSTM bisa melangkah kalau diperbesar ke miliaran parameter
+dengan teknik model bahasa modern, dan kalau
+keterbatasan-keterbatasannya yang sudah dikenal diperbaiki? Slide
+menyebut tiga keterbatasan itu secara terang-terangan, masing-masing
+dengan satu tugas uji yang memperlihatkannya.</p>
+<h3 id="tiga-keterbatasan-lstm">Tiga keterbatasan LSTM</h3>
+<p>Keterbatasan pertama adalah ketidakmampuan merevisi keputusan
+penyimpanan. Tugas ujinya adalah pencarian tetangga terdekat: diberikan
+sebuah vektor acuan, baca deret vektor satu per satu, dan di akhir deret
+keluarkan nilai yang melekat pada vektor yang paling mirip dengan acuan.
+Setiap kali datang vektor yang lebih mirip, isi ingatan harus diganti
+seluruhnya. Gerbang input sigmoid paling besar bernilai satu, sehingga
+isi baru paling banyak bisa ditambahkan dengan bobot yang sama dengan
+isi lama, dan menghapus isi lama membutuhkan gerbang lupa yang tepat nol
+pada saat yang tepat.</p>
+<p>Keterbatasan kedua adalah kapasitas penyimpanan. Satu sel LSTM
+menyimpan satu skalar. Tugas ujinya adalah prediksi token yang jarang
+muncul. Slide memperlihatkan perplexity pada Wikitext-103 yang dipisah
+menurut frekuensi token: token yang jarang tidak bisa dipelajari dari
+data latih karena terlalu jarang dilihat, sehingga harus diingat dari
+konteks, dan di situlah LSTM tertinggal. Keterbatasan ketiga adalah
+pelatihan yang tidak bisa diparalelkan, karena setiap langkah bergantung
+pada <span class="math inline">\(\boldsymbol{h}_{t-1}\)</span> melalui
+bobot rekuren.</p>
+<h3 id="slstm-exponential-gating">sLSTM: exponential gating</h3>
+<p>Jawaban untuk keterbatasan pertama adalah <em>exponential
+gating</em>. Gerbang input menjadi <span
 class="math inline">\(\boldsymbol i_t=\exp(\tilde{\boldsymbol
-i}_t)\)</span> bisa bernilai besar sehingga isi baru mendominasi,
-sementara sebuah keadaan normalisasi <span
-class="math inline">\(\boldsymbol n_t=\boldsymbol f_t\odot\boldsymbol
-n_{t-1}+\boldsymbol i_t\)</span> menjaga skalanya, dan keluaran membaca
-<span class="math inline">\(\boldsymbol c_t/\boldsymbol n_t\)</span>.
-Agar eksponensial tidak meluap, dipakai keadaan penstabil <span
-class="math inline">\(m_t=\max(\log f_t+m_{t-1},\log i_t)\)</span>.
-Varian ini disebut sLSTM.</p>
-<p>Keterbatasan kedua adalah kapasitas penyimpanan, karena satu sel LSTM
-hanya menyimpan skalar. mLSTM mengganti sel dengan sebuah matriks dan
-memakai aturan update kovarians: <span
-class="math display">\[\boldsymbol C_t=f_t\,\boldsymbol
+i}_t)\)</span>, sehingga bisa bernilai jauh lebih besar dari satu, dan
+sebuah keadaan normalisasi mengikuti jumlah semua bobot yang pernah
+masuk: <span class="math display">\[\boldsymbol c_t=\boldsymbol
+f_t\odot\boldsymbol c_{t-1}+\boldsymbol i_t\odot\boldsymbol{z}_t,\qquad
+\boldsymbol n_t=\boldsymbol f_t\odot\boldsymbol n_{t-1}+\boldsymbol
+i_t,\qquad
+\boldsymbol{h}_t=\boldsymbol o_t\odot\frac{\boldsymbol c_t}{\boldsymbol
+n_t}.\]</span> Keluaran adalah rata-rata berbobot dari semua input yang
+pernah disimpan. Contoh dengan angka memperlihatkan efeknya. Misalkan
+sel menyimpan nilai <span class="math inline">\(v_1\)</span> dengan
+bobot satu, jadi <span class="math inline">\(c=v_1\)</span> dan <span
+class="math inline">\(n=1\)</span>. Datang vektor yang jauh lebih cocok,
+dan jaringan memberi <span class="math inline">\(\tilde i=5\)</span>,
+sehingga <span class="math inline">\(i=e^5\approx148\)</span>, dengan
+gerbang lupa satu. Maka <span
+class="math inline">\(c=v_1+148\,v_2\)</span> dan <span
+class="math inline">\(n=149\)</span>, dan keluarannya <span
+class="math inline">\(c/n\approx0{,}007\,v_1+0{,}993\,v_2\)</span>. Isi
+lama praktis tertimpa tanpa perlu dihapus lebih dulu. Dengan gerbang
+sigmoid, yang paling besar satu, hasil terbaik dalam situasi yang sama
+adalah campuran setengah-setengah.</p>
+<p>Eksponensial mudah meluap, sehingga xLSTM menambahkan keadaan
+penstabil <span class="math inline">\(m_t=\max(\log f_t+m_{t-1},\log
+i_t)\)</span> dan memakai <span class="math inline">\(\exp(\tilde
+i_t-m_t)\)</span> serta <span class="math inline">\(\exp(\log
+f_t+m_{t-1}-m_t)\)</span> sebagai pengganti gerbang aslinya. Karena
+faktor <span class="math inline">\(e^{-m_t}\)</span> muncul di pembilang
+dan penyebut <span class="math inline">\(c_t/n_t\)</span>, keluarannya
+tidak berubah, hanya angkanya tetap dalam rentang yang aman. Varian ini
+disebut sLSTM. Ia tetap punya koneksi rekuren dari <span
+class="math inline">\(\boldsymbol{h}_{t-1}\)</span>, yang di slide
+disebut <em>memory mixing</em>: sel-sel saling memengaruhi lewat bobot
+rekuren, dibagi menjadi beberapa kepala dengan matriks blok-diagonal.
+Memory mixing inilah yang membuat sLSTM mampu melacak keadaan, tetapi
+juga yang membuatnya tidak bisa diparalelkan. Kapasitas ingatannya,
+menurut slide, sebanding dengan <span class="math inline">\(m/d\)</span>
+untuk <span class="math inline">\(m\)</span> sel dan dimensi tersembunyi
+<span class="math inline">\(d\)</span>, dan tidak bergantung pada
+panjang deret.</p>
+<h3 id="mlstm-ingatan-berbentuk-matriks">mLSTM: ingatan berbentuk
+matriks</h3>
+<p>Jawaban untuk keterbatasan kedua dan ketiga adalah mLSTM, yang
+mengganti sel skalar dengan sebuah matriks dan memakai aturan update
+kovarians: <span class="math display">\[\boldsymbol C_t=f_t\,\boldsymbol
 C_{t-1}+i_t\,\boldsymbol v_t\boldsymbol k_t^\top,\qquad
 \boldsymbol n_t=f_t\,\boldsymbol n_{t-1}+i_t\,\boldsymbol k_t,\qquad
 \tilde{\boldsymbol{h}}_t=\frac{\boldsymbol C_t\boldsymbol
 q_t}{\max\{|\boldsymbol n_t^\top\boldsymbol q_t|,1\}}.\]</span>
-Bentuknya mirip ingatan asosiatif: simpan pasangan key dan value, lalu
-ambil dengan query. Keterbatasan ketiga adalah pelatihan yang tidak bisa
-diparalelkan. Pada mLSTM, gerbang, key, value, dan query tidak
-bergantung pada <span
-class="math inline">\(\boldsymbol{h}_{t-1}\)</span>, sehingga
-pelatihannya bisa paralel seperti transformer. Blok sLSTM dan mLSTM
-kemudian ditumpuk dengan koneksi residual. Hasil yang dilaporkan
-menunjukkan xLSTM bersaing dengan transformer dan state space model
-dalam pemodelan bahasa, dengan biaya inferensi yang linear terhadap
-panjang deret.</p>
+Bentuknya adalah ingatan asosiatif: setiap langkah menyimpan pasangan
+key dan value sebagai matriks berpangkat satu, dan membaca berarti
+mengalikan matriks dengan query. Kalau key yang tersimpan kira-kira
+saling ortogonal dan ternormalisasi, query yang sama dengan key <span
+class="math inline">\(\boldsymbol k_j\)</span> mengambil kembali <span
+class="math inline">\(\boldsymbol C\boldsymbol k_j\approx i_j\boldsymbol
+v_j\)</span>, karena sumbangan pasangan lain hampir nol. Slide menyebut
+kapasitas matriks <span class="math inline">\(d\times d\)</span> ini
+sekitar <span class="math inline">\(0{,}14\,d\)</span> pasangan, angka
+yang sama dengan kapasitas klasik jaringan Hopfield, dan sekali lagi
+tidak bergantung pada panjang deret. Tugas ujinya adalah <em>multi-query
+associative recall</em>: deret berisi pasangan key dan value acak dari
+kosakata besar, lalu di akhir model ditanya value dari beberapa key
+sekaligus.</p>
+<p>Pada mLSTM, gerbang, key, value, dan query dihitung dari input saja,
+tidak dari <span class="math inline">\(\boldsymbol{h}_{t-1}\)</span>.
+Tanpa memory mixing, seluruh deret bisa diproses paralel selama
+pelatihan seperti attention linear, dan dijalankan secara rekuren saat
+inferensi. Harganya, mLSTM kehilangan kemampuan melacak keadaan yang
+dimiliki sLSTM.</p>
+<h3 id="blok-arsitektur-dan-hasil">Blok, arsitektur, dan hasil</h3>
+<p>Kedua sel dibungkus dalam blok residual yang berbeda (Gambar 9.2).
+sLSTM memakai blok <em>post up-projection</em> yang dikenal dari
+transformer: sel bekerja di dimensi model, lalu jaringan feed-forward
+memperbesar dan mengecilkan dimensinya. mLSTM memakai blok <em>pre
+up-projection</em> yang dikenal dari state space model: input diperbesar
+lebih dulu agar ingatan matriksnya berdimensi tinggi, dengan konvolusi
+pendek untuk query dan key, aktivasi Swish, gerbang output eksternal,
+dan koneksi lompat yang dipelajari. Arsitektur xLSTM menumpuk blok-blok
+ini secara residual, dan notasi xLSTM<span
+class="math inline">\([a{:}b]\)</span> menyatakan perbandingan jumlah
+blok mLSTM terhadap sLSTM.</p>
+<figure id="fig:xlstm">
+<img src="fig/a59dde1df9c1.svg" />
+<figcaption>Dua jenis blok xLSTM. Blok sLSTM mengikuti pola transformer,
+dengan pemrosesan di dimensi model lalu MLP. Blok mLSTM mengikuti pola
+state space model: dimensi diperbesar dulu agar ingatan matriksnya
+lapang. Keduanya ditumpuk dengan koneksi residual.</figcaption>
+</figure>
+<p>Hasil yang dilaporkan di slide mencakup empat hal. Pada bahasa formal
+yang membutuhkan pelacakan keadaan, model dengan sLSTM mampu
+menyelesaikan tugas yang gagal dikerjakan transformer dan state space
+model. Pada multi-query associative recall, mLSTM mengingat jauh lebih
+banyak pasangan dari model rekuren lain. Pada pemodelan bahasa dengan
+300 miliar token SlimPajama, xLSTM bersaing dengan transformer dan state
+space model berukuran sama, dan model 1,3 miliar parameter yang dilatih
+dengan konteks 2048 token tetap stabil ketika diuji sampai 16 384 token.
+Kurva hukum penskalaannya (<a href="ch52_terbaru.html">Bab 38</a>)
+menunjukkan bahwa keunggulan itu bertahan ketika model diperbesar. Slide
+mencatat bahwa model 2,7 miliar parameter dengan perbandingan <span
+class="math inline">\(7{:}1\)</span> masih kurang dilatih, karena
+konvergensinya awalnya lebih lambat.</p>
+<p>Slide juga jujur tentang keterbatasan xLSTM sendiri. Memory mixing
+membuat sLSTM tidak bisa diparalelkan, dan kernel CUDA cepatnya masih
+sekitar <span class="math inline">\(1{,}5\)</span> kali lebih lambat
+dari mLSTM paralel. Kernel mLSTM saat itu belum dioptimalkan, sekitar
+empat kali lebih lambat dari FlashAttention atau scan Mamba. Ingatan
+matriks mahal secara komputasi. Inisialisasi gerbang lupa harus dipilih
+hati-hati. Kapasitas ingatan terbatas pada <span
+class="math inline">\(d\times d\)</span>, meski tidak bermasalah sampai
+konteks 16 ribu token. Dan arsitektur serta hyperparameternya belum
+dioptimalkan. Rencana yang ditulis di slide penutup adalah membangun
+model yang lebih besar, mencari bidang penerapan tempat xLSTM unggul,
+dan menjelajahi gagasan-gagasan yang belum diuji.</p>
+<h3 id="sesudah-kuliah">Sesudah kuliah</h3>
+<p>Rencana di slide terakhir itu kemudian berjalan. Vision-LSTM <span
+class="citation" data-cites="alkin2024vil">(Alkin, Beck, dkk.
+2024)</span> memakai tumpukan blok mLSTM sebagai tulang punggung visi
+komputer. Gambar dipotong menjadi patch seperti pada vision transformer,
+dan karena xLSTM membaca dari satu arah, blok ganjil membaca patch baris
+demi baris dari kiri atas ke kanan bawah, sedangkan blok genap membaca
+dari kanan bawah ke kiri atas. Biayanya linear terhadap jumlah patch,
+sehingga menarik untuk gambar beresolusi tinggi seperti citra medis (<a
+href="ch43_medis.html">Bab 25</a>) dan medan simulasi fisika (<a
+href="ch16_operator.html">Bab 30</a>).</p>
+<p>xLSTM 7B <span class="citation" data-cites="beck2025xlstm7b">(Beck
+dkk. 2025)</span> memperbesar arsitekturnya menjadi model bahasa tujuh
+miliar parameter dengan optimasi khusus untuk inferensi. Kinerjanya pada
+tugas-tugas hilir dilaporkan sebanding dengan model lain berukuran sama,
+dengan inferensi yang lebih cepat dan lebih hemat daripada model
+berbasis Llama dan Mamba. Alasannya terletak pada struktur yang sudah
+kita bahas: ingatannya berukuran tetap, sehingga tidak ada cache key dan
+value yang membengkak seiring panjang konteks. Sifat ini penting justru
+di era model yang “berpikir” panjang saat menjawab (<a
+href="ch52_terbaru.html">Bab 38</a>), ketika jumlah token yang
+dibangkitkan, bukan ukuran model, menjadi biaya utama.</p>
+<p>Bidang penerapan lain yang menonjol adalah peramalan deret waktu.
+TiRex <span class="citation" data-cites="auer2025tirex">(Auer dkk.
+2025)</span> memakai xLSTM sebagai model peramalan <em>zero-shot</em>:
+nilai-nilai masa lalu sebuah deret dimasukkan sebagai konteks, dan model
+meramal masa depannya tanpa dilatih ulang untuk deret itu, mirip
+in-context learning pada model bahasa. Argumen makalahnya menarik benang
+dari awal bab ini. Transformer dan model rekuren yang bisa diparalelkan
+unggul dalam in-context learning, tetapi kehilangan kemampuan melacak
+keadaan, sedangkan LSTM klasik melacak keadaan dengan baik tetapi lemah
+dalam in-context learning. xLSTM, dengan sLSTM untuk pelacakan keadaan,
+memberi keduanya. Pada tolok ukur GiftEval dan Chronos-ZS, TiRex
+dilaporkan mengungguli model peramalan yang jauh lebih besar, baik untuk
+ramalan jangka pendek maupun jangka panjang.</p>
 <h2 id="deret-di-luar-bahasa">Deret di luar bahasa</h2>
 <p>Model deret yang lahir dari bahasa dipakai jauh di luar teks. Kuliah
 LSTM sendiri sudah menunjukkan klasifikasi protein dari urutan asam
 amino dan analisis detak jantung. Dalam genomik, urutan DNA dibaca oleh
 model yang sama dengan model bahasa, dan base calling pada pengurutan
 nanopore memakai jaringan rekuren untuk mengubah sinyal arus listrik
-menjadi huruf (<a href="ch40_genomik.html">Bab 18</a>). Dalam kimia,
+menjadi huruf (<a href="ch40_genomik.html">Bab 22</a>). Dalam kimia,
 string SMILES dibangkitkan huruf demi huruf oleh LSTM untuk merancang
-molekul baru (<a href="ch41_molekul.html">Bab 19</a>). Dalam sensor yang
+molekul baru (<a href="ch41_molekul.html">Bab 23</a>). Dalam sensor yang
 dikenakan, deret akselerometer dikenali sebagai aktivitas (<a
-href="ch32_pervasif.html">Bab 16</a>), dan di sistem rekomendasi, urutan
+href="ch32_pervasif.html">Bab 20</a>), dan di sistem rekomendasi, urutan
 lagu yang baru didengar menjadi konteks untuk lagu berikutnya (<a
-href="ch50_rekomendasi.html">Bab 30</a>).</p>
+href="ch50_rekomendasi.html">Bab 34</a>).</p>
 <p>Simulasi yang berjalan dalam waktu juga sebuah deret: keadaan medan
 di langkah <span class="math inline">\(t\)</span> menentukan keadaan di
 langkah <span class="math inline">\(t+1\)</span>. Model deret dipakai di
 sini dengan beberapa cara. Yang paling umum adalah memproyeksikan medan
 aliran ke beberapa mode POD (<a href="ch17_penemuan_reduksi.html">Bab
-27</a>), lalu membiarkan LSTM atau transformer mempelajari evolusi
+31</a>), lalu membiarkan LSTM atau transformer mempelajari evolusi
 koefisien mode-mode itu, pendekatan yang dibahas dalam ulasan <span
 class="citation" data-cites="brunton2020">Brunton, Noack, dan
 Koumoutsakos (2020)</span>. Ingatan juga berguna ketika sensor hanya
@@ -351,12 +533,12 @@ mengukur sebagian keadaan, karena masa lalu membantu menebak bagian yang
 tersembunyi. Transformer bahkan tidak harus berjalan sepanjang waktu. Ia
 bisa memperlakukan titik-titik mesh atau partikel sebagai token.
 Universal Physics Transformers <span class="citation"
-data-cites="alkin2024">(Alkin dkk. 2024)</span>, dari kelompok riset di
-Linz, memakai gagasan ini untuk neural operator yang tidak terikat pada
-grid (<a href="ch16_operator.html">Bab 26</a>). Di semua pendekatan itu,
-masalah yang selalu muncul adalah galat yang menumpuk ketika model
-menebak berulang-ulang dari tebakannya sendiri. Masalah ini kita bahas
-di <a href="ch16_operator.html">Bab 26</a>.</p>
+data-cites="alkin2024">(Alkin, Fürst, dkk. 2024)</span>, dari kelompok
+riset di Linz, memakai gagasan ini untuk neural operator yang tidak
+terikat pada grid (<a href="ch16_operator.html">Bab 30</a>). Di semua
+pendekatan itu, masalah yang selalu muncul adalah galat yang menumpuk
+ketika model menebak berulang-ulang dari tebakannya sendiri. Masalah ini
+kita bahas di <a href="ch16_operator.html">Bab 30</a>.</p>
 <h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti slide LSTM and Recurrent Neural Nets dari Sepp
 Hochreiter (RNN, BPTT, RTRL, vanishing gradient, LSTM, attention, Mamba,
@@ -370,6 +552,12 @@ data-cites="hochreiter1997">Hochreiter dan Schmidhuber (1997)</span>,
 <h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
+<div id="ref-alkin2024vil" class="csl-entry" role="listitem">
+Alkin, Benedikt, Maximilian Beck, Korbinian Pöppel, Sepp Hochreiter, dan
+Johannes Brandstetter. 2024. <span>“Vision-LSTM: xLSTM as Generic Vision
+Backbone.”</span> arXiv:2406.04303. <a
+href="https://arxiv.org/abs/2406.04303">https://arxiv.org/abs/2406.04303</a>.
+</div>
 <div id="ref-alkin2024" class="csl-entry" role="listitem">
 Alkin, Benedikt, Andreas Fürst, Simon Schmid, Lukas Gruber, Markus
 Holzleitner, dan Johannes Brandstetter. 2024. <span>“Universal Physics
@@ -377,11 +565,25 @@ Transformers: A Framework For Efficiently Scaling Neural
 Operators.”</span> arXiv:2402.12365. <a
 href="https://arxiv.org/abs/2402.12365">https://arxiv.org/abs/2402.12365</a>.
 </div>
+<div id="ref-auer2025tirex" class="csl-entry" role="listitem">
+Auer, Andreas, Patrick Podest, Daniel Klotz, Sebastian Böck, Günter
+Klambauer, dan Sepp Hochreiter. 2025. <span>“TiRex: Zero-Shot
+Forecasting Across Long and Short Horizons with Enhanced In-Context
+Learning.”</span> arXiv:2505.23719. <a
+href="https://arxiv.org/abs/2505.23719">https://arxiv.org/abs/2505.23719</a>.
+</div>
 <div id="ref-bahdanau2015" class="csl-entry" role="listitem">
 Bahdanau, Dzmitry, Kyunghyun Cho, dan Yoshua Bengio. 2014. <span>“Neural
 Machine Translation by Jointly Learning to Align and Translate.”</span>
 arXiv:1409.0473. <a
 href="https://arxiv.org/abs/1409.0473">https://arxiv.org/abs/1409.0473</a>.
+</div>
+<div id="ref-beck2025xlstm7b" class="csl-entry" role="listitem">
+Beck, Maximilian, Korbinian Pöppel, Phillip Lippe, Richard Kurle,
+Patrick M. Blies, Günter Klambauer, Sebastian Böck, dan Sepp Hochreiter.
+2025. <span>“xLSTM 7B: A Recurrent LLM for Fast and Efficient
+Inference.”</span> arXiv:2503.13427. <a
+href="https://arxiv.org/abs/2503.13427">https://arxiv.org/abs/2503.13427</a>.
 </div>
 <div id="ref-beck2024" class="csl-entry" role="listitem">
 Beck, Maximilian, Korbinian Pöppel, Markus Spanring, Andreas Auer,
@@ -395,12 +597,6 @@ Bengio, Y., P. Simard, dan P. Frasconi. 1994. <span>“Learning long-term
 dependencies with gradient descent is difficult.”</span> <em>IEEE
 Transactions on Neural Networks</em> 5 (2): 157–66. <a
 href="https://doi.org/10.1109/72.279181">https://doi.org/10.1109/72.279181</a>.
-</div>
-<div id="ref-bolukbasi2016" class="csl-entry" role="listitem">
-Bolukbasi, Tolga, Kai-Wei Chang, James Zou, Venkatesh Saligrama, dan
-Adam Kalai. 2016. <span>“Man is to Computer Programmer as Woman is to
-Homemaker? Debiasing Word Embeddings.”</span> arXiv:1607.06520. <a
-href="https://arxiv.org/abs/1607.06520">https://arxiv.org/abs/1607.06520</a>.
 </div>
 <div id="ref-brown2020" class="csl-entry" role="listitem">
 Brown, Tom B., Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared Kaplan,
@@ -462,8 +658,8 @@ href="https://arxiv.org/abs/1706.03762">https://arxiv.org/abs/1706.03762</a>.
 </div>
 </main>
 <nav class="pager">
-  <a class="prev" href="ch03_dl_basic.html"><span>Sebelumnya</span>Deep Learning: Teknik Dasar</a>
-  <a class="next" href="ch05_computer_vision.html"><span>Berikutnya</span>Melihat: Computer Vision</a>
+  <a class="prev" href="ch03b_praktik.html"><span>Sebelumnya</span>Deep Learning dalam Praktik</a>
+  <a class="next" href="ch04b_nlp.html"><span>Berikutnya</span>Bahasa: dari Kantong Kata ke Model Bahasa Besar</a>
 </nav>
 <footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
 </body>

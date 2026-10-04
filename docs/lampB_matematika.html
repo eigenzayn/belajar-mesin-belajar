@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bekal Matematika · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum"></p>
+<h1>Bekal Matematika</h1>
+<p><span id="lamp:matematika" data-label="lamp:matematika"></span></p>
+<p>Lampiran ini mengumpulkan alat matematika yang dipakai berulang kali
+di buku ini. Ia bukan pengganti buku teks, tetapi cukup untuk mengikuti
+penurunan di bab-bab sebelumnya. Bab teori peluang dan lampiran notasi
+dalam naskah kuliah Machine Learning: Basic Techniques mengikuti susunan
+yang mirip, dan buku <span class="citation"
+data-cites="deisenroth2020">Deisenroth, Faisal, dan Ong (2020)</span>
+adalah bacaan lanjutan yang sangat cocok untuk tujuan yang sama.</p>
+<h2 id="aljabar-linear">Aljabar linear</h2>
+<h3 id="vektor-matriks-dan-hasil-kali">Vektor, matriks, dan hasil
+kali</h3>
+<p>Vektor ditulis tebal huruf kecil, <span
+class="math inline">\(\boldsymbol{x}\in\mathbb{R}^n\)</span>, dan
+dianggap kolom. Matriks ditulis tebal huruf besar, <span
+class="math inline">\(\boldsymbol{A}\in\mathbb{R}^{m\times n}\)</span>.
+Hasil kali matriks dan vektor, <span
+class="math inline">\(\boldsymbol{A}\boldsymbol{x}\)</span>, bisa dibaca
+dengan dua cara. Sebagai baris: setiap komponen hasilnya adalah hasil
+kali dalam satu baris <span
+class="math inline">\(\boldsymbol{A}\)</span> dengan <span
+class="math inline">\(\boldsymbol{x}\)</span>. Sebagai kolom: hasilnya
+adalah kombinasi linear kolom-kolom <span
+class="math inline">\(\boldsymbol{A}\)</span> dengan bobot komponen
+<span class="math inline">\(\boldsymbol{x}\)</span>. Cara kedua lebih
+berguna untuk memahami regresi linear (<a
+href="ch01_belajar_dari_data.html">Bab 1</a>): prediksi selalu berada di
+ruang yang direntang kolom-kolom matriks fitur.</p>
+<p>Hasil kali dalam <span
+class="math inline">\(\boldsymbol{x}^\top\boldsymbol{y}=\sum_ix_iy_i\)</span>
+mengukur seberapa searah dua vektor, dan <span
+class="math inline">\(\boldsymbol{x}^\top\boldsymbol{y}=\|\boldsymbol{x}\|\,\|\boldsymbol{y}\|\cos\theta\)</span>.
+Norma Euclides <span
+class="math inline">\(\|\boldsymbol{x}\|_2=\sqrt{\boldsymbol{x}^\top\boldsymbol{x}}\)</span>
+adalah panjang biasa. Norma <span
+class="math inline">\(\|\boldsymbol{x}\|_1=\sum_i|x_i|\)</span>
+menjumlahkan nilai mutlak, dan penalti dengan norma ini mendorong solusi
+yang jarang, seperti pada lasso. Untuk <span
+class="math inline">\(\boldsymbol{x}=(3,4)\)</span>, <span
+class="math inline">\(\|\boldsymbol{x}\|_2=5\)</span> dan <span
+class="math inline">\(\|\boldsymbol{x}\|_1=7\)</span>.</p>
+<p>Hasil kali luar <span
+class="math inline">\(\boldsymbol{x}\boldsymbol{y}^\top\)</span> adalah
+matriks berpangkat satu. Kovarians sampel adalah rata-rata hasil kali
+luar dari simpangan-simpangan, <span
+class="math inline">\(\tfrac1N\sum_i(\boldsymbol{x}_i-\bar{\boldsymbol{x}})(\boldsymbol{x}_i-\bar{\boldsymbol{x}})^\top\)</span>,
+dan ingatan matriks mLSTM di <a href="ch04_lstm_transformer.html">Bab
+9</a> adalah jumlah hasil kali luar value dan key.</p>
+<h3 id="nilai-eigen-dan-dekomposisi">Nilai eigen dan dekomposisi</h3>
+<p>Vektor eigen sebuah matriks persegi adalah arah yang tidak dibelokkan
+matriks itu, hanya diregangkan: <span
+class="math inline">\(\boldsymbol{A}\boldsymbol v=\lambda\boldsymbol
+v\)</span>. Nilai eigen dicari dari <span
+class="math inline">\(\det(\boldsymbol{A}-\lambda\boldsymbol
+I)=0\)</span>. Untuk <span
+class="math inline">\(\boldsymbol{A}=\begin{pmatrix}2&amp;1\\1&amp;2\end{pmatrix}\)</span>,
+persamaan karakteristiknya <span
+class="math inline">\((2-\lambda)^2-1=0\)</span>, sehingga <span
+class="math inline">\(\lambda=3\)</span> dan <span
+class="math inline">\(\lambda=1\)</span>, dengan vektor eigen <span
+class="math inline">\((1,1)\)</span> dan <span
+class="math inline">\((1,-1)\)</span>. Matriks simetris selalu punya
+nilai eigen real dan vektor eigen yang saling tegak lurus, sehingga bisa
+diuraikan sebagai <span class="math inline">\(\boldsymbol{A}=\boldsymbol
+Q\boldsymbol\Lambda\boldsymbol Q^\top\)</span> dengan <span
+class="math inline">\(\boldsymbol Q\)</span> ortogonal. Dalam basis
+vektor eigen, matriks simetris hanya meregangkan setiap sumbu.</p>
+<p>Matriks simetris disebut definit positif kalau <span
+class="math inline">\(\boldsymbol{x}^\top\boldsymbol{A}\boldsymbol{x}&gt;0\)</span>
+untuk setiap <span
+class="math inline">\(\boldsymbol{x}\ne\boldsymbol0\)</span>, yang
+setara dengan semua nilai eigennya positif. Hessian yang definit positif
+menandai minimum (<a href="ch02_optimasi.html">Bab 4</a>), dan matriks
+kovarians selalu semidefinit positif, karena <span
+class="math inline">\(\boldsymbol{x}^\top\boldsymbol\Sigma\boldsymbol{x}\)</span>
+adalah varians proyeksi data ke arah <span
+class="math inline">\(\boldsymbol{x}\)</span>, yang tidak mungkin
+negatif.</p>
+<p>Matriks sembarang, tidak harus persegi, punya dekomposisi nilai
+singular <span class="math inline">\(\boldsymbol{A}=\boldsymbol
+U\boldsymbol\Sigma\boldsymbol V^\top\)</span>. Kolom-kolom <span
+class="math inline">\(\boldsymbol V\)</span> adalah arah di ruang input,
+kolom-kolom <span class="math inline">\(\boldsymbol U\)</span> arah di
+ruang output, dan nilai singular di diagonal <span
+class="math inline">\(\boldsymbol\Sigma\)</span> adalah faktor regangan
+dari satu ke yang lain. Setiap matriks memetakan bola menjadi elips, dan
+SVD memberi sumbu-sumbu elips itu. Nilai singular adalah akar nilai
+eigen <span
+class="math inline">\(\boldsymbol{A}^\top\boldsymbol{A}\)</span>.
+Dekomposisi ini muncul di PCA dan POD (<a
+href="ch02c_unsupervised.html">Bab 6</a> dan <a
+href="ch17_penemuan_reduksi.html">Bab 31</a>), algoritme Kabsch (<a
+href="ch42_protein.html">Bab 24</a>), dan LoRA (<a
+href="ch52_terbaru.html">Bab 38</a>). Rasio nilai singular terbesar
+terhadap terkecil adalah condition number, yang mengukur seberapa besar
+galat kecil di input bisa diperbesar ketika sistem <span
+class="math inline">\(\boldsymbol{A}\boldsymbol{x}=\boldsymbol
+b\)</span> diselesaikan.</p>
+<h2 id="kalkulus-banyak-variabel">Kalkulus banyak variabel</h2>
+<h3 id="gradien-dan-jacobian">Gradien dan Jacobian</h3>
+<p>Untuk fungsi skalar <span
+class="math inline">\(f:\mathbb{R}^n\to\mathbb{R}\)</span>, gradien
+<span class="math inline">\(\nabla f\)</span> adalah vektor turunan
+parsial. Ia menunjuk ke arah kenaikan paling cepat, dan besarnya adalah
+laju kenaikan di arah itu. Untuk <span
+class="math inline">\(f(x,y)=x^2+3xy\)</span>, <span
+class="math inline">\(\nabla f=(2x+3y,\ 3x)\)</span>, yang di titik
+<span class="math inline">\((1,2)\)</span> bernilai <span
+class="math inline">\((8,3)\)</span>. Untuk fungsi vektor <span
+class="math inline">\(\boldsymbol
+f:\mathbb{R}^n\to\mathbb{R}^m\)</span>, Jacobian adalah matriks <span
+class="math inline">\(m\times n\)</span> berisi semua turunan parsial
+<span class="math inline">\(\partial f_i/\partial x_j\)</span>. Jacobian
+lengan robot di <a href="ch33_robot.html">Bab 21</a> adalah
+contohnya.</p>
+<p>Beberapa gradien muncul berkali-kali dan layak dihafal: <span
+class="math inline">\(\nabla_{\boldsymbol{x}}(\boldsymbol
+a^\top\boldsymbol{x})=\boldsymbol a\)</span>, <span
+class="math inline">\(\nabla_{\boldsymbol{x}}(\boldsymbol{x}^\top\boldsymbol{A}\boldsymbol{x})=(\boldsymbol{A}+\boldsymbol{A}^\top)\boldsymbol{x}\)</span>,
+yang menjadi <span
+class="math inline">\(2\boldsymbol{A}\boldsymbol{x}\)</span> untuk <span
+class="math inline">\(\boldsymbol{A}\)</span> simetris, dan <span
+class="math inline">\(\nabla_{\boldsymbol{x}}\|\boldsymbol{A}\boldsymbol{x}-\boldsymbol
+b\|^2=2\boldsymbol{A}^\top(\boldsymbol{A}\boldsymbol{x}-\boldsymbol
+b)\)</span>. Yang terakhir langsung memberi normal equations regresi
+linear.</p>
+<h3 id="aturan-rantai">Aturan rantai</h3>
+<p>Kalau <span class="math inline">\(\boldsymbol{y}=\boldsymbol
+g(\boldsymbol{x})\)</span> dan <span
+class="math inline">\(z=f(\boldsymbol{y})\)</span>, maka <span
+class="math inline">\(\nabla_{\boldsymbol{x}}z=\boldsymbol
+J_{\boldsymbol g}^\top\nabla_{\boldsymbol{y}}z\)</span>, dengan <span
+class="math inline">\(\boldsymbol J_{\boldsymbol g}\)</span> Jacobian
+<span class="math inline">\(\boldsymbol g\)</span>. Untuk rantai yang
+panjang, <span
+class="math inline">\(\boldsymbol{x}\to\boldsymbol{y}_1\to\boldsymbol{y}_2\to\cdots\to
+z\)</span>, gradien diperoleh dengan mengalikan Jacobian-Jacobian
+berturut-turut. Urutan perkaliannya menentukan biaya. Mulai dari ujung
+<span class="math inline">\(z\)</span> yang skalar dan bergerak mundur
+berarti setiap langkah adalah perkalian matriks dengan vektor, murah.
+Itulah reverse-mode autodiff dan backpropagation (<a
+href="ch03_dl_basic.html">Bab 7</a>). Mulai dari <span
+class="math inline">\(\boldsymbol{x}\)</span> berarti membawa matriks
+Jacobian penuh sepanjang rantai, yang hanya efisien kalau inputnya
+sedikit, seperti RTRL di <a href="ch04_lstm_transformer.html">Bab
+9</a>.</p>
+<h3 id="ekspansi-taylor">Ekspansi Taylor</h3>
+<p>Di sekitar sebuah titik, fungsi yang mulus didekati dengan
+polinomial, <span class="math display">\[f(\boldsymbol{x}+\boldsymbol
+h)\approx f(\boldsymbol{x})+\nabla f(\boldsymbol{x})^\top\boldsymbol
+h+\tfrac12\boldsymbol h^\top\nabla^2f(\boldsymbol{x})\,\boldsymbol h
+.\]</span> Aproksimasi orde satu melahirkan gradient descent,
+aproksimasi orde dua melahirkan metode Newton (<a
+href="ch02_optimasi.html">Bab 4</a>). Untuk <span
+class="math inline">\(f(x)=e^x\)</span> di sekitar nol, <span
+class="math inline">\(e^{0{,}1}\approx1+0{,}1+0{,}005=1{,}105\)</span>,
+sedangkan nilai sebenarnya <span
+class="math inline">\(1{,}10517\)</span>. Taylor juga ada di balik
+analisis galat skema numerik (<a href="ch13_numerik_fluida.html">Bab
+27</a>), linearisasi sistem nonlinear (<a href="ch31_kendali.html">Bab
+19</a>), dan extended Kalman filter (<a href="ch33_robot.html">Bab
+21</a>).</p>
+<h2 id="peluang">Peluang</h2>
+<h3 id="aturan-dasar-dan-bayes">Aturan dasar dan Bayes</h3>
+<p>Dua aturan menghasilkan hampir semua yang lain. Aturan jumlah, <span
+class="math inline">\(p(x)=\sum_yp(x,y)\)</span>, dan aturan hasil kali,
+<span class="math inline">\(p(x,y)=p(y\mid x)\,p(x)\)</span>. Menuliskan
+aturan hasil kali dalam dua urutan dan menyamakannya memberi teorema
+Bayes, <span class="math display">\[p(y\mid x)=\frac{p(x\mid
+y)\,p(y)}{p(x)}=\frac{p(x\mid y)\,p(y)}{\sum_{y&#39;}p(x\mid
+y&#39;)\,p(y&#39;)}.\]</span> Contoh tes penyakit di <a
+href="ch11_xai.html">Bab 17</a> adalah penerapan langsungnya:
+sensitivitas <span class="math inline">\(0{,}9\)</span>, laju positif
+palsu <span class="math inline">\(0{,}09\)</span>, dan prevalensi <span
+class="math inline">\(0{,}01\)</span> memberi <span
+class="math inline">\(p(\text{sakit}\mid+)=0{,}009/(0{,}009+0{,}0891)\approx0{,}09\)</span>.</p>
+<h3 id="ekspektasi-dan-varians">Ekspektasi dan varians</h3>
+<p>Ekspektasi adalah rata-rata berbobot peluang, <span
+class="math inline">\(\mathbb{E}[x]=\sum_xx\,p(x)\)</span> atau integral
+untuk variabel kontinu. Ia linear: <span
+class="math inline">\(\mathbb{E}[ax+by]=a\mathbb{E}[x]+b\mathbb{E}[y]\)</span>,
+selalu, bahkan kalau <span class="math inline">\(x\)</span> dan <span
+class="math inline">\(y\)</span> bergantung. Varians adalah ekspektasi
+kuadrat simpangan, <span
+class="math inline">\(\mathrm{Var}[x]=\mathbb{E}[(x-\mathbb{E}x)^2]=\mathbb{E}[x^2]-(\mathbb{E}x)^2\)</span>.
+Untuk variabel independen, varians jumlah adalah jumlah varians,
+sehingga varians rata-rata <span class="math inline">\(N\)</span> sampel
+independen adalah <span class="math inline">\(\sigma^2/N\)</span>. Fakta
+sederhana ini ada di balik galat Monte Carlo yang turun seperti <span
+class="math inline">\(1/\sqrt N\)</span> (<a
+href="ch14_fisika_komputasi.html">Bab 28</a>), noise mini-batch (<a
+href="ch02_optimasi.html">Bab 4</a>), dan skala <span
+class="math inline">\(\sqrt{d_k}\)</span> pada attention (<a
+href="ch04_lstm_transformer.html">Bab 9</a>).</p>
+<h3 id="distribusi-gauss">Distribusi Gauss</h3>
+<p>Gauss multivariat <span
+class="math inline">\(\mathcal{N}(\boldsymbol\mu,\boldsymbol\Sigma)\)</span>
+punya kerapatan <span
+class="math display">\[p(\boldsymbol{x})=\frac1{(2\pi)^{d/2}|\boldsymbol\Sigma|^{1/2}}\exp\Big(-\tfrac12(\boldsymbol{x}-\boldsymbol\mu)^\top\boldsymbol\Sigma^{-1}(\boldsymbol{x}-\boldsymbol\mu)\Big).\]</span>
+Ia muncul di mana-mana karena beberapa sifatnya yang tertutup.
+Transformasi linear dari Gauss tetap Gauss: <span
+class="math inline">\(\boldsymbol{A}\boldsymbol{x}+\boldsymbol
+b\sim\mathcal{N}(\boldsymbol{A}\boldsymbol\mu+\boldsymbol b,\
+\boldsymbol{A}\boldsymbol\Sigma\boldsymbol{A}^\top)\)</span>. Marginal
+dan kondisional dari Gauss bersama tetap Gauss. Hasil kali dua kerapatan
+Gauss, setelah dinormalisasi, tetap Gauss, dengan presisi yang
+dijumlahkan, sifat yang menghasilkan Kalman filter (<a
+href="ch08_probabilistik.html">Bab 14</a>). Dan jumlah banyak variabel
+independen cenderung Gauss menurut teorema limit pusat, alasan mengapa
+noise pengukuran sering dimodelkan Gauss, dan dasar argumen ICA di <a
+href="ch02c_unsupervised.html">Bab 6</a>.</p>
+<p>Sampel dari <span
+class="math inline">\(\mathcal{N}(\boldsymbol\mu,\boldsymbol\Sigma)\)</span>
+bisa dibuat dari sampel normal baku <span
+class="math inline">\(\boldsymbol\epsilon\)</span> dengan <span
+class="math inline">\(\boldsymbol{x}=\boldsymbol\mu+\boldsymbol
+L\boldsymbol\epsilon\)</span>, dengan <span
+class="math inline">\(\boldsymbol L\)</span> faktor Cholesky, <span
+class="math inline">\(\boldsymbol L\boldsymbol
+L^\top=\boldsymbol\Sigma\)</span>. Kovarians hasilnya adalah <span
+class="math inline">\(\boldsymbol L\,\boldsymbol I\,\boldsymbol
+L^\top=\boldsymbol\Sigma\)</span> sesuai sifat transformasi linear di
+atas. Inilah reparameterization trick pada VAE (<a
+href="ch06_arsitektur_generatif.html">Bab 12</a>) dalam bentuk
+umumnya.</p>
+<h2 id="teori-informasi">Teori informasi</h2>
+<p>Entropi mengukur ketidakpastian rata-rata sebuah distribusi, <span
+class="math inline">\(H(p)=-\sum_xp(x)\log_2p(x)\)</span>, dalam bit.
+Lemparan koin jujur punya entropi satu bit. Koin yang muncul gambar
+dengan peluang <span class="math inline">\(0{,}9\)</span> punya entropi
+<span
+class="math inline">\(-0{,}9\log_20{,}9-0{,}1\log_20{,}1\approx0{,}47\)</span>
+bit: hasilnya lebih mudah ditebak, sehingga rata-rata informasi per
+lemparan lebih sedikit. Entropi dipakai untuk memilih pertanyaan di
+pohon keputusan (<a href="ch02c_unsupervised.html">Bab 6</a>).</p>
+<p>Cross-entropy <span class="math inline">\(H(p,q)=-\sum_xp(x)\log
+q(x)\)</span> mengukur biaya rata-rata kalau data dari <span
+class="math inline">\(p\)</span> dikodekan dengan kode yang dirancang
+untuk <span class="math inline">\(q\)</span>. Ia selalu paling sedikit
+sebesar <span class="math inline">\(H(p)\)</span>, dan selisihnya adalah
+divergensi Kullback–Leibler, <span
+class="math display">\[\mathrm{KL}(p\|q)=H(p,q)-H(p)=\sum_xp(x)\log\frac{p(x)}{q(x)}\
+\ge\ 0 .\]</span> Untuk distribusi target <span
+class="math inline">\(p=(1,0)\)</span>, cross-entropy terhadap prediksi
+<span class="math inline">\(q=(0{,}8;\ 0{,}2)\)</span> adalah <span
+class="math inline">\(-\ln0{,}8\approx0{,}22\)</span> nat, dan karena
+entropi target nol, KL-nya sama. Meminimalkan cross-entropy terhadap
+label sama dengan meminimalkan KL dari distribusi data ke model,
+satu-satunya alasan mengapa loss klasifikasi berbentuk seperti itu (<a
+href="ch01_belajar_dari_data.html">Bab 1</a>). KL tidak simetris. <span
+class="math inline">\(\mathrm{KL}(p\|q)\)</span> menghukum keras tempat
+<span class="math inline">\(p\)</span> besar tetapi <span
+class="math inline">\(q\)</span> kecil, sehingga meminimalkannya
+terhadap <span class="math inline">\(q\)</span> membuat <span
+class="math inline">\(q\)</span> menutupi semua puncak <span
+class="math inline">\(p\)</span>. <span
+class="math inline">\(\mathrm{KL}(q\|p)\)</span> menghukum tempat <span
+class="math inline">\(q\)</span> besar tetapi <span
+class="math inline">\(p\)</span> kecil, sehingga <span
+class="math inline">\(q\)</span> cenderung memilih satu puncak saja.
+Perbedaan ini menjelaskan mengapa inferensi variasional, yang
+meminimalkan <span class="math inline">\(\mathrm{KL}(q\|p)\)</span>,
+cenderung meremehkan ketidakpastian (<a href="ch09_ml_advanced.html">Bab
+15</a>), dan mengapa t-SNE lebih menjaga tetangga dekat daripada jarak
+jauh (<a href="ch11_xai.html">Bab 17</a>).</p>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-deisenroth2020" class="csl-entry" role="listitem">
+Deisenroth, Marc Peter, A. Aldo Faisal, dan Cheng Soon Ong. 2020.
+<em>Mathematics for Machine Learning</em>. Cambridge University Press.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="lampA_glosarium.html"><span>Sebelumnya</span>Glosarium</a>
+  <a class="next" href="lampC_riset.html"><span>Berikutnya</span>Meneliti, Menerbitkan, dan Mematenkan</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

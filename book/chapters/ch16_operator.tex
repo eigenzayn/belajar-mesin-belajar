@@ -19,6 +19,18 @@ memetakan vektor berukuran tetap ke vektor berukuran tetap, sehingga terikat pad
 \istilah{Operator learning} ingin belajar pemetaan antar ruang fungsi itu sendiri, sehingga model yang
 dilatih pada grid kasar bisa dievaluasi pada grid yang lebih halus \citep{kovachki2023}.
 
+Contoh paling sederhana sebuah operator sudah kita kenal. Untuk persamaan panas
+$\partial_tu=\kappa\,\partial_{xx}u$ di garis tak hingga, solusi pada waktu $t$ adalah konvolusi syarat awal dengan kernel
+Gauss,
+\begin{equation}
+u(x,t)=\int\frac{1}{\sqrt{4\pi\kappa t}}\exp\Big(-\frac{(x-y)^2}{4\kappa t}\Big)\,u_0(y)\dd y .
+\end{equation}
+Operatornya linear: menjumlahkan dua syarat awal menjumlahkan solusinya. Di domain frekuensi, setiap mode Fourier
+$e^{ikx}$ hanya diredam, dengan faktor $e^{-\kappa k^2t}$. Mode dengan bilangan gelombang $k=10$ meluruh seratus kali
+lebih cepat dari mode $k=1$. Dua pengamatan ini, bahwa solusi bisa berupa operator integral dan bahwa ia sederhana di
+domain frekuensi, adalah benih dari Fourier neural operator di bawah. Untuk persamaan nonlinear seperti
+Navier--Stokes, tidak ada rumus seperti ini, dan jaringan harus mempelajari operatornya dari contoh.
+
 \subsection{DeepONet}
 
 DeepONet \citep{lu2021} bertumpu pada teorema aproksimasi universal untuk operator. Operator $G$ yang
@@ -31,6 +43,13 @@ $b_k$. Jaringan \istilah{trunk} menerima koordinat $y$ dan mengeluarkan fungsi b
 mengingatkan pada ekspansi deret seperti Fourier atau POD (\cref{ch:penemuan}), dengan perbedaan bahwa
 basis dan koefisiennya sama-sama dipelajari. Karena trunk menerima koordinat kontinu, keluarannya bisa
 dievaluasi di titik mana pun.
+
+Untuk operator linear, bentuk ini bisa dipahami secara konkret. Misalkan $G$ adalah operator panas di atas pada selang
+dengan ujung bernilai nol, dan solusi diuraikan dalam mode sinus, $t_k(y)=\sin(k\pi y)$. Koefisien setiap mode pada waktu
+$t$ adalah koefisien syarat awal dikali $e^{-\kappa(k\pi)^2t}$, sebuah fungsi linear dari nilai-nilai $v$ di titik
+sensor. Branch dalam kasus ini cukup menjadi lapisan linear, dan trunk cukup mengeluarkan fungsi sinus. Untuk
+operator nonlinear, kedua jaringan harus menemukan basis dan koefisien yang cocok sendiri. Varian yang dilatih
+bersama residual persamaan, seperti PINN, disebut physics-informed DeepONet.
 
 \subsection{Fourier neural operator}
 
@@ -50,7 +69,41 @@ kecil frekuensi terendah dan membuang sisanya. Satu lapisan lengkap menjumlahkan
 dengan transformasi linear lokal, lalu menerapkan nonlinearitas. Dengan FFT, biayanya sebanding dengan
 $N\log N$ untuk $N$ titik grid, dan karena bobotnya didefinisikan per frekuensi, bukan per titik grid,
 model yang sama bisa dijalankan pada resolusi yang berbeda. Pemotongan frekuensi juga punya sisi buruk:
-struktur yang tajam, seperti gelombang kejut, sulit diwakili oleh sedikit mode Fourier.
+struktur yang tajam, seperti gelombang kejut, sulit diwakili oleh sedikit mode Fourier. FFT juga mengandaikan grid
+teratur dan domain periodik, sehingga untuk geometri yang rumit dibutuhkan varian yang memetakan geometri ke grid
+teratur lebih dulu.
+
+Berapa banyak parameternya? Untuk lebar kanal $d$ dan $m$ mode yang disimpan dalam dua dimensi, setiap lapisan
+spektral menyimpan matriks kompleks $d\times d$ untuk setiap mode, kira-kira $m^2d^2$ bilangan kompleks. Dengan $d=32$
+dan dua belas mode di setiap arah, itu sekitar $1{,}5$ juta bilangan kompleks per lapisan, dan jumlah ini tidak
+bergantung pada resolusi grid. Jaringan konvolusi biasa dengan kernel $3\times3$ jauh lebih hemat parameter, tetapi
+hanya melihat tetangga dekat. FNO melihat seluruh domain dalam satu lapisan, sesuai dengan watak persamaan eliptik
+seperti persamaan tekanan, di mana perubahan di satu titik langsung terasa di mana-mana.
+
+\Cref{fig:fno} merangkum satu lapisan FNO.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[node distance=0.45cm and 0.55cm]
+  \node[kotak] (v) {$v(x)$};
+  \node[kotak=ungu,right=of v] (F) {$\mathcal F$};
+  \node[kotak=biru,right=of F] (R) {$\bm R$ pada\\$m$ mode terendah};
+  \node[kotak=ungu,right=of R] (Fi) {$\mathcal F^{-1}$};
+  \node[kotak,below=of R] (W) {$\bm Wv$ (lokal)};
+  \node[bulat,right=of Fi,minimum size=6mm,inner sep=0pt] (plus) {$+$};
+  \node[kotak=oranye,right=of plus] (s) {$\sigma(\cdot)$};
+  \draw[panah] (v) -- (F);
+  \draw[panah] (F) -- (R);
+  \draw[panah] (R) -- (Fi);
+  \draw[panah] (Fi) -- (plus);
+  \draw[panah] (v) |- (W);
+  \draw[panah] (W) -| (plus);
+  \draw[panah] (plus) -- (s);
+\end{tikzpicture}
+\caption{Satu lapisan Fourier neural operator. Jalur atas mencampur informasi global lewat sedikit mode Fourier,
+jalur bawah menambahkan transformasi lokal titik demi titik.}
+\label{fig:fno}
+\end{figure}
 
 \section{Simulator berbasis graf}
 
@@ -70,6 +123,22 @@ belajar menyesuaikan resolusi mesh. Message Passing Neural PDE Solvers \citep{br
 message passing sebagai solver PDE umum dan menunjukkan bahwa ia mencakup skema numerik klasik seperti
 beda hingga dan volume hingga sebagai kasus khusus. Hubungan ini sudah kita lihat di \cref{ch:numerik}:
 volume hingga adalah message passing fluks.
+
+Simulator graf juga membawa simetri fisika ke dalam arsitekturnya. Masukan untuk sisi biasanya berupa posisi relatif
+dan jarak antara dua partikel, bukan posisi mutlak, sehingga model otomatis invarian terhadap translasi: mendorong
+seluruh gelas air satu meter ke kanan tidak mengubah fisikanya. Karena setiap partikel hanya bicara dengan tetangga
+dalam radius tertentu, biayanya sebanding dengan jumlah partikel, sama seperti simulasi partikel klasik dengan daftar
+sel di \cref{ch:fiskom}. Dan jumlah pesan yang dikirim sama dengan yang diterima kalau pesan dibuat antisimetris,
+sehingga momentum total terjaga, gagasan yang sama dengan hukum ketiga Newton.
+
+Satu langkah message passing dengan angka memperlihatkan apa yang dihitung jaringan seperti ini. Ambil tiga partikel di
+garis, di posisi $0$, $1$, dan $3$, dengan radius tetangga $1{,}5$, sehingga partikel pertama dan kedua bertetangga, sedangkan
+yang ketiga sendirian. Misalkan fungsi pesan yang dipelajari kebetulan berbentuk pegas, $m_{ij}=k\,\big(|x_j-x_i|-\ell\big)\,\mathrm{sgn}(x_j-x_i)$ dengan
+panjang istirahat $\ell=0{,}8$ dan $k=2$. Pesan dari partikel kedua ke partikel pertama adalah $2(1-0{,}8)\cdot(+1)=0{,}4$, dan dari
+pertama ke kedua $2(1-0{,}8)\cdot(-1)=-0{,}4$. Partikel ketiga tidak menerima pesan apa pun. Kalau decoder menerjemahkan jumlah pesan menjadi
+percepatan, partikel pertama dan kedua saling menarik dengan percepatan yang sama besar dan berlawanan arah, dan pusat
+massa keduanya tidak bergerak. Jaringan sungguhan tidak diberi bentuk pegas. Ia mempelajari fungsi pesan dari data, dan
+karena masukannya hanya posisi relatif, sifat seperti invariansi translasi ikut terbawa ke apa pun yang dipelajarinya.
 
 \section{Masalah rollout}
 
@@ -94,6 +163,22 @@ setiap tebakan dengan beberapa langkah denoising mirip model difusi, supaya komp
 dengan amplitudo kecil tidak diabaikan. Analisis spektrum sering menunjukkan bahwa model kehilangan
 detail halus lebih dulu, dan detail itulah yang kemudian merusak stabilitas.
 
+Cara mengevaluasi juga perlu dipikirkan. Galat rata-rata kuadrat satu langkah hampir tidak mengatakan apa-apa tentang
+rollout panjang. Untuk aliran turbulen, yang kacau, dua simulasi yang mulai dari keadaan hampir sama pun akan
+berpisah setelah beberapa waktu, sehingga membandingkan medan titik demi titik setelah waktu itu tidak adil.
+Yang lebih bermakna adalah statistiknya: spektrum energi, profil rata-rata, distribusi besaran penting. Model yang
+baik menghasilkan aliran yang berbeda dari kenyataan tetapi punya statistik yang sama, seperti dua hari berangin
+yang tidak identik tetapi sama-sama khas untuk musim itu.
+
+Untuk membandingkan model secara adil, komunitas memakai himpunan tolok ukur bersama. Galat yang paling sering dilaporkan
+adalah galat $L^2$ relatif, $\|\hat u-u\|/\|u\|$, dirata-ratakan atas kasus uji, pada satu langkah dan pada akhir rollout.
+Angka ini bisa menipu dengan dua cara. Galat relatif yang kecil bisa menyembunyikan galat besar di daerah kecil yang paling
+penting, misalnya di lapisan batas tempat gaya hambat ditentukan. Dan untuk sistem yang kacau, seperti dibahas di atas,
+galat titik demi titik pasti membesar setelah waktu tertentu, sehingga besaran yang diturunkan, seperti koefisien gaya,
+fluks panas, atau spektrum energi, lebih bermakna. Pertanyaan praktis lainnya adalah biaya total: berapa simulasi klasik yang
+dibutuhkan untuk menghasilkan data latih, berapa lama pelatihan, dan berapa kali model harus dipakai sebelum
+penghematannya menutup biaya itu.
+
 \section{Model fondasi untuk fisika dan cuaca}
 
 Keberhasilan paling mencolok terjadi di prakiraan cuaca, di mana data reanalisis global berpuluh tahun
@@ -112,6 +197,13 @@ dari diskretisasi: titik mesh atau partikel dikodekan ke ruang laten berukuran t
 ruang laten, dan decoder bisa ditanya di titik mana pun. \citet{gupta2022} membandingkan arsitektur
 secara sistematis pada berbagai skala ruang dan waktu.
 
+Prakiraan cuaca juga memperlihatkan mengapa ensemble penting. Atmosfer kacau, sehingga satu prakiraan
+deterministik untuk sepuluh hari ke depan cenderung menjadi kabur: model yang dilatih dengan galat kuadrat belajar
+meramal rata-rata dari semua kemungkinan, dan rata-rata dari banyak badai yang mungkin adalah langit yang
+setengah mendung di mana-mana. Model generatif seperti GenCast menghasilkan banyak kemungkinan yang masing-masing
+tajam, dan sebaran di antara mereka menjadi ukuran ketidakpastian, sesuatu yang dibutuhkan untuk memutuskan,
+misalnya, apakah sebuah wilayah perlu dievakuasi.
+
 \section{Pertanyaan yang tetap harus diajukan}
 
 Kembali ke tiga pertanyaan di \cref{ch:peta}. Fisika masuk ke model-model ini terutama lewat data dan
@@ -122,6 +214,21 @@ besar, sering setara ribuan simulasi klasik untuk menghasilkan data, sehingga ke
 kalau model dipakai berkali-kali, misalnya untuk optimasi desain, kendali waktu nyata, atau ensemble
 besar. Ulasan \citet{lino2023} dan \citet{vinuesa2022} memberi gambaran yang seimbang tentang kekuatan
 dan batas pendekatan ini dalam mekanika fluida.
+
+\section{Perkembangan riset}
+
+Gagasan model fondasi untuk PDE berkembang cepat. Poseidon \citep{herde2024} adalah transformer operator multiskala yang
+dipretraining pada sekumpulan besar simulasi persamaan fluida, dengan trik yang memanfaatkan sifat semigrup PDE
+bergantung waktu: solusi dari waktu $t_1$ ke $t_3$ sama dengan solusi dari $t_1$ ke $t_2$ lalu dari $t_2$ ke $t_3$, sehingga
+setiap lintasan simulasi memberi banyak pasangan latih. Setelah disetel, ia dievaluasi pada lima belas tugas hilir,
+termasuk fisika yang tidak dilihat saat pretraining. DPOT \citep{hao2024dpot} memakai pretraining autoregresif dengan
+denoising, yaitu menambahkan noise pada input selama pretraining untuk mengatasi masalah rollout yang dibahas di atas,
+pada lebih dari seratus ribu lintasan dari belasan dataset PDE.
+
+Untuk mesh tak teratur di geometri industri, Transolver \citep{wu2024transolver} mengelompokkan titik-titik mesh yang
+punya keadaan fisis serupa ke dalam ``irisan'' yang dipelajari, lalu menjalankan attention di antara irisan-irisan itu,
+bukan di antara jutaan titik. Biayanya linear terhadap jumlah titik, dan contoh penerapannya mencakup desain mobil dan
+airfoil. Gagasannya mirip dengan model reduksi di \cref{ch:penemuan}: cari sedikit ``keadaan'' yang mewakili banyak titik.
 
 \sumberbab{Bab ini dirangkai dari kuliah Deep Learning: Geometric Techniques, Machine Learning: Advanced
 Techniques, dan bacaan selama tugas akhir. Makalah utamanya: \citet{lu2021}, \citet{li2021},

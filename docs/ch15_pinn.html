@@ -17,15 +17,15 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 25</p>
+<p class="chapnum">Bab 29</p>
 <h1>Physics-Informed Neural Networks</h1>
 <p><span id="ch:pinn" data-label="ch:pinn"></span></p>
 <p>PINN tidak punya mata kuliahnya sendiri dalam perjalanan saya. Ia
 muncul sedikit-sedikit: sebagai neural field yang diatur persamaan di
 akhir kuliah machine learning lanjut (<a
-href="ch09_ml_advanced.html">Bab 11</a>), sebagai kemampuan autodiff
+href="ch09_ml_advanced.html">Bab 15</a>), sebagai kemampuan autodiff
 menurunkan keluaran terhadap input di kuliah deep learning dasar (<a
-href="ch03_dl_basic.html">Bab 5</a>), dan sebagai salah satu pendekatan
+href="ch03_dl_basic.html">Bab 7</a>), dan sebagai salah satu pendekatan
 yang terus muncul dalam bacaan tentang machine learning untuk mekanika
 fluida selama mengerjakan tugas akhir. Bab ini merangkai
 potongan-potongan itu.</p>
@@ -62,12 +62,31 @@ menambahkan selisih kuadrat antara <span
 class="math inline">\(u_\theta\)</span> dan data di titik-titik
 pengukuran. Bobot <span class="math inline">\(\lambda\)</span>
 menentukan seberapa penting masing-masing suku, dan seperti akan kita
-lihat, memilihnya ternyata salah satu bagian tersulit.</p>
+lihat, memilihnya ternyata salah satu bagian tersulit. Gambar 29.1
+merangkum alurnya.</p>
+<figure id="fig:pinn">
+<img src="fig/054271b636f9.svg" />
+<figcaption>Alur PINN. Jaringan menerima koordinat, autodiff memberi
+turunan yang dibutuhkan persamaan, dan loss menggabungkan residual
+persamaan dengan syarat awal, syarat batas, dan data.</figcaption>
+</figure>
+<p>Turunan terhadap input dihitung dengan autodiff yang sama dengan
+backpropagation (<a href="ch03_dl_basic.html">Bab 7</a>), hanya dirantai
+sekali atau dua kali lagi. Untuk satu neuron <span
+class="math inline">\(u=\tanh(wx+b)\)</span>, turunan pertamanya <span
+class="math inline">\(u_x=w\,(1-u^2)\)</span> dan turunan keduanya <span
+class="math inline">\(u_{xx}=-2w^2u\,(1-u^2)\)</span>. Contoh kecil ini
+menjelaskan satu aturan praktis PINN: fungsi aktivasi harus mulus.
+Dengan ReLU, turunan kedua bernilai nol hampir di mana-mana, sehingga
+jaringan tidak bisa “merasakan” suku difusi sama sekali, dan residual
+persamaan panas hanya melihat <span
+class="math inline">\(\partial_tu\)</span>. Karena itu PINN hampir
+selalu memakai tanh, sinus, atau aktivasi mulus lain.</p>
 <p>Mengapa ini masuk akal? Dari sudut pandang <a
 href="ch01_belajar_dari_data.html">Bab 1</a>, suku residual adalah
 prior: di antara semua fungsi yang cocok dengan data dan syarat batas,
 pilih yang memenuhi hukum fisika. Dari sudut pandang <a
-href="ch09_ml_advanced.html">Bab 11</a>, <span
+href="ch09_ml_advanced.html">Bab 15</a>, <span
 class="math inline">\(u_\theta\)</span> adalah neural field, dan
 persamaan diferensial adalah aturan yang ditegakkan pada field itu,
 persis seperti persamaan Eikonal pada signed distance field.</p>
@@ -90,7 +109,7 @@ class="math inline">\(u(t)=1+at\)</span>. Residualnya <span
 class="math display">\[r(t)=\dot u+u=a+1+at=a(1+t)+1.\]</span> Kita cari
 <span class="math inline">\(a\)</span> yang meminimalkan <span
 class="math inline">\(J(a)=\int_0^1r(t)^2\,\mathrm{d}t\)</span>, versi
-kontinu dari suku residual dalam Persamaan (25.2). Turunan terhadap
+kontinu dari suku residual dalam Persamaan (29.2). Turunan terhadap
 <span class="math inline">\(a\)</span> adalah <span
 class="math inline">\(2\int_0^1\big(a(1+t)+1\big)(1+t)\,\mathrm{d}t\)</span>.
 Menyamakannya dengan nol memberi <span
@@ -121,10 +140,61 @@ invers sekaligus.</p>
 <p>Contoh paling terkenal adalah <span class="citation"
 data-cites="raissi2020">Maziar Raissi, Yazdani, dan Karniadakis
 (2020)</span>, yang disinggung di <a
-href="ch05_computer_vision.html">Bab 7</a>. Dari video konsentrasi zat
+href="ch05_computer_vision.html">Bab 11</a>. Dari video konsentrasi zat
 pewarna di sekitar sebuah benda, PINN memulihkan medan kecepatan dan
 tekanan yang tidak pernah diukur, karena persamaan transport zat pewarna
 dan persamaan Navier–Stokes menghubungkan ketiganya.</p>
+<p>Contoh yang bisa diperiksa dengan tangan memperlihatkan logika
+masalah invers. Untuk persamaan panas dengan difusivitas <span
+class="math inline">\(\alpha\)</span> yang tidak diketahui di selang
+<span class="math inline">\([0,1]\)</span> dengan ujung bernilai nol,
+fungsi <span class="math inline">\(u(x,t)=e^{-\alpha\pi^2t}\sin(\pi
+x)\)</span> memenuhi persamaan dan syarat batasnya. Misalkan sensor di
+tengah batang mencatat <span class="math inline">\(u=1\)</span> pada
+<span class="math inline">\(t=0\)</span> dan <span
+class="math inline">\(u=0{,}37\)</span> pada <span
+class="math inline">\(t=1\)</span>. Residual persamaan hanya bisa nol
+kalau amplitudo meluruh seperti <span
+class="math inline">\(e^{-\alpha\pi^2t}\)</span>, dan suku data menuntut
+<span class="math inline">\(e^{-\alpha\pi^2}=0{,}37\)</span>, sehingga
+<span
+class="math inline">\(\alpha=-\ln0{,}37/\pi^2\approx0{,}10\)</span>.
+PINN menemukan angka yang sama dengan menurunkan kedua suku loss
+bersamaan, tanpa pernah diberi rumus solusinya. Pada masalah nyata,
+solusinya tidak punya bentuk tertutup, tetapi logikanya sama: persamaan
+memberi bentuk, data memberi angka.</p>
+<p>Contoh ini juga memperlihatkan bahaya masalah invers. Kalau sensor
+diletakkan tepat di <span class="math inline">\(x=0\)</span>, di mana
+<span class="math inline">\(\sin(\pi x)=0\)</span>, pengukurannya selalu
+nol, dan <span class="math inline">\(\alpha\)</span> tidak bisa
+ditentukan sama sekali. Pengukuran yang tidak peka terhadap parameter
+membuat masalahnya <em>ill-posed</em>, dan tidak ada jaringan saraf yang
+bisa mengatasinya. Memilih letak sensor sama pentingnya dengan memilih
+arsitektur.</p>
+<h2 id="syarat-batas-yang-ditegakkan">Syarat batas yang ditegakkan</h2>
+<p>Daripada menghukum pelanggaran syarat batas di loss, syarat itu bisa
+dibangun ke dalam bentuk solusi, seperti <span
+class="math inline">\(1+tN(t)\)</span> di contoh tangan tadi. Untuk
+syarat Dirichlet <span class="math inline">\(u(0)=a\)</span> dan <span
+class="math inline">\(u(1)=b\)</span> di selang satuan, bentuk <span
+class="math display">\[u_\theta(x)=a(1-x)+bx+x(1-x)\,N_\theta(x)\]</span>
+memenuhi kedua syarat untuk jaringan <span
+class="math inline">\(N_\theta\)</span> apa pun: dua suku pertama adalah
+garis yang menghubungkan kedua nilai batas, dan suku ketiga bernilai nol
+di kedua ujung. Loss tinggal suku residual saja, dan masalah
+keseimbangan bobot antara residual dan batas, yang dibahas di bawah,
+hilang dengan sendirinya. Untuk geometri yang rumit, fungsi <span
+class="math inline">\(x(1-x)\)</span> diganti fungsi jarak yang bernilai
+nol di batas, misalnya signed distance field dari <a
+href="ch09_ml_advanced.html">Bab 15</a>. Syarat Neumann, yang menetapkan
+turunan di batas, lebih sulit ditegakkan dengan cara ini dan biasanya
+tetap ditaruh di loss.</p>
+<p>Titik collocation juga tidak harus tetap. Pemilihan adaptif berbasis
+residual menambahkan titik baru di tempat residualnya paling besar,
+misalnya dengan menarik sampel dengan peluang sebanding dengan kuadrat
+residual. Daerah dengan gradien tajam, seperti lapisan batas atau muka
+gelombang, mendapat lebih banyak titik, mirip penghalusan mesh adaptif
+pada solver klasik.</p>
 <h2 id="mengapa-pinn-sulit-dilatih">Mengapa PINN sulit dilatih</h2>
 <p>Kalau PINN begitu sederhana, mengapa tidak menggantikan semua solver?
 Pengalaman komunitas selama beberapa tahun memperlihatkan sejumlah
@@ -135,7 +205,7 @@ class="citation" data-cites="wang2021">Wang, Teng, dan Perdikaris
 (2021)</span> memperlihatkan bahwa gradien suku residual bisa jauh lebih
 besar dari gradien suku batas, sehingga jaringan memenuhi persamaan di
 dalam domain tetapi mengabaikan syarat batas. Ini masalah condition
-number dari <a href="ch02_optimasi.html">Bab 2</a> dalam bentuk yang
+number dari <a href="ch02_optimasi.html">Bab 4</a> dalam bentuk yang
 khas. Mereka mengusulkan bobot <span
 class="math inline">\(\lambda\)</span> yang disesuaikan otomatis
 berdasarkan besar gradien masing-masing suku. Pendekatan lain memberi
@@ -143,8 +213,19 @@ setiap titik collocation bobotnya sendiri yang ikut dilatih dengan arah
 berlawanan, sehingga titik yang sulit mendapat perhatian lebih <span
 class="citation" data-cites="mcclenny2023">(McClenny dan Braga-Neto
 2023)</span>.</p>
+<p>Skala masalahnya mudah diperkirakan. Misalkan solusinya mengandung
+komponen <span class="math inline">\(\sin(n\pi x)\)</span>. Turunan
+keduanya <span class="math inline">\(-(n\pi)^2\sin(n\pi x)\)</span>,
+sehingga galat kecil pada komponen ini diperbesar <span
+class="math inline">\((n\pi)^2\)</span> kali dalam residual dan <span
+class="math inline">\((n\pi)^4\)</span> kali dalam kuadratnya. Untuk
+<span class="math inline">\(n=5\)</span>, faktor itu sekitar <span
+class="math inline">\(6\times10^4\)</span>. Suku syarat batas, yang
+tidak melibatkan turunan, sama sekali tidak diperbesar. Optimizer
+melihat lanskap yang hampir seluruhnya ditentukan residual, dan syarat
+batas tenggelam.</p>
 <p>Kesulitan kedua berasal dari spectral bias (<a
-href="ch09_ml_advanced.html">Bab 11</a>). Analisis neural tangent kernel
+href="ch09_ml_advanced.html">Bab 15</a>). Analisis neural tangent kernel
 untuk PINN <span class="citation" data-cites="wang2022">(Wang, Yu, dan
 Perdikaris 2022)</span> menunjukkan bahwa komponen solusi dengan
 frekuensi tinggi dipelajari jauh lebih lambat. Solusi dengan gradien
@@ -160,14 +241,60 @@ atau memecah domain waktu menjadi potongan yang dilatih berurutan,
 memperbaiki keadaan. Gagasan terakhir ini juga menyentuh masalah
 kausalitas: PINN melatih seluruh rentang waktu sekaligus, sehingga bisa
 saja “memenuhi” persamaan di waktu akhir sebelum benar di waktu awal,
-padahal informasi fisik mengalir dari masa lalu ke masa depan.</p>
+padahal informasi fisik mengalir dari masa lalu ke masa depan. <span
+class="citation" data-cites="wang2024causal">Wang, Sankaran, dan
+Perdikaris (2024)</span> mengusulkan bobot yang menegakkan urutan itu
+secara eksplisit. Rentang waktu dibagi menjadi potongan-potongan, dan
+residual potongan ke-<span class="math inline">\(i\)</span> diberi bobot
+<span
+class="math inline">\(w_i=\exp\big(-\epsilon\sum_{k&lt;i}\mathcal{L}_k\big)\)</span>.
+Selama potongan-potongan awal masih punya residual besar, bobot potongan
+yang lebih akhir hampir nol, sehingga jaringan dipaksa membereskan masa
+lalu lebih dulu.</p>
 <p>Ada beberapa trik lain yang sering dipakai: syarat batas yang
 dibangun langsung ke dalam bentuk solusi, seperti <span
 class="math inline">\(1+tN(t)\)</span> pada contoh di atas, sehingga
 suku batas tidak lagi dibutuhkan; pemilihan titik collocation secara
 adaptif, dengan menambah titik di tempat residualnya besar; dan resep
 optimasi Adam lalu L-BFGS dari <a href="ch02_optimasi.html">Bab
-2</a>.</p>
+4</a>.</p>
+<h2 id="varian">Varian</h2>
+<p>Beberapa varian mengubah cara persamaan masuk ke dalam loss. Untuk
+persamaan yang berasal dari prinsip variasi, residual bisa diganti
+energi. Persamaan Poisson <span
+class="math inline">\(-u&#39;&#39;=f\)</span> dengan <span
+class="math inline">\(u(0)=u(1)=0\)</span>, misalnya, adalah syarat
+minimum dari <span
+class="math display">\[E[u]=\int_0^1\Big(\tfrac12u&#39;(x)^2-f(x)\,u(x)\Big)\,\mathrm{d}x
+.\]</span> Untuk melihatnya, ganggu <span
+class="math inline">\(u\)</span> menjadi <span
+class="math inline">\(u+\epsilon v\)</span> dengan <span
+class="math inline">\(v\)</span> nol di kedua ujung. Turunan <span
+class="math inline">\(E\)</span> terhadap <span
+class="math inline">\(\epsilon\)</span> di <span
+class="math inline">\(\epsilon=0\)</span> adalah <span
+class="math inline">\(\int(u&#39;v&#39;-fv)\,\mathrm{d}x\)</span>.
+Integrasi parsial memindahkan turunan dari <span
+class="math inline">\(v\)</span> ke <span
+class="math inline">\(u\)</span>, dan suku batasnya hilang karena <span
+class="math inline">\(v\)</span> nol di ujung, sehingga hasilnya <span
+class="math inline">\(\int(-u&#39;&#39;-f)v\,\mathrm{d}x\)</span>.
+Supaya nol untuk setiap <span class="math inline">\(v\)</span>, haruslah
+<span class="math inline">\(-u&#39;&#39;=f\)</span>. Deep Ritz <span
+class="citation" data-cites="e2018">(E dan Yu 2017)</span> meminimalkan
+<span class="math inline">\(E[u_\theta]\)</span> secara langsung dengan
+integrasi Monte Carlo. Keuntungannya, loss hanya butuh turunan pertama,
+bukan turunan kedua, sehingga lebih murah dan lebih stabil. Gagasan yang
+sama mendasari metode elemen hingga, yang juga bekerja dengan bentuk
+lemah persamaan.</p>
+<p>Untuk domain besar atau solusi yang berubah watak dari satu daerah ke
+daerah lain, domain bisa dipecah menjadi beberapa subdomain,
+masing-masing dengan jaringannya sendiri, yang dijahit dengan suku loss
+tambahan di antarmukanya. XPINN <span class="citation"
+data-cites="jagtap2020">(Jagtap dan Karniadakis 2020)</span> adalah
+contoh pendekatan ini, dan ia juga memungkinkan pelatihan paralel.
+Gagasannya mirip dekomposisi domain pada solver klasik: masalah besar
+yang sulit dipecah menjadi masalah kecil yang lebih mudah.</p>
 <h2 id="penilaian-yang-jujur">Penilaian yang jujur</h2>
 <p>Untuk masalah maju yang tipikal, misalnya aliran di sekitar benda
 pada bilangan Reynolds menengah, PINN umumnya lebih lambat dan kurang
@@ -181,6 +308,23 @@ data-cites="karniadakis2021">(Karniadakis dkk. 2021)</span>. Untuk
 mempelajari cara menyelesaikan sebuah keluarga persamaan sekaligus, kita
 butuh pendekatan lain: neural operator dan simulator yang dipelajari,
 tema bab berikutnya.</p>
+<h2 id="perkembangan-riset">Perkembangan riset</h2>
+<p>Riset PINN beberapa tahun terakhir banyak berfokus pada mengapa
+pelatihannya sulit dan bagaimana memperbaikinya. <span class="citation"
+data-cites="rathore2024">Rathore dkk. (2024)</span> menghubungkan
+kesulitan itu dengan condition number: operator diferensial di suku
+residual membuat lanskap loss buruk kondisinya, persis contoh skala
+<span class="math inline">\((n\pi)^4\)</span> di atas. Mereka
+membandingkan Adam, L-BFGS, dan gabungan keduanya, mendapati bahwa
+gabungan Adam lalu L-BFGS paling baik, dan mengusulkan optimizer orde
+dua baru yang memperbaiki kinerja lebih jauh. PirateNets <span
+class="citation" data-cites="wang2024pirate">(Wang dkk. 2024)</span>
+menyerang masalah lain: PINN dengan jaringan yang lebih dalam sering
+justru lebih buruk, karena inisialisasi MLP biasa membuat turunan
+jaringan sulit dilatih. Koneksi residual adaptif mereka membuat jaringan
+mulai sebagai jaringan dangkal dan perlahan menjadi dalam selama
+pelatihan, sehingga kedalaman tambahan akhirnya memberi akurasi
+tambahan.</p>
 <h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini dirangkai dari kuliah Machine Learning: Advanced Techniques
 (neural field dan loss yang diinformasikan fisika), kuliah deep learning
@@ -204,6 +348,20 @@ Machine Learning Through Physics–Informed Neural Networks: Where we are
 and What’s Next.”</span> <em>Journal of Scientific Computing</em> 92
 (3). <a
 href="https://doi.org/10.1007/s10915-022-01939-z">https://doi.org/10.1007/s10915-022-01939-z</a>.
+</div>
+<div id="ref-e2018" class="csl-entry" role="listitem">
+E, Weinan, dan Bing Yu. 2017. <span>“The Deep Ritz method: A deep
+learning-based numerical algorithm for solving variational
+problems.”</span> arXiv:1710.00211. <a
+href="https://arxiv.org/abs/1710.00211">https://arxiv.org/abs/1710.00211</a>.
+</div>
+<div id="ref-jagtap2020" class="csl-entry" role="listitem">
+Jagtap, Ameya D., dan George Em Karniadakis. 2020. <span>“Extended
+Physics-Informed Neural Networks (XPINNs): A Generalized Space-Time
+Domain Decomposition Based Deep Learning Framework for Nonlinear Partial
+Differential Equations.”</span> <em>Communications in Computational
+Physics</em> 28 (5): 2002–41. <a
+href="https://doi.org/10.4208/cicp.OA-2020-0164">https://doi.org/10.4208/cicp.OA-2020-0164</a>.
 </div>
 <div id="ref-karniadakis2021" class="csl-entry" role="listitem">
 Karniadakis, George Em, Ioannis G. Kevrekidis, Lu Lu, Paris Perdikaris,
@@ -244,6 +402,25 @@ solving forward and inverse problems involving nonlinear partial
 differential equations.”</span> <em>Journal of Computational
 Physics</em> 378: 686–707. <a
 href="https://doi.org/10.1016/j.jcp.2018.10.045">https://doi.org/10.1016/j.jcp.2018.10.045</a>.
+</div>
+<div id="ref-rathore2024" class="csl-entry" role="listitem">
+Rathore, Pratik, Weimu Lei, Zachary Frangella, Lu Lu, dan Madeleine
+Udell. 2024. <span>“Challenges in Training PINNs: A Loss Landscape
+Perspective.”</span> arXiv:2402.01868. <a
+href="https://arxiv.org/abs/2402.01868">https://arxiv.org/abs/2402.01868</a>.
+</div>
+<div id="ref-wang2024pirate" class="csl-entry" role="listitem">
+Wang, Sifan, Bowen Li, Yuhan Chen, dan Paris Perdikaris. 2024.
+<span>“PirateNets: Physics-informed Deep Learning with Residual Adaptive
+Networks.”</span> arXiv:2402.00326. <a
+href="https://arxiv.org/abs/2402.00326">https://arxiv.org/abs/2402.00326</a>.
+</div>
+<div id="ref-wang2024causal" class="csl-entry" role="listitem">
+Wang, Sifan, Shyam Sankaran, dan Paris Perdikaris. 2024.
+<span>“Respecting causality for training physics-informed neural
+networks.”</span> <em>Computer Methods in Applied Mechanics and
+Engineering</em> 421: 116813. <a
+href="https://doi.org/10.1016/j.cma.2024.116813">https://doi.org/10.1016/j.cma.2024.116813</a>.
 </div>
 <div id="ref-wang2021" class="csl-entry" role="listitem">
 Wang, Sifan, Yujun Teng, dan Paris Perdikaris. 2021.

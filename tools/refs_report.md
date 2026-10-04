@@ -264,3 +264,142 @@
 | ha2018 | arxiv:1803.10122 | OK | World Models | 2018 |
 | mccabe2023 | arxiv:2310.02994 | OK | Multiple Physics Pretraining for Physical Surrogate Models | 2023 |
 | ohana2024 | arxiv:2412.00568 | OK | The Well: a Large-Scale Collection of Diverse Physics Simulations for Machine Learning | 2024 |
+| e2018 | arxiv:1710.00211 | OK | The Deep Ritz method: A deep learning-based numerical algorithm for solving variational pr | 2017 |
+| wang2024causal | doi:10.1016/j.cma.2024.116813 | OK | Respecting causality for training physics-informed neural networks | 2024 |
+| jagtap2020 | doi:10.4208/cicp.OA-2020-0164 | OK | Extended Physics-Informed Neural Networks (XPINNs): A Generalized Space-Time Domain Decomp | 2020 |
+| rackauckas2020 | arxiv:2001.04385 | OK | Universal Differential Equations for Scientific Machine Learning | 2020 |
+| anderson2004 | doi:10.1037/0033-295X.111.4.1036 | OK | An Integrated Theory of the Mind. | 2004 |
+| chouldechova2017 | doi:10.1089/big.2016.0047 | OK | Fair Prediction with Disparate Impact: A Study of Bias in Recidivism Prediction Instrument | 2017 |
+| dwork2006 | doi:10.1007/11681878_14 | OK | Calibrating Noise to Sensitivity in Private Data Analysis | 2006 |
+| hardt2016 | arxiv:1610.02413 | OK | Equality of Opportunity in Supervised Learning | 2016 |
+| shao2024 | arxiv:2402.03300 | OK | DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models | 2024 |
+| brohan2023 | arxiv:2307.15818 | OK | RT-2: Vision-Language-Action Models Transfer Web Knowledge to Robotic Control | 2023 |
+| sennrich2016 | arxiv:1508.07909 | OK | Neural Machine Translation of Rare Words with Subword Units | 2015 |
+| tesauro1995 | doi:10.1145/203330.203343 | OK | Temporal difference learning and TD-Gammon | 1995 |
+| dijkstra1959 | doi:10.1007/BF01386390 | OK | A note on two problems in connexion with graphs | 1959 |
+| robinson1965 | doi:10.1145/321250.321253 | OK | A Machine-Oriented Logic Based on the Resolution Principle | 1965 |
+| adebayo2018 | arxiv:1810.03292 | OK | Sanity Checks for Saliency Maps | 2018 |
+| wachter2017 | arxiv:1711.00399 | OK | Counterfactual Explanations without Opening the Black Box: Automated Decisions and the GDP | 2017 |
+| alkin2024vil | arxiv:2406.04303 | OK | Vision-LSTM: xLSTM as Generic Vision Backbone | 2024 |
+| beck2025xlstm7b | arxiv:2503.13427 | OK | xLSTM 7B: A Recurrent LLM for Fast and Efficient Inference | 2025 |
+| auer2025tirex | arxiv:2505.23719 | OK | TiRex: Zero-Shot Forecasting Across Long and Short Horizons with Enhanced In-Context Learn | 2025 |
+| power2022 | arxiv:2201.02177 | OK | Grokking: Generalization Beyond Overfitting on Small Algorithmic Datasets | 2022 |
+| angelopoulos2021 | arxiv:2107.07511 | OK | A Gentle Introduction to Conformal Prediction and Distribution-Free Uncertainty Quantifica | 2021 |
+| chen2023lion | arxiv:2302.06675 | OK | Symbolic Discovery of Optimization Algorithms | 2023 |
+| liu2025muon | arxiv:2502.16982 | OK | Muon is Scalable for LLM Training | 2025 |
+| defazio2024 | arxiv:2405.15682 | OK | The Road Less Scheduled | 2024 |
+| cohen2021 | arxiv:2103.00065 | OK | Gradient Descent on Neural Networks Typically Occurs at the Edge of Stability | 2021 |
+| romeraparedes2024 | doi:10.1038/s41586-023-06924-6 | OK | Mathematical discoveries from program search with large language models | 2024 |
+| mankowitz2023 | doi:10.1038/s41586-023-06004-9 | OK | Faster sorting algorithms discovered using deep reinforcement learning | 2023 |
+| schrittwieser2020 | doi:10.1038/s41586-020-03051-4 | OK | Mastering Atari, Go, chess and shogi by planning with a learned model | 2020 |
+| valmeekam2023 | arxiv:2206.10498 | OK | PlanBench: An Extensible Benchmark for Evaluating Large Language Models on Planning and Re | 2022 |
+| chen2020simclr | arxiv:2002.05709 | OK | A Simple Framework for Contrastive Learning of Visual Representations | 2020 |
+| oquab2023 | arxiv:2304.07193 | OK | DINOv2: Learning Robust Visual Features without Supervision | 2023 |
+| he2022mae | arxiv:2111.06377 | OK | Masked Autoencoders Are Scalable Vision Learners | 2021 |
+| assran2023 | arxiv:2301.08243 | OK | Self-Supervised Learning from Images with a Joint-Embedding Predictive Architecture | 2023 |
+| liu2024kan | arxiv:2404.19756 | OK | KAN: Kolmogorov-Arnold Networks | 2024 |
+| yang2022mup | arxiv:2203.03466 | OK | Tensor Programs V: Tuning Large Neural Networks via Zero-Shot Hyperparameter Transfer | 2022 |
+| ravi2024 | arxiv:2408.00714 | OK | SAM 2: Segment Anything in Images and Videos | 2024 |
+| yang2024depth | arxiv:2401.10891 | OK | Depth Anything: Unleashing the Power of Large-Scale Unlabeled Data | 2024 |
+| kerbl2023 | doi:10.1145/3592433 | OK | 3D Gaussian Splatting for Real-Time Radiance Field Rendering | 2023 |
+| song2023consistency | arxiv:2303.01469 | OK | Consistency Models | 2023 |
+| esser2024 | arxiv:2403.03206 | OK | Scaling Rectified Flow Transformers for High-Resolution Image Synthesis | 2024 |
+| liao2023equiformer | arxiv:2206.11990 | OK | Equiformer: Equivariant Graph Attention Transformer for 3D Atomistic Graphs | 2022 |
+| batatia2022 | arxiv:2206.07697 | OK | MACE: Higher Order Equivariant Message Passing Neural Networks for Fast and Accurate Force | 2022 |
+| rampasek2022 | arxiv:2205.12454 | OK | Recipe for a General, Powerful, Scalable Graph Transformer | 2022 |
+| brehmer2023 | arxiv:2305.18415 | OK | Geometric Algebra Transformer | 2023 |
+| cranmer2020sbi | doi:10.1073/pnas.1912789117 | OK | The frontier of simulation-based inference | 2020 |
+| hafner2023 | arxiv:2301.04104 | OK | Mastering Diverse Domains through World Models | 2023 |
+| chen2021dt | arxiv:2106.01345 | OK | Decision Transformer: Reinforcement Learning via Sequence Modeling | 2021 |
+| cunningham2023 | arxiv:2309.08600 | OK | Sparse Autoencoders Find Highly Interpretable Features in Language Models | 2023 |
+| koh2020 | arxiv:2007.04612 | OK | Concept Bottleneck Models | 2020 |
+| monga2021 | doi:10.1109/MSP.2020.3016905 | OK | Algorithm Unrolling: Interpretable, Efficient Deep Learning for Signal and Image Processin | 2021 |
+| revach2022 | arxiv:2107.10043 | OK | KalmanNet: Neural Network Aided Kalman Filtering for Partially Known Dynamics | 2021 |
+| hewing2020 | doi:10.1146/annurev-control-090419-075625 | OK | Learning-Based Model Predictive Control: Toward Safe Learning in Control | 2020 |
+| yuan2024 | doi:10.1038/s41746-024-01062-3 | OK | Self-supervised learning for human activity recognition using 700,000 person-days of weara | 2024 |
+| chi2023 | arxiv:2303.04137 | OK | Diffusion Policy: Visuomotor Policy Learning via Action Diffusion | 2023 |
+| black2024 | arxiv:2410.24164 | OK | $\pi_0$: A Vision-Language-Action Flow Model for General Robot Control | 2024 |
+| oxe2023 | arxiv:2310.08864 | OK | Open X-Embodiment: Robotic Learning Datasets and RT-X Models | 2023 |
+| avsec2021 | doi:10.1038/s41592-021-01252-x | OK | Effective gene expression prediction from sequence by integrating long-range interactions | 2021 |
+| nguyen2024evo | doi:10.1126/science.ado9336 | OK | Sequence modeling and design from molecular to genome scale with Evo | 2024 |
+| zhou2023dnabert2 | arxiv:2306.15006 | OK | DNABERT-2: Efficient Foundation Model and Benchmark For Multi-Species Genome | 2023 |
+| cheng2023 | doi:10.1126/science.adg7492 | OK | Accurate proteome-wide missense variant effect prediction with AlphaMissense | 2023 |
+| cui2024 | doi:10.1038/s41592-024-02201-0 | OK | scGPT: toward building a foundation model for single-cell multi-omics using generative AI | 2024 |
+| corso2023 | arxiv:2210.01776 | OK | DiffDock: Diffusion Steps, Twists, and Turns for Molecular Docking | 2022 |
+| bran2024 | arxiv:2304.05376 | OK | ChemCrow: Augmenting large-language models with chemistry tools | 2023 |
+| lin2023esm | doi:10.1126/science.ade2574 | OK | Evolutionary-scale prediction of atomic-level protein structure with a language model | 2023 |
+| watson2023 | doi:10.1038/s41586-023-06415-8 | OK | De novo design of protein structure and function with RFdiffusion | 2023 |
+| dauparas2022 | doi:10.1126/science.add2187 | OK | Robust deep learning--based protein sequence design using ProteinMPNN | 2022 |
+| hayes2025 | doi:10.1126/science.ads0018 | OK | Simulating 500 million years of evolution with a language model | 2025 |
+| singhal2023 | doi:10.1038/s41586-023-06291-2 | OK | Large language models encode clinical knowledge | 2023 |
+| ma2024medsam | doi:10.1038/s41467-024-44824-z | OK | Segment anything in medical images | 2024 |
+| zhou2023retfound | doi:10.1038/s41586-023-06555-x | OK | A foundation model for generalizable disease detection from retinal images | 2023 |
+| bezgin2023 | arxiv:2203.13760 | OK | JAX-FLUIDS: A fully-differentiable high-order computational fluid dynamics solver for comp | 2022 |
+| pfau2020 | arxiv:1909.02487 | OK | Ab-Initio Solution of the Many-Electron Schrödinger Equation with Deep Neural Networks | 2019 |
+| greydanus2019 | arxiv:1906.01563 | OK | Hamiltonian Neural Networks | 2019 |
+| wang2024pirate | arxiv:2402.00326 | OK | PirateNets: Physics-informed Deep Learning with Residual Adaptive Networks | 2024 |
+| rathore2024 | arxiv:2402.01868 | OK | Challenges in Training PINNs: A Loss Landscape Perspective | 2024 |
+| herde2024 | arxiv:2405.19101 | OK | Poseidon: Efficient Foundation Models for PDEs | 2024 |
+| hao2024dpot | arxiv:2403.03542 | OK | DPOT: Auto-Regressive Denoising Operator Transformer for Large-Scale PDE Pre-Training | 2024 |
+| wu2024transolver | arxiv:2402.02366 | OK | Transolver: A Fast Transformer Solver for PDEs on General Geometries | 2024 |
+| kramer2024 | doi:10.1146/annurev-fluid-121021-025220 | OK | Learning Nonlinear Reduced Models from Data with Operator Inference | 2024 |
+| messenger2021 | doi:10.1016/j.jcp.2021.110525 | OK | Weak SINDy for partial differential equations | 2021 |
+| kochkov2024 | doi:10.1038/s41586-024-07744-y | OK | Neural general circulation models for weather and climate | 2024 |
+| rajput2023 | arxiv:2305.05065 | OK | Recommender Systems with Generative Retrieval | 2023 |
+| zhai2024 | arxiv:2402.17152 | OK | Actions Speak Louder than Words: Trillion-Parameter Sequential Transducers for Generative  | 2024 |
+| kirchenbauer2023 | arxiv:2301.10226 | OK | A Watermark for Large Language Models | 2023 |
+| hoorijani2024 | doi:10.1007/s11012-024-01763-9 | OK | Online recurrence-CFD: enhancing multiphase flow simulation performance with online recurr | 2025 |
+| pirker2025seg | doi:10.1016/j.ces.2025.121469 | OK | Particle size segregation in bi and penta-disperse gas--solid fluidized beds: CFD-DEM and  | 2025 |
+| lumetzberger2025 | doi:10.1016/j.ces.2025.121624 | OK | Propagator-moments approximation for recurrence CFD: Application to species transport in t | 2025 |
+| shariatifar2026 | doi:10.1016/j.cherd.2026.09.003 | OK | Accuracy assessment of recurrence CFD for continuous flow systems | 2026 |
+| shaik2026 | doi:10.1016/j.cherd.2026.02.039 | OK | MRI-validated CFD--DEM simulation and recurrence-based time extrapolation (rCFD) of a bubb | 2026 |
+| morton1956 | doi:10.1098/rspa.1956.0011 | OK | Turbulent gravitational convection from maintained and instantaneous sources | 1956 |
+| arjovsky2017 | arxiv:1701.07875 | OK | Wasserstein GAN | 2017 |
+| heusel2017 | arxiv:1706.08500 | OK | GANs Trained by a Two Time-Scale Update Rule Converge to a Local Nash Equilibrium | 2017 |
+| ho2022cfg | arxiv:2207.12598 | OK | Classifier-Free Diffusion Guidance | 2022 |
+| fischler1981 | doi:10.1145/358669.358692 | OK | Random sample consensus | 1981 |
+| canny1986 | doi:10.1109/TPAMI.1986.4767851 | OK | A Computational Approach to Edge Detection | 1986 |
+| hu2008 | doi:10.1109/ICDM.2008.22 | OK | Collaborative Filtering for Implicit Feedback Datasets | 2008 |
+| kang2018 | arxiv:1808.09781 | OK | Self-Attentive Sequential Recommendation | 2018 |
+| anscombe1973 | doi:10.1080/00031305.1973.10478966 | OK | Graphs in Statistical Analysis | 1973 |
+| mackay1992 | doi:10.1162/neco.1992.4.3.415 | OK | Bayesian Interpolation | 1992 |
+| howard2017 | arxiv:1704.04861 | OK | MobileNets: Efficient Convolutional Neural Networks for Mobile Vision Applications | 2017 |
+| hu2018se | arxiv:1709.01507 | OK | Squeeze-and-Excitation Networks | 2017 |
+| tolstikhin2021 | arxiv:2105.01601 | OK | MLP-Mixer: An all-MLP Architecture for Vision | 2021 |
+| paszke2019 | arxiv:1912.01703 | OK | PyTorch: An Imperative Style, High-Performance Deep Learning Library | 2019 |
+| snoek2012 | arxiv:1206.2944 | OK | Practical Bayesian Optimization of Machine Learning Algorithms | 2012 |
+| yosinski2014 | arxiv:1411.1792 | OK | How transferable are features in deep neural networks? | 2014 |
+| zeiler2014 | doi:10.1007/978-3-319-10590-1_53 | OK | Visualizing and Understanding Convolutional Networks | 2014 |
+| micikevicius2018 | arxiv:1710.03740 | OK | Mixed Precision Training | 2017 |
+| finn2017 | arxiv:1703.03400 | OK | Model-Agnostic Meta-Learning for Fast Adaptation of Deep Networks | 2017 |
+| sutton1990 | doi:10.1016/B978-1-55860-141-3.50030-4 | OK | Integrated Architectures for Learning, Planning, and Reacting Based on Approximating Dynam | 1990 |
+| sutton1999 | doi:10.1016/S0004-3702(99)00052-1 | OK | Between MDPs and semi-MDPs: A framework for temporal abstraction in reinforcement learning | 1999 |
+| bellemare2016 | arxiv:1606.01868 | OK | Unifying Count-Based Exploration and Intrinsic Motivation | 2016 |
+| kurmi2018 | doi:10.3390/jimaging4080102 | OK | Airborne Optical Sectioning | 2018 |
+| schedl2020 | doi:10.1038/s42256-020-00261-3 | OK | Search and rescue with airborne optical sectioning | 2020 |
+| shi2000 | doi:10.1109/34.868688 | OK | Normalized cuts and image segmentation | 2000 |
+| levoy1996 | doi:10.1145/237170.237199 | OK | Light field rendering | 1996 |
+| comaniciu2002 | doi:10.1109/34.1000236 | OK | Mean shift: a robust approach toward feature space analysis | 2002 |
+| pennington2014 | doi:10.3115/v1/D14-1162 | OK | Glove: Global Vectors for Word Representation | 2014 |
+| antol2015 | arxiv:1505.00468 | OK | VQA: Visual Question Answering | 2015 |
+| porter1980 | doi:10.1108/eb046814 | OK | An algorithm for suffix stripping | 1980 |
+| bender2021 | doi:10.1145/3442188.3445922 | OK | On the Dangers of Stochastic Parrots | 2021 |
+| schuld2021 | doi:10.1007/978-3-030-83098-4 | OK | Machine Learning with Quantum Computers | 2021 |
+| nielsen2010 | doi:10.1017/CBO9780511976667 | OK | Quantum Computation and Quantum Information | 2012 |
+| mcclean2018 | doi:10.1038/s41467-018-07090-4 | OK | Barren plateaus in quantum neural network training landscapes | 2018 |
+| preskill2018 | doi:10.22331/q-2018-08-06-79 | OK | Quantum Computing in the NISQ era and beyond | 2018 |
+| havlicek2019 | doi:10.1038/s41586-019-0980-2 | OK | Supervised learning with quantum-enhanced feature spaces | 2019 |
+| bengio2025iasr | arxiv:2501.17805 | OK | International AI Safety Report | 2025 |
+| amodei2016 | arxiv:1606.06565 | OK | Concrete Problems in AI Safety | 2016 |
+| hendrycks2023 | arxiv:2306.12001 | OK | An Overview of Catastrophic AI Risks | 2023 |
+| mitchell2021 | arxiv:2104.12871 | OK | Why AI is Harder Than We Think | 2021 |
+| morris2023 | arxiv:2311.02462 | OK | Levels of AGI for Operationalizing Progress on the Path to AGI | 2023 |
+| eloundou2023 | arxiv:2303.10130 | OK | GPTs are GPTs: An Early Look at the Labor Market Impact Potential of Large Language Models | 2023 |
+| strubell2019 | arxiv:1906.02243 | OK | Energy and Policy Considerations for Deep Learning in NLP | 2019 |
+| hinton2015 | arxiv:1503.02531 | OK | Distilling the Knowledge in a Neural Network | 2015 |
+| jimenez2023 | arxiv:2310.06770 | OK | SWE-bench: Can Language Models Resolve Real-World GitHub Issues? | 2023 |
+| phan2025 | arxiv:2501.14249 | OK | Humanity's Last Exam | 2025 |
+| deepseekv3 | arxiv:2412.19437 | OK | DeepSeek-V3 Technical Report | 2024 |
+| furst2022 | arxiv:2110.11316 | OK | CLOOB: Modern Hopfield Networks with InfoLOOB Outperform CLIP | 2021 |
+| sanchez2023 | doi:10.1038/s41467-023-42328-w | OK | CLOOME: contrastive learning unlocks bioimaging databases for queries with chemical struct | 2023 |
+| morcos2011 | doi:10.1073/pnas.1111471108 | OK | Direct-coupling analysis of residue coevolution captures native contacts across many prote | 2011 |

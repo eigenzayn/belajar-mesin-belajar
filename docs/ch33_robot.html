@@ -17,36 +17,62 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 17</p>
+<p class="chapnum">Bab 21</p>
 <h1>Robot dan Kendaraan Otonom</h1>
 <p><span id="ch:robot" data-label="ch:robot"></span></p>
 <p>Musim panas 2025 membawa saya ke dua kuliah tentang mesin yang
 bergerak. Introduction to robotic systems membahas mekanika lengan
-robot: kerangka koordinat, kinematika maju dan balik, Jacobian,
-persamaan gerak dari prinsip Lagrange, visual servoing, dan perencanaan
-jalur. Introduction to autonomous vehicles membahas mobil yang mengemudi
-sendiri: lokalisasi dengan pendekatan Markov, ICP, dan NDT, sensor
-lidar, deteksi objek tiga dimensi, Kalman filter, dan pelacakan banyak
+robot: kerangka koordinat, kecepatan benda kaku, kinematika maju dan
+balik, Jacobian, persamaan gerak dari prinsip Lagrange, visual servoing,
+perencanaan jalur, dan profil trayektori. Introduction to autonomous
+vehicles membahas mobil yang mengemudi sendiri: lokalisasi Markov,
+pencocokan pindaian dengan ICP dan NDT, sensor lidar, deteksi objek tiga
+dimensi, Kalman filter dan versi diperluasnya, dan pelacakan banyak
 objek, dengan proyek lokalisasi dan proyek persepsi.</p>
 <p>Robot adalah tempat semua yang sudah kita bahas bertemu. Ia harus
-melihat (<a href="ch05_computer_vision.html">Bab 7</a>), menaksir
+melihat (<a href="ch05_computer_vision.html">Bab 11</a>), menaksir
 keadaannya di tengah ketidakpastian (<a
-href="ch08_probabilistik.html">Bab 10</a>), mengendalikan geraknya (<a
-href="ch31_kendali.html">Bab 15</a>), dan memutuskan apa yang dilakukan
-(<a href="ch10_rl.html">Bab 12</a> dan <a
-href="ch02b_ai_klasik.html">Bab 3</a>). Bab ini melihat dua jenis robot:
+href="ch08_probabilistik.html">Bab 14</a>), mengendalikan geraknya (<a
+href="ch31_kendali.html">Bab 19</a>), dan memutuskan apa yang dilakukan
+(<a href="ch10_rl.html">Bab 16</a> dan <a
+href="ch02b_ai_klasik.html">Bab 5</a>). Bab ini melihat dua jenis robot:
 lengan industri yang bekerja di tempat, dan kendaraan yang bergerak di
 dunia terbuka.</p>
-<h2 id="koordinat-dan-kinematika">Koordinat dan kinematika</h2>
+<h2 id="koordinat-dan-rotasi">Koordinat dan rotasi</h2>
 <p>Robot hidup di antara banyak kerangka koordinat: dunia, dasar robot,
-setiap sendi, ujung lengan, kamera. Posisi dan orientasi sebuah kerangka
-relatif terhadap kerangka lain dinyatakan dengan matriks rotasi dan
-vektor translasi, yang digabung menjadi matriks transformasi homogen
-<span class="math inline">\(4\times4\)</span>, sehingga transformasi
-berurutan cukup dikalikan. Konvensi Denavit–Hartenberg <span
-class="citation" data-cites="denavit1955">(Denavit dan Hartenberg
-1955)</span> memberi resep standar untuk menempatkan kerangka di setiap
-sendi, sehingga setiap sambungan hanya butuh empat parameter.</p>
+setiap sendi, ujung lengan, kamera. Orientasi sebuah kerangka relatif
+terhadap kerangka lain dinyatakan dengan matriks rotasi <span
+class="math inline">\(\boldsymbol R\)</span>, matriks ortogonal dengan
+determinan satu. Rotasi sebesar <span
+class="math inline">\(\theta\)</span> di sekitar sumbu <span
+class="math inline">\(z\)</span>, misalnya, adalah <span
+class="math display">\[\boldsymbol
+R_z(\theta)=\begin{pmatrix}\cos\theta&amp;-\sin\theta&amp;0\\\sin\theta&amp;\cos\theta&amp;0\\0&amp;0&amp;1\end{pmatrix}.\]</span>
+Rotasi sembarang bisa disusun dari tiga rotasi dasar, misalnya sudut
+Cardan untuk guling, angguk, dan geleng, tetapi urutannya penting karena
+rotasi tidak komutatif. Memutar buku sembilan puluh derajat ke depan
+lalu ke kanan menghasilkan posisi yang berbeda dari urutan sebaliknya.
+Posisi dan orientasi digabung menjadi matriks transformasi homogen <span
+class="math inline">\(4\times4\)</span>, sehingga transformasi berurutan
+cukup dikalikan, seperti pada model kamera di <a
+href="ch05_computer_vision.html">Bab 11</a>.</p>
+<p>Kecepatan benda kaku juga punya struktur yang rapi. Kecepatan sebuah
+titik di benda yang berputar dengan kecepatan sudut <span
+class="math inline">\(\boldsymbol\omega\)</span> adalah <span
+class="math inline">\(\boldsymbol\omega\times\boldsymbol r\)</span>, dan
+perkalian silang ini bisa ditulis sebagai perkalian dengan matriks
+antisimetris yang disebut <em>spin tensor</em> di kuliah. Turunan waktu
+matriks rotasi adalah <span class="math inline">\(\dot{\boldsymbol
+R}=[\boldsymbol\omega]_\times\boldsymbol R\)</span>, hubungan yang
+dipakai di setiap integrator orientasi, termasuk pelacak gerak di <a
+href="ch32_pervasif.html">Bab 20</a>.</p>
+<h2 id="kinematika">Kinematika</h2>
+<p>Konvensi Denavit–Hartenberg <span class="citation"
+data-cites="denavit1955">(Denavit dan Hartenberg 1955)</span> memberi
+resep standar untuk menempatkan kerangka di setiap sendi, sehingga
+setiap sambungan hanya butuh empat parameter: dua jarak dan dua sudut.
+Transformasi dari dasar ke ujung lengan adalah hasil kali transformasi
+semua sambungan.</p>
 <p><em>Forward kinematics</em> menghitung posisi ujung lengan dari
 sudut-sudut sendi. Untuk lengan planar dua ruas dengan panjang <span
 class="math inline">\(l_1\)</span> dan <span
@@ -58,139 +84,361 @@ q_1+l_2\sin(q_1+q_2).\]</span> Dengan <span
 class="math inline">\(l_1=l_2=1\)</span>, <span
 class="math inline">\(q_1=0\)</span>, dan <span
 class="math inline">\(q_2=90^\circ\)</span>, ujung lengan berada di
-<span class="math inline">\((1,1)\)</span>. <em>Inverse kinematics</em>
-berjalan ke arah sebaliknya: dari posisi yang diinginkan, cari sudut
-sendinya. Untuk lengan dua ruas ada dua jawaban, siku di atas atau siku
-di bawah, dan untuk posisi di luar jangkauan tidak ada jawaban sama
-sekali. Lengan dengan lebih banyak sendi dari yang dibutuhkan, yang
-disebut redundan, punya tak hingga jawaban, dan kebebasan itu bisa
-dipakai untuk menghindari rintangan.</p>
+<span class="math inline">\((1,1)\)</span>.</p>
+<p><em>Inverse kinematics</em> berjalan ke arah sebaliknya. Untuk lengan
+dua ruas, penurunannya memakai aturan kosinus. Jarak dari dasar ke
+target adalah <span class="math inline">\(r^2=x^2+y^2\)</span>, dan
+segitiga yang dibentuk kedua ruas memberi <span
+class="math inline">\(r^2=l_1^2+l_2^2+2l_1l_2\cos q_2\)</span>, sehingga
+<span class="math display">\[\cos
+q_2=\frac{x^2+y^2-l_1^2-l_2^2}{2l_1l_2},\qquad
+q_1=\operatorname{atan2}(y,x)-\operatorname{atan2}\big(l_2\sin q_2,\
+l_1+l_2\cos q_2\big).\]</span> Untuk target <span
+class="math inline">\((1,1)\)</span>, <span class="math inline">\(\cos
+q_2=(2-2)/2=0\)</span>, jadi <span
+class="math inline">\(q_2=\pm90^\circ\)</span>: dua jawaban, siku di
+atas atau siku di bawah. Untuk <span
+class="math inline">\(q_2=90^\circ\)</span>, <span
+class="math inline">\(q_1=45^\circ-45^\circ=0\)</span>, cocok dengan
+contoh maju tadi. Kalau ruas kanan rumus kosinus lebih besar dari satu,
+targetnya di luar jangkauan dan tidak ada jawaban. Lengan dengan lebih
+banyak sendi dari yang dibutuhkan, disebut redundan, punya tak hingga
+jawaban, dan kebebasan itu bisa dipakai untuk menghindari rintangan atau
+menjauhi batas sendi.</p>
 <p>Jacobian menghubungkan kecepatan sendi dengan kecepatan ujung lengan,
 <span class="math inline">\(\dot{\boldsymbol p}=\boldsymbol
-J(\boldsymbol q)\dot{\boldsymbol q}\)</span>. Untuk lengan dua ruas
-tadi, determinannya <span class="math inline">\(l_1l_2\sin q_2\)</span>.
-Ketika lengan terbentang lurus atau terlipat penuh, <span
-class="math inline">\(\sin q_2=0\)</span> dan Jacobian kehilangan
-pangkat. Di konfigurasi <em>singular</em> seperti ini, ada arah gerak
-yang tidak bisa dicapai sama sekali, dan kecepatan sendi yang dibutuhkan
-untuk bergerak di dekatnya membengkak.</p>
+J(\boldsymbol q)\dot{\boldsymbol q}\)</span>. Untuk lengan dua ruas,
+menurunkan <span class="math inline">\(x\)</span> dan <span
+class="math inline">\(y\)</span> terhadap <span
+class="math inline">\(q_1\)</span> dan <span
+class="math inline">\(q_2\)</span> memberi <span
+class="math display">\[\boldsymbol J=\begin{pmatrix}-l_1\sin
+q_1-l_2\sin(q_1+q_2)&amp;-l_2\sin(q_1+q_2)\\ l_1\cos
+q_1+l_2\cos(q_1+q_2)&amp;l_2\cos(q_1+q_2)\end{pmatrix},
+\qquad\det\boldsymbol J=l_1l_2\sin q_2.\]</span> Ketika lengan
+terbentang lurus atau terlipat penuh, <span class="math inline">\(\sin
+q_2=0\)</span> dan Jacobian kehilangan pangkat. Di konfigurasi
+<em>singular</em> seperti ini ada arah gerak yang tidak bisa dicapai
+sama sekali. Cobalah meluruskan lengan Anda sepenuhnya: tangan tidak
+bisa lagi bergerak menjauh dari bahu, dan untuk bergerak sedikit saja di
+dekat titik itu, siku harus berputar cepat sekali. Karena itu pengendali
+robot menghindari daerah di sekitar singularitas.</p>
 <h2 id="dinamika">Dinamika</h2>
 <p>Kinematika tidak peduli pada massa dan gaya. Untuk mengendalikan
 lengan yang sebenarnya, kita perlu tahu torsi apa yang menghasilkan
 gerak tertentu. Kuliah menurunkannya dengan prinsip Hamilton dan
-persamaan Lagrange. Tuliskan energi kinetik <span
+persamaan Lagrange: tulis energi kinetik <span
 class="math inline">\(T\)</span> dan energi potensial <span
-class="math inline">\(V\)</span> sebagai fungsi koordinat sendi, bentuk
-fungsi Lagrange <span class="math inline">\(L=T-V\)</span>, lalu
-terapkan <span
+class="math inline">\(V\)</span> dalam koordinat sendi, bentuk <span
+class="math inline">\(L=T-V\)</span>, lalu terapkan <span
 class="math display">\[\frac{\,\mathrm{d}}{\,\mathrm{d}t}\frac{\partial
 L}{\partial\dot q_i}-\frac{\partial L}{\partial q_i}=\tau_i.\]</span>
-Hasilnya selalu berbentuk <span class="math inline">\(\boldsymbol
-M(\boldsymbol q)\ddot{\boldsymbol q}+\boldsymbol C(\boldsymbol
-q,\dot{\boldsymbol q})\dot{\boldsymbol q}+\boldsymbol g(\boldsymbol
-q)=\boldsymbol\tau\)</span>, dengan matriks massa yang bergantung pada
-konfigurasi, suku Coriolis dan sentrifugal, dan gravitasi. Struktur ini
-dipakai langsung untuk kendali: kalau persamaannya diketahui, pengendali
-bisa menghitung torsi yang membatalkan nonlinearitas dan menyisakan
-sistem linear yang mudah dikendalikan. Deskripsi robot untuk perangkat
-lunak, seperti format URDF, menyimpan semua massa, inersia, dan geometri
-yang dibutuhkan untuk perhitungan ini <span class="citation"
+Bandul sederhana memperlihatkan resepnya. Untuk massa <span
+class="math inline">\(m\)</span> di ujung batang ringan sepanjang <span
+class="math inline">\(l\)</span> dengan sudut <span
+class="math inline">\(\theta\)</span> dari arah bawah, <span
+class="math inline">\(T=\tfrac12ml^2\dot\theta^2\)</span> dan <span
+class="math inline">\(V=-mgl\cos\theta\)</span>. Maka <span
+class="math inline">\(\partial
+L/\partial\dot\theta=ml^2\dot\theta\)</span>, yang turunannya terhadap
+waktu <span class="math inline">\(ml^2\ddot\theta\)</span>, dan <span
+class="math inline">\(\partial L/\partial\theta=-mgl\sin\theta\)</span>.
+Persamaan geraknya <span
+class="math display">\[ml^2\ddot\theta+mgl\sin\theta=\tau.\]</span>
+Untuk lengan dengan banyak sendi, langkahnya sama, hanya aljabarnya
+lebih panjang, dan hasilnya selalu berbentuk <span
+class="math inline">\(\boldsymbol M(\boldsymbol q)\ddot{\boldsymbol
+q}+\boldsymbol C(\boldsymbol q,\dot{\boldsymbol q})\dot{\boldsymbol
+q}+\boldsymbol g(\boldsymbol q)=\boldsymbol\tau\)</span>: matriks massa
+yang bergantung pada konfigurasi, suku Coriolis dan sentrifugal, dan
+gravitasi. Struktur ini dipakai langsung untuk kendali. Kalau
+persamaannya diketahui, pengendali bisa menghitung torsi yang
+membatalkan nonlinearitas dan menyisakan sistem linear yang mudah
+dikendalikan, teknik yang disebut <em>computed torque</em>. Deskripsi
+robot untuk perangkat lunak, seperti format URDF, menyimpan semua massa,
+inersia, dan geometri yang dibutuhkan <span class="citation"
 data-cites="lynch2017">(Lynch dan Park 2017)</span>.</p>
-<h2 id="melihat-dan-merencanakan">Melihat dan merencanakan</h2>
+<h2 id="melihat-merencanakan-dan-bergerak">Melihat, merencanakan, dan
+bergerak</h2>
 <p>Visual servoing mengendalikan robot dengan umpan balik dari kamera.
 Model kamera dan kalibrasinya sama dengan di <a
-href="ch05_computer_vision.html">Bab 7</a>. Pada visual servoing
+href="ch05_computer_vision.html">Bab 11</a>. Pada visual servoing
 berbasis posisi, pose objek diperkirakan dari gambar, lalu galat pose
-diumpankan ke pengendali.</p>
+diumpankan ke pengendali. Pada varian berbasis gambar, galat langsung
+dihitung dari posisi fitur di gambar, sehingga sistem tahan terhadap
+kalibrasi yang tidak sempurna.</p>
 <p>Untuk bergerak tanpa menabrak, kuliah membahas medan potensial
-buatan. Tujuan memberi potensial yang menarik, rintangan memberi
-potensial yang menolak, dan robot mengikuti gradien negatif jumlahnya,
-seperti bola yang menggelinding di lanskap. Cara ini elegan dan murah,
-tetapi punya masalah yang sudah kita kenal dari optimasi: minimum lokal.
-Robot bisa terjebak di lekukan antara dua rintangan, di mana tarikan dan
-tolakan seimbang. Perencana berbasis graf seperti A* (<a
-href="ch02b_ai_klasik.html">Bab 3</a>) atau perencana berbasis sampel
-menghindarinya dengan mencari secara global. Gerak sepanjang jalur
-kemudian diberi profil kecepatan yang halus, misalnya trapesium dengan
-fase percepatan, kecepatan tetap, dan perlambatan, supaya motor tidak
-dihentak.</p>
+buatan. Tujuan memberi potensial yang menarik, <span
+class="math inline">\(U_{\mathrm{att}}=\tfrac12k_a\|\boldsymbol
+q-\boldsymbol q_g\|^2\)</span>, dengan gaya <span
+class="math inline">\(-\nabla U_{\mathrm{att}}=-k_a(\boldsymbol
+q-\boldsymbol q_g)\)</span> yang selalu menunjuk ke tujuan. Rintangan
+memberi potensial yang menolak, yang hanya aktif di dekatnya, misalnya
+<span
+class="math inline">\(U_{\mathrm{rep}}=\tfrac12k_r(1/\rho-1/\rho_0)^2\)</span>
+untuk jarak <span class="math inline">\(\rho\)</span> yang lebih kecil
+dari jangkauan pengaruh <span class="math inline">\(\rho_0\)</span>, dan
+nol di luar itu. Robot mengikuti gradien negatif jumlahnya, seperti bola
+yang menggelinding di lanskap. Cara ini elegan dan murah, tetapi punya
+masalah yang sudah kita kenal dari optimasi: minimum lokal. Robot bisa
+terjebak di lekukan antara dua rintangan, di mana tarikan dan tolakan
+seimbang. Perencana berbasis graf seperti A* (<a
+href="ch02b_ai_klasik.html">Bab 5</a>) atau perencana berbasis sampel
+menghindarinya dengan mencari secara global.</p>
+<p>Gerak sepanjang jalur diberi profil kecepatan yang halus. Profil
+trapesium punya tiga fase: percepatan konstan, kecepatan konstan, dan
+perlambatan. Untuk bergerak satu meter dengan kecepatan maksimum <span
+class="math inline">\(0{,}5\)</span> m/s dan percepatan 1 m/s<span
+class="math inline">\(^2\)</span>, fase percepatan berlangsung <span
+class="math inline">\(0{,}5\)</span> s dan menempuh <span
+class="math inline">\(0{,}125\)</span> m. Fase perlambatan sama. Sisa
+<span class="math inline">\(0{,}75\)</span> m ditempuh dengan kecepatan
+penuh dalam <span class="math inline">\(1{,}5\)</span> s, sehingga
+seluruh gerak memakan <span class="math inline">\(2{,}5\)</span> s.
+Lompatan percepatan di ujung fase membuat sentakan, sehingga kuliah juga
+membahas profil dengan percepatan berbentuk sinus yang lebih halus untuk
+muatan yang rapuh.</p>
+<h3 id="ruang-sendi-dan-ruang-tugas">Ruang sendi dan ruang tugas</h3>
+<p>Kuliah membedakan dua tempat untuk merencanakan gerak. Di ruang
+sendi, lintasan ditulis langsung sebagai sudut-sudut sendi terhadap
+waktu. Kinematika balik tidak perlu dihitung, tidak ada singularitas
+yang harus dihindari, dan batas kecepatan setiap motor mudah ditegakkan.
+Harganya, bentuk lintasan ujung lengan di ruang nyata tidak diketahui
+persis, sehingga lengan bisa menabrak sesuatu di antara titik awal dan
+titik akhir. Di ruang tugas, lintasan ujung lengan ditulis langsung,
+misalnya garis lurus untuk mengelas sambungan, tetapi setiap titiknya
+harus diubah dengan kinematika balik, dan lintasan itu bisa melewati
+singularitas atau melanggar batas sendi. Garis lurus di satu ruang
+hampir selalu melengkung di ruang yang lain.</p>
+<p>Pilihannya mengikuti jenis tugas. Gerak <em>continuous path</em>,
+seperti mengelas, mengelem, atau mengecat, menuntut ujung lengan
+mengikuti jalur yang tepat, sehingga direncanakan di ruang tugas. Gerak
+<em>point-to-point</em>, seperti mengambil benda dari satu tempat ke
+tempat lain, hanya peduli pada titik awal dan akhir, sehingga lebih
+murah direncanakan di ruang sendi. Rintangan juga punya bayangan di
+ruang sendi: kumpulan konfigurasi yang membuat lengan menabrak rintangan
+membentuk daerah terlarang di ruang konfigurasi, dan perencanaan jalur
+menjadi pencarian jalan di antara daerah-daerah itu, persis masalah
+pencarian di <a href="ch02b_ai_klasik.html">Bab 5</a>.</p>
+<h3 id="penskalaan-waktu-dengan-polinom">Penskalaan waktu dengan
+polinom</h3>
+<p>Jalur geometris diberi waktu dengan fungsi penskalaan <span
+class="math inline">\(s(t)\)</span> yang naik dari 0 ke 1 selama durasi
+<span class="math inline">\(T\)</span>, sehingga posisi di setiap saat
+adalah <span class="math inline">\(\boldsymbol q(t)=\boldsymbol
+q_0+s(t)(\boldsymbol q_1-\boldsymbol q_0)\)</span>. Profil trapesium di
+atas adalah satu pilihan. Pilihan lain adalah polinom. Polinom kubik
+<span class="math inline">\(s(t)=a_0+a_1t+a_2t^2+a_3t^3\)</span> punya
+empat koefisien, cukup untuk empat syarat: posisi 0 dan 1 di kedua
+ujung, dan kecepatan nol di kedua ujung. Syarat di <span
+class="math inline">\(t=0\)</span> langsung memberi <span
+class="math inline">\(a_0=a_1=0\)</span>. Dua syarat di <span
+class="math inline">\(t=T\)</span> memberi <span
+class="math inline">\(a_2T^2+a_3T^3=1\)</span> dan <span
+class="math inline">\(2a_2T+3a_3T^2=0\)</span>, yang penyelesaiannya
+<span class="math display">\[s(t)=3\Big(\frac tT\Big)^2-2\Big(\frac
+tT\Big)^3 .\]</span> Kecepatannya <span class="math inline">\(\dot
+s=\tfrac6T\big(\tfrac tT-\tfrac{t^2}{T^2}\big)\)</span>, maksimum di
+tengah dengan nilai <span class="math inline">\(1{,}5/T\)</span>. Untuk
+memindahkan sebuah sendi sejauh 90 derajat dalam dua detik, kecepatan
+puncaknya <span class="math inline">\(1{,}5\times90/2=67{,}5\)</span>
+derajat per detik, dan batas kecepatan motor menentukan <span
+class="math inline">\(T\)</span> terpendek yang diizinkan. Percepatan
+polinom kubik tidak nol di kedua ujung, sehingga ada sentakan saat gerak
+dimulai dan berhenti. Polinom derajat lima punya enam koefisien, cukup
+untuk juga menolkan percepatan di kedua ujung, dengan harga kecepatan
+puncak yang sedikit lebih tinggi.</p>
+<h3 id="visual-servoing-berbasis-posisi">Visual servoing berbasis
+posisi</h3>
+<p>Kuliah menurunkan hukum kendali visual servoing berbasis posisi
+dengan cukup rinci. Kamera yang sudah dikalibrasi mengukur posisi dan
+orientasi target relatif terhadap kamera, dan galat pelacakan <span
+class="math inline">\(\boldsymbol e\)</span> adalah selisih antara pose
+terukur itu dan pose yang diinginkan, dengan orientasi dinyatakan dalam
+sudut Cardan. Untuk target yang diam, laju perubahan galat bergantung
+linear pada kecepatan kamera lewat sebuah Jacobian <span
+class="math inline">\(\boldsymbol L\)</span>, <span
+class="math inline">\(\dot{\boldsymbol e}=\boldsymbol L\boldsymbol
+v\)</span>. Kalau robot dikendalikan dengan kecepatan, perintahnya
+dipilih <span class="math display">\[\boldsymbol v=-\lambda\,\boldsymbol
+L^{-1}\boldsymbol e,\]</span> sehingga dinamika lingkar tertutupnya
+menjadi <span class="math inline">\(\dot{\boldsymbol
+e}=-\lambda\boldsymbol e\)</span>. Setiap komponen galat meluruh secara
+eksponensial, <span class="math inline">\(\boldsymbol e(t)=\boldsymbol
+e(0)e^{-\lambda t}\)</span>. Dengan <span
+class="math inline">\(\lambda=2\)</span> per detik, galat tinggal
+sekitar 14 persen setelah satu detik. Inilah pengendali proporsional
+dari <a href="ch31_kendali.html">Bab 19</a>, yang ditulis di ruang galat
+visual. Pada visual servoing berbasis gambar, galat diukur langsung pada
+posisi fitur di gambar, dan <span class="math inline">\(\boldsymbol
+L\)</span> menjadi Jacobian gambar yang menghubungkan gerak kamera
+dengan gerak fitur di bidang gambar.</p>
 <h2 id="di-mana-aku-berada-lokalisasi">Di mana aku berada:
 lokalisasi</h2>
 <p>Mobil otonom harus tahu posisinya dengan ketelitian beberapa
 sentimeter, jauh lebih teliti dari GPS biasa. Kuliah membahas tiga
-pendekatan. <em>Markov localization</em> adalah filter Bayes dari <a
-href="ch08_probabilistik.html">Bab 10</a> di atas grid posisi <span
+pendekatan.</p>
+<p><em>Markov localization</em> adalah filter Bayes dari <a
+href="ch08_probabilistik.html">Bab 14</a> di atas grid posisi <span
 class="citation" data-cites="thrun2005">(Thrun, Burgard, dan Fox
-2005)</span>. Keyakinan tentang posisi disebar menurut model gerak,
-karena roda selip dan odometri tidak sempurna, lalu dipertajam dengan
-membandingkan pengukuran sensor dengan peta. Bayangkan berjalan di
-koridor gelap dengan tangan meraba dinding: setiap langkah menambah
-keraguan, setiap pintu yang teraba mengurangi keraguan.</p>
+2005)</span>. Contoh dari kuliah adalah mobil di jalan lurus sepanjang
+seratus meter dengan beberapa tiang yang posisinya diketahui di peta.
+Pada awalnya mobil tidak tahu apa-apa, jadi keyakinannya merata di
+seluruh jalan. Lalu sensornya melihat sebuah tiang lima meter di depan.
+Setiap sel grid yang berjarak lima meter dari sebuah tiang menjadi lebih
+mungkin, sehingga keyakinan memuncak di beberapa tempat sekaligus, satu
+untuk setiap tiang. Mobil lalu bergerak sepuluh meter. Langkah prediksi
+menggeser seluruh distribusi sepuluh meter dan sedikit melebarkannya,
+karena odometri tidak sempurna. Pengukuran berikutnya, misalnya tiang
+yang terlihat dua meter di depan, hanya cocok dengan sebagian puncak
+lama yang sudah digeser. Puncak-puncak lain mengecil, dan setelah
+beberapa langkah tinggal satu. Bayangkan berjalan di koridor gelap
+dengan tangan meraba dinding: setiap langkah menambah keraguan, setiap
+pintu yang teraba mengurangi keraguan, dan pola jarak antar pintu
+akhirnya memberi tahu di mana Anda berada.</p>
 <p>Dua pendekatan lain bekerja dengan mencocokkan awan titik lidar
 dengan peta. <em>Iterative closest point</em> <span class="citation"
-data-cites="besl1992">(Besl dan McKay 1992)</span> bergantian antara
-memasangkan setiap titik pindaian dengan titik peta terdekat, lalu
-mencari rotasi dan translasi kaku yang meminimalkan jarak kuadrat
-pasangan-pasangan itu. Langkah kedua punya solusi tertutup melalui
-dekomposisi nilai singular. ICP cepat konvergen kalau tebakan awalnya
-baik, dan bisa tersesat kalau tidak. <em>Normal distributions
-transform</em> <span class="citation" data-cites="biber2003">(Biber dan
-Strasser 2004)</span> membagi peta menjadi sel-sel dan mewakili
-titik-titik di setiap sel dengan sebuah distribusi Gauss. Pindaian baru
-dicocokkan dengan memaksimalkan likelihood titik-titiknya di bawah
-campuran Gauss itu, yang lebih mulus dan lebih tahan terhadap tebakan
-awal yang kurang tepat.</p>
-<h2 id="melihat-jalan-persepsi-dan-pelacakan">Melihat jalan: persepsi
-dan pelacakan</h2>
+data-cites="besl1992">(Besl dan McKay 1992)</span> bergantian antara dua
+langkah. Pertama, pasangkan setiap titik pindaian dengan titik peta
+terdekat, pencarian yang dipercepat dengan pohon <span
+class="math inline">\(k\)</span>-d. Kedua, cari rotasi dan translasi
+kaku yang meminimalkan jarak kuadrat pasangan-pasangan itu. Langkah
+kedua punya solusi tertutup: pusatkan kedua himpunan titik di
+rata-ratanya, bentuk matriks korelasi silang, lalu ambil rotasi dari
+dekomposisi nilai singularnya, prosedur yang sama dengan algoritme
+Kabsch di <a href="ch42_protein.html">Bab 24</a>. ICP cepat konvergen
+kalau tebakan awalnya baik, dan bisa tersesat kalau tidak, karena
+pasangan terdekat yang salah membawanya ke minimum lokal.</p>
+<p><em>Normal distributions transform</em> <span class="citation"
+data-cites="biber2003">(Biber dan Strasser 2004)</span> membagi peta
+menjadi sel-sel dan mewakili titik-titik di setiap sel dengan sebuah
+distribusi Gauss berrata-rata <span
+class="math inline">\(\boldsymbol\mu\)</span> dan kovarians <span
+class="math inline">\(\boldsymbol\Sigma\)</span>. Skor sebuah pose
+adalah jumlah <span
+class="math inline">\(\exp\big(-\tfrac12(\boldsymbol{x}-\boldsymbol\mu)^\top\boldsymbol\Sigma^{-1}(\boldsymbol{x}-\boldsymbol\mu)\big)\)</span>
+untuk semua titik pindaian yang ditransformasi ke peta. Skor ini mulus
+terhadap pose, sehingga bisa dioptimalkan dengan metode Newton, dengan
+Hessian yang dijaga tetap definit positif seperti di <a
+href="ch02_optimasi.html">Bab 4</a>. NDT lebih tahan terhadap tebakan
+awal yang kurang tepat dan tidak perlu mencari pasangan titik satu per
+satu.</p>
+<h2 id="melihat-jalan-lidar-dan-deteksi-3d">Melihat jalan: lidar dan
+deteksi 3D</h2>
 <p>Lidar memancarkan pulsa laser dan mengukur waktu tempuhnya, sehingga
-menghasilkan awan titik tiga dimensi dengan jarak yang akurat. Kamera
-memberi warna dan tekstur, dan radar (<a href="ch30_sinyal.html">Bab
-14</a>) memberi kecepatan langsung dan tetap bekerja dalam hujan dan
-kabut. Fusi sensor menggabungkan kelebihan masing-masing.</p>
+jarak sama dengan kecepatan cahaya dikali waktu dibagi dua. Pulsa yang
+kembali setelah sekitar 667 nanodetik berasal dari benda seratus meter
+jauhnya. Dengan berkas yang dipindai ke banyak arah, lidar menghasilkan
+awan titik tiga dimensi dengan jarak yang akurat. Kuliah membahas
+batasnya. Energi pulsa melemah di udara dan setelah dipantulkan,
+sehingga jangkauan maksimum lidar umumnya lebih pendek dari radar.
+Berkas laser juga sedikit menyebar, dan semakin jauh, semakin lebar
+titik sinarnya. Tetapi penyebaran ini jauh lebih kecil daripada pada
+radar, sehingga lidar memberi resolusi sudut terbaik di antara sensor
+waktu tempuh. Kamera memberi warna dan tekstur, dan radar (<a
+href="ch30_sinyal.html">Bab 18</a>) memberi kecepatan langsung serta
+tetap bekerja dalam hujan dan kabut. Fusi sensor menggabungkan kelebihan
+masing-masing.</p>
 <p>Mendeteksi objek dalam awan titik punya kesulitan khas:
 titik-titiknya tidak tersusun dalam grid dan urutannya tidak bermakna.
-PointNet <span class="citation" data-cites="qi2017">(Qi dkk.
-2016)</span> menanganinya dengan menerapkan MLP yang sama pada setiap
-titik lalu menggabungkan hasilnya dengan pooling maksimum, sebuah fungsi
-yang invarian terhadap permutasi persis seperti DeepSets di <a
-href="ch07_geometric.html">Bab 9</a>. PointPillars <span
-class="citation" data-cites="lang2019">(Lang dkk. 2018)</span>
-mengelompokkan titik ke dalam pilar-pilar vertikal di atas grid tanah,
-mengubahnya menjadi gambar pandangan atas, lalu memakai jaringan
-konvolusi dua dimensi yang cepat.</p>
+Kuliah membagi pendekatannya menurut representasi data. Metode berbasis
+titik bekerja langsung pada titik. PointNet <span class="citation"
+data-cites="qi2017">(Qi dkk. 2016)</span> menerapkan MLP yang sama pada
+setiap titik lalu menggabungkan hasilnya dengan pooling maksimum, sebuah
+fungsi yang invarian terhadap permutasi persis seperti DeepSets di <a
+href="ch07_geometric.html">Bab 13</a>. Metode berbasis voxel membagi
+ruang menjadi kubus kecil dan memakai konvolusi tiga dimensi.
+PointPillars <span class="citation" data-cites="lang2019">(Lang dkk.
+2018)</span> mengelompokkan titik ke dalam pilar-pilar vertikal di atas
+grid tanah, mengubahnya menjadi gambar pandangan atas, lalu memakai
+jaringan konvolusi dua dimensi yang cepat. Metode berbasis proyeksi
+menggambar awan titik ke citra pandangan atas atau pandangan depan dan
+memakai detektor gambar biasa.</p>
+<h2 id="melacak-banyak-objek">Melacak banyak objek</h2>
 <p>Deteksi di setiap bingkai belum cukup. Kita perlu tahu bahwa mobil di
 bingkai ini adalah mobil yang sama dengan di bingkai sebelumnya, dan ke
-mana ia bergerak. Pelacakan banyak objek bekerja dalam siklus. Untuk
-setiap jejak yang sudah ada, Kalman filter atau versi diperluasnya
-meramalkan posisi di bingkai berikutnya. Deteksi baru lalu dipasangkan
-dengan jejak-jejak itu. Pemasangan ini adalah masalah penugasan:
-diberikan matriks biaya berisi jarak antara setiap ramalan dan setiap
-deteksi, cari pasangan satu-satu dengan biaya total terkecil. Algoritme
-Hungaria <span class="citation" data-cites="kuhn1955">(Kuhn 1955)</span>
-menyelesaikannya secara eksak. Deteksi yang tidak punya pasangan bisa
-menjadi jejak baru, dan jejak yang lama tidak mendapat deteksi dihapus.
-Setiap jejak yang terpasang diperbarui dengan langkah koreksi
-Kalman.</p>
+mana ia bergerak. Kalman filter melakukan ini untuk satu objek. Kuliah
+membangunnya dari contoh termometer: menggabungkan prediksi dengan
+pengukuran berarti mengalikan dua distribusi Gauss, dan meramal ke depan
+berarti menambahkan ketidakpastian (<a
+href="ch08_probabilistik.html">Bab 14</a>). Untuk mobil, keadaannya
+posisi dan kecepatan, model gerak adalah kecepatan konstan, dan
+pengukuran lidar memberi posisi. Kamera mengukur objek dalam koordinat
+gambar, sehingga fungsi pengukurannya nonlinear karena proyeksi
+perspektif. <em>Extended Kalman filter</em> melinearkan fungsi itu di
+sekitar perkiraan saat ini dengan matriks Jacobian, lalu memakai rumus
+Kalman biasa.</p>
+<p>Untuk banyak objek, pelacakan bekerja dalam siklus. Ramalkan semua
+jejak ke bingkai berikutnya, pasangkan pengukuran dengan jejak, perbarui
+jejak yang mendapat pasangan, lalu kelola jejak yang tidak. Pemasangan
+adalah masalah penugasan: diberikan matriks biaya berisi jarak antara
+setiap ramalan dan setiap deteksi, cari pasangan satu-satu dengan biaya
+total terkecil. Jaraknya biasanya jarak Mahalanobis, yang
+memperhitungkan ketidakpastian ramalan, dan pasangan yang terlalu jauh
+dibuang sejak awal (<em>gating</em>). Algoritme Hungaria <span
+class="citation" data-cites="kuhn1955">(Kuhn 1955)</span> menyelesaikan
+masalah penugasan secara eksak. Untuk dua jejak dan dua deteksi dengan
+biaya <span
+class="math inline">\(\begin{pmatrix}1&amp;4\\3&amp;2\end{pmatrix}\)</span>,
+pasangan lurus berbiaya <span class="math inline">\(1+2=3\)</span> dan
+pasangan silang <span class="math inline">\(4+3=7\)</span>, jadi
+pasangan lurus yang dipilih. Untuk puluhan objek, mencoba semua
+kemungkinan mustahil, dan algoritme Hungaria menemukan jawaban yang sama
+dalam waktu polinomial.</p>
+<p>Pengelolaan jejak memberi setiap jejak sebuah skor kepercayaan dan
+status. Jejak baru dari deteksi yang tidak terpasang mulai sebagai
+<em>initialized</em>, naik menjadi <em>tentative</em> lalu
+<em>confirmed</em> setelah terlihat di beberapa bingkai berturut-turut,
+dan dihapus kalau skornya turun terlalu rendah atau kovariansnya
+membengkak karena terlalu lama tidak diperbarui. Aturan sederhana ini
+mencegah satu deteksi palsu melahirkan mobil hantu, dan mencegah satu
+bingkai yang hilang menghapus mobil sungguhan.</p>
 <h2 id="di-mana-machine-learning-masuk">Di mana machine learning
 masuk</h2>
 <p>Robotika klasik dibangun dari model yang diturunkan: kinematika,
 dinamika, model sensor. Machine learning masuk di tempat model sulit
-ditulis. Persepsi hampir seluruhnya dikuasai deep learning. Dinamika
-yang sulit dimodelkan, seperti gesekan, kabel, atau benda lunak, bisa
-dipelajari dari data dan dipakai sebagai koreksi atas model fisika.
-Policy untuk manipulasi yang rumit dilatih dengan reinforcement learning
-di simulator lalu dipindahkan ke robot nyata, atau dipelajari dari
-demonstrasi manusia (<a href="ch10_rl.html">Bab 12</a>). Model fondasi
-yang memadukan penglihatan, bahasa, dan aksi mulai dipakai untuk memberi
-perintah robot dengan kalimat biasa (<a href="ch52_terbaru.html">Bab
-32</a>). Tetapi untuk bagian yang menyangkut keselamatan, seperti
-lokalisasi, pelacakan, dan kendali tingkat rendah, metode klasik dengan
-jaminan yang bisa dianalisis tetap menjadi tulang punggung.</p>
+ditulis. Persepsi hampir seluruhnya dikuasai deep learning, dari deteksi
+objek sampai segmentasi jalan. Dinamika yang sulit dimodelkan, seperti
+gesekan, kabel, atau benda lunak, bisa dipelajari dari data dan dipakai
+sebagai koreksi atas model fisika (<a href="ch18_hibrida.html">Bab
+32</a>). Policy untuk manipulasi yang rumit dilatih dengan reinforcement
+learning di simulator lalu dipindahkan ke robot nyata, atau dipelajari
+dari demonstrasi manusia (<a href="ch10_rl.html">Bab 16</a>). Model
+fondasi yang memadukan penglihatan, bahasa, dan aksi mulai dipakai untuk
+memberi perintah robot dengan kalimat biasa (<a
+href="ch52_terbaru.html">Bab 38</a>). Tetapi untuk bagian yang
+menyangkut keselamatan, seperti lokalisasi, pelacakan, dan kendali
+tingkat rendah, metode klasik dengan jaminan yang bisa dianalisis tetap
+menjadi tulang punggung.</p>
+<h2 id="perkembangan-riset">Perkembangan riset</h2>
+<p>Robotika sedang mencoba mengulang resep model fondasi. Open
+X-Embodiment <span class="citation" data-cites="oxe2023">(Collaboration
+dkk. 2023)</span> mengumpulkan data dari 22 jenis robot di 21 institusi,
+mencakup lebih dari 500 keterampilan, dalam format yang seragam, dan
+memperlihatkan bahwa satu model yang dilatih pada semuanya bisa
+memperbaiki kemampuan robot-robot tertentu berkat pengalaman robot lain.
+Diffusion Policy <span class="citation" data-cites="chi2023">(Chi dkk.
+2023)</span> memodelkan policy visuomotor sebagai proses denoising
+bersyarat: aksi robot dibangkitkan seperti gambar dibangkitkan model
+difusi, dimulai dari noise dan diperhalus langkah demi langkah.
+Keuntungannya, model bisa mewakili distribusi aksi yang multimodal.
+Kalau sebuah benda bisa diambil dari kiri atau dari kanan, policy yang
+dilatih dengan galat kuadrat akan merata-ratakan keduanya dan menabrak
+benda di tengah, sedangkan model difusi memilih salah satu.</p>
+<p><span class="math inline">\(\pi_0\)</span> <span class="citation"
+data-cites="black2024">(Black dkk. 2024)</span> menggabungkan model
+penglihatan dan bahasa yang sudah dilatih dengan kepala aksi berbasis
+flow matching (<a href="ch09_ml_advanced.html">Bab 15</a>), dilatih pada
+data dari robot satu lengan, dua lengan, dan robot bergerak. Contoh
+tugasnya mencakup melipat pakaian, membersihkan meja, dan merakit kotak.
+Lapisan-lapisan klasik dari bab ini tetap ada di bawahnya: kendali
+tingkat rendah, kinematika, dan pengaman, yang mengubah aksi tingkat
+tinggi menjadi torsi sendi yang aman.</p>
 <h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti kuliah Introduction to Robotic Systems
 (transformasi kerangka, kecepatan benda kaku, Denavit–Hartenberg,
 kinematika maju dan balik, Jacobian dan singularitas, persamaan
-Lagrange, visual servoing, medan potensial, profil trayektori) dan
+Lagrange, URDF, visual servoing, medan potensial, profil trayektori) dan
 Introduction to Autonomous Vehicles (Markov localization, ICP, NDT,
 lidar, deteksi objek tiga dimensi, Kalman dan extended Kalman filter,
 pelacakan banyak objek). Buku rujukan: <span class="citation"
@@ -212,6 +460,27 @@ transform: a new approach to laser scan matching.”</span> Dalam
 <em>Proceedings 2003 IEEE/RSJ International Conference on Intelligent
 Robots and Systems (IROS 2003) (Cat. No.03CH37453)</em>, 3:2743–48. <a
 href="https://doi.org/10.1109/IROS.2003.1249285">https://doi.org/10.1109/IROS.2003.1249285</a>.
+</div>
+<div id="ref-black2024" class="csl-entry" role="listitem">
+Black, Kevin, Noah Brown, Danny Driess, Adnan Esmail, Michael Equi,
+Chelsea Finn, Niccolo Fusai, dkk. 2024. <span>“<span
+class="math inline">\(\pi_0\)</span>: A Vision-Language-Action Flow
+Model for General Robot Control.”</span> arXiv:2410.24164. <a
+href="https://arxiv.org/abs/2410.24164">https://arxiv.org/abs/2410.24164</a>.
+</div>
+<div id="ref-chi2023" class="csl-entry" role="listitem">
+Chi, Cheng, Zhenjia Xu, Siyuan Feng, Eric Cousineau, Yilun Du, Benjamin
+Burchfiel, Russ Tedrake, dan Shuran Song. 2023. <span>“Diffusion Policy:
+Visuomotor Policy Learning via Action Diffusion.”</span>
+arXiv:2303.04137. <a
+href="https://arxiv.org/abs/2303.04137">https://arxiv.org/abs/2303.04137</a>.
+</div>
+<div id="ref-oxe2023" class="csl-entry" role="listitem">
+Collaboration, Open X-Embodiment, Abby O’Neill, Abdul Rehman, Abhinav
+Gupta, Abhiram Maddukuri, Abhishek Gupta, Abhishek Padalkar, dkk. 2023.
+<span>“Open X-Embodiment: Robotic Learning Datasets and RT-X
+Models.”</span> arXiv:2310.08864. <a
+href="https://arxiv.org/abs/2310.08864">https://arxiv.org/abs/2310.08864</a>.
 </div>
 <div id="ref-denavit1955" class="csl-entry" role="listitem">
 Denavit, J., dan R. S. Hartenberg. 1955. <span>“A Kinematic Notation for

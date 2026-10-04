@@ -127,6 +127,43 @@ Model difusi adalah VAE hierarkis Markov dengan dua keputusan istimewa: dimensi 
 dengan dimensi data, dan encoder-nya tidak dipelajari, melainkan ditetapkan sebagai penambahan noise
 Gauss sedikit demi sedikit \citep{luo2022}.
 
+\section{Gaussian process}
+
+Cara pandang Bayesian bisa dibawa satu langkah lebih jauh: alih-alih menaruh prior pada parameter sebuah model, taruh prior langsung
+pada fungsinya. Naskah kuliah deep learning lanjut menurunkannya dari regresi linear. Misalkan $f(\vx)=\vw^\top\bm h(\vx)$ dengan fitur
+$\bm h$ yang tetap dan prior $\vw\sim\N(\bm0,\sigma_w^2\bm I)$. Karena $f$ linear dalam $\vw$, nilai-nilai $f$ di titik mana pun berdistribusi
+Gauss bersama, dengan rata-rata nol dan kovarians
+\begin{equation}
+\mathrm{Cov}\big(f(\vx),f(\vx')\big)=\sigma_w^2\,\bm h(\vx)^\top\bm h(\vx')=k(\vx,\vx').
+\end{equation}
+Kumpulan variabel acak yang setiap himpunan berhingganya berdistribusi Gauss bersama disebut \istilah{Gaussian process}, dan ia
+ditentukan seluruhnya oleh fungsi rata-rata dan fungsi kovariansnya, yaitu kernel $k$ \citep{rasmussen2006}. Kernel boleh dipilih langsung
+tanpa menulis fiturnya, kernel trick dari \cref{ch:teori}. Kernel Gauss, $k(\vx,\vx')=\exp(-\|\vx-\vx'\|^2/2\ell^2)$, berarti titik yang
+berdekatan punya nilai fungsi yang hampir sama, dan lebar $\ell$ mengatur seberapa cepat korelasi itu memudar.
+
+Karena semuanya Gauss, posterior setelah melihat data punya bentuk tertutup, hasil langsung dari sifat kondisional Gauss di
+\cref{lamp:matematika}. Untuk data $\vy$ di titik-titik latih dengan noise bervarians $\sigma^2$, matriks kernel $\bm K$, dan vektor
+$\bm k_*$ berisi kernel antara titik baru dan titik-titik latih,
+\begin{equation}
+\mu_*=\bm k_*^\top(\bm K+\sigma^2\bm I)^{-1}\vy,\qquad
+\sigma_*^2=k(\vx_*,\vx_*)-\bm k_*^\top(\bm K+\sigma^2\bm I)^{-1}\bm k_* .
+\end{equation}
+Rata-ratanya adalah kernel ridge regression dari \cref{ch:teori}, dan variansnya adalah bonus yang diberikan sudut pandang Bayes. Contoh
+dengan satu titik data memperlihatkan perilakunya. Misalkan satu pengamatan $y=1$ di $x=0$, kernel Gauss dengan $\ell=1$, dan
+$\sigma^2=0{,}1$. Di $x_*=0$, $\mu_*=1/1{,}1\approx0{,}91$ dan $\sigma_*^2=1-1/1{,}1\approx0{,}09$: dekat data, model yakin. Di $x_*=2$, kernel
+ke titik data hanya $e^{-2}\approx0{,}14$, sehingga $\mu_*\approx0{,}12$ dan $\sigma_*^2\approx0{,}98$: jauh dari data, prediksi kembali ke
+rata-rata prior dan ketidakpastiannya kembali hampir penuh. Inilah pita yang melebar jauh dari data di \cref{ch:stat}, sekarang tanpa harus
+memilih fitur sama sekali. Harganya adalah membalik matriks berukuran $n\times n$, yang biayanya tumbuh seperti $n^3$, sehingga GP biasa
+cocok untuk ratusan sampai beberapa ribu titik, dan untuk data lebih besar dipakai aproksimasi.
+
+Naskah kuliah juga menutup lingkaran antara GP dan jaringan saraf. Jaringan satu lapisan tersembunyi dengan bobot acak independen adalah
+jumlah dari banyak sumbangan neuron yang independen. Ketika lebarnya menuju tak hingga, teorema limit pusat membuat keluarannya
+berdistribusi Gauss, sehingga jaringan Bayes yang lebarnya tak hingga adalah Gaussian process dengan kernel yang ditentukan arsitektur
+dan aktivasinya. Untuk jaringan yang lebarnya terbatas, ketidakpastian ditaksir dengan cara lain, seperti MC dropout dan deep ensembles
+yang dibahas di \cref{ch:arsitektur}. GP sendiri banyak dipakai di tempat data mahal dan ketidakpastian penting: sebagai model pengganti
+dalam Bayesian optimization (\cref{ch:praktik}), sebagai model koreksi multi-fidelity (\cref{ch:hibrida}), dan sebagai model dinamika
+dalam kendali berbasis pembelajaran (\cref{ch:kendali}).
+
 \section{Persamaan diferensial biasa, parsial, dan stokastik}
 
 Sebelum masuk ke model difusi, kuliah berhenti sejenak untuk mengulang matematika yang akan dipakai.
@@ -334,7 +371,7 @@ dalam benda, atau sebagai \istilah{signed distance field} $f(\vx)$, jarak bertan
 permukaan, positif di luar dan negatif di dalam \citep{park2019}. Permukaannya adalah himpunan nol
 $f(\vx)=0$, dan bisa diekstrak dengan algoritme seperti marching cubes. Fungsi jarak yang sejati
 memenuhi persamaan Eikonal, $\|\nabla f(\vx)\|=1$. Menambahkan $(\|\nabla f_\theta\|-1)^2$ ke loss di
-titik-titik acak memaksa jaringan menjadi fungsi jarak yang sah \citep{gropp2020}. Ini adalah loss
+titik-titik acak memaksa jaringan menjadi fungsi jarak yang sah \citep{gropp2020}. Inilah loss
 yang diinformasikan fisika: sebuah persamaan diferensial parsial ditegakkan di dalam loss.
 
 NeRF, yang sudah kita lihat di \cref{ch:cv}, adalah neural field untuk kerapatan dan warna yang

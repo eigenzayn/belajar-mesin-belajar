@@ -17,7 +17,7 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 4</p>
+<p class="chapnum">Bab 6</p>
 <h1>Belajar Tanpa Label</h1>
 <p><span id="ch:unsup" data-label="ch:unsup"></span></p>
 <p>Pada musim panas 2025 saya mengikuti dua kuliah yang saling
@@ -35,7 +35,7 @@ kelompok-kelompok alami, atau peta berdimensi rendah yang mempertahankan
 tetangga. Hasilnya sering menjadi langkah pertama sebelum model
 supervised dibangun.</p>
 <h2 id="dua-cara-melihat-pca">Dua cara melihat PCA</h2>
-<p>PCA sudah muncul di <a href="ch05_computer_vision.html">Bab 7</a>
+<p>PCA sudah muncul di <a href="ch05_computer_vision.html">Bab 11</a>
 sebagai eigenfaces. Kuliah unsupervised menekankan bahwa ada dua cara
 setara untuk menurunkannya. Cara pertama mencari arah <span
 class="math inline">\(\boldsymbol v\)</span> dengan varians proyeksi
@@ -47,6 +47,30 @@ yang meminimalkan galat rekonstruksi kuadrat rata-rata ketika data
 diproyeksikan ke subruang itu lalu dikembalikan. Kedua masalah punya
 jawaban yang sama, karena varians total tetap, dan varians yang tidak
 tertangkap oleh proyeksi adalah tepat galat rekonstruksinya.</p>
+<p>Penurunan cara pertama memakai pengali Lagrange dari <a
+href="ch02_optimasi.html">Bab 4</a>. Kita memaksimalkan <span
+class="math inline">\(\boldsymbol v^\top\boldsymbol\Sigma\boldsymbol
+v\)</span> dengan kendala <span class="math inline">\(\boldsymbol
+v^\top\boldsymbol v=1\)</span>. Menyamakan gradien fungsi tujuan dengan
+<span class="math inline">\(\lambda\)</span> kali gradien kendala
+memberi <span class="math inline">\(2\boldsymbol\Sigma\boldsymbol
+v=2\lambda\boldsymbol v\)</span>, yaitu <span
+class="math inline">\(\boldsymbol\Sigma\boldsymbol v=\lambda\boldsymbol
+v\)</span>: setiap titik stasioner adalah vektor eigen. Varians proyeksi
+pada vektor eigen itu <span class="math inline">\(\boldsymbol
+v^\top\boldsymbol\Sigma\boldsymbol v=\lambda\)</span>, sehingga yang
+terbesar adalah vektor eigen dengan nilai eigen terbesar.</p>
+<p>Contoh dua dimensi membuatnya konkret. Untuk data dengan kovarians
+<span
+class="math inline">\(\boldsymbol\Sigma=\begin{pmatrix}2&amp;1\\1&amp;2\end{pmatrix}\)</span>,
+nilai eigennya <span class="math inline">\(3\)</span> dan <span
+class="math inline">\(1\)</span>, dengan vektor eigen <span
+class="math inline">\((1,1)/\sqrt2\)</span> dan <span
+class="math inline">\((1,-1)/\sqrt2\)</span>. Data membentang paling
+lebar sepanjang diagonal, dan komponen utama pertama menangkap <span
+class="math inline">\(3/(3+1)=75\)</span> persen varians. Memproyeksikan
+ke satu dimensi itu membuang seperempat varians, dan galat rekonstruksi
+rata-ratanya tepat sama dengan nilai eigen yang dibuang, yaitu satu.</p>
 <p>PCA unik hanya sampai tanda setiap komponen, dan kalau dua nilai
 eigen sama, arah-arahnya bisa diputar bebas di dalam subruang mereka.
 Komponen utama tidak berkorelasi satu sama lain, tetapi tidak berarti
@@ -77,7 +101,17 @@ independen.</p>
 independen cenderung lebih mirip Gauss daripada sumber-sumber aslinya.
 Jadi kita bisa membalik logikanya: cari arah proyeksi yang hasilnya
 paling <em>tidak</em> Gauss. Ketidak-Gaussan diukur dengan kurtosis atau
-negentropi. Langkah praktisnya dimulai dengan <em>whitening</em>, yaitu
+negentropi. Kurtosis berlebih, <span
+class="math inline">\(\mathbb{E}[y^4]/\mathbb{E}[y^2]^2-3\)</span>,
+bernilai nol untuk distribusi Gauss, negatif untuk distribusi yang
+“rata” seperti distribusi seragam (<span
+class="math inline">\(-1{,}2\)</span>), dan positif untuk distribusi
+yang runcing dengan ekor tebal seperti distribusi Laplace (<span
+class="math inline">\(+3\)</span>). Suara manusia cenderung runcing:
+kebanyakan waktu hampir diam, sesekali keras. Campuran dua suara sudah
+lebih dekat ke Gauss, dan kurtosisnya lebih kecil. Memaksimalkan nilai
+mutlak kurtosis berarti mencari arah yang paling mirip satu suara saja.
+Langkah praktisnya dimulai dengan <em>whitening</em>, yaitu
 mentransformasi data agar kovariansnya menjadi matriks identitas.
 Setelah itu, yang tersisa hanya mencari rotasi, dan algoritme seperti
 FastICA atau Infomax menemukannya. ICA tidak bisa memulihkan urutan dan
@@ -89,7 +123,7 @@ menemukan arah yang membuat setiap keluaran terdengar seperti satu
 orang.</p>
 <h2 id="analisis-faktor">Analisis faktor</h2>
 <p>Analisis faktor mirip probabilistic PCA (<a
-href="ch09_ml_advanced.html">Bab 11</a>), <span
+href="ch09_ml_advanced.html">Bab 15</a>), <span
 class="math inline">\(\boldsymbol{x}=\boldsymbol{W}\boldsymbol{z}+\boldsymbol\mu+\boldsymbol\varepsilon\)</span>,
 dengan satu perbedaan penting: noise <span
 class="math inline">\(\boldsymbol\varepsilon\)</span> punya kovarians
@@ -131,7 +165,7 @@ di ruang peta.</p>
 Jarak antar kelompok di peta t-SNE tidak bermakna kuantitatif, dan
 ukuran kelompok bisa diperbesar atau diperkecil oleh algoritmenya.
 Kuliah AI and Visualization kembali ke masalah ini di <a
-href="ch11_xai.html">Bab 13</a>.</p>
+href="ch11_xai.html">Bab 17</a>.</p>
 <h2 id="pengelompokan">Pengelompokan</h2>
 <h3 id="k-means">k-means</h3>
 <p>Algoritme <span class="math inline">\(k\)</span>-means <span
@@ -158,10 +192,36 @@ model campuran Gauss. Pada model campuran, setiap titik punya peluang
 menjadi anggota setiap kelompok, dan kelompoknya boleh lonjong dengan
 kovarians sendiri. Algoritme EM bergantian antara menghitung peluang
 keanggotaan (langkah E) dan memperbarui rata-rata, kovarians, dan bobot
-setiap komponen dengan rata-rata berbobot (langkah M). Ketika kovarians
-semua komponen dibuat sama dan kecil sekali, keanggotaan menjadi nol
-atau satu, dan EM berubah menjadi <span
-class="math inline">\(k\)</span>-means.</p>
+setiap komponen dengan rata-rata berbobot (langkah M): <span
+class="math display">\[\gamma_{nk}=\frac{\pi_k\,\mathcal{N}(\boldsymbol{x}_n\mid\boldsymbol\mu_k,\boldsymbol\Sigma_k)}{\sum_j\pi_j\,\mathcal{N}(\boldsymbol{x}_n\mid\boldsymbol\mu_j,\boldsymbol\Sigma_j)},\qquad
+\boldsymbol\mu_k=\frac{\sum_n\gamma_{nk}\boldsymbol{x}_n}{\sum_n\gamma_{nk}},\qquad
+\pi_k=\frac1N\sum_n\gamma_{nk}.\]</span> Langkah E adalah teorema Bayes:
+peluang titik <span class="math inline">\(n\)</span> berasal dari
+komponen <span class="math inline">\(k\)</span> sebanding dengan bobot
+komponen itu dikali seberapa mungkin titik itu dihasilkannya. Langkah M
+adalah estimasi maksimum likelihood biasa, hanya dengan setiap titik
+dihitung sebagian untuk setiap komponen. Setiap putaran EM tidak pernah
+menurunkan likelihood, alasan yang sama dengan batas bawah ELBO di <a
+href="ch09_ml_advanced.html">Bab 15</a>. Ketika kovarians semua komponen
+dibuat sama dan kecil sekali, keanggotaan menjadi nol atau satu, dan EM
+berubah menjadi <span class="math inline">\(k\)</span>-means.</p>
+<p>Berapa banyak kelompok yang sebaiknya dipakai? Jumlah kuadrat jarak
+ke pusat selalu turun kalau <span class="math inline">\(k\)</span>
+ditambah, sampai nol ketika setiap titik menjadi kelompoknya sendiri,
+sehingga ukuran itu tidak bisa dipakai langsung. Metode siku mencari
+titik di mana penurunannya tiba-tiba melandai. Koefisien silhouette
+membandingkan, untuk setiap titik, jarak rata-rata ke anggota
+kelompoknya sendiri, <span class="math inline">\(a\)</span>, dengan
+jarak rata-rata ke kelompok terdekat lainnya, <span
+class="math inline">\(b\)</span>, sebagai <span
+class="math inline">\((b-a)/\max(a,b)\)</span>. Nilainya mendekati satu
+kalau titik itu jelas berada di kelompok yang benar. Untuk contoh empat
+titik tadi, titik 1 punya <span class="math inline">\(a=1\)</span> dan
+<span class="math inline">\(b=(9+10)/2=9{,}5\)</span>, sehingga
+silhouette-nya <span
+class="math inline">\(8{,}5/9{,}5\approx0{,}89\)</span>. Untuk model
+campuran, kriteria informasi seperti BIC menimbang likelihood terhadap
+jumlah parameter.</p>
 <h3 id="hierarki-dan-kemiripan">Hierarki dan kemiripan</h3>
 <p>Pengelompokan hierarkis tidak memilih jumlah kelompok di awal. Versi
 aglomeratif mulai dengan setiap titik sebagai kelompoknya sendiri, lalu
@@ -187,7 +247,7 @@ faktor dengan prior yang jarang sekali (<em>sparse</em>), sehingga
 setiap faktor hanya melibatkan sedikit gen dan sedikit sampel. Inilah
 salah satu titik pertemuan pertama antara machine learning dan ilmu
 hayati di buku ini, dan kita akan kembali ke data seperti ini di <a
-href="ch41_molekul.html">Bab 19</a>.</p>
+href="ch41_molekul.html">Bab 23</a>.</p>
 <h2 id="dari-fitur-ke-pengklasifikasi">Dari fitur ke
 pengklasifikasi</h2>
 <p>Kuliah pattern classification membahas jalur lengkap sebuah sistem
@@ -203,16 +263,56 @@ terhadap kelas, asumsi yang hampir selalu salah tetapi sering bekerja
 dengan baik. Analisis diskriminan linear <span class="citation"
 data-cites="fisher1936">(FISHER 1936)</span> mencari arah proyeksi yang
 memisahkan rata-rata kelas sejauh mungkin relatif terhadap sebaran di
-dalam kelas. Pohon keputusan memotong ruang fitur dengan pertanyaan ya
-atau tidak yang berurutan, dan random forest <span class="citation"
-data-cites="breiman2001">(Breiman 2001)</span> merata-ratakan banyak
-pohon yang dilatih pada sampel dan fitur acak. Support vector machine
-<span class="citation" data-cites="cortes1995">(Cortes dan Vapnik
-1995)</span> mencari bidang pemisah dengan margin terlebar, dan dengan
-kernel ia bisa memisahkan kelas yang tidak terpisah secara linear. Ide
-marginnya adalah regularisasi dalam bentuk geometris: di antara semua
-bidang yang memisahkan data latih, pilih yang paling jauh dari titik
-mana pun.</p>
+dalam kelas. Untuk dua kelas, memaksimalkan rasio <span
+class="math inline">\((\boldsymbol
+w^\top(\boldsymbol\mu_1-\boldsymbol\mu_2))^2/(\boldsymbol
+w^\top\boldsymbol S_W\boldsymbol w)\)</span> memberi arah <span
+class="math inline">\(\boldsymbol w\propto\boldsymbol
+S_W^{-1}(\boldsymbol\mu_1-\boldsymbol\mu_2)\)</span>, dengan <span
+class="math inline">\(\boldsymbol S_W\)</span> matriks sebaran di dalam
+kelas. Kalau sebaran itu bulat, arahnya sekadar garis yang menghubungkan
+kedua rata-rata. Kalau sebaran lonjong, arahnya dimiringkan menjauhi
+arah sebaran yang lebar, karena perbedaan rata-rata di arah itu mudah
+tertutup noise. Pohon keputusan memotong ruang fitur dengan pertanyaan
+ya atau tidak yang berurutan. Pertanyaan di setiap simpul dipilih yang
+paling mengurangi ketidakmurnian label, misalnya entropi <span
+class="math inline">\(H=-\sum_cp_c\log_2p_c\)</span>. Simpul dengan
+delapan contoh positif dan delapan negatif punya entropi satu bit. Kalau
+sebuah pertanyaan membaginya menjadi <span
+class="math inline">\((7,1)\)</span> dan <span
+class="math inline">\((1,7)\)</span>, entropi setiap anak sekitar <span
+class="math inline">\(0{,}54\)</span> bit, sehingga perolehan
+informasinya sekitar <span class="math inline">\(0{,}46\)</span> bit.
+Pertanyaan yang membagi menjadi <span
+class="math inline">\((4,4)\)</span> dan <span
+class="math inline">\((4,4)\)</span> tidak memberi informasi sama
+sekali. Pohon tunggal mudah overfitting, dan random forest <span
+class="citation" data-cites="breiman2001">(Breiman 2001)</span>
+merata-ratakan banyak pohon yang dilatih pada sampel dan fitur acak.
+Support vector machine <span class="citation"
+data-cites="cortes1995">(Cortes dan Vapnik 1995)</span> mencari bidang
+pemisah dengan margin terlebar, dan dengan kernel ia bisa memisahkan
+kelas yang tidak terpisah secara linear. Ide marginnya adalah
+regularisasi dalam bentuk geometris: di antara semua bidang yang
+memisahkan data latih, pilih yang paling jauh dari titik mana pun. Jarak
+sebuah titik ke bidang <span class="math inline">\(\boldsymbol
+w^\top\boldsymbol{x}+b=0\)</span> adalah <span
+class="math inline">\(|\boldsymbol w^\top\boldsymbol{x}+b|/\|\boldsymbol
+w\|\)</span>. Kalau skala <span class="math inline">\(\boldsymbol
+w\)</span> diatur sehingga titik-titik terdekat memenuhi <span
+class="math inline">\(y_n(\boldsymbol
+w^\top\boldsymbol{x}_n+b)=1\)</span>, lebar margin di kedua sisi menjadi
+<span class="math inline">\(2/\|\boldsymbol w\|\)</span>. Memaksimalkan
+margin sama dengan meminimalkan <span
+class="math inline">\(\tfrac12\|\boldsymbol w\|^2\)</span> dengan
+kendala <span class="math inline">\(y_n(\boldsymbol
+w^\top\boldsymbol{x}_n+b)\ge1\)</span> untuk semua <span
+class="math inline">\(n\)</span>, masalah kuadrat dengan kendala yang
+diselesaikan lewat bentuk dualnya (<a href="ch02_optimasi.html">Bab
+4</a>). Di bentuk dual, data hanya muncul sebagai hasil kali dalam <span
+class="math inline">\(\boldsymbol{x}_n^\top\boldsymbol{x}_m\)</span>,
+dan mengganti hasil kali itu dengan kernel memberi SVM nonlinear tanpa
+pernah menghitung pemetaan fiturnya.</p>
 <p>Seleksi fitur bisa dilakukan dengan tiga cara. Metode filter menilai
 setiap fitur sendiri-sendiri, misalnya dari korelasinya dengan label.
 Metode wrapper mencoba berbagai himpunan fitur dengan melatih model
@@ -231,11 +331,37 @@ memisahkan sinyal jantung ibu dan janin dari elektroda yang sama, dan
 PCA memampatkan data sensor sebelum dikirim. Dalam simulasi, PCA dengan
 nama proper orthogonal decomposition mereduksi medan aliran berjuta sel
 menjadi beberapa puluh mode (<a href="ch17_penemuan_reduksi.html">Bab
-27</a>). Dalam sistem rekomendasi, faktorisasi matriks yang mirip
+31</a>). Dalam sistem rekomendasi, faktorisasi matriks yang mirip
 analisis faktor menemukan selera tersembunyi pengguna (<a
-href="ch50_rekomendasi.html">Bab 30</a>). Di semua tempat itu,
+href="ch50_rekomendasi.html">Bab 34</a>). Di semua tempat itu,
 pertanyaannya sama: struktur apa yang tersembunyi di balik angka-angka
 ini?</p>
+<h2 id="perkembangan-riset">Perkembangan riset</h2>
+<p>Batas antara unsupervised dan supervised learning kini kabur karena
+<em>self-supervised learning</em>: label dibuat dari data itu sendiri.
+SimCLR <span class="citation" data-cites="chen2020simclr">(Chen dkk.
+2020)</span> melatih encoder agar dua versi augmentasi dari gambar yang
+sama berdekatan dan versi dari gambar lain berjauhan, loss kontrastif
+yang sama dengan CLIP di <a href="ch41_molekul.html">Bab 23</a>. Studi
+sistematisnya menemukan bahwa susunan augmentasi, satu proyeksi
+nonlinear tambahan, dan batch yang besar adalah kunci keberhasilannya.
+Masked autoencoder <span class="citation" data-cites="he2022mae">(He
+dkk. 2021)</span> mengambil jalan lain: sembunyikan tiga perempat
+potongan gambar secara acak, lalu latih jaringan merekonstruksi piksel
+yang hilang. Karena encoder hanya melihat potongan yang terlihat,
+pelatihannya juga tiga kali lebih cepat.</p>
+<p>I-JEPA <span class="citation" data-cites="assran2023">(Assran dkk.
+2023)</span> berargumen bahwa merekonstruksi piksel membuang kapasitas
+untuk detail yang tidak penting. Ia meramalkan <em>representasi</em>
+dari blok-blok yang disembunyikan, bukan pikselnya, dari satu blok
+konteks, sehingga yang dipelajari lebih semantik. DINOv2 <span
+class="citation" data-cites="oquab2023">(Oquab dkk. 2023)</span>
+menunjukkan bahwa dengan data yang dikurasi dengan cermat dan model
+miliaran parameter, fitur self-supervised bisa dipakai langsung untuk
+banyak tugas tanpa penyetelan ulang. Analisis faktor dan PCA di bab ini
+mencari struktur laten dengan model linear. Metode-metode ini mencari
+struktur yang sama dengan jaringan dalam, dan menjadi titik awal model
+fondasi di bidang visi, citra medis, dan sinyal sensor.</p>
 <h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti naskah kuliah Machine Learning: Unsupervised
 Techniques (PCA dan kernel PCA, ICA, analisis faktor, metode proyeksi,
@@ -249,6 +375,13 @@ dan <span class="citation" data-cites="duda2001">Duda, Hart, dan Stork
 <h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
+<div id="ref-assran2023" class="csl-entry" role="listitem">
+Assran, Mahmoud, Quentin Duval, Ishan Misra, Piotr Bojanowski, Pascal
+Vincent, Michael Rabbat, Yann LeCun, dan Nicolas Ballas. 2023.
+<span>“Self-Supervised Learning from Images with a Joint-Embedding
+Predictive Architecture.”</span> arXiv:2301.08243. <a
+href="https://arxiv.org/abs/2301.08243">https://arxiv.org/abs/2301.08243</a>.
+</div>
 <div id="ref-bishop2006" class="csl-entry" role="listitem">
 Bishop, Christopher M. 2006. <em>Pattern Recognition and Machine
 Learning</em>. Springer.
@@ -257,6 +390,12 @@ Learning</em>. Springer.
 Breiman, Leo. 2001. <span>“Random Forests.”</span> <em>Machine
 Learning</em> 45 (1): 5–32. <a
 href="https://doi.org/10.1023/A:1010933404324">https://doi.org/10.1023/A:1010933404324</a>.
+</div>
+<div id="ref-chen2020simclr" class="csl-entry" role="listitem">
+Chen, Ting, Simon Kornblith, Mohammad Norouzi, dan Geoffrey Hinton.
+2020. <span>“A Simple Framework for Contrastive Learning of Visual
+Representations.”</span> arXiv:2002.05709. <a
+href="https://arxiv.org/abs/2002.05709">https://arxiv.org/abs/2002.05709</a>.
 </div>
 <div id="ref-cortes1995" class="csl-entry" role="listitem">
 Cortes, Corinna, dan Vladimir Vapnik. 1995. <span>“Support-vector
@@ -275,6 +414,12 @@ href="https://doi.org/10.1111/j.1469-1809.1936.tb02137.x">https://doi.org/10.111
 <div id="ref-hastie2009" class="csl-entry" role="listitem">
 Hastie, Trevor, Robert Tibshirani, dan Jerome Friedman. 2009. <em>The
 Elements of Statistical Learning</em>. 2 ed. Springer.
+</div>
+<div id="ref-he2022mae" class="csl-entry" role="listitem">
+He, Kaiming, Xinlei Chen, Saining Xie, Yanghao Li, Piotr Dollár, dan
+Ross Girshick. 2021. <span>“Masked Autoencoders Are Scalable Vision
+Learners.”</span> arXiv:2111.06377. <a
+href="https://arxiv.org/abs/2111.06377">https://arxiv.org/abs/2111.06377</a>.
 </div>
 <div id="ref-hochreiter2010" class="csl-entry" role="listitem">
 Hochreiter, Sepp, Ulrich Bodenhofer, Martin Heusel, Andreas Mayr,
@@ -305,6 +450,13 @@ McInnes, Leland, John Healy, dan James Melville. 2018. <span>“UMAP:
 Uniform Manifold Approximation and Projection for Dimension
 Reduction.”</span> arXiv:1802.03426. <a
 href="https://arxiv.org/abs/1802.03426">https://arxiv.org/abs/1802.03426</a>.
+</div>
+<div id="ref-oquab2023" class="csl-entry" role="listitem">
+Oquab, Maxime, Timothée Darcet, Théo Moutakanni, Huy Vo, Marc
+Szafraniec, Vasil Khalidov, Pierre Fernandez, dkk. 2023. <span>“DINOv2:
+Learning Robust Visual Features without Supervision.”</span>
+arXiv:2304.07193. <a
+href="https://arxiv.org/abs/2304.07193">https://arxiv.org/abs/2304.07193</a>.
 </div>
 <div id="ref-roweis2000" class="csl-entry" role="listitem">
 Roweis, Sam T., dan Lawrence K. Saul. 2000. <span>“Nonlinear

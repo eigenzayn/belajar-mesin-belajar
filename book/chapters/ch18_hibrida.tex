@@ -17,6 +17,23 @@ aliran yang rumit, misalnya dengan pemisahan aliran, kelengkungan kuat, atau put
 Data dari simulasi yang lebih teliti, seperti DNS dan LES, atau dari percobaan, bisa dipakai untuk
 mempelajari model yang lebih baik \citep{duraisamy2019}.
 
+\section{Contoh kecil: bandul dengan gesekan yang tidak diketahui}
+
+Gagasan hibrida paling mudah dilihat pada sistem kecil. Misalkan kita tahu persamaan bandul tanpa gesekan dari
+\cref{ch:robot}, $\ddot\theta=-(g/l)\sin\theta$, tetapi bandul nyata melambat karena gesekan yang bentuknya tidak kita
+ketahui: mungkin sebanding dengan kecepatan, mungkin dengan kuadratnya, mungkin campuran. Model hibrida menulis
+\begin{equation}
+\ddot\theta=-\frac gl\sin\theta+N_\theta(\theta,\dot\theta),
+\end{equation}
+dengan $N_\theta$ jaringan kecil. Bagian yang diketahui tetap ditulis sebagai fisika, dan jaringan hanya belajar sisanya.
+Persamaan ini diintegrasikan dengan solver ODE biasa, dan bobot jaringan dilatih agar lintasan yang dihasilkan cocok
+dengan lintasan yang diukur, dengan gradien yang dibawa mundur melewati solver. Kerangka ini disebut
+\istilah{universal differential equation} \citep{rackauckas2020}. Setelah dilatih, $N_\theta$ bisa dibaca kembali,
+misalnya dengan SINDy dari \cref{ch:penemuan}, untuk mencari bentuk gesekan yang sebenarnya. Kalau jaringan ternyata
+mendekati $-0{,}3\,\dot\theta$, kita baru saja menemukan redaman linear dengan koefisien $0{,}3$ per detik. Jaringannya
+jauh lebih kecil daripada jaringan yang harus mempelajari seluruh dinamika bandul, dan di luar rentang data ia tetap
+dibimbing oleh suku gravitasi yang benar.
+
 \section{Model penutup yang dipelajari}
 
 Pendekatan paling langsung adalah melatih jaringan untuk memprediksi besaran yang hilang dari besaran
@@ -47,12 +64,42 @@ Selama simulasi, ia melihat input dari medan yang dihasilkan solver bersama mode
 distribusinya bergeser. Galat kecil mengubah medan, medan yang berubah mengubah input model, dan
 lingkarannya bisa memperbesar galat.
 
+Akumulasi galat ini bisa dirasakan dengan contoh skalar. Misalkan dinamika sebenarnya $u_{n+1}=0{,}95\,u_n$, solver
+kasar memberi $0{,}90\,u_n$, dan koreksi yang dilatih a priori menambahkan $0{,}049\,u_n$. Galat satu langkahnya
+hanya $0{,}001\,u_n$, sekitar seperseribu, angka yang tampak sempurna dalam tabel uji a priori. Setelah seratus
+langkah, rasio hasil hibrida terhadap kebenaran adalah $(0{,}949/0{,}95)^{100}\approx0{,}90$, galat sepuluh persen.
+Dalam sistem nonlinear, galat seperti ini tidak hanya menumpuk tetapi juga mengubah input koreksi berikutnya,
+sehingga bisa lebih buruk lagi.
+
 Obatnya adalah melatih model di dalam lingkar yang sama dengan tempat ia akan dipakai. Pendekatan
 \istilah{solver-in-the-loop} \citep{um2020} menulis satu langkah simulasi hibrida sebagai
 \begin{equation}
 \vu_{n+1}=\mathcal S(\vu_n)+\mathcal C_\theta\big(\mathcal S(\vu_n)\big),
 \end{equation}
-dengan $\mathcal S$ solver kasar dan $\mathcal C_\theta$ koreksi yang dipelajari. Kalau solver ditulis
+dengan $\mathcal S$ solver kasar dan $\mathcal C_\theta$ koreksi yang dipelajari (\cref{fig:hibrida}).
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[node distance=0.5cm and 0.8cm]
+  \node[kotak] (u0) {$\vu_n$};
+  \node[kotak=biru,right=of u0] (S) {solver kasar\\$\mathcal S$};
+  \node[kotak=oranye,right=of S] (C) {koreksi\\$\mathcal C_\theta$};
+  \node[bulat,right=of C,minimum size=6mm,inner sep=0pt] (p) {$+$};
+  \node[kotak,right=of p] (u1) {$\vu_{n+1}$};
+  \node[kotak=hijau,below=0.9cm of C] (L) {loss terhadap\\data teliti};
+  \draw[panah] (u0) -- (S);
+  \draw[panah] (S) -- (C);
+  \draw[panah] (C) -- (p);
+  \draw[panah] (S.north) -- ++(0,0.5) -| (p.north);
+  \draw[panah] (p) -- (u1);
+  \draw[panah] (u1.north) -- ++(0,0.9) -| node[label,above,pos=0.25]{langkah berikutnya} (u0.north);
+  \draw[panah] (u1.south) |- (L.east);
+  \draw[panah,dashed] (L.west) -| node[label,below,pos=0.3]{gradien lewat solver} (S.south);
+\end{tikzpicture}
+\caption{Solver-in-the-loop. Koreksi yang dipelajari ditambahkan pada hasil solver kasar di setiap langkah, dan
+gradien loss dibawa mundur melewati beberapa langkah solver sekaligus.}
+\label{fig:hibrida}
+\end{figure} Kalau solver ditulis
 dalam kerangka yang bisa diturunkan, gradien loss bisa dibawa mundur melewati beberapa langkah solver
 sekaligus, sehingga koreksi belajar memperbaiki galat yang muncul dari interaksinya sendiri dengan solver.
 Gagasan solver yang bisa diturunkan, \istilah{differentiable physics}, dibahas lengkap dalam buku
@@ -61,12 +108,32 @@ mempelajari cara menginterpolasi nilai di sisi sel pada grid yang jauh lebih kas
 dihasilkan setara akurasinya dengan solver klasik pada grid berkali-kali lebih halus, dengan percepatan
 puluhan kali.
 
+\section{Koreksi yang tetap konservatif}
+
+Ada satu cara sederhana untuk memastikan koreksi tidak merusak hukum kekekalan. Alih-alih membiarkan jaringan
+menambahkan nilai sembarang ke setiap sel, kita membiarkannya mempelajari \emph{fluks} tambahan di sisi-sisi sel, lalu
+menerapkan koreksi sebagai divergensi fluks itu, persis seperti suku-suku lain di metode volume hingga
+(\cref{ch:numerik}). Fluks yang keluar dari satu sel adalah fluks yang masuk ke tetangganya, sehingga jumlah koreksi di
+seluruh domain otomatis nol, kecuali di batas. Total massa atau energi tidak bisa berubah karena koreksi, apa pun bobot
+jaringannya. Sebaliknya, koreksi sel demi sel tanpa struktur ini bisa diam-diam menambah atau membuang energi di setiap
+langkah, dan dalam simulasi panjang, kebocoran kecil seperti itu menjadi galat yang besar. Pelajaran ini muncul berulang
+kali dalam buku ini: struktur yang benar lebih berharga daripada parameter yang lebih banyak.
+
+Koreksi seperti ini juga perlu dibatasi agar tidak menciptakan nilai yang tidak fisis, misalnya temperatur di bawah
+nilai terkecil di sekitarnya atau konsentrasi negatif. Limiter dari skema konveksi orde tinggi di \cref{ch:numerik}
+memberi cara yang teruji untuk melakukannya: fluks koreksi dipotong secukupnya agar tidak ada ekstremum baru yang
+muncul.
+
 \section{Ketidakpastian dan banyak tingkat ketelitian}
 
 Model hibrida juga cocok untuk memanfaatkan data dari sumber yang berbeda-beda ketelitian dan harganya.
 Simulasi kasar murah dan banyak, simulasi teliti mahal dan sedikit, percobaan paling dipercaya tetapi
 paling jarang. Model \istilah{multi-fidelity} mempelajari koreksi dari tingkat murah ke tingkat mahal, yang
-biasanya jauh lebih sederhana untuk dipelajari daripada solusi lengkapnya. Ketidakpastian prediksi bisa
+biasanya jauh lebih sederhana untuk dipelajari daripada solusi lengkapnya. Bentuk paling sederhananya linear:
+$u_{\mathrm{teliti}}(\vx)\approx\rho\,u_{\mathrm{kasar}}(\vx)+\delta(\vx)$, dengan faktor skala $\rho$ dan fungsi
+selisih $\delta$ yang dipelajari, misalnya dengan Gaussian process dari \cref{ch:mlat}. Kalau simulasi kasar sudah
+menangkap pola umumnya, $\delta$ adalah fungsi yang halus dan kecil, dan beberapa titik simulasi teliti sudah cukup
+untuk menaksirnya. Ketidakpastian prediksi bisa
 diperkirakan dengan ensemble atau model probabilistik (\cref{ch:arsitektur}), dan ini penting karena model
 hibrida sering dipakai justru di luar daerah data latihnya.
 
@@ -74,6 +141,65 @@ Asimilasi data dari \cref{ch:prob} adalah bentuk hibrida yang paling tua. Solver
 memberi koreksi, dan keduanya digabung dengan bobot sesuai ketidakpastian masing-masing. Ketika model
 penutupnya sendiri tidak pasti, parameter model bisa ikut ditaksir dalam proses asimilasi, misalnya
 dengan menambahkannya ke vektor keadaan Kalman filter ensemble.
+
+\section{Asimilasi data dari dekat}
+
+Asimilasi data layak dibahas lebih rinci, karena ia adalah cara paling langsung untuk mendamaikan simulasi dengan
+pengukuran. Bentuk paling sederhana adalah \istilah{nudging}. Persamaan model ditambah satu suku yang menarik keadaan ke
+arah pengamatan,
+\begin{equation}
+\frac{\dd T}{\dd t}=F(T)+G\,\big(T_{\mathrm{obs}}-T\big),
+\end{equation}
+dengan $G$ kekuatan tarikan, kebalikan dari waktu relaksasi $\tau=1/G$. Kalau $G$ nol, model berjalan sendiri. Kalau $G$
+besar, keadaan model praktis diganti pengamatan. Di antaranya, model dan pengamatan berbagi kendali.
+
+Contoh skalar memperlihatkan apa yang dilakukan nudging terhadap galat model. Misalkan model meluruh menuju keadaan
+setimbang $T_e$ dengan laju satu per satuan waktu, tetapi punya bias $b$, sehingga $F(T)=-(T-T_e)+b$. Tanpa nudging,
+keadaan tunaknya $T_e+b$, meleset sebesar bias. Dengan nudging ke pengamatan yang benar, $T_{\mathrm{obs}}=T_e$, keadaan
+tunak memenuhi $0=-(T-T_e)+b+G(T_e-T)$, sehingga
+\begin{equation}
+T=T_e+\frac{b}{1+G}.
+\end{equation}
+Galatnya tidak hilang, tetapi diperkecil dengan faktor $1+G$. Dengan $G=4$, bias tinggal seperlima. Rumus ini juga
+memperlihatkan harganya: medan yang dihasilkan tidak lagi murni hasil model, sehingga tidak bisa dipakai sebagai bukti
+bahwa model sudah benar. Suku nudging itu sendiri, $G(T_{\mathrm{obs}}-T)$, justru informatif, karena besarnya mengukur
+seberapa banyak model harus dikoreksi, dan di mana. Dalam praktik, nudging hanya diterapkan di sekitar titik sensor, dan
+informasi menyebar ke tempat lain lewat dinamika model sendiri (\cref{fig:nudging}).
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=0.64\linewidth,height=4.6cm,axis lines=left,xmin=0,xmax=6,ymin=0,ymax=1.25,
+  xlabel={\small waktu},ylabel={\small $T$},xtick=\empty,ytick={0,1},yticklabels={$T_e$,$T_e+b$}]
+  \addplot[abu,thick,dashed,domain=0:6] {0};
+  \addplot[oranye,thick,domain=0:6,samples=60] {1-exp(-x)};
+  \addplot[biru,thick,domain=0:6,samples=60] {0.2*(1-exp(-5*x))};
+  \node[label,oranye] at (axis cs:4.3,1.08) {tanpa nudging};
+  \node[label,biru] at (axis cs:4.3,0.32) {nudging, $G=4$};
+  \node[label,abu] at (axis cs:4.3,-0.0) [above] {pengamatan};
+\end{axis}
+\end{tikzpicture}
+\caption{Model dengan bias $b$, mulai dari keadaan yang benar. Tanpa nudging ia menyimpang ke $T_e+b$. Dengan nudging
+berkekuatan $G=4$, simpangannya tinggal $b/5$ dan dicapai lebih cepat.}
+\label{fig:nudging}
+\end{figure}
+
+Kalman filter memilih kekuatan tarikan secara optimal dari ketidakpastian, bukan dengan tangan. Untuk model dengan
+jutaan variabel, matriks kovarians tidak mungkin disimpan, dan ensemble Kalman filter \citep{evensen1994} menaksirnya dari
+sekumpulan simulasi. Jalankan $N$ anggota ensemble dengan syarat awal atau parameter yang sedikit berbeda. Kovarians
+antara keadaan di sebuah titik dan nilai yang terukur di sensor ditaksir dari sebaran anggota, misalnya
+$P_{xz}\approx\frac1{N-1}\sum_i(x_i-\bar x)(z_i-\bar z)$, dan gain-nya $K=P_{xz}/(P_{zz}+R)$. Contoh dengan empat anggota:
+temperatur di sebuah titik bernilai $(20,22,24,26)$ dan di sensor $(30,31,32,33)$. Rata-ratanya $23$ dan $31{,}5$. Simpangan setiap anggota dari rata-ratanya adalah
+$(-3,-1,1,3)$ di titik itu dan $(-1{,}5;-0{,}5;0{,}5;1{,}5)$ di sensor, sehingga $P_{xz}=(4{,}5+0{,}5+0{,}5+4{,}5)/3\approx3{,}33$ dan
+$P_{zz}=(2{,}25+0{,}25+0{,}25+2{,}25)/3\approx1{,}67$. Dengan varians pengukuran $R=1$, $K\approx3{,}33/2{,}67=1{,}25$. Kalau
+sensor membaca $33$, satu setengah derajat di atas rata-rata ensemble, rata-rata temperatur di titik itu dikoreksi naik
+$1{,}25\times1{,}5\approx1{,}9$ derajat, walau titik itu sendiri tidak diukur. Ensemble ``tahu'' bahwa titik dan sensor
+bergerak bersama, dan memakai pengetahuan itu untuk menyebarkan informasi.
+
+Parameter model juga bisa ikut diasimilasi. Tambahkan parameter yang tidak pasti, misalnya koefisien perpindahan panas
+dinding, ke vektor keadaan setiap anggota. Parameter itu tidak berubah oleh dinamika, tetapi ia berkorelasi dengan
+keadaan yang terukur di seluruh ensemble, sehingga koreksi Kalman memperbaruinya juga. Cara ini, yang disebut augmentasi
+keadaan, menjembatani asimilasi data dan kalibrasi model.
 
 \section{Apa yang dipelajari, dan apa yang tidak}
 
@@ -84,6 +210,18 @@ yang konservatif, model hibrida jauh lebih jarang melanggar kekekalan massa atau
 pengganti murni. Karena koreksinya kecil, ia butuh lebih sedikit data. Dan karena strukturnya jelas,
 kegagalannya lebih mudah didiagnosis. Ulasan \citet{vinuesa2022} dan \citet{brunton2020} menempatkan
 pendekatan ini sebagai salah satu jalur yang paling menjanjikan untuk mekanika fluida komputasi.
+
+\section{Perkembangan riset}
+
+Contoh paling meyakinkan untuk model hibrida datang dari cuaca dan iklim. NeuralGCM \citep{kochkov2024} menggabungkan
+solver dinamika atmosfer yang bisa diturunkan dengan komponen machine learning yang menggantikan parameterisasi proses
+skala kecil seperti pembentukan awan. Seluruh model dilatih ujung ke ujung dengan gradien yang dibawa melewati solver,
+yaitu solver-in-the-loop dalam skala planet. Untuk prakiraan satu sampai sepuluh hari, kinerjanya bersaing dengan model
+machine learning murni, dan untuk ensemble satu sampai lima belas hari, dengan sistem ensemble pusat prakiraan Eropa.
+Dengan temperatur permukaan laut yang ditetapkan, model ini juga melacak besaran iklim selama beberapa dekade, sesuatu
+yang sulit bagi model pengganti murni yang cenderung tidak stabil. Penulisnya juga mencatat batasnya: model ini tidak
+mengekstrapolasi ke iklim masa depan yang jauh berbeda, pengingat bahwa data tetap membatasi jangkauan bagian yang
+dipelajari.
 
 \sumberbab{Bab ini dirangkai dari kuliah Numerical Methods in Fluid Mechanics (model penutup turbulensi)
 dan bacaan selama tugas akhir. Rujukan utama: \citet{duraisamy2019}, \citet{ling2016}, \citet{um2020},

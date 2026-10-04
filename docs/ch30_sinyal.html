@@ -18,197 +18,514 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 14</p>
+<p class="chapnum">Bab 18</p>
 <h1>Menangkap Sinyal: Estimasi, Filter, dan Radar</h1>
 <p><span id="ch:sinyal" data-label="ch:sinyal"></span></p>
 <p>Pemrosesan sinyal masuk ke perjalanan saya lewat dua mata kuliah.
 Kuliah optimum and adaptive signal processing systems, dengan latihan
-kelompok berisi enam tugas, membahas teori estimasi, filter optimal, dan
-filter adaptif. Pada musim dingin 2025/26, latihan radar system
-engineering mengajak kami membangun radar di dalam notebook: persamaan
-radar, korelasi, FFT, deteksi, CFAR, radar FMCW, dan beamforming
-digital, sampai sebuah simulator radar sederhana.</p>
+kelompok berisi enam tugas, membahas variabel dan proses acak, teori
+estimasi klasik dan Bayesian, filter optimal, dan filter adaptif. Pada
+musim dingin 2025/26, latihan radar system engineering mengajak kami
+membangun radar di dalam notebook Python: persamaan radar dalam skala
+desibel, distribusi noise, deteksi, korelasi dan matched filter, FFT,
+CFAR, radar FMCW, beamforming digital, sampai sebuah simulator radar
+sederhana.</p>
 <p>Pemrosesan sinyal sudah “belajar dari data” jauh sebelum istilah
 machine learning populer. Filter adaptif yang meredam gema di telepon
 memperbarui bobotnya dengan gradien stokastik, persis seperti jaringan
 saraf. Banyak konsep di bab ini, dari batas Cramér–Rao sampai Kalman
 filter, sudah kita temui dari sisi machine learning. Di sini kita
-melihatnya dari sisi insinyur sinyal.</p>
+melihatnya dari sisi insinyur sinyal, yang selalu bertanya tiga hal:
+seperti apa model sinyalnya, seperti apa noise-nya, dan seberapa baik
+hasil terbaik yang mungkin dicapai.</p>
 <h2 id="sinyal-acak">Sinyal acak</h2>
 <p>Sinyal yang menarik hampir selalu bercampur noise, sehingga kita
-memperlakukannya sebagai proses acak. Sebuah proses disebut stasioner
-dalam arti luas kalau rata-ratanya tetap dan fungsi autokorelasinya,
-<span
-class="math inline">\(r_x[k]=\mathbb{E}\big[x[n]x[n+k]\big]\)</span>,
+memperlakukannya sebagai proses acak. Kuliah dimulai dari dasar:
+variabel acak dengan fungsi distribusi kumulatif dan kerapatannya,
+vektor acak dengan kovarians, lalu proses acak sebagai deret variabel
+acak yang diindeks waktu. Sebuah proses disebut stasioner dalam arti
+luas kalau rata-ratanya tetap dan fungsi autokorelasinya, <span
+class="math display">\[r_x[k]=\mathbb{E}\big[x[n]\,x[n+k]\big],\]</span>
 hanya bergantung pada jarak waktu <span
 class="math inline">\(k\)</span>, bukan pada waktu absolut. Transformasi
 Fourier dari autokorelasi adalah <em>power spectral density</em>, yang
-menyatakan bagaimana daya sinyal tersebar di seluruh frekuensi. Noise
-putih punya autokorelasi yang hanya tidak nol di <span
-class="math inline">\(k=0\)</span>, sehingga spektrumnya datar: semua
-frekuensi mendapat daya yang sama, seperti cahaya putih yang memuat
-semua warna.</p>
+menyatakan bagaimana daya sinyal tersebar di seluruh frekuensi. Hubungan
+ini, teorema Wiener–Khinchin, menghubungkan dua cara melihat sinyal yang
+sama: di waktu lewat korelasi, di frekuensi lewat spektrum. Noise putih
+punya autokorelasi yang hanya tidak nol di <span
+class="math inline">\(k=0\)</span>, sehingga spektrumnya datar, seperti
+cahaya putih yang memuat semua warna.</p>
+<p>Dalam praktik, spektrum diperkirakan dari data terbatas dengan
+<em>periodogram</em>, kuadrat magnitudo FFT dari potongan sinyal.
+Latihan radar memperlihatkan dua pelajaran praktisnya. Mengalikan sinyal
+dengan sebuah jendela sebelum FFT, misalnya jendela Hann, menekan
+kebocoran spektral yang membuat sinusoid tunggal tampak menyebar ke
+frekuensi tetangga. Menambahkan nol di ujung sinyal (<em>zero
+padding</em>) membuat spektrum tampak lebih halus karena titik-titiknya
+lebih rapat, tetapi tidak menambah resolusi yang sebenarnya, karena
+resolusi frekuensi ditentukan oleh lamanya pengamatan.</p>
 <h2 id="estimasi-klasik">Estimasi klasik</h2>
 <p>Kuliah teori estimasi dimulai dengan contoh paling sederhana:
 menaksir level tegangan tetap <span class="math inline">\(A\)</span>
-dari pengukuran yang berisik, <span
+dari pengukuran berisik, <span
 class="math inline">\(x[n]=A+w[n]\)</span> untuk <span
 class="math inline">\(n=0,\dots,N-1\)</span>, dengan <span
 class="math inline">\(w[n]\)</span> noise putih Gauss bervarians <span
-class="math inline">\(\sigma^2\)</span>. Rata-rata sampel tak bias,
-variansnya <span class="math inline">\(\sigma^2/N\)</span>, dan batas
-Cramér–Rao (<a href="ch09_ml_advanced.html">Bab 11</a>) untuk masalah
-ini juga <span class="math inline">\(\sigma^2/N\)</span>. Jadi rata-rata
-sampel adalah estimator <em>minimum variance unbiased</em>, dan tidak
-ada estimator tak bias lain yang lebih baik <span class="citation"
-data-cites="kay1993">(Kay 1993)</span>.</p>
-<p>Untuk model yang lebih umum, beberapa jalan tersedia. Kalau model
-linear dalam parameter, <span
+class="math inline">\(\sigma^2\)</span>. Log-likelihoodnya <span
+class="math display">\[\ln p(\boldsymbol{x};A)=-\frac
+N2\ln(2\pi\sigma^2)-\frac1{2\sigma^2}\sum_{n=0}^{N-1}\big(x[n]-A\big)^2.\]</span>
+Turunan pertama terhadap <span class="math inline">\(A\)</span> adalah
+<span class="math inline">\(\frac1{\sigma^2}\sum_n(x[n]-A)=\frac
+N{\sigma^2}(\bar x-A)\)</span>, yang nol pada <span
+class="math inline">\(\hat A=\bar x\)</span>, rata-rata sampel. Turunan
+kedua adalah <span class="math inline">\(-N/\sigma^2\)</span>, tidak
+bergantung pada data, sehingga Fisher information-nya <span
+class="math inline">\(I(A)=N/\sigma^2\)</span> dan batas Cramér–Rao-nya
+<span class="math inline">\(\sigma^2/N\)</span> (<a
+href="ch09_ml_advanced.html">Bab 15</a>). Rata-rata sampel tak bias dan
+variansnya tepat <span class="math inline">\(\sigma^2/N\)</span>, jadi
+ia mencapai batas itu. Dalam bahasa <span class="citation"
+data-cites="kay1993">Kay (1993)</span>, estimator ini efisien dan
+sekaligus <em>minimum variance unbiased</em>. Ada satu tanda khas di
+sini: turunan log-likelihood bisa ditulis sebagai <span
+class="math inline">\(I(A)(\hat A-A)\)</span>. Kay menunjukkan bahwa
+estimator efisien ada tepat ketika bentuk ini bisa dicapai.</p>
+<p>Untuk model yang linear dalam parameter, <span
 class="math inline">\(\boldsymbol{x}=\boldsymbol
-H\boldsymbol\theta+\boldsymbol w\)</span>, estimator <em>best linear
-unbiased</em> memberi varians terkecil di antara semua estimator linear
-tak bias, dan untuk noise Gauss ia sama dengan MVU. Estimator kuadrat
-terkecil, <span
-class="math inline">\(\hat{\boldsymbol\theta}=(\boldsymbol
-H^\top\boldsymbol H)^{-1}\boldsymbol H^\top\boldsymbol{x}\)</span>,
-tidak memerlukan asumsi statistik apa pun, hanya meminimalkan selisih
-kuadrat antara data dan model. Maximum likelihood menghubungkan
-semuanya: untuk noise Gauss, ia menghasilkan kuadrat terkecil, dan untuk
-sampel besar ia mendekati batas Cramér–Rao.</p>
+H\boldsymbol\theta+\boldsymbol w\)</span> dengan <span
+class="math inline">\(\boldsymbol
+w\sim\mathcal{N}(\boldsymbol0,\sigma^2\boldsymbol I)\)</span>, penurunan
+yang sama memberi estimator <span
+class="math display">\[\hat{\boldsymbol\theta}=(\boldsymbol
+H^\top\boldsymbol H)^{-1}\boldsymbol H^\top\boldsymbol{x},\]</span>
+dengan kovarians <span class="math inline">\(\sigma^2(\boldsymbol
+H^\top\boldsymbol H)^{-1}\)</span> yang juga mencapai batas Cramér–Rao.
+Estimator yang sama muncul dari kuadrat terkecil biasa: meminimalkan
+<span class="math inline">\(\|\boldsymbol{x}-\boldsymbol
+H\boldsymbol\theta\|^2\)</span>, menurunkannya, dan menyamakannya dengan
+nol memberi persamaan normal <span class="math inline">\(\boldsymbol
+H^\top\boldsymbol H\boldsymbol\theta=\boldsymbol
+H^\top\boldsymbol{x}\)</span>. Bedanya, kuadrat terkecil tidak
+memerlukan asumsi statistik apa pun. Kalau noise-nya tidak Gauss tetapi
+kita hanya mau estimator linear, <em>best linear unbiased estimator</em>
+(BLUE) memberi varians terkecil di antara semua estimator linear tak
+bias, dan untuk noise berkovarians <span
+class="math inline">\(\boldsymbol C\)</span> bentuknya menjadi <span
+class="math inline">\((\boldsymbol H^\top\boldsymbol C^{-1}\boldsymbol
+H)^{-1}\boldsymbol H^\top\boldsymbol C^{-1}\boldsymbol{x}\)</span>:
+pengukuran yang berisik diberi bobot kecil.</p>
+<p>Contoh dari kuliah yang menyenangkan adalah menaksir garis lurus.
+Untuk <span class="math inline">\(x[n]=a+bn+w[n]\)</span>, matriks <span
+class="math inline">\(\boldsymbol H\)</span> punya kolom berisi satu dan
+kolom berisi <span class="math inline">\(n\)</span>. Persamaan normal
+memberi rumus regresi linear yang dikenal di sekolah, dan batas
+Cramér–Rao untuk kemiringan <span class="math inline">\(b\)</span> turun
+seperti <span class="math inline">\(1/N^3\)</span>: mengamati lebih lama
+jauh lebih membantu untuk kemiringan daripada untuk titik potong, karena
+ujung-ujung garis yang jauh “mengunci” kemiringannya.</p>
 <h2 id="estimasi-bayesian">Estimasi Bayesian</h2>
 <p>Kalau kita punya pengetahuan awal tentang parameter, misalnya bahwa
 sebuah tegangan hampir pasti di sekitar lima volt, kita memperlakukan
 parameter sebagai variabel acak dengan prior. Estimator yang
-meminimalkan galat kuadrat rata-rata, <em>minimum mean square
-error</em>, ternyata adalah rata-rata posterior <span
-class="math inline">\(\mathbb{E}[\theta\mid\boldsymbol{x}]\)</span>.
-Estimator MAP mengambil puncak posterior. Untuk model linear Gauss,
-keduanya sama, dan rata-rata posterior adalah kompromi berbobot antara
-prior dan data: kalau data sedikit atau berisik, hasilnya dekat ke
-prior, kalau data banyak, hasilnya mengikuti data. Ini adalah logika
-yang sama dengan Kalman gain di <a href="ch08_probabilistik.html">Bab
-10</a>, dan memang Kalman filter adalah estimator MMSE yang berjalan
-berurutan dalam waktu.</p>
+meminimalkan galat kuadrat rata-rata Bayesian, <span
+class="math inline">\(\mathbb{E}[(A-\hat A)^2]\)</span> dengan
+ekspektasi atas data <em>dan</em> parameter, ternyata adalah rata-rata
+posterior <span
+class="math inline">\(\mathbb{E}[A\mid\boldsymbol{x}]\)</span>, dengan
+alasan yang sama seperti rata-rata bersyarat di <a
+href="ch01_belajar_dari_data.html">Bab 1</a>. Estimator MAP mengambil
+puncak posterior.</p>
+<p>Untuk level DC dengan prior <span
+class="math inline">\(A\sim\mathcal{N}(\mu_A,\sigma_A^2)\)</span>,
+posteriornya Gauss dengan rata-rata <span class="math display">\[\hat
+A_{\mathrm{MMSE}}=\frac{N\sigma_A^2}{N\sigma_A^2+\sigma^2}\,\bar
+x+\frac{\sigma^2}{N\sigma_A^2+\sigma^2}\,\mu_A,\]</span> rata-rata
+berbobot antara rata-rata sampel dan rata-rata prior. Misalkan prior
+kita <span class="math inline">\(\mu_A=5\)</span> V dengan <span
+class="math inline">\(\sigma_A=0{,}5\)</span> V, noise pengukuran <span
+class="math inline">\(\sigma=2\)</span> V, dan kita punya <span
+class="math inline">\(N=4\)</span> pengukuran dengan rata-rata <span
+class="math inline">\(\bar x=6\)</span> V. Bobot data adalah <span
+class="math inline">\(4\cdot0{,}25/(4\cdot0{,}25+4)=0{,}2\)</span>,
+sehingga <span class="math inline">\(\hat
+A=0{,}2\cdot6+0{,}8\cdot5=5{,}2\)</span> V. Data yang sedikit dan
+berisik hanya menggeser prior sedikit. Dengan <span
+class="math inline">\(N=100\)</span>, bobot data naik menjadi sekitar
+<span class="math inline">\(0{,}86\)</span>, dan data mulai
+berkuasa.</p>
+<p>Untuk model linear Gauss umum, MMSE, MAP, dan estimator linear MMSE
+(LMMSE) semuanya sama. Ketika distribusinya tidak Gauss, LMMSE tetap
+bisa dihitung hanya dari rata-rata dan kovarians, dan ia adalah
+estimator linear terbaik. Kalman filter (<a
+href="ch08_probabilistik.html">Bab 14</a> dan <a
+href="ch31_kendali.html">Bab 19</a>) adalah LMMSE yang diterapkan
+berulang dalam waktu.</p>
 <h2 id="filter-optimal">Filter optimal</h2>
 <p>Misalkan kita ingin mendapatkan sinyal <span
 class="math inline">\(d[n]\)</span> dari pengamatan <span
-class="math inline">\(x[n]\)</span> yang terganggu, dengan sebuah filter
-linear berbobot <span class="math inline">\(\boldsymbol w\)</span> yang
-bekerja pada <span class="math inline">\(M\)</span> sampel terakhir,
-<span class="math inline">\(y[n]=\boldsymbol
-w^\top\boldsymbol{x}[n]\)</span>. Filter Wiener memilih bobot yang
-meminimalkan galat kuadrat rata-rata <span
-class="math inline">\(\mathbb{E}\big[(d[n]-y[n])^2\big]\)</span>.
-Menurunkan terhadap <span class="math inline">\(\boldsymbol w\)</span>
-dan menyamakannya dengan nol memberi persamaan Wiener–Hopf, <span
-class="math display">\[\boldsymbol R\,\boldsymbol w=\boldsymbol p,\qquad
-\boldsymbol w_{\mathrm{opt}}=\boldsymbol R^{-1}\boldsymbol p,\]</span>
-dengan <span class="math inline">\(\boldsymbol
+class="math inline">\(x[n]\)</span>, dengan filter FIR berbobot <span
+class="math inline">\(\boldsymbol w\)</span> yang bekerja pada <span
+class="math inline">\(M\)</span> sampel terakhir, <span
+class="math inline">\(y[n]=\boldsymbol w^\top\boldsymbol{x}[n]\)</span>
+dengan <span
+class="math inline">\(\boldsymbol{x}[n]=(x[n],x[n-1],\dots,x[n-M+1])^\top\)</span>.
+Filter Wiener memilih bobot yang meminimalkan <span
+class="math inline">\(J(\boldsymbol w)=\mathbb{E}\big[(d[n]-\boldsymbol
+w^\top\boldsymbol{x}[n])^2\big]\)</span>. Menguraikan kuadratnya, <span
+class="math display">\[J(\boldsymbol w)=\sigma_d^2-2\boldsymbol
+w^\top\boldsymbol p+\boldsymbol w^\top\boldsymbol R\boldsymbol
+w,\]</span> dengan <span class="math inline">\(\boldsymbol
 R=\mathbb{E}[\boldsymbol{x}\boldsymbol{x}^\top]\)</span> matriks
 autokorelasi input dan <span class="math inline">\(\boldsymbol
-p=\mathbb{E}[\boldsymbol{x}d]\)</span> korelasi silang antara input dan
-sinyal yang diinginkan. Hasil ini punya tafsiran geometris yang indah,
-yaitu <em>orthogonality principle</em>: pada bobot optimal, galat tegak
-lurus terhadap semua data yang dipakai. Tidak ada lagi informasi dalam
-data yang bisa dipakai untuk mengurangi galat.</p>
-<p>Filter Wiener membutuhkan statistik <span
-class="math inline">\(\boldsymbol R\)</span> dan <span
-class="math inline">\(\boldsymbol p\)</span>, yang dalam praktik harus
-diperkirakan dari data. Menggantinya dengan rata-rata sampel memberi
-filter kuadrat terkecil, yang optimal untuk data yang ada, bukan untuk
-ekspektasinya <span class="citation"
+p=\mathbb{E}[\boldsymbol{x}\,d]\)</span> korelasi silang antara input
+dan sinyal yang diinginkan. Fungsi ini kuadratik dalam <span
+class="math inline">\(\boldsymbol w\)</span>, sebuah mangkuk seperti di
+<a href="ch02_optimasi.html">Bab 4</a>. Gradiennya <span
+class="math inline">\(-2\boldsymbol p+2\boldsymbol R\boldsymbol
+w\)</span>, dan menyamakannya dengan nol memberi persamaan Wiener–Hopf,
+<span class="math display">\[\boldsymbol R\,\boldsymbol
+w_{\mathrm{opt}}=\boldsymbol p,\qquad J_{\min}=\sigma_d^2-\boldsymbol
+p^\top\boldsymbol R^{-1}\boldsymbol p.\]</span> Hasil ini punya tafsiran
+geometris, <em>orthogonality principle</em>: pada bobot optimal, galat
+<span class="math inline">\(e[n]=d[n]-y[n]\)</span> tidak berkorelasi
+dengan setiap sampel input, <span
+class="math inline">\(\mathbb{E}[e[n]\boldsymbol{x}[n]]=\boldsymbol0\)</span>.
+Tidak ada lagi informasi linear dalam data yang bisa dipakai untuk
+mengurangi galat, sama seperti residual kuadrat terkecil yang tegak
+lurus terhadap ruang kolom <span class="math inline">\(\boldsymbol
+H\)</span>.</p>
+<figure id="fig:adaptif">
+<img src="fig/e0bbf91d917f.svg" />
+<figcaption>Struktur filter adaptif. Filter mengeluarkan <span
+class="math inline">\(y[n]\)</span>, galat <span
+class="math inline">\(e[n]=d[n]-y[n]\)</span> dan input dipakai
+algoritme adaptif untuk memperbarui bobot. Struktur yang sama dipakai
+untuk identifikasi sistem, peredam gema, peredam bising, dan ekualisasi
+kanal.</figcaption>
+</figure>
+<p>Kuliah membahas beberapa susunan yang memakai struktur ini (Gambar
+18.1). Pada identifikasi sistem, <span class="math inline">\(x\)</span>
+diumpankan ke sistem yang tidak diketahui dan ke filter sekaligus, dan
+<span class="math inline">\(d\)</span> adalah keluaran sistem, sehingga
+bobot optimal meniru respons sistem itu. Pada prediksi, <span
+class="math inline">\(d[n]=x[n]\)</span> dan filter hanya melihat
+sampel-sampel sebelumnya, sehingga ia belajar meramal sinyal satu
+langkah ke depan. Pada peredam bising, <span
+class="math inline">\(d\)</span> berisi sinyal plus bising, <span
+class="math inline">\(x\)</span> adalah rekaman bising saja dari
+mikrofon lain, dan galatnya menjadi sinyal yang sudah dibersihkan. Pada
+ekualisasi kanal, filter belajar membalik distorsi yang dibuat kanal
+komunikasi.</p>
+<p>Contoh terkecil memperlihatkan isi persamaannya. Untuk filter satu
+tap, <span class="math inline">\(\boldsymbol R\)</span> dan <span
+class="math inline">\(\boldsymbol p\)</span> hanya bilangan, sehingga
+<span class="math inline">\(w_{\mathrm{opt}}=r_{xd}/r_{xx}\)</span>.
+Kalau <span class="math inline">\(d=0{,}8\,x+v\)</span> dengan <span
+class="math inline">\(v\)</span> noise yang tidak berkorelasi dengan
+<span class="math inline">\(x\)</span> dan <span
+class="math inline">\(\mathbb{E}[x^2]=1\)</span>, maka <span
+class="math inline">\(r_{xd}=0{,}8\)</span> dan <span
+class="math inline">\(w_{\mathrm{opt}}=0{,}8\)</span>: filter menemukan
+penguatan sistem, dan noise <span class="math inline">\(v\)</span>
+tertinggal di galat karena memang tidak bisa diprediksi dari <span
+class="math inline">\(x\)</span>.</p>
+<p>Filter Wiener membutuhkan <span class="math inline">\(\boldsymbol
+R\)</span> dan <span class="math inline">\(\boldsymbol p\)</span>, yang
+dalam praktik harus diperkirakan dari data. Menggantinya dengan
+rata-rata sampel memberi filter kuadrat terkecil, optimal untuk data
+yang ada, bukan untuk ekspektasinya <span class="citation"
 data-cites="manolakis2005">(Manolakis, Ingle, dan Kogon
 2005)</span>.</p>
 <h2 id="filter-adaptif">Filter adaptif</h2>
 <p>Ketika statistik sinyal berubah dari waktu ke waktu, misalnya gema di
 ruang yang orangnya berpindah tempat, filter harus terus menyesuaikan
-diri. Algoritme LMS mengambil satu langkah gradient descent pada galat
-kuadrat sesaat di setiap sampel, <span
+diri. Kuliah menurunkan algoritme adaptif dalam dua langkah. Langkah
+pertama adalah <em>steepest descent</em> pada <span
+class="math inline">\(J(\boldsymbol w)\)</span>: <span
 class="math display">\[\boldsymbol w[n+1]=\boldsymbol
+w[n]+\mu\big(\boldsymbol p-\boldsymbol R\boldsymbol w[n]\big),\]</span>
+dengan faktor dua diserap ke dalam <span
+class="math inline">\(\mu\)</span>. Algoritme ini konvergen ke solusi
+Wiener kalau <span
+class="math inline">\(0&lt;\mu&lt;2/\lambda_{\max}\)</span>, dengan
+<span class="math inline">\(\lambda_{\max}\)</span> nilai eigen terbesar
+<span class="math inline">\(\boldsymbol R\)</span>. Setiap mode, yaitu
+setiap arah vektor eigen, menyusut dengan faktor <span
+class="math inline">\((1-\mu\lambda_i)\)</span> per langkah, sehingga
+mode dengan nilai eigen terkecil adalah yang paling lambat. Rasio <span
+class="math inline">\(\lambda_{\max}/\lambda_{\min}\)</span>, yang di
+kuliah disebut sebaran nilai eigen, memainkan peran yang persis sama
+dengan condition number di <a href="ch02_optimasi.html">Bab 4</a>.
+Sinyal input yang berwarna, misalnya suara dengan energi terkumpul di
+frekuensi rendah, punya sebaran nilai eigen besar dan membuat adaptasi
+lambat.</p>
+<p>Langkah kedua mengganti ekspektasi yang tidak diketahui dengan nilai
+sesaat: <span class="math inline">\(\boldsymbol
+R\approx\boldsymbol{x}[n]\boldsymbol{x}[n]^\top\)</span> dan <span
+class="math inline">\(\boldsymbol
+p\approx\boldsymbol{x}[n]d[n]\)</span>. Hasilnya adalah algoritme LMS,
+<span class="math display">\[\boldsymbol w[n+1]=\boldsymbol
 w[n]+\mu\,e[n]\,\boldsymbol{x}[n],\qquad e[n]=d[n]-\boldsymbol
 w[n]^\top\boldsymbol{x}[n].\]</span> Ini SGD dengan mini-batch berukuran
-satu, lima puluh tahun sebelum deep learning. Langkah <span
-class="math inline">\(\mu\)</span> harus cukup kecil agar stabil,
-kira-kira <span
-class="math inline">\(0&lt;\mu&lt;2/\lambda_{\max}\)</span> dengan <span
-class="math inline">\(\lambda_{\max}\)</span> nilai eigen terbesar <span
-class="math inline">\(\boldsymbol R\)</span>, dan kecepatan
-konvergensinya ditentukan oleh sebaran nilai eigen <span
-class="math inline">\(\boldsymbol R\)</span>. Inilah masalah condition
-number dari <a href="ch02_optimasi.html">Bab 2</a>, dalam pakaian yang
-berbeda. Algoritme RLS memperbarui perkiraan <span
-class="math inline">\(\boldsymbol R^{-1}\)</span> secara rekursif
-sehingga setiap langkah mirip langkah Newton. Ia konvergen jauh lebih
-cepat dan tidak terpengaruh sebaran nilai eigen, dengan biaya sekitar
-<span class="math inline">\(M^2\)</span> operasi per sampel, dibanding
-<span class="math inline">\(M\)</span> untuk LMS.</p>
+satu, dirumuskan Widrow dan Hoff sekitar 1960. Biayanya hanya sekitar
+<span class="math inline">\(2M\)</span> perkalian per sampel. Harga yang
+dibayar adalah noise gradien: bahkan setelah konvergen, bobot terus
+bergoyang di sekitar solusi Wiener, sehingga galat rata-ratanya sedikit
+di atas <span class="math inline">\(J_{\min}\)</span>. Kelebihan galat
+ini disebut <em>misadjustment</em>, dan kira-kira sebanding dengan <span
+class="math inline">\(\mu\)</span> dikali jumlah daya input. Di sini
+muncul trade-off yang sama dengan laju belajar SGD: langkah besar cepat
+menyesuaikan diri tetapi bergoyang, langkah kecil tenang tetapi lambat.
+NLMS membagi langkah dengan daya input sesaat, <span
+class="math inline">\(\mu/(\epsilon+\|\boldsymbol{x}[n]\|^2)\)</span>,
+sehingga perilakunya tidak bergantung pada keras-lemahnya sinyal.</p>
+<p>Algoritme RLS memecahkan masalah sebaran nilai eigen dengan cara
+lain. Ia meminimalkan jumlah kuadrat galat semua sampel masa lalu yang
+dibobot eksponensial, <span class="math inline">\(\sum_{i\le
+n}\lambda^{n-i}e[i]^2\)</span>, dan memperbarui invers matriks
+autokorelasinya secara rekursif dengan rumus Woodbury, sehingga setiap
+langkah mirip langkah Newton. Faktor lupa <span
+class="math inline">\(\lambda\)</span> sedikit di bawah satu menentukan
+panjang ingatan efektif, kira-kira <span
+class="math inline">\(1/(1-\lambda)\)</span> sampel: <span
+class="math inline">\(\lambda=0{,}99\)</span> berarti filter terutama
+mengingat seratus sampel terakhir. RLS konvergen jauh lebih cepat dan
+tidak terpengaruh warna input, dengan biaya sekitar <span
+class="math inline">\(M^2\)</span> operasi per sampel.</p>
 <p>Bayangkan headphone peredam bising. Mikrofon luar menangkap suara
 mesin pesawat, dan filter adaptif belajar memprediksi seberapa banyak
 suara itu bocor ke telinga. Speaker lalu memutar prediksi dengan tanda
 terbalik. Setiap kali pesawat berbelok atau penumpang menggeser kepala,
 galat sisa berubah, dan bobot filter ikut bergeser beberapa ribu kali
 per detik.</p>
-<h2 id="radar">Radar</h2>
+<h2 id="radar-dalam-desibel">Radar dalam desibel</h2>
 <p>Radar memancarkan gelombang elektromagnetik dan mendengarkan
-pantulannya. Daya yang kembali mengikuti persamaan radar, <span
-class="math display">\[P_r=\frac{P_tG^2\lambda^2\sigma}{(4\pi)^3R^4},\]</span>
-dengan <span class="math inline">\(P_t\)</span> daya pancar, <span
-class="math inline">\(G\)</span> penguatan antena, <span
-class="math inline">\(\lambda\)</span> panjang gelombang, <span
-class="math inline">\(\sigma\)</span> <em>radar cross section</em>
-target, dan <span class="math inline">\(R\)</span> jaraknya. Pangkat
-empat pada jarak datang dari dua perjalanan: gelombang melemah sebanding
-<span class="math inline">\(R^2\)</span> dalam perjalanan pergi dan
-sekali lagi dalam perjalanan pulang. Akibatnya, untuk melipatgandakan
+pantulannya. Latihan pertama menurunkan persamaan radar langkah demi
+langkah. Antena dengan daya pancar <span
+class="math inline">\(P_T\)</span> dan penguatan <span
+class="math inline">\(G_T\)</span> menghasilkan kerapatan daya <span
+class="math inline">\(S_T=P_TG_T/(4\pi R^2)\)</span> di target. Target
+memantulkan daya sebesar <span class="math inline">\(S_T\sigma\)</span>,
+dengan <span class="math inline">\(\sigma\)</span> <em>radar cross
+section</em>, luas efektif yang “dilihat” radar. Pantulan itu kembali
+menyebar seperti bola, sehingga kerapatannya di penerima <span
+class="math inline">\(S_T\sigma/(4\pi R^2)\)</span>, dan antena penerima
+dengan luas efektif <span
+class="math inline">\(A_{\mathrm{eff}}=G_R\lambda^2/(4\pi)\)</span>
+menangkap sebagian. Mengalikan semuanya memberi <span
+class="math display">\[P_R=\frac{P_TG_TG_R\lambda^2\sigma}{(4\pi)^3R^4}.\]</span>
+Pangkat empat pada jarak datang dari dua perjalanan, pergi dan pulang,
+masing-masing melemah sebanding <span
+class="math inline">\(R^2\)</span>. Akibatnya, untuk melipatgandakan
 jangkauan, daya pancar harus dinaikkan enam belas kali.</p>
+<p>Angka-angka radar membentang belasan orde besaran, sehingga insinyur
+bekerja dalam desibel, di mana perkalian menjadi penjumlahan. Ambil
+radar mobil 77 GHz, dengan panjang gelombang <span
+class="math inline">\(\lambda=c/f\approx3{,}9\)</span> mm, daya pancar
+10 dBm, penguatan antena pancar dan terima masing-masing 20 dBi, mobil
+di depan dengan RCS sekitar <span class="math inline">\(10\
+\mathrm{m^2}\)</span> (10 dBsm), pada jarak 50 m. Dalam desibel, <span
+class="math display">\[P_R=10+20+20+20\log_{10}0{,}0039+10-30\log_{10}4\pi-40\log_{10}50\approx-89\
+\mathrm{dBm},\]</span> dengan suku-suku <span
+class="math inline">\(-48{,}2\)</span>, <span
+class="math inline">\(-33{,}0\)</span>, dan <span
+class="math inline">\(-68{,}0\)</span> dB untuk panjang gelombang,
+faktor <span class="math inline">\(4\pi\)</span>, dan jarak. Daya yang
+kembali sekitar satu pikowatt. Apakah sinyal sekecil itu terdeteksi
+bergantung pada noise penerima. Noise termal sebanding dengan <span
+class="math inline">\(k_BT\)</span> dikali lebar pita, dan penerima
+nyata menambahkan noise-nya sendiri, yang dinyatakan dengan <em>noise
+figure</em>. Penerima dengan noise figure 12 dB membuat noise-nya hampir
+enam belas kali lebih besar dari noise termal ideal.</p>
+<h2 id="mendeteksi-di-tengah-noise">Mendeteksi di tengah noise</h2>
+<p>Pertanyaan deteksi adalah uji hipotesis: apakah yang kita lihat hanya
+noise (<span class="math inline">\(H_0\)</span>) atau noise ditambah
+target (<span class="math inline">\(H_1\)</span>)? Latihan memulainya
+dengan masalah paling sederhana, mendeteksi level DC <span
+class="math inline">\(A\)</span> dalam noise Gauss. Kriteria
+Neyman–Pearson memaksimalkan peluang deteksi <span
+class="math inline">\(P_D\)</span> untuk peluang alarm palsu <span
+class="math inline">\(P_{FA}\)</span> tertentu, dan untuk masalah ini
+ujinya adalah membandingkan rata-rata sampel dengan ambang <span
+class="math inline">\(\gamma\)</span>. Di bawah <span
+class="math inline">\(H_0\)</span>, rata-rata itu berdistribusi <span
+class="math inline">\(\mathcal{N}(0,\sigma^2/N)\)</span>, sehingga <span
+class="math display">\[P_{FA}=Q\Big(\frac{\gamma}{\sigma/\sqrt
+N}\Big),\qquad P_D=Q\Big(\frac{\gamma-A}{\sigma/\sqrt N}\Big),\]</span>
+dengan <span class="math inline">\(Q\)</span> peluang ekor kanan
+distribusi normal standar. Dengan <span
+class="math inline">\(\sigma=1\)</span>, <span
+class="math inline">\(N=16\)</span>, dan <span
+class="math inline">\(P_{FA}=10^{-3}\)</span>, kita butuh <span
+class="math inline">\(\gamma/0{,}25=3{,}09\)</span>, jadi <span
+class="math inline">\(\gamma\approx0{,}77\)</span>. Untuk <span
+class="math inline">\(A=1\)</span>, <span
+class="math inline">\(P_D=Q(-0{,}92)\approx0{,}82\)</span>. Menggandakan
+jumlah sampel menaikkan <span class="math inline">\(P_D\)</span> di atas
+<span class="math inline">\(0{,}95\)</span>. Gambar 18.2 memperlihatkan
+trade-off-nya: menggeser ambang ke kanan mengurangi alarm palsu
+sekaligus mengurangi deteksi.</p>
+<figure id="fig:deteksi">
+<img src="fig/b00d4c0bf72d.svg" />
+<figcaption>Deteksi level DC dalam noise. Daerah biru di kanan ambang
+adalah peluang alarm palsu, luas kurva oranye di kanan ambang adalah
+peluang deteksi. Parameter seperti pada contoh teks (<span
+class="math inline">\(\sigma/\sqrt N=0{,}25\)</span>).</figcaption>
+</figure>
+<p>Radar biasanya bekerja dengan sinyal kompleks, komponen sefase dan
+kuadratur, dan mendeteksi magnitudonya. Latihan memperlihatkan
+distribusi yang muncul. Kalau komponen sefase dan kuadratur adalah noise
+Gauss independen dengan varians <span
+class="math inline">\(\sigma^2\)</span>, magnitudonya berdistribusi
+Rayleigh. Kalau ada sinyal konstan ditambah noise, magnitudonya
+berdistribusi Rice. Untuk Rayleigh, peluang magnitudo melewati ambang
+<span class="math inline">\(T\)</span> adalah <span
+class="math inline">\(\exp(-T^2/2\sigma^2)\)</span>, sehingga ambang
+untuk <span class="math inline">\(P_{FA}=10^{-4}\)</span> adalah <span
+class="math inline">\(T=\sigma\sqrt{-2\ln10^{-4}}\approx4{,}3\sigma\)</span>.</p>
+<h2 id="korelasi-dan-matched-filter">Korelasi dan matched filter</h2>
 <p>Untuk menemukan pantulan lemah di tengah noise, sinyal yang diterima
-dikorelasikan dengan sinyal yang dipancarkan. Filter ini, <em>matched
-filter</em>, memaksimalkan rasio sinyal terhadap noise untuk noise putih
-<span class="citation" data-cites="richards2014">(Richards 2014)</span>.
-Puncak korelasi menunjukkan waktu tunda, dan waktu tunda menunjukkan
-jarak, <span class="math inline">\(R=c\tau/2\)</span>.</p>
-<p>Setelah itu muncul pertanyaan deteksi: apakah sebuah puncak
-benar-benar target, atau hanya noise yang kebetulan tinggi? Kriteria
-Neyman–Pearson menetapkan ambang yang memaksimalkan peluang deteksi
-untuk peluang alarm palsu tertentu. Masalahnya, tingkat noise dan
-clutter berubah dari satu tempat ke tempat lain. <em>Constant false
-alarm rate</em> (CFAR) menghitung ambang secara lokal. Untuk setiap sel
-yang diuji, tingkat noise diperkirakan dari sel-sel latih di sekitarnya,
-dengan beberapa sel penjaga di antaranya agar target sendiri tidak ikut
-terhitung. Varian cell-averaging merata-ratakan sel latih, sedangkan
-varian order-statistic memakai nilai berperingkat tertentu dan lebih
-tahan ketika ada beberapa target berdekatan <span class="citation"
-data-cites="rohling1983">(Rohling 1983)</span>.</p>
-<h3 id="radar-fmcw">Radar FMCW</h3>
-<p>Radar mobil dan radar di dalam ponsel umumnya memakai gelombang
-kontinu yang frekuensinya naik secara linear, sebuah <em>chirp</em>.
-Pantulan dari target pada jarak <span class="math inline">\(R\)</span>
-tiba dengan tunda <span class="math inline">\(2R/c\)</span>, sehingga
-pada setiap saat frekuensinya sedikit lebih rendah daripada sinyal yang
-sedang dipancarkan. Mencampur keduanya menghasilkan <em>beat
-frequency</em> yang sebanding dengan jarak, <span
-class="math display">\[f_b=\frac{2RS}{c},\qquad
-S=\frac{B}{T_c},\]</span> dengan <span class="math inline">\(B\)</span>
-lebar pita chirp dan <span class="math inline">\(T_c\)</span> durasinya.
-Dengan <span class="math inline">\(B=1\)</span> GHz dan <span
-class="math inline">\(T_c=50\,\mu\)</span>s, kemiringannya <span
-class="math inline">\(2\times10^{13}\)</span> Hz per detik, dan target
-pada sepuluh meter menghasilkan beat sekitar <span
-class="math inline">\(1{,}33\)</span> MHz. FFT dari sinyal beat langsung
-memberi profil jarak. Resolusi jaraknya <span
-class="math inline">\(c/(2B)\)</span>, lima belas sentimeter untuk lebar
-pita satu gigahertz.</p>
-<p>Kecepatan diperoleh dari deretan chirp. Target yang bergerak
-menggeser fase pantulan sedikit dari satu chirp ke chirp berikutnya,
-sebanding dengan kecepatannya. FFT kedua di sepanjang chirp mengubah
-geseran fase itu menjadi kecepatan, dan hasil kedua FFT bersama-sama
-membentuk peta jarak dan kecepatan. Dengan beberapa antena penerima,
-perbedaan fase antar antena menunjukkan arah datangnya pantulan, <span
-class="math inline">\(\Delta\phi=2\pi d\sin\theta/\lambda\)</span>. FFT
-ketiga, atau <em>digital beamforming</em>, mengubahnya menjadi sudut.
-Latihan kami berakhir dengan simulator yang menggabungkan semua langkah
-ini: memancarkan chirp ke beberapa target, menambahkan noise, lalu
-menjalankan seluruh rantai pemrosesan untuk menemukannya kembali.</p>
+dikorelasikan dengan sinyal yang dipancarkan. Mengapa korelasi? Misalkan
+sinyal yang diterima <span class="math inline">\(\boldsymbol
+s+\boldsymbol w\)</span> dengan noise putih bervarians <span
+class="math inline">\(\sigma^2\)</span>, dan kita melewatkannya ke
+filter linear <span class="math inline">\(\boldsymbol h\)</span>. Rasio
+sinyal terhadap noise di keluaran adalah <span
+class="math display">\[\mathrm{SNR}=\frac{|\boldsymbol h^\top\boldsymbol
+s|^2}{\sigma^2\|\boldsymbol h\|^2}\le\frac{\|\boldsymbol
+s\|^2}{\sigma^2},\]</span> dengan ketaksamaan Cauchy–Schwarz di langkah
+terakhir, yang menjadi persamaan tepat ketika <span
+class="math inline">\(\boldsymbol h\)</span> sebanding dengan <span
+class="math inline">\(\boldsymbol s\)</span>. Filter terbaik adalah
+sinyal itu sendiri, dibalik dalam waktu, sehingga filtering menjadi
+korelasi. Itulah <em>matched filter</em> <span class="citation"
+data-cites="richards2014">(Richards 2014)</span>. SNR terbaiknya hanya
+bergantung pada energi sinyal, bukan pada bentuknya.</p>
+<p>Bentuk sinyal tetap penting untuk ketajaman puncak. Pulsa persegi
+panjang punya autokorelasi berbentuk segitiga yang lebar. Latihan
+membandingkannya dengan kode Barker sepanjang sebelas, <span
+class="math inline">\((+,+,+,-,-,-,+,-,-,+,-)\)</span>, yang
+autokorelasinya bernilai 11 di pusat dan tidak lebih dari 1 di tempat
+lain. Energinya sama dengan pulsa persegi sepanjang sebelas, tetapi
+puncaknya setajam pulsa sepanjang satu. Teknik ini, <em>pulse
+compression</em>, memberi jangkauan dari pulsa panjang dan resolusi dari
+pulsa pendek.</p>
+<h2 id="cfar">CFAR</h2>
+<p>Pada sinyal nyata, tingkat noise dan clutter berubah dari satu tempat
+ke tempat lain, sehingga ambang tetap gagal: di daerah tenang ia terlalu
+tinggi, di daerah berisik ia memicu banyak alarm palsu. <em>Constant
+false alarm rate</em> (CFAR) menghitung ambang secara lokal (Gambar
+18.3). Setiap sel bergiliran menjadi <em>cell under test</em>. Tingkat
+noise diperkirakan dari sel-sel latih di kiri dan kanannya, dengan
+beberapa sel penjaga di antaranya supaya energi target sendiri, yang
+menyebar ke sel tetangga, tidak ikut terhitung.</p>
+<figure id="fig:cfar">
+<img src="fig/3ef6f725d0a9.svg" />
+<figcaption>Jendela CFAR satu dimensi. Sel yang diuji (oranye)
+dibandingkan dengan ambang yang dihitung dari sel-sel latih (biru). Sel
+penjaga (abu-abu) tidak dipakai agar energi target tidak ikut
+memperbesar perkiraan noise.</figcaption>
+</figure>
+<p>Untuk detektor daya, noise berdistribusi eksponensial, dan varian
+<em>cell-averaging</em> memakai rata-rata <span
+class="math inline">\(N\)</span> sel latih <span
+class="math inline">\(\hat P\)</span> lalu menyatakan deteksi kalau sel
+yang diuji melebihi <span class="math inline">\(\alpha\hat P\)</span>.
+Faktor skala untuk peluang alarm palsu tertentu bisa diturunkan secara
+tertutup: <span class="math inline">\(P_{FA}=(1+\alpha/N)^{-N}\)</span>,
+sehingga <span
+class="math display">\[\alpha=N\big(P_{FA}^{-1/N}-1\big).\]</span>
+Dengan <span class="math inline">\(N=16\)</span> dan <span
+class="math inline">\(P_{FA}=10^{-4}\)</span>, <span
+class="math inline">\(10^{4/16}\approx1{,}78\)</span> dan <span
+class="math inline">\(\alpha\approx12{,}5\)</span>, atau sekitar 11 dB
+di atas noise. Hasil kuncinya adalah bahwa <span
+class="math inline">\(\alpha\)</span> tidak bergantung pada tingkat
+noise yang sebenarnya, sehingga peluang alarm palsu tetap konstan meski
+noise naik turun. Itulah asal nama CFAR.</p>
+<p>Varian lain menangani kasus sulit. CAGO mengambil yang lebih besar
+dari rata-rata kiri dan kanan, sehingga tidak memicu alarm palsu di tepi
+clutter. CASO mengambil yang lebih kecil, sehingga tidak tertutupi
+target lain di dekatnya. <em>Order-statistic</em> CFAR memakai nilai
+berperingkat tertentu alih-alih rata-rata, dan tetap bekerja ketika
+beberapa target berdekatan <span class="citation"
+data-cites="rohling1983">(Rohling 1983)</span>. Latihan juga
+memperlihatkan sisi rekayasa: loop CFAR dalam Python murni lambat
+sekali, dan kompilasi just-in-time dengan Numba mempercepatnya ratusan
+kali.</p>
+<h2 id="radar-fmcw">Radar FMCW</h2>
+<p>Radar mobil memakai gelombang kontinu yang frekuensinya naik secara
+linear, sebuah <em>chirp</em> (Gambar 18.4). Pantulan dari target pada
+jarak <span class="math inline">\(R\)</span> tiba dengan tunda <span
+class="math inline">\(\tau=2R/c\)</span>, sehingga pada setiap saat
+frekuensinya sedikit lebih rendah dari sinyal yang sedang dipancarkan,
+dengan selisih kemiringan dikali tunda. Mencampur keduanya menghasilkan
+sinyal <em>intermediate frequency</em> dengan frekuensi beat <span
+class="math display">\[f_b=k\tau=\frac{2kR}{c},\qquad k=\frac
+BT,\]</span> dengan <span class="math inline">\(B\)</span> lebar pita
+dan <span class="math inline">\(T\)</span> durasi chirp. FFT sinyal IF
+langsung memberi profil jarak. Dua target hanya terpisah kalau beat-nya
+berbeda lebih dari satu bin FFT, <span
+class="math inline">\(1/T\)</span>, sehingga resolusi jaraknya <span
+class="math inline">\(\Delta R=c/(2B)\)</span>, lima belas sentimeter
+untuk satu gigahertz. Dengan <span class="math inline">\(B=1\)</span>
+GHz dan <span class="math inline">\(T=50\,\mu\)</span>s, target pada
+sepuluh meter menghasilkan beat sekitar <span
+class="math inline">\(1{,}33\)</span> MHz.</p>
+<figure id="fig:fmcw">
+<img src="fig/35f147bfe06c.svg" />
+<figcaption>Radar FMCW. Chirp yang diterima (oranye) adalah chirp yang
+dipancarkan (biru) yang tertunda <span
+class="math inline">\(\tau=2R/c\)</span>. Selisih frekuensi keduanya,
+<span class="math inline">\(f_b\)</span>, sebanding dengan
+jarak.</figcaption>
+</figure>
+<p>Kecepatan diperoleh dari deretan chirp. Target yang bergerak dengan
+kecepatan radial <span class="math inline">\(v\)</span> mengubah
+jaraknya sebesar <span class="math inline">\(vT\)</span> dari satu chirp
+ke chirp berikutnya, dan fase sinyal IF bergeser sebesar <span
+class="math inline">\(\Delta\phi=4\pi vT/\lambda\)</span>. FFT kedua di
+sepanjang chirp mengubah geseran fase itu menjadi kecepatan, dan hasil
+kedua FFT bersama-sama membentuk peta jarak dan kecepatan
+(<em>range–Doppler map</em>). Kecepatan terbesar yang tidak ambigu
+tercapai ketika <span class="math inline">\(\Delta\phi=\pi\)</span>,
+yaitu <span class="math inline">\(v_{\max}=\lambda/(4T)\)</span>, dan
+resolusi kecepatannya <span
+class="math inline">\(\lambda/(2N_cT)\)</span> untuk <span
+class="math inline">\(N_c\)</span> chirp. Pada 77 GHz dengan <span
+class="math inline">\(T=50\,\mu\)</span>s dan 128 chirp, radar ini
+melihat kecepatan sampai sekitar <span
+class="math inline">\(19{,}5\)</span> m/s dengan resolusi sekitar <span
+class="math inline">\(0{,}3\)</span> m/s.</p>
+<h2 id="beamforming-digital">Beamforming digital</h2>
+<p>Dengan beberapa antena penerima yang tersusun lurus berjarak <span
+class="math inline">\(d\)</span>, gelombang datar dari arah <span
+class="math inline">\(\theta\)</span> mencapai antena-antena itu dengan
+selisih jalan <span class="math inline">\(d\sin\theta\)</span>, sehingga
+fasenya bergeser <span class="math inline">\(\Delta\phi=2\pi
+d\sin\theta/\lambda\)</span> dari satu antena ke antena berikutnya.
+Dengan <span class="math inline">\(d=\lambda/2\)</span>, geserannya
+<span class="math inline">\(\pi\sin\theta\)</span>, dan seluruh rentang
+<span class="math inline">\(-90^\circ\)</span> sampai <span
+class="math inline">\(90^\circ\)</span> terpetakan tanpa ambiguitas. FFT
+ketiga, kali ini di sepanjang antena, mengubah geseran fase menjadi
+sudut. Resolusi sudutnya kira-kira <span
+class="math inline">\(2/N_A\)</span> radian di arah depan untuk <span
+class="math inline">\(N_A\)</span> antena: delapan antena memberi
+sekitar <span class="math inline">\(14^\circ\)</span>.</p>
+<p>Resolusi itu kasar, dan latihan memperkenalkan metode subruang untuk
+mempertajamnya. Algoritme MUSIC menghitung matriks kovarians sinyal
+antar antena, memisahkan vektor eigennya menjadi subruang sinyal (nilai
+eigen besar) dan subruang noise (sisanya), lalu memanfaatkan fakta bahwa
+vektor arah target harus tegak lurus terhadap subruang noise.
+Pseudo-spektrumnya, <span class="math inline">\(1/\|\boldsymbol
+E_n^{H}\boldsymbol a(\theta)\|^2\)</span>, memuncak tajam di arah
+target, jauh lebih tajam dari FFT. Harganya, kita harus tahu atau
+menebak jumlah target, dan metode ini peka terhadap kalibrasi antena.
+Latihan berakhir dengan simulator yang menggabungkan semua langkah ini:
+chirp dipancarkan ke beberapa target, noise ditambahkan, lalu seluruh
+rantai FFT, CFAR, dan estimasi sudut dijalankan untuk menemukannya
+kembali.</p>
 <h2 id="di-mana-machine-learning-masuk">Di mana machine learning
 masuk</h2>
 <p>Batas antara pemrosesan sinyal dan machine learning semakin kabur.
@@ -222,14 +539,37 @@ jaringan yang parameternya dipelajari, sehingga struktur algoritme
 klasik tetap terjaga. Dan di arah sebaliknya, gagasan pemrosesan sinyal,
 seperti filter, frekuensi, dan wavelet, memberi bahasa untuk memahami
 apa yang dilakukan jaringan saraf (<a href="ch07_geometric.html">Bab
-9</a>). Fondasinya tetap sama: model, noise, dan batas atas apa yang
+13</a>). Fondasinya tetap sama: model, noise, dan batas atas apa yang
 bisa diestimasi dari data.</p>
+<h2 id="perkembangan-riset">Perkembangan riset</h2>
+<p>Pemrosesan sinyal klasik dan deep learning kini sering digabung
+dengan cara yang menjaga struktur algoritme lama. <em>Algorithm
+unrolling</em> <span class="citation" data-cites="monga2021">(Monga, Li,
+dan Eldar 2021)</span> mengambil algoritme iteratif yang sudah dikenal,
+misalnya iterasi untuk pemulihan sinyal jarang atau rekonstruksi citra,
+lalu “membuka” sejumlah iterasinya menjadi lapisan-lapisan jaringan.
+Parameter yang semula dipilih tangan, seperti ukuran langkah dan ambang,
+menjadi bobot yang dipelajari dari data. Jaringan yang dihasilkan jauh
+lebih kecil dari jaringan generik, lebih mudah ditafsirkan karena setiap
+lapisan punya arti, dan butuh lebih sedikit data latih.</p>
+<p>KalmanNet <span class="citation" data-cites="revach2022">(Revach dkk.
+2021)</span> menerapkan pola yang sama pada Kalman filter. Persamaan
+prediksi dan koreksi dari <a href="ch08_probabilistik.html">Bab 14</a>
+tetap dipakai, tetapi Kalman gain tidak dihitung dari matriks kovarians
+noise yang harus diketahui, melainkan dikeluarkan oleh sebuah jaringan
+rekuren kecil yang membaca selisih pengukuran dan prediksi. Ketika model
+keadaan tidak linear atau tidak diketahui persis, KalmanNet dilaporkan
+mengungguli filter klasik, sambil tetap mempertahankan struktur yang
+bisa ditafsirkan. Inilah model hibrida dari <a
+href="ch18_hibrida.html">Bab 32</a>, dalam bahasa pemrosesan sinyal:
+fisika dan struktur dari model, sisanya dari data.</p>
 <h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti kuliah dan latihan Optimum and Adaptive Signal
 Processing Systems (variabel dan proses acak, estimasi klasik dan
-Bayesian, filter Wiener dan kuadrat terkecil, filter adaptif) serta
-latihan Radar System Engineering (RCS dan persamaan radar, korelasi,
-FFT, deteksi, CFAR, FMCW, beamforming digital, simulator). Bacaan yang
+Bayesian, filter Wiener dan kuadrat terkecil, steepest descent, LMS,
+NLMS, RLS) serta latihan Radar System Engineering (persamaan radar dalam
+desibel, distribusi noise dan deteksi, korelasi dan matched filter, FFT,
+CFAR, FMCW, beamforming digital dan MUSIC, simulator). Bacaan yang
 disebut kuliah: <span class="citation" data-cites="kay1993">Kay
 (1993)</span> dan <span class="citation"
 data-cites="manolakis2005">Manolakis, Ingle, dan Kogon (2005)</span>.
@@ -245,6 +585,20 @@ Estimation Theory</em>. Prentice Hall.
 <div id="ref-manolakis2005" class="csl-entry" role="listitem">
 Manolakis, Dimitris G., Vinay K. Ingle, dan Stephen M. Kogon. 2005.
 <em>Statistical and Adaptive Signal Processing</em>. Artech House.
+</div>
+<div id="ref-monga2021" class="csl-entry" role="listitem">
+Monga, Vishal, Yuelong Li, dan Yonina C. Eldar. 2021. <span>“Algorithm
+Unrolling: Interpretable, Efficient Deep Learning for Signal and Image
+Processing.”</span> <em>IEEE Signal Processing Magazine</em> 38 (2):
+18–44. <a
+href="https://doi.org/10.1109/MSP.2020.3016905">https://doi.org/10.1109/MSP.2020.3016905</a>.
+</div>
+<div id="ref-revach2022" class="csl-entry" role="listitem">
+Revach, Guy, Nir Shlezinger, Xiaoyong Ni, Adria Lopez Escoriza, Ruud J.
+G. van Sloun, dan Yonina C. Eldar. 2021. <span>“KalmanNet: Neural
+Network Aided Kalman Filtering for Partially Known Dynamics.”</span>
+arXiv:2107.10043. <a
+href="https://arxiv.org/abs/2107.10043">https://arxiv.org/abs/2107.10043</a>.
 </div>
 <div id="ref-richards2014" class="csl-entry" role="listitem">
 Richards, Mark A. 2014. <em>Fundamentals of Radar Signal

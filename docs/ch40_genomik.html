@@ -17,18 +17,18 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 18</p>
+<p class="chapnum">Bab 22</p>
 <h1>Membaca Kode Kehidupan</h1>
 <p><span id="ch:genomik" data-label="ch:genomik"></span></p>
 <p>Pada musim panas 2025 saya membuka pintu ke ilmu hayati lewat
 beberapa kuliah sekaligus: pengantar genetika, analisis genom dan
 transkriptomik, bioinformatika struktural, dan AI dalam ilmu hayati.
 Kuliah genom dimulai dari dasar sekali, dari apa itu kehidupan dan
-bagaimana DNA disusun, lalu bergerak ke teknologi microarray, pengurutan
-DNA generasi demi generasi, perakitan genom, pemetaan bacaan,
-pemanggilan varian, dan analisis RNA-seq. Bagi pembaca yang datang dari
-teknik atau ilmu komputer, seperti saya, bab ini adalah perkenalan
-dengan bahasa yang dipakai bab-bab berikutnya.</p>
+bagaimana DNA disusun, lalu bergerak ke genetika populasi, teknologi
+microarray, pengurutan DNA generasi demi generasi, pemetaan bacaan,
+pemanggilan varian, perakitan genom, dan analisis RNA-seq. Bagi pembaca
+yang datang dari teknik atau ilmu komputer, seperti saya, bab ini adalah
+perkenalan dengan bahasa yang dipakai bab-bab berikutnya.</p>
 <p>Biologi molekuler modern adalah ilmu data. Satu genom manusia berisi
 sekitar tiga miliar huruf, satu percobaan pengurutan menghasilkan
 ratusan juta potongan bacaan, dan satu pengukuran ekspresi gen mencatat
@@ -42,18 +42,28 @@ untai berpasangan dengan basa pada untai lain, A dengan T dan C dengan
 G, sehingga setiap untai menyimpan salinan lengkap informasi untai
 pasangannya. Struktur heliks ganda ini diusulkan Watson dan Crick pada
 1953, dengan bantuan penting dari foto difraksi sinar-X yang dibuat
-Rosalind Franklin, sebuah kisah yang juga disinggung di kuliah.</p>
-<p>Dogma sentral biologi molekuler menggambarkan aliran informasi. DNA
-disalin menjadi RNA dalam proses transkripsi, lalu RNA pembawa pesan
-diterjemahkan menjadi protein di ribosom. Setiap tiga basa, satu kodon,
-menyandikan satu asam amino. Ada <span
+Rosalind Franklin, sebuah kisah yang juga disinggung di kuliah. Kedua
+untai punya arah, dari ujung 5’ ke ujung 3’, dan keduanya berjalan
+berlawanan arah. DNA sepanjang lebih dari dua meter di setiap sel
+manusia dilipat berlapis-lapis di sekitar protein histon sampai muat di
+dalam inti sel yang diameternya beberapa mikrometer.</p>
+<p>Dogma sentral biologi molekuler menggambarkan aliran informasi
+(Gambar 22.1). DNA disalin menjadi RNA dalam proses transkripsi, lalu
+RNA pembawa pesan diterjemahkan menjadi protein di ribosom. Setiap tiga
+basa, satu kodon, menyandikan satu asam amino. Ada <span
 class="math inline">\(4^3=64\)</span> kodon untuk dua puluh asam amino
 dan sinyal berhenti, sehingga kodenya berlebih: beberapa kodon berbeda
 menyandikan asam amino yang sama. Pada sel eukariot, bagian-bagian RNA
-dipotong dan disambung ulang sebelum diterjemahkan, dan penyambungan
-alternatif memungkinkan satu gen menghasilkan beberapa protein berbeda.
-Protein lalu melipat menjadi bentuk tiga dimensi yang menentukan
-fungsinya, topik <a href="ch42_protein.html">Bab 20</a>.</p>
+yang disebut intron dipotong dan bagian ekson disambung ulang sebelum
+diterjemahkan, dan penyambungan alternatif memungkinkan satu gen
+menghasilkan beberapa protein berbeda. Protein lalu melipat menjadi
+bentuk tiga dimensi yang menentukan fungsinya, topik <a
+href="ch42_protein.html">Bab 24</a>.</p>
+<figure id="fig:dogma">
+<img src="fig/1857cb2742c4.svg" />
+<figcaption>Dogma sentral biologi molekuler dan teknologi pengukuran
+yang dibahas di bab ini.</figcaption>
+</figure>
 <p>Bayangkan perpustakaan besar yang buku-bukunya tidak boleh dibawa
 keluar. Untuk membangun sesuatu, seseorang memfotokopi satu halaman
 resep (transkripsi), membawa fotokopinya ke dapur (ribosom), lalu
@@ -62,42 +72,110 @@ membawa perpustakaan yang sama, tetapi memfotokopi halaman yang berbeda.
 Itulah sebabnya sel otot dan sel saraf begitu berbeda meski DNA-nya
 identik, dan itulah sebabnya mengukur RNA, yaitu fotokopi yang sedang
 beredar, memberi tahu apa yang sedang dikerjakan sebuah sel.</p>
-<h2 id="variasi-genetik">Variasi genetik</h2>
+<h2 id="variasi-dan-genetika-populasi">Variasi dan genetika
+populasi</h2>
+<p>Sebelum DNA dikenal, Mendel sudah menemukan aturan pewarisannya dari
+kacang kapri. Setiap individu membawa dua salinan setiap gen, satu dari
+masing-masing induk, dan setiap induk mewariskan salah satu salinannya
+secara acak. Kalau dua induk sama-sama heterozigot, <span
+class="math inline">\(Aa\times Aa\)</span>, kombinasi anaknya adalah
+<span class="math inline">\(AA\)</span>, <span
+class="math inline">\(Aa\)</span>, <span
+class="math inline">\(aA\)</span>, dan <span
+class="math inline">\(aa\)</span> dengan peluang sama, sehingga
+perbandingan genotipenya <span class="math inline">\(1:2:1\)</span>.
+Kalau <span class="math inline">\(A\)</span> dominan, tiga dari empat
+anak memperlihatkan sifat <span class="math inline">\(A\)</span>,
+perbandingan <span class="math inline">\(3:1\)</span> yang terkenal.
+Itulah kasus khusus hukum Hardy–Weinberg di bawah dengan <span
+class="math inline">\(p=q=\tfrac12\)</span>.</p>
 <p>Dua manusia berbeda di sekitar satu dari setiap seribu basa. Variasi
 yang paling umum adalah <em>single nucleotide polymorphism</em> (SNP),
 satu posisi tempat sebagian orang punya satu basa dan sebagian lain
-punya basa berbeda. Genetika populasi mempelajari bagaimana frekuensi
-varian berubah. Hukum Hardy–Weinberg menyatakan bahwa dalam populasi
-besar yang kawin acak tanpa seleksi, kalau frekuensi dua alel adalah
-<span class="math inline">\(p\)</span> dan <span
-class="math inline">\(q=1-p\)</span>, maka frekuensi genotipenya <span
+punya basa berbeda. Ada juga sisipan dan hapusan pendek, serta variasi
+struktural yang lebih besar.</p>
+<p>Genetika populasi mempelajari bagaimana frekuensi varian berubah dari
+generasi ke generasi. Hukum Hardy–Weinberg turun dari satu asumsi: dalam
+populasi besar yang kawin acak tanpa seleksi, setiap individu menerima
+satu alel dari masing-masing orang tua secara acak dan independen. Kalau
+frekuensi dua alel adalah <span class="math inline">\(p\)</span> dan
+<span class="math inline">\(q=1-p\)</span>, peluang menerima dua alel
+pertama adalah <span class="math inline">\(p\cdot p\)</span>, dua alel
+kedua <span class="math inline">\(q\cdot q\)</span>, dan satu dari
+masing-masing <span class="math inline">\(2pq\)</span>, karena ada dua
+urutan. Maka frekuensi genotipenya <span
 class="math inline">\(p^2\)</span>, <span
 class="math inline">\(2pq\)</span>, dan <span
-class="math inline">\(q^2\)</span>. Dengan <span
+class="math inline">\(q^2\)</span>, dan jumlahnya <span
+class="math inline">\((p+q)^2=1\)</span>. Dengan <span
 class="math inline">\(p=0{,}7\)</span>, sekitar 49 persen individu
 homozigot untuk alel pertama, 42 persen heterozigot, dan 9 persen
 homozigot untuk alel kedua. Penyimpangan dari proporsi ini menjadi
-petunjuk adanya seleksi, migrasi, atau kesalahan pengukuran.</p>
+petunjuk adanya seleksi, migrasi, perkawinan sekerabat, atau sekadar
+kesalahan pengukuran, dan karena itu pengujian Hardy–Weinberg dipakai
+sebagai kendali mutu data genotipe. Dalam populasi kecil, frekuensi alel
+juga bergeser secara acak dari generasi ke generasi, sebuah gejala yang
+disebut <em>genetic drift</em>.</p>
 <p>Varian yang letaknya berdekatan di kromosom cenderung diwariskan
-bersama, sebuah keadaan yang disebut <em>linkage disequilibrium</em>.
-Studi asosiasi seluruh genom (GWAS) memanfaatkan hal ini: mereka
-mengukur ratusan ribu SNP pada ribuan orang dan mencari varian yang
-frekuensinya berbeda antara penderita dan bukan penderita sebuah
-penyakit. Karena jumlah uji statistiknya banyak sekali, ambang
-signifikansinya harus ketat sekali.</p>
-<h2 id="mengukur-ekspresi-gen">Mengukur ekspresi gen</h2>
+bersama, karena jarang terpisah oleh rekombinasi. Keadaan ini disebut
+<em>linkage disequilibrium</em>. Studi asosiasi seluruh genom (GWAS)
+memanfaatkannya: mereka mengukur ratusan ribu SNP pada ribuan orang dan
+mencari varian yang frekuensinya berbeda antara penderita dan bukan
+penderita sebuah penyakit. SNP yang terukur tidak harus penyebabnya.
+Cukup kalau ia berdekatan dengan penyebabnya dan ikut diwariskan
+bersama. Karena jumlah uji statistiknya banyak sekali, ambang
+signifikansinya harus ketat sekali, kalau tidak, ribuan temuan palsu
+akan muncul hanya karena kebetulan.</p>
+<h2 id="mengukur-ekspresi-dengan-microarray">Mengukur ekspresi dengan
+microarray</h2>
 <p>Microarray DNA adalah kaca kecil yang ditempeli jutaan potongan DNA
 pendek yang dikenal, yang disebut probe. RNA dari sampel diubah menjadi
 DNA berlabel fluoresen, lalu dibiarkan menempel pada probe yang cocok.
-Semakin terang sebuah titik, semakin banyak RNA dari gen itu. Jalan dari
-gambar ke angka ternyata panjang: koreksi latar belakang, normalisasi
-antar chip agar distribusinya sebanding, misalnya dengan normalisasi
-kuantil, lalu meringkas banyak probe dari satu gen menjadi satu nilai
-ekspresi. Kuliah membahas metode ringkasan seperti RMA, dan FARMS,
-metode berbasis analisis faktor (<a href="ch02c_unsupervised.html">Bab
-4</a>) dari kelompok Sepp Hochreiter, yang memperlakukan sinyal bersama
-antar probe sebagai faktor laten dan noise pribadi setiap probe sebagai
-noise analisis faktor.</p>
+Semakin terang sebuah titik, semakin banyak RNA dari gen itu. Desain
+klasik Affymetrix memasang setiap probe dua kali: sekali persis cocok,
+sekali dengan satu basa di tengah sengaja diubah, supaya penempelan yang
+tidak spesifik bisa diperkirakan. Banyak probe untuk gen yang sama
+dikumpulkan dalam satu <em>probe set</em>.</p>
+<p>Jalan dari gambar ke angka ternyata panjang, dan kuliah membahasnya
+langkah demi langkah. Pertama, koreksi latar belakang membuang cahaya
+yang bukan berasal dari penempelan spesifik. Kedua, normalisasi membuat
+chip yang berbeda bisa dibandingkan. Perbedaannya bisa dilihat dengan
+plot MvA: untuk dua chip, selisih log-intensitas <span
+class="math inline">\(M\)</span> diplot terhadap rata-ratanya <span
+class="math inline">\(A\)</span>. Kalau tidak ada pergeseran sistematis,
+titik-titik berkumpul di sekitar garis nol.</p>
+<p>Salah satu metode normalisasi yang dibahas adalah normalisasi
+kuantil, yang memaksa semua chip punya distribusi yang persis sama.
+Caranya sederhana. Urutkan nilai di setiap chip, ganti setiap peringkat
+dengan rata-rata nilai pada peringkat itu di semua chip, lalu kembalikan
+ke urutan asal. Misalkan tiga gen pada dua chip bernilai <span
+class="math inline">\((5,2,3)\)</span> dan <span
+class="math inline">\((4,1,6)\)</span>. Setelah diurutkan, chip pertama
+menjadi <span class="math inline">\((2,3,5)\)</span> dan chip kedua
+<span class="math inline">\((1,4,6)\)</span>. Rata-rata per peringkat
+adalah <span class="math inline">\((1{,}5;\ 3{,}5;\ 5{,}5)\)</span>. Gen
+pertama berperingkat tiga di chip pertama dan peringkat dua di chip
+kedua, sehingga nilai barunya <span class="math inline">\(5{,}5\)</span>
+dan <span class="math inline">\(3{,}5\)</span>. Setelah semua
+dikembalikan, chip pertama menjadi <span class="math inline">\((5{,}5;\
+1{,}5;\ 3{,}5)\)</span> dan chip kedua <span
+class="math inline">\((3{,}5;\ 1{,}5;\ 5{,}5)\)</span>. Peringkat di
+dalam setiap chip tetap, distribusinya kini identik.</p>
+<p>Ketiga, ringkasan menggabungkan banyak probe menjadi satu nilai
+ekspresi per gen. Kuliah membahas RMA, yang memakai rata-rata yang tahan
+pencilan, dan FARMS, metode berbasis analisis faktor (<a
+href="ch02c_unsupervised.html">Bab 6</a>) dari kelompok Sepp Hochreiter.
+FARMS memperlakukan sinyal bersama antar probe sebagai faktor laten dan
+noise pribadi setiap probe sebagai noise analisis faktor, dan sekaligus
+bisa menandai probe set yang tidak membawa sinyal sama sekali.</p>
+<p>Kuliah juga menunjukkan bagaimana data ekspresi dipakai dalam skala
+besar. Pengukuran yang lebih murah, seperti assay L1000 yang hanya
+mengukur sekitar seribu gen penanda, bisa dipakai untuk merekonstruksi
+profil transkriptom lengkap dengan model statistik. Basis data seperti
+Connectivity Map mengumpulkan profil ekspresi sel setelah diberi ribuan
+senyawa, sehingga senyawa yang “membalik” pola ekspresi sebuah penyakit
+bisa dicari, sebuah jembatan ke penemuan obat di <a
+href="ch41_molekul.html">Bab 23</a>.</p>
 <h2 id="pengurutan-dna">Pengurutan DNA</h2>
 <p>Pengurutan Sanger, generasi pertama, membaca satu potongan DNA
 sepanjang beberapa ratus basa dengan akurasi tinggi, dan dipakai dalam
@@ -105,69 +183,196 @@ Proyek Genom Manusia. Generasi kedua, yang dipelopori platform Illumina,
 membaca ratusan juta potongan pendek secara paralel, sering berpasangan
 dari kedua ujung sebuah fragmen. Generasi ketiga dan keempat membaca
 satu molekul DNA secara langsung, dengan bacaan yang jauh lebih panjang,
-dari puluhan ribu sampai jutaan basa, meski dulu dengan galat yang lebih
-tinggi. Pada pengurutan nanopore, DNA ditarik melewati pori kecil dan
-setiap kombinasi basa mengubah arus listrik dengan cara yang khas.
-Mengubah sinyal arus menjadi urutan basa, <em>base calling</em>, kini
-dikerjakan jaringan saraf rekuren dan konvolusi yang dilatih dengan loss
-connectionist temporal classification, karena panjang keluaran tidak
-diketahui sebelumnya.</p>
-<p>Setiap basa yang dibaca diberi skor kualitas PHRED, <span
-class="math inline">\(Q=-10\log_{10}P_{\mathrm{galat}}\)</span>. Skor 30
-berarti peluang salah satu per seribu. Kedalaman cakupan, <span
-class="math inline">\(C=NL/G\)</span>, menyatakan berapa kali rata-rata
-setiap posisi genom dibaca, dengan <span
-class="math inline">\(N\)</span> jumlah bacaan, <span
-class="math inline">\(L\)</span> panjang bacaan, dan <span
-class="math inline">\(G\)</span> panjang genom. Untuk genom manusia
-sepanjang tiga miliar basa, cakupan tiga puluh kali dengan bacaan 150
-basa membutuhkan sekitar 600 juta bacaan.</p>
+dari puluhan ribu sampai jutaan basa. Pada pengurutan nanopore, DNA
+ditarik melewati pori kecil, dan setiap kombinasi basa di dalam pori
+mengubah arus listrik dengan cara yang khas.</p>
+<p>Cara kerja pengurutan Illumina memperlihatkan dari mana galat dan
+skor kualitas berasal. Fragmen DNA ditempelkan pada permukaan kaca, lalu
+diperbanyak di tempat dengan <em>bridge amplification</em>, sehingga
+setiap fragmen membentuk gugus berisi ribuan salinan yang identik.
+Pengurutan berjalan dalam siklus. Di setiap siklus, polimerase
+menambahkan tepat satu nukleotida berlabel fluoresen ke setiap salinan,
+kamera memotret warna setiap gugus, lalu labelnya dihapus untuk siklus
+berikutnya. Panjang bacaan sama dengan jumlah siklus. Seiring siklus
+berjalan, sebagian salinan dalam satu gugus tertinggal atau mendahului
+yang lain, sehingga sinyal warnanya semakin bercampur. Karena itulah
+kualitas basa turun menjelang ujung bacaan, pola yang selalu terlihat
+pada laporan kendali mutu.</p>
+<p>Mengubah sinyal mentah menjadi urutan basa disebut <em>base
+calling</em>. Metode PHRED klasik untuk pengurutan Sanger memperkirakan
+letak puncak sinyal, mencocokkannya dengan pemrograman dinamis, dan
+memberi setiap basa skor kualitas <span
+class="math display">\[Q=-10\log_{10}P_{\mathrm{galat}}.\]</span> Skor
+20 berarti peluang salah satu persen, skor 30 satu per seribu, skor 40
+satu per sepuluh ribu. Untuk nanopore, base calling dikerjakan jaringan
+saraf rekuren dan konvolusi seperti CHIRON. Panjang keluaran tidak
+diketahui sebelumnya, karena sebuah basa bisa bertahan di pori selama
+beberapa sampel atau hanya satu, sehingga jaringan dilatih dengan loss
+<em>connectionist temporal classification</em> (CTC), yang menjumlahkan
+peluang semua cara menyelaraskan keluaran dengan sinyal. Loss yang sama
+dipakai pengenalan suara.</p>
+<p>Bacaan disimpan dalam berkas FASTQ, yang menyimpan setiap bacaan
+bersama skor kualitas setiap basanya, dikodekan sebagai karakter ASCII.
+Pada pengodean yang umum, karakter dengan kode <span
+class="math inline">\(Q+33\)</span> mewakili skor <span
+class="math inline">\(Q\)</span>, sehingga huruf <code>I</code> (kode
+73) berarti skor 40. Alat kendali mutu seperti FastQC memeriksa
+distribusi skor di sepanjang bacaan, kandungan GC, dan bacaan duplikat
+sebelum analisis dimulai.</p>
+<p>Berapa banyak bacaan yang dibutuhkan? Kuliah mendefinisikan cakupan
+<span class="math inline">\(C=RM/T\)</span>, dengan <span
+class="math inline">\(R\)</span> panjang bacaan, <span
+class="math inline">\(M\)</span> jumlah bacaan, dan <span
+class="math inline">\(T\)</span> panjang genom: rata-rata berapa kali
+setiap basa terbaca. Untuk genom manusia sepanjang tiga miliar basa,
+cakupan tiga puluh kali dengan bacaan 150 basa membutuhkan sekitar 600
+juta bacaan. Kalau bacaan jatuh secara acak, jumlah bacaan yang menutupi
+sebuah basa mendekati distribusi Poisson dengan rata-rata <span
+class="math inline">\(C\)</span>, sehingga peluang sebuah basa tidak
+tertutup sama sekali adalah <span class="math inline">\(e^{-C}\)</span>
+(Gambar 22.2). Dengan cakupan satu kali, sekitar 37 persen genom
+terlewat. Dengan tiga puluh kali, peluang itu praktis nol, dan setiap
+basa terbaca cukup sering untuk membedakan varian sungguhan dari galat
+pengurutan.</p>
+<figure id="fig:cakupan">
+<img src="fig/1b3b70840a43.svg" />
+<figcaption>Fraksi genom yang tidak tertutup satu bacaan pun, <span
+class="math inline">\(e^{-C}\)</span>, menurut model
+Poisson.</figcaption>
+</figure>
+<p>Kendali mutu juga memeriksa duplikat. Amplifikasi dengan PCR saat
+menyiapkan sampel bisa membuat satu fragmen asli tercatat berkali-kali.
+Duplikat ini bukan pengukuran yang independen: galat pengurutan pada
+satu salinan ikut tersalin ke semua duplikatnya. Karena itu duplikat
+biasanya ditandai dan hanya dihitung sekali sebelum varian
+dipanggil.</p>
 <h2 id="dari-bacaan-ke-genom">Dari bacaan ke genom</h2>
 <p>Kalau genom acuan sudah ada, setiap bacaan dipetakan ke posisinya di
 acuan. Mencocokkan ratusan juta bacaan pendek ke tiga miliar huruf
-dengan toleransi terhadap galat membutuhkan indeks yang cerdas.
-Transformasi Burrows–Wheeler, yang juga dipakai dalam kompresi data,
-memungkinkan pencarian pola yang amat cepat dengan memori kecil <span
-class="citation" data-cites="li2009">(Li dan Durbin 2009)</span>.
-Strategi umumnya adalah <em>seed and extend</em>: cari potongan pendek
-yang cocok persis, lalu perluas dengan penjajaran yang toleran terhadap
-galat. Untuk bacaan panjang, potongan-potongan yang cocok dirangkai dulu
-menjadi rantai yang konsisten sebelum penjajaran rinci.</p>
+dengan toleransi terhadap galat membutuhkan indeks yang cerdas. Kuliah
+membahas tiga jenis: tabel hash untuk potongan pendek, pohon sufiks, dan
+transformasi Burrows–Wheeler (BWT) <span class="citation"
+data-cites="li2009">(Li dan Durbin 2009)</span>. BWT dibangun dengan
+menulis semua rotasi sebuah teks, mengurutkannya, lalu mengambil kolom
+terakhir. Untuk <code>banana$</code>, ketujuh rotasi yang diurutkan
+berakhir dengan huruf-huruf <code>a</code>, <code>n</code>,
+<code>n</code>, <code>b</code>, <code>$</code>, <code>a</code>,
+<code>a</code>, sehingga BWT-nya <code>annb$aa</code>. Huruf-huruf yang
+sama cenderung berkumpul, sehingga hasilnya mudah dimampatkan, dan
+dengan sedikit informasi tambahan, transformasi ini bisa dibalik dan
+dipakai untuk mencari pola dalam waktu yang hanya bergantung pada
+panjang pola, bukan panjang genom.</p>
+<p>Strategi pemetaan umumnya adalah <em>seed and extend</em>: cari
+potongan pendek yang cocok persis, lalu perluas dengan penjajaran yang
+toleran terhadap galat. Penjajaran itu diselesaikan dengan pemrograman
+dinamis, gagasan Bellman yang sama dengan di <a
+href="ch02b_ai_klasik.html">Bab 5</a>. Skor terbaik untuk menjajarkan
+<span class="math inline">\(i\)</span> huruf pertama bacaan dengan <span
+class="math inline">\(j\)</span> huruf pertama acuan adalah <span
+class="math display">\[S(i,j)=\max\big\{S(i-1,j-1)+s(a_i,b_j),\
+S(i-1,j)-g,\ S(i,j-1)-g\big\},\]</span> dengan <span
+class="math inline">\(s\)</span> skor cocok atau tidak cocok dan <span
+class="math inline">\(g\)</span> penalti celah. Ketiga pilihan berarti:
+pasangkan kedua huruf, sisipkan celah di acuan, atau sisipkan celah di
+bacaan. Algoritme Smith–Waterman menambahkan pilihan nol agar penjajaran
+lokal bisa dimulai di mana saja. Untuk bacaan panjang, potongan-potongan
+yang cocok dirangkai dulu menjadi rantai yang konsisten sebelum
+penjajaran rinci, supaya pemrograman dinamis yang mahal hanya dijalankan
+di daerah yang menjanjikan.</p>
 <p>Setelah bacaan dipetakan, <em>variant calling</em> memutuskan di
 posisi mana sampel berbeda dari acuan. Tantangannya membedakan varian
-sungguhan dari galat pengurutan dan galat pemetaan. DeepVariant <span
+sungguhan dari galat pengurutan dan galat pemetaan. Kuliah membandingkan
+beberapa alat, dari yang berbasis model statistik seperti GATK dan
+FreeBayes sampai yang berbasis deep learning. DeepVariant <span
 class="citation" data-cites="poplin2018">(Poplin dkk. 2018)</span>
 mengubah tumpukan bacaan di sekitar sebuah posisi menjadi gambar dan
 memakai jaringan konvolusi untuk mengklasifikasikan genotipenya, sebuah
 contoh menarik dari visi komputer yang dipinjam oleh genomik.</p>
+<p>Logika dasar pemanggilan varian adalah teorema Bayes dengan
+likelihood binomial. Misalkan di sebuah posisi ada 30 bacaan, dan 15 di
+antaranya membawa basa alternatif. Kalau individu itu heterozigot,
+setiap bacaan membawa basa alternatif dengan peluang separuh, dan
+peluang mendapat tepat 15 dari 30 adalah <span
+class="math inline">\(\binom{30}{15}0{,}5^{30}\approx0{,}14\)</span>.
+Kalau ia homozigot untuk basa acuan, basa alternatif hanya bisa muncul
+karena galat pengurutan, katakanlah dengan peluang satu persen per
+bacaan, dan peluang mendapat 15 galat dari 30 adalah <span
+class="math inline">\(\binom{30}{15}0{,}01^{15}0{,}99^{15}\approx10^{-22}\)</span>.
+Rasio keduanya begitu besar sehingga prior apa pun yang masuk akal tidak
+akan membalik kesimpulannya. Kasus sulit muncul ketika cakupannya
+rendah, misalnya 2 dari 4 bacaan, atau ketika galat pemetaan dan
+duplikat membuat bacaan-bacaan itu tidak independen. Di situlah model
+yang lebih teliti, termasuk jaringan saraf seperti DeepVariant, memberi
+perbedaan. Frekuensi alel varian, <span
+class="math inline">\(15/30=0{,}5\)</span> dalam contoh ini, juga
+dipakai untuk mendeteksi mutasi yang hanya ada di sebagian sel, misalnya
+pada tumor, di mana frekuensinya bisa jauh di bawah separuh.</p>
 <p>Kalau tidak ada acuan, genom harus dirakit dari nol, seperti menyusun
 teka-teki jigsaw raksasa dari potongan-potongan yang saling tumpang
 tindih. Pendekatan <em>overlap–layout–consensus</em> membangun graf yang
 simpulnya bacaan dan sisinya tumpang tindih, lalu mencari jalur yang
 melewati setiap simpul tepat sekali, sebuah jalur Hamilton yang sulit
-dicari secara umum. Graf de Bruijn membalik sudut pandangnya: bacaan
-dipotong menjadi semua kata sepanjang <span
-class="math inline">\(k\)</span>, dan rakitan menjadi jalur yang
-melewati setiap sisi tepat sekali, sebuah jalur Euler yang bisa dicari
-dengan efisien. Bagian yang berulang di genom adalah musuh utama
-keduanya, karena potongan dari dua tempat berbeda tampak identik. Bacaan
-panjang membantu justru karena mereka bisa melompati pengulangan. Kuliah
-juga menunjukkan bahwa jaringan graf (<a href="ch07_geometric.html">Bab
-9</a>) mulai dipakai untuk menyederhanakan graf rakitan.</p>
+dicari secara umum. Pendekatan graf de Bruijn membalik sudut pandangnya
+(Gambar 22.3). Bacaan dipotong menjadi semua kata sepanjang <span
+class="math inline">\(k\)</span>, yang disebut <span
+class="math inline">\(k\)</span>-mer. Setiap <span
+class="math inline">\(k\)</span>-mer menjadi sisi yang menghubungkan
+awalan dan akhirannya sepanjang <span
+class="math inline">\(k-1\)</span>. Untuk urutan <code>ATGGCGT</code>
+dengan <span class="math inline">\(k=3\)</span>, kata-katanya
+<code>ATG</code>, <code>TGG</code>, <code>GGC</code>, <code>GCG</code>,
+dan <code>CGT</code>, dan rakitan menjadi jalur yang melewati setiap
+sisi tepat sekali, sebuah jalur Euler yang bisa dicari dengan efisien.
+Perbedaan antara jalur Hamilton dan jalur Euler inilah yang membuat graf
+de Bruijn praktis untuk jutaan bacaan pendek.</p>
+<figure id="fig:debruijn">
+<img src="fig/90dda6d0e47e.svg" />
+<figcaption>Graf de Bruijn untuk <code>ATGGCGT</code> dengan <span
+class="math inline">\(k=3\)</span>. Simpul adalah kata sepanjang dua,
+sisi adalah kata sepanjang tiga. Jalur yang melewati setiap sisi sekali
+mengeja kembali urutannya.</figcaption>
+</figure>
+<p>Bagian yang berulang di genom adalah musuh utama kedua pendekatan,
+karena potongan dari dua tempat berbeda tampak identik dan graf menjadi
+bercabang atau runtuh menjadi satu. Galat pengurutan menambah
+cabang-cabang palsu yang harus dipangkas. Bacaan panjang membantu justru
+karena mereka bisa melompati pengulangan. Kuliah menutup bagian ini
+dengan proyek-proyek tonggak, dari Proyek Genom Manusia dan proyek 1000
+genom sampai genom Neanderthal, dan menunjukkan bahwa jaringan graf (<a
+href="ch07_geometric.html">Bab 13</a>) mulai dipakai untuk
+menyederhanakan graf rakitan.</p>
 <h2 id="rna-seq">RNA-seq</h2>
 <p>Pengurutan juga bisa mengukur ekspresi gen. RNA diubah menjadi DNA,
 diurutkan, lalu jumlah bacaan yang jatuh pada setiap gen dihitung.
-Hitungan ini harus dinormalisasi karena sampel yang berbeda diurutkan
-dengan kedalaman berbeda. Untuk mencari gen yang ekspresinya berubah
-antara dua kondisi, DESeq2 <span class="citation"
-data-cites="love2014">(Love, Huber, dan Anders 2014)</span> memodelkan
-hitungan dengan distribusi binomial negatif, yang mengizinkan varians
-lebih besar dari rata-rata seperti yang selalu terlihat pada data
-biologis. Karena setiap gen hanya punya sedikit ulangan, perkiraan
-dispersi dan perubahan lipat dari banyak gen “dipinjamkan” satu sama
-lain dan ditarik ke arah tren bersama, sebuah bentuk prior Bayesian
-empiris. Dengan puluhan ribu gen yang diuji sekaligus, nilai p dikoreksi
-untuk mengendalikan proporsi temuan palsu.</p>
+Hitungan ini harus dinormalisasi, karena sampel yang berbeda diurutkan
+dengan kedalaman berbeda dan gen yang panjang menghasilkan lebih banyak
+bacaan. Ukuran seperti TPM membagi hitungan dengan panjang gen dan
+dengan total, supaya ekspresi antar gen dan antar sampel bisa
+dibandingkan.</p>
+<p>Untuk mencari gen yang ekspresinya berubah antara dua kondisi, DESeq2
+<span class="citation" data-cites="love2014">(Love, Huber, dan Anders
+2014)</span> memodelkan hitungan dengan distribusi binomial negatif.
+Mengapa bukan Poisson? Pada distribusi Poisson, variansnya sama dengan
+rata-ratanya. Data biologis selalu lebih berisik dari itu, karena selain
+noise penghitungan, ada variasi biologis sungguhan antar individu.
+Binomial negatif menambahkan suku dispersi, <span
+class="math inline">\(\mathrm{Var}=\mu+\alpha\mu^2\)</span>. Untuk gen
+dengan rata-rata 1000 bacaan dan dispersi <span
+class="math inline">\(\alpha=0{,}04\)</span>, simpangan bakunya <span
+class="math inline">\(\sqrt{1000+40\,000}\approx202\)</span>, jauh lebih
+besar dari <span class="math inline">\(\sqrt{1000}\approx32\)</span>
+yang diramalkan Poisson. Mengabaikan dispersi ini membuat hampir setiap
+gen tampak berubah secara signifikan.</p>
+<p>Karena setiap gen hanya punya sedikit ulangan, perkiraan dispersi
+untuk satu gen tidak pasti. DESeq2 meminjam kekuatan dari ribuan gen
+lain: dispersi setiap gen ditarik ke arah tren bersama yang bergantung
+pada rata-rata ekspresi, dan perkiraan perubahan lipat yang berisik
+untuk gen berekspresi rendah juga ditarik ke arah nol. Inilah prior
+Bayesian empiris, prior yang dipelajari dari data itu sendiri, logika
+yang sama dengan regularisasi di <a
+href="ch01_belajar_dari_data.html">Bab 1</a>. Dengan puluhan ribu gen
+yang diuji sekaligus, nilai p dikoreksi untuk mengendalikan proporsi
+temuan palsu.</p>
 <h2 id="di-mana-machine-learning-masuk">Di mana machine learning
 masuk</h2>
 <p>Genomik adalah salah satu medan tempat machine learning paling banyak
@@ -176,24 +381,81 @@ nanopore, memanggil varian dari tumpukan bacaan, dan memprediksi dari
 urutan DNA saja di mana protein akan menempel atau seberapa kuat sebuah
 gen diekspresikan. Model bahasa yang dilatih pada urutan DNA dan protein
 meniru resep model bahasa manusia di <a
-href="ch04_lstm_transformer.html">Bab 6</a>. Metode tanpa label seperti
+href="ch04_lstm_transformer.html">Bab 9</a>. Metode tanpa label seperti
 biclustering dan analisis faktor (<a href="ch02c_unsupervised.html">Bab
-4</a>) menemukan modul gen yang bekerja bersama dalam data ekspresi.
-Karakter datanya menuntut kehati-hatian khusus: jumlah fitur puluhan
-ribu dengan jumlah sampel puluhan, batch percobaan yang meninggalkan
-jejak sistematis, dan korelasi antar sampel dari pasien atau keluarga
-yang sama, semua sumber kebocoran yang dibahas di <a
-href="ch01_belajar_dari_data.html">Bab 1</a>.</p>
+6</a>) menemukan modul gen yang bekerja bersama dalam data ekspresi.</p>
+<p>Karakter datanya menuntut kehati-hatian khusus. Jumlah fitur bisa
+puluhan ribu dengan jumlah sampel puluhan, sehingga overfitting
+mengintai di setiap sudut. Batch percobaan, yaitu hari pengukuran,
+mesin, atau laboratorium, meninggalkan jejak sistematis yang bisa
+dipelajari model sebagai pengganti biologi yang sebenarnya. Dan sampel
+dari pasien atau keluarga yang sama berkorelasi. Semua ini adalah sumber
+kebocoran yang dibahas di <a href="ch01_belajar_dari_data.html">Bab
+1</a>, dalam bentuk yang khas biologi.</p>
+<h2 id="perkembangan-riset">Perkembangan riset</h2>
+<p>Genomik memasuki era model fondasi. Enformer <span class="citation"
+data-cites="avsec2021">(Avsec dkk. 2021)</span> memprediksi ekspresi gen
+langsung dari urutan DNA dengan arsitektur yang menggabungkan konvolusi
+dan attention, sehingga bisa memadukan informasi dari elemen pengatur
+yang letaknya sampai sekitar 100 ribu basa dari gen. Dengan model
+seperti ini, efek sebuah varian pada ekspresi gen bisa ditebak tanpa
+percobaan. DNABERT-2 <span class="citation"
+data-cites="zhou2023dnabert2">(Zhou dkk. 2023)</span> memperlihatkan
+bahwa pilihan token penting juga untuk DNA: mengganti <span
+class="math inline">\(k\)</span>-mer dengan byte-pair encoding,
+algoritme yang sama dengan tokenisasi model bahasa di <a
+href="ch52_terbaru.html">Bab 38</a>, membuat model lebih efisien. Evo
+<span class="citation" data-cites="nguyen2024evo">(Nguyen dkk.
+2024)</span> adalah model berkonteks panjang yang dilatih pada jutaan
+genom prokariota dan fag, dan melaporkan hukum penskalaan untuk DNA. Ia
+mampu memprediksi fungsi tanpa contoh berlabel dan membangkitkan sistem
+CRISPR-Cas yang berfungsi.</p>
+<p>AlphaMissense <span class="citation" data-cites="cheng2023">(Cheng
+dkk. 2023)</span> menyetel AlphaFold pada data frekuensi varian di
+populasi manusia dan primata untuk menilai apakah sebuah varian
+missense, yaitu perubahan satu asam amino, kemungkinan berbahaya. Basis
+data prediksinya mencakup semua substitusi asam amino tunggal yang
+mungkin pada protein manusia, dan mengklasifikasikan 89 persen varian
+missense sebagai kemungkinan jinak atau kemungkinan patogen. Untuk data
+sel tunggal, scGPT <span class="citation" data-cites="cui2024">(Cui dkk.
+2024)</span> melatih transformer generatif pada profil ekspresi jutaan
+sel sebagai model fondasi yang bisa disetel untuk tugas seperti anotasi
+jenis sel dan prediksi efek gangguan genetik. Di semua contoh ini,
+peringatan dari bab ini tetap berlaku: evaluasi yang jujur menuntut
+pembagian data yang mencegah kebocoran antar kerabat urutan.</p>
 <h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti kuliah Genome Analysis and Transcriptomics (dasar
 biologi molekuler, genetika populasi, microarray dan pemrosesannya,
-pengurutan DNA, pemetaan bacaan, pemanggilan varian, perakitan genom,
-RNA-seq) dan Introduction to Genetics. Untuk analisis urutan secara
-probabilistik, <span class="citation" data-cites="durbin1998">Durbin
-dkk. (1998)</span> tetap menjadi rujukan klasik.</p>
+pengurutan DNA dan base calling, pemetaan bacaan, pemanggilan varian,
+perakitan genom, RNA-seq) dan Introduction to Genetics. Untuk analisis
+urutan secara probabilistik, <span class="citation"
+data-cites="durbin1998">Durbin dkk. (1998)</span> tetap menjadi rujukan
+klasik.</p>
 <h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
+<div id="ref-avsec2021" class="csl-entry" role="listitem">
+Avsec, Žiga, Vikram Agarwal, Daniel Visentin, Joseph R. Ledsam,
+Agnieszka Grabska-Barwinska, Kyle R. Taylor, Yannis Assael, John Jumper,
+Pushmeet Kohli, dan David R. Kelley. 2021. <span>“Effective gene
+expression prediction from sequence by integrating long-range
+interactions.”</span> <em>Nature Methods</em> 18 (10): 1196–1203. <a
+href="https://doi.org/10.1038/s41592-021-01252-x">https://doi.org/10.1038/s41592-021-01252-x</a>.
+</div>
+<div id="ref-cheng2023" class="csl-entry" role="listitem">
+Cheng, Jun, Guido Novati, Joshua Pan, Clare Bycroft, Akvilė Žemgulytė,
+Taylor Applebaum, Alexander Pritzel, dkk. 2023. <span>“Accurate
+proteome-wide missense variant effect prediction with
+AlphaMissense.”</span> <em>Science</em> 381 (6664). <a
+href="https://doi.org/10.1126/science.adg7492">https://doi.org/10.1126/science.adg7492</a>.
+</div>
+<div id="ref-cui2024" class="csl-entry" role="listitem">
+Cui, Haotian, Chloe Wang, Hassaan Maan, Kuan Pang, Fengning Luo, Nan
+Duan, dan Bo Wang. 2024. <span>“scGPT: toward building a foundation
+model for single-cell multi-omics using generative AI.”</span>
+<em>Nature Methods</em> 21 (8): 1470–80. <a
+href="https://doi.org/10.1038/s41592-024-02201-0">https://doi.org/10.1038/s41592-024-02201-0</a>.
+</div>
 <div id="ref-durbin1998" class="csl-entry" role="listitem">
 Durbin, Richard, Sean R. Eddy, Anders Krogh, dan Graeme Mitchison. 1998.
 <em>Biological Sequence Analysis: Probabilistic Models of Proteins and
@@ -211,12 +473,25 @@ Love, Michael I, Wolfgang Huber, dan Simon Anders. 2014.
 data with DESeq2.”</span> <em>Genome Biology</em> 15 (12). <a
 href="https://doi.org/10.1186/s13059-014-0550-8">https://doi.org/10.1186/s13059-014-0550-8</a>.
 </div>
+<div id="ref-nguyen2024evo" class="csl-entry" role="listitem">
+Nguyen, Eric, Michael Poli, Matthew G. Durrant, Brian Kang, Dhruva
+Katrekar, David B. Li, Liam J. Bartie, dkk. 2024. <span>“Sequence
+modeling and design from molecular to genome scale with Evo.”</span>
+<em>Science</em> 386 (6723). <a
+href="https://doi.org/10.1126/science.ado9336">https://doi.org/10.1126/science.ado9336</a>.
+</div>
 <div id="ref-poplin2018" class="csl-entry" role="listitem">
 Poplin, Ryan, Pi-Chuan Chang, David Alexander, Scott Schwartz, Thomas
 Colthurst, Alexander Ku, Dan Newburger, dkk. 2018. <span>“A universal
 SNP and small-indel variant caller using deep neural networks.”</span>
 <em>Nature Biotechnology</em> 36 (10): 983–87. <a
 href="https://doi.org/10.1038/nbt.4235">https://doi.org/10.1038/nbt.4235</a>.
+</div>
+<div id="ref-zhou2023dnabert2" class="csl-entry" role="listitem">
+Zhou, Zhihan, Yanrong Ji, Weijian Li, Pratik Dutta, Ramana Davuluri, dan
+Han Liu. 2023. <span>“DNABERT-2: Efficient Foundation Model and
+Benchmark For Multi-Species Genome.”</span> arXiv:2306.15006. <a
+href="https://arxiv.org/abs/2306.15006">https://arxiv.org/abs/2306.15006</a>.
 </div>
 </div>
 </main>

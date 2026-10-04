@@ -28,13 +28,14 @@ Musim dingin 2024/25
  & Production Automation Systems & \ref{ch:kendali} \\
  & Optimum and Adaptive Signal Processing Systems & \ref{ch:sinyal} \\
  & AI in Society, AI and Law I & \ref{ch:manusia} \\
+ & Patent and Literature Searching & \ref{lamp:riset} \\
 \midrule
 Musim panas 2025
- & Deep Learning and Neural Nets II & \ref{ch:arsitektur} \\
+ & Deep Learning and Neural Nets II & \ref{ch:arsitektur}, \ref{ch:praktik} \\
  & Deep Reinforcement Learning & \ref{ch:rl} \\
  & Machine Learning: Unsupervised Techniques & \ref{ch:unsup} \\
  & Machine Learning and Pattern Classification & \ref{ch:unsup} \\
- & Statistical Learning Theory & \ref{ch:data} \\
+ & Statistical Learning Theory & \ref{ch:teori} \\
  & Introduction to Autonomous Vehicles & \ref{ch:robot} \\
  & Introduction to Robotic Systems & \ref{ch:robot} \\
  & Learning from User-generated Data & \ref{ch:rekomendasi} \\
@@ -43,12 +44,13 @@ Musim panas 2025
  & AI in Life Sciences & \ref{ch:hayati} \\
  & Deep Learning for Medical Imaging & \ref{ch:medis} \\
  & Robopsychology; Technology and Society; AI and Law II & \ref{ch:manusia} \\
+ & Quantum Information & \ref{ch:kuantum} \\
 \midrule
 Musim dingin 2025/26
  & Machine Learning: Advanced Techniques & \ref{ch:mlat} \\
  & Probabilistic Models & \ref{ch:prob} \\
  & AI and Visualization & \ref{ch:xai} \\
- & Machine Learning: Basic Techniques & \ref{ch:data} \\
+ & Machine Learning: Basic Techniques & \ref{ch:data}, \ref{ch:stat} \\
  & Reinforcement Learning & \ref{ch:rl} \\
  & Numerical Methods in Fluid Mechanics & \ref{ch:fluida}, \ref{ch:numerik} \\
  & Computational Physics I & \ref{ch:fiskom} \\
@@ -56,7 +58,7 @@ Musim dingin 2025/26
  & Radar System Engineering (latihan) & \ref{ch:sinyal} \\
  & Pervasive Computing: Systems and Environments; Design and Development & \ref{ch:pervasif} \\
  & KS Operations Research & \ref{ch:klasik} \\
- & Natural Language Processing & \ref{ch:lstm} \\
+ & Natural Language Processing & \ref{ch:nlp} \\
  & Communicating AI & \ref{ch:manusia} \\
 \midrule
 Musim panas 2026
@@ -73,18 +75,64 @@ tidak berasal dari satu mata kuliah. Isinya dirangkai dari beberapa kuliah, teru
 learning lanjut, metode numerik fluida, dan fisika komputasi, ditambah bacaan selama
 mengerjakan tugas akhir.
 
-Buku ini terbagi menjadi enam bagian. Bagian I berisi fondasi: apa artinya belajar dari data,
-bagaimana mencari parameter terbaik, bagaimana AI klasik mencari dan merencanakan, dan bagaimana
-menemukan struktur tanpa label. Bagian II membahas deep learning dan persepsi, dari jaringan
-konvolusi sampai model generatif, reinforcement learning, dan explainable AI. Bagian III turun ke
-dunia sinyal dan sistem fisik: estimasi dan filter, radar, kendali, komputasi pervasif, dan robot.
-Bagian IV masuk ke ilmu hayati: genom, molekul dan obat, protein, dan citra medis. Bagian V membahas
-AI untuk simulasi fisika, bidang tugas akhir saya. Bagian VI menutup dengan sistem rekomendasi, sisi
-manusia dan hukum, dan perkembangan AI terbaru.
+Program master ini mensyaratkan 120 ECTS untuk lulus, dan tabel di atas memuat lebih banyak dari itu. Mata kuliah yang melebihi
+syarat kelulusan tetap masuk ke buku, sebab merekalah yang membuat ceritanya utuh: robot yang bergerak, molekul yang dirancang dengan
+bantuan mesin, sinyal radar yang harus dipisahkan dari derau, rekomendasi yang kita terima setiap hari, dan pertanyaan hukum serta
+psikologis yang muncul ketika semua itu bertemu manusia.
 
-Beberapa mata kuliah di tabel berada di luar kebutuhan kurikulum. Semuanya tetap masuk ke buku, sebab cerita AI tidak lengkap
-tanpa robot yang bergerak, rekomendasi yang kita terima setiap hari, dan molekul yang dirancang
-dengan bantuan mesin.
+Buku ini terbagi menjadi enam bagian. Bagian I berisi fondasi: apa artinya belajar dari data, bagaimana statistik dan Bayes membantu
+memilih model, apa yang bisa dijamin teori belajar, bagaimana mencari parameter terbaik, bagaimana AI klasik mencari dan merencanakan,
+dan bagaimana menemukan struktur tanpa label. Bagian II membahas deep learning dan persepsi: teknik dasar dan praktiknya, ingatan dari
+RNN sampai xLSTM, bahasa, penglihatan, model generatif, simetri, penalaran probabilistik, model difusi, reinforcement learning, dan
+explainable AI. Bagian III turun ke dunia sinyal dan sistem fisik: estimasi dan filter, radar, kendali, komputasi pervasif, dan robot.
+Bagian IV masuk ke ilmu hayati: genom, molekul dan obat, protein, dan citra medis. Bagian V membahas AI untuk simulasi fisika, bidang
+tugas akhir saya. Bagian VI menutup dengan sistem rekomendasi, hukum dan manusia, keselamatan AI, informasi kuantum, dan perkembangan AI
+terbaru. Tiga lampiran melengkapinya: glosarium, bekal matematika, dan panduan singkat untuk meneliti, menerbitkan, dan mematenkan.
+
+Hampir setiap bab punya tiga lapis. Lapis pertama adalah isi kuliah, ditulis ulang dengan penurunan dan contoh hitungan. Lapis kedua
+adalah bagian ``di luar kelas'' yang menghubungkan materi dengan bidang lain di buku ini. Lapis ketiga adalah bagian \emph{Perkembangan
+riset}, yang merangkum makalah-makalah beberapa tahun terakhir. Semua makalah di lapis ketiga diperiksa terhadap catatan resminya, dan
+isinya ditulis berdasarkan abstrak yang benar-benar dibaca, bukan dari ingatan.
+
+\section{Cara membaca buku ini}
+
+Buku ini bisa dibaca dengan dua cara, dan keduanya sama sahnya.
+
+Pembaca yang ingin mengikuti setiap penurunan akan terbantu oleh tiga bekal: kalkulus, terutama turunan dan aturan rantai; aljabar
+linear, terutama perkalian matriks, nilai eigen, dan dekomposisi nilai singular; serta peluang dan statistik dasar, termasuk
+ekspektasi, varians, distribusi Gauss, dan teorema Bayes. Semuanya dirangkum di \cref{lamp:matematika}, yang bisa dibaca lebih dulu
+atau dibuka setiap kali sebuah rumus terasa asing. Rumus di buku ini jarang muncul tanpa diturunkan, dan contoh hitungannya sengaja
+dibuat kecil supaya bisa diperiksa dengan pensil.
+
+Pembaca yang mencari wawasan tidak perlu berhenti di setiap rumus. Paragraf di sekitar persamaan selalu menjelaskan maknanya dengan
+kata-kata, sehingga persamaan bisa dilewati tanpa kehilangan alur. Bab-bab tentang AI dan manusia, keselamatan AI, dan perkembangan
+terbaru (\cref{ch:manusia,ch:keselamatan,ch:terbaru}) hampir tidak membutuhkan matematika sama sekali, dan bisa langsung dibaca kapan
+saja. Begitu juga bab-bab penerapan, seperti ilmu hayati atau robot, yang bisa dibaca sebagai cerita tentang apa yang dilakukan AI di
+bidang-bidang itu.
+
+Bagi yang ingin membaca sebagian saja, \cref{fig:jalur} menyarankan lima jalur. Setiap jalur bisa diikuti sendiri, dan bab-bab yang
+dilewati selalu bisa dikunjungi belakangan lewat rujukan silang di dalam teks dan indeks di akhir buku.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[x=1.05cm,y=0.95cm,
+  bab/.style={draw=abu,rounded corners=2pt,minimum width=0.85cm,minimum height=0.55cm,inner sep=1pt,font=\footnotesize},
+  jalur/.style={font=\footnotesize\itshape,anchor=east}]
+  \newcommand{\baris}[3]{%
+    \node[jalur] at (-0.6,#1) {#2};
+    \foreach \lab [count=\i from 0] in {#3} {
+      \node[bab,fill=biru!12] (b#1-\i) at (\i*1.05,#1) {\ref{\lab}};
+      \ifnum\i>0 \pgfmathtruncatemacro{\j}{\i-1}\draw[->,abu] (b#1-\j) -- (b#1-\i); \fi
+    }}
+  \baris{0}{fondasi ML dan DL}{ch:data,ch:stat,ch:teori,ch:optimasi,ch:dlbasic,ch:praktik,ch:lstm,ch:nlp}
+  \baris{-1}{sains dan simulasi}{ch:optimasi,ch:fiskom,ch:fluida,ch:numerik,ch:pinn,ch:operator,ch:penemuan,ch:hibrida,ch:rcfd}
+  \baris{-2}{ilmu hayati}{ch:data,ch:unsup,ch:gdl,ch:genomik,ch:hayati,ch:protein,ch:medis}
+  \baris{-3}{sinyal dan robot}{ch:prob,ch:sinyal,ch:kendali,ch:pervasif,ch:robot,ch:rl}
+  \baris{-4}{AI dan masyarakat}{ch:xai,ch:rekomendasi,ch:manusia,ch:keselamatan,ch:terbaru}
+\end{tikzpicture}
+\caption{Lima jalur baca. Angka adalah nomor bab. Jalur terbawah hampir tidak membutuhkan matematika.}
+\label{fig:jalur}
+\end{figure}
 
 \section{Mengapa simulasi}
 

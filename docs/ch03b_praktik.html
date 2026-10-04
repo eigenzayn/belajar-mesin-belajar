@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deep Learning dalam Praktik · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 8</p>
+<h1>Deep Learning dalam Praktik</h1>
+<p><span id="ch:praktik" data-label="ch:praktik"></span></p>
+<p>Teori deep learning saya dapat di semester pertama. Cara melatih
+jaringan dengan benar, dan cara mencari tahu mengapa sebuah jaringan
+tidak mau belajar, lebih banyak datang dari latihan-latihan kuliah Deep
+Learning and Neural Networks II. Enam tugasnya bergerak dari dasar
+PyTorch, jaringan visi dan transfer learning, pemantauan eksperimen dan
+CNN lanjutan, autoencoder dan VAE, contoh adversarial dan GAN, sampai
+normalizing flows. Arsitektur-arsitekturnya sudah dibahas di <a
+href="ch06_arsitektur_generatif.html">Bab 12</a>. Bab ini mengumpulkan
+sisi lainnya: apa yang terjadi di dalam kerangka kerja ketika kita
+menulis satu baris <code>loss.backward()</code>, dan kebiasaan kecil
+yang memisahkan eksperimen yang berhasil dari yang membuang waktu
+berhari-hari.</p>
+<h2 id="graf-komputasi-dan-autograd">Graf komputasi dan autograd</h2>
+<p>Kuliah membuka dengan sejarah singkat kerangka kerja deep learning.
+Generasi awal seperti Theano dan TensorFlow 1 memakai graf statis:
+seluruh komputasi didefinisikan dulu sebagai graf simbolik, lalu
+dijalankan berkali-kali. PyTorch <span class="citation"
+data-cites="paszke2019">(Paszke dkk. 2019)</span> memakai graf dinamis,
+yang dibangun ulang setiap kali kode dijalankan
+(<em>define-by-run</em>), sehingga kontrol alur Python biasa, seperti
+percabangan dan perulangan, bisa dipakai di dalam model. TensorFlow 2
+mengambil jalan serupa dengan <em>gradient tape</em> yang merekam
+operasi selama lintasan maju.</p>
+<p>Di balik layar, setiap tensor yang dihasilkan operasi menyimpan
+rujukan ke operasi yang menghasilkannya dan ke input-input operasi itu.
+Ketika <code>backward()</code> dipanggil pada loss skalar, kerangka
+kerja menelusuri graf ini mundur dan menerapkan aturan rantai, persis
+reverse-mode autodiff di <a href="ch03_dl_basic.html">Bab 7</a>. Tiga
+perilaku sering membingungkan pemula, dan ketiganya langsung masuk akal
+dari gambaran ini. Gradien <em>diakumulasikan</em> ke atribut
+<code>.grad</code>, tidak ditimpa, sehingga
+<code>optimizer.zero_grad()</code> harus dipanggil sebelum setiap
+lintasan mundur. Kalau lupa, langkah kedua memakai jumlah gradien
+langkah pertama dan kedua. Memanggil <code>.detach()</code> memotong
+graf, sehingga tidak ada gradien yang mengalir melewati tensor itu,
+berguna misalnya untuk target network di DQN (<a href="ch10_rl.html">Bab
+16</a>). Dan blok <code>torch.no_grad()</code> menghentikan perekaman
+graf sama sekali, sehingga evaluasi tidak memakan memori untuk menyimpan
+aktivasi yang tidak akan diturunkan.</p>
+<p>Satu putaran pelatihan, dengan urutan yang menjadi bahan soal di
+kuliah, berbentuk seperti ini:</p>
+<pre><code>model.train()
+for x, y in loader:
+    x, y = x.to(device), y.to(device)
+    optimizer.zero_grad()      # bersihkan gradien lama
+    loss = loss_fn(model(x), y) # lintasan maju, graf direkam
+    loss.backward()            # lintasan mundur, gradien diisi
+    optimizer.step()           # perbarui parameter</code></pre>
+<p>Untuk evaluasi, <code>model.eval()</code> mematikan dropout dan
+membuat batch normalization memakai statistik bergerak, dan
+<code>torch.no_grad()</code> membungkus lintasan maju. Data dibaca oleh
+<code>Dataset</code>, yang tahu cara mengambil satu contoh, dan
+<code>DataLoader</code>, yang menyusunnya menjadi mini-batch, mengacak
+urutannya, dan memuatnya secara paralel dengan beberapa proses pekerja
+agar GPU tidak menunggu.</p>
+<h2 id="resep-men-debug-jaringan">Resep men-debug jaringan</h2>
+<p>Jaringan yang tidak belajar jarang memberi pesan galat. Ia hanya
+menghasilkan kurva loss yang datar atau angka yang tidak masuk akal.
+Beberapa pemeriksaan murah menangkap sebagian besar masalah.</p>
+<p>Pemeriksaan pertama adalah loss awal. Untuk klasifikasi <span
+class="math inline">\(K\)</span> kelas dengan softmax dan cross-entropy,
+jaringan yang baru diinisialisasi seharusnya memberi peluang hampir
+seragam, <span class="math inline">\(1/K\)</span> untuk setiap kelas,
+sehingga loss awalnya mendekati <span
+class="math inline">\(-\ln(1/K)=\ln K\)</span>. Untuk sepuluh kelas, itu
+sekitar <span class="math inline">\(2{,}30\)</span>. Kalau loss awal
+jauh lebih besar, misalnya 30, logit awalnya terlalu besar dan jaringan
+sudah yakin pada jawaban yang salah sebelum belajar apa pun, tanda
+inisialisasi atau normalisasi input yang keliru.</p>
+<p>Pemeriksaan kedua adalah <em>overfit</em> satu batch kecil. Ambil
+beberapa contoh saja dan latih berulang-ulang pada contoh yang sama.
+Jaringan dengan kapasitas apa pun seharusnya bisa menghafalnya sampai
+loss mendekati nol. Kalau tidak bisa, masalahnya ada di kode, misalnya
+label yang tidak sesuai dengan input, gradien yang tidak mengalir karena
+<code>detach</code> yang salah tempat, atau laju belajar yang keliru,
+bukan di jumlah data atau arsitektur.</p>
+<p>Pemeriksaan ketiga adalah laju belajar. Naikkan laju belajar secara
+eksponensial dari kecil ke amat besar selama beberapa ratus langkah, dan
+catat loss di setiap langkah. Loss mula-mula hampir tidak berubah, lalu
+turun cepat, lalu meledak. Laju belajar yang baik biasanya sedikit di
+bawah titik loss turun paling curam, jauh sebelum ledakan. Kurva ini
+menghubungkan praktik dengan teori di <a href="ch02_optimasi.html">Bab
+4</a>: titik ledakan adalah tempat langkah melampaui batas <span
+class="math inline">\(2/L\)</span>.</p>
+<p>Pemeriksaan terakhir adalah melihat apa yang dilihat jaringan. <span
+class="citation" data-cites="zeiler2014">Zeiler dan Fergus (2014)</span>
+memproyeksikan aktivasi lapisan dalam kembali ke ruang piksel dengan
+jaringan dekonvolusi, memakai indeks lokasi maksimum dari pooling untuk
+“membuka” pooling dan transposed convolution untuk membalik konvolusi.
+Lapisan awal ternyata merespons tepi dan warna, lapisan tengah tekstur,
+dan lapisan akhir bagian objek. Tugas kuliah meminta kami mereplikasi
+teknik ini dengan hanya mempertahankan beberapa aktivasi terbesar di
+setiap peta fitur. Gambar seperti ini sering langsung memperlihatkan
+bahwa jaringan memperhatikan latar belakang alih-alih objek, sama dengan
+pelajaran Grad-CAM di <a href="ch11_xai.html">Bab 17</a>.</p>
+<h2 id="memori-dan-presisi">Memori dan presisi</h2>
+<p>Ketika model atau batch tidak muat di memori GPU, dua teknik sering
+dipakai. <em>Gradient accumulation</em> memecah satu batch besar menjadi
+beberapa batch kecil, menjalankan lintasan maju dan mundur untuk
+masing-masing tanpa memanggil <code>optimizer.step()</code>, lalu
+memperbarui parameter sekali di akhir. Karena gradien diakumulasikan,
+hasilnya sama dengan satu batch besar, asal loss setiap batch kecil
+dibagi dengan jumlah batch kecil. Batch 256 bisa dijalankan sebagai
+empat batch 64, dengan setiap loss dikalikan <span
+class="math inline">\(1/4\)</span>. Pengecualiannya adalah batch
+normalization, yang tetap melihat statistik batch kecil.</p>
+<p><em>Mixed precision</em> <span class="citation"
+data-cites="micikevicius2018">(Micikevicius dkk. 2017)</span> menghitung
+sebagian besar operasi dalam bilangan floating point 16 bit, yang
+memakan separuh memori dan jauh lebih cepat di GPU modern, sambil
+menyimpan salinan utama bobot dalam 32 bit. Masalahnya ada pada rentang
+angka. Format setengah presisi standar hanya bisa mewakili bilangan
+normal dari sekitar <span class="math inline">\(6\times10^{-5}\)</span>
+sampai <span class="math inline">\(65\,504\)</span>. Gradien yang lebih
+kecil dari batas bawah, yang umum di jaringan dalam, menjadi nol.
+Obatnya adalah <em>loss scaling</em>: kalikan loss dengan faktor besar,
+misalnya 1024, sebelum lintasan mundur, sehingga semua gradien ikut
+membesar 1024 kali dan keluar dari daerah yang hilang, lalu bagi kembali
+sebelum memperbarui bobot. Faktornya bisa disesuaikan otomatis:
+diperkecil kalau muncul angka tak hingga, diperbesar perlahan kalau
+tidak.</p>
+<h2 id="mencari-hyperparameter">Mencari hyperparameter</h2>
+<p>Laju belajar, ukuran batch, weight decay, jumlah lapisan, dan peluang
+dropout harus dipilih sebelum pelatihan. Kuliah membahas beberapa
+strategi. Pencarian manual mengandalkan intuisi. Pencarian grid mencoba
+semua kombinasi dari beberapa nilai untuk setiap hyperparameter.
+Pencarian acak menarik kombinasi secara acak.</p>
+<p><span class="citation" data-cites="bergstra2012">Bergstra dan Bengio
+(2012)</span> memberi argumen sederhana mengapa pencarian acak biasanya
+lebih baik dari grid. Misalkan dari dua hyperparameter hanya satu yang
+benar-benar berpengaruh, keadaan yang ternyata umum. Grid <span
+class="math inline">\(3\times3\)</span> menghabiskan sembilan percobaan
+tetapi hanya mencoba tiga nilai berbeda dari hyperparameter yang
+penting. Sembilan percobaan acak mencoba sembilan nilai berbeda (Gambar
+8.1). Ada juga argumen peluang yang tidak bergantung pada dimensi. Kalau
+kita ingin setidaknya satu percobaan jatuh di lima persen konfigurasi
+terbaik, peluang <span class="math inline">\(n\)</span> percobaan acak
+semuanya gagal adalah <span class="math inline">\(0{,}95^n\)</span>.
+Dengan 60 percobaan, peluang berhasil <span
+class="math inline">\(1-0{,}95^{60}\approx95\)</span> persen, berapa pun
+jumlah hyperparameter-nya.</p>
+<figure id="fig:gridrandom">
+<img src="fig/51f307c50f3f.svg" />
+<figcaption>Sembilan percobaan dengan grid dan dengan pencarian acak.
+Kalau hanya sumbu mendatar yang berpengaruh, grid hanya menguji tiga
+nilainya, sedangkan pencarian acak menguji sembilan.</figcaption>
+</figure>
+<p><em>Bayesian optimization</em> <span class="citation"
+data-cites="snoek2012">(Snoek, Larochelle, dan Adams 2012)</span>
+memakai hasil percobaan sebelumnya untuk memilih percobaan berikutnya.
+Sebuah model pengganti, biasanya Gaussian process dari <a
+href="ch09_ml_advanced.html">Bab 15</a>, memodelkan skor validasi
+sebagai fungsi hyperparameter, lengkap dengan ketidakpastiannya. Titik
+berikutnya dipilih dengan memaksimalkan sebuah fungsi akuisisi. Yang
+paling umum adalah <em>expected improvement</em>: kalau skor terbaik
+sejauh ini <span class="math inline">\(f^*\)</span> dan model meramal
+skor di titik <span class="math inline">\(\boldsymbol{x}\)</span>
+berdistribusi <span
+class="math inline">\(\mathcal{N}(\mu,\sigma^2)\)</span>, perbaikan
+harapan atas <span class="math inline">\(f^*\)</span> adalah <span
+class="math display">\[\mathrm{EI}(\boldsymbol{x})=(\mu-f^*)\,\Phi(z)+\sigma\,\varphi(z),\qquad
+z=\frac{\mu-f^*}{\sigma},\]</span> dengan <span
+class="math inline">\(\Phi\)</span> dan <span
+class="math inline">\(\varphi\)</span> fungsi distribusi dan kerapatan
+normal baku. Suku pertama menghargai titik yang diramal bagus, suku
+kedua menghargai titik yang tidak pasti, keseimbangan eksplorasi dan
+eksploitasi yang sama dengan bandit di <a
+href="ch02b_ai_klasik.html">Bab 5</a>. Dua titik dengan <span
+class="math inline">\(\mu\)</span> sama dengan <span
+class="math inline">\(f^*\)</span> punya <span
+class="math inline">\(z=0\)</span>, sehingga <span
+class="math inline">\(\mathrm{EI}=\sigma\varphi(0)\approx0{,}40\,\sigma\)</span>:
+titik yang lebih tidak pasti lebih menarik untuk dicoba. Neural
+architecture search memperluas gagasan ini ke struktur jaringan itu
+sendiri, dengan harga komputasi yang jauh lebih besar.</p>
+<p>Untuk semua strategi, pemantauan eksperimen menjadi kebutuhan, bukan
+kemewahan. Kuliah memakai alat pencatat eksperimen seperti Weights &amp;
+Biases: setiap percobaan mencatat hyperparameter, kurva loss latih dan
+validasi, dan versi kode. Tanpa catatan seperti itu, eksperimen terbaik
+minggu lalu tidak bisa diulang.</p>
+<h2 id="transfer-learning-lebih-dekat">Transfer learning lebih
+dekat</h2>
+<p><a href="ch06_arsitektur_generatif.html">Bab 12</a> menyebut resep
+dasar transfer learning: bekukan lapisan yang sudah dilatih, latih ulang
+kepalanya. Di PyTorch, membekukan berarti mematikan
+<code>requires_grad</code> pada parameter yang tidak ingin diubah,
+sehingga autograd tidak menghitung gradiennya dan optimizer tidak
+menyentuhnya. Gambar input juga harus disesuaikan dengan apa yang
+dilihat jaringan saat pretraining, misalnya diperbesar ke <span
+class="math inline">\(224\times224\)</span> dan dinormalisasi dengan
+rata-rata dan simpangan baku ImageNet.</p>
+<p>Lapisan mana yang sebaiknya dibekukan? <span class="citation"
+data-cites="yosinski2014">Yosinski dkk. (2014)</span> mengukur seberapa
+mudah fitur di setiap lapisan dipindahkan dari satu tugas ke tugas lain.
+Fitur lapisan awal bersifat umum dan hampir selalu bisa dipakai ulang.
+Fitur lapisan akhir semakin spesifik pada tugas asal. Mereka juga
+menemukan bahwa memindahkan fitur lalu menyetel ulang seluruh jaringan
+memberi generalisasi yang lebih baik daripada melatih dari nol, bahkan
+ketika data tugas baru cukup banyak. Dalam praktik, semakin sedikit data
+dan semakin mirip tugasnya, semakin banyak lapisan yang dibekukan.
+Semakin banyak data dan semakin berbeda tugasnya, semakin banyak lapisan
+yang disetel ulang, biasanya dengan laju belajar yang lebih kecil untuk
+lapisan awal.</p>
+<h2 id="mengulang-hasil">Mengulang hasil</h2>
+<p>Hasil deep learning sulit diulang persis. Bobot awal, urutan data,
+dropout, dan augmentasi semuanya acak, dan beberapa operasi GPU tidak
+deterministik karena urutan penjumlahan floating point yang berubah-ubah
+memberi hasil yang sedikit berbeda. Menetapkan benih acak untuk semua
+sumber keacakan membuat satu proses bisa diulang. Tetapi benih yang
+berbeda tetap memberi hasil yang berbeda, kadang cukup jauh. Karena itu
+kebiasaan yang jujur adalah menjalankan beberapa benih dan melaporkan
+rata-rata beserta sebarannya. Selisih dua metode yang lebih kecil dari
+sebaran antar-benih belum bisa disebut perbaikan.</p>
+<h2 id="di-luar-kelas">Di luar kelas</h2>
+<p>Kebiasaan di bab ini berlaku di semua bab penerapan. Pemeriksaan loss
+awal dan overfit satu batch sama bergunanya untuk PINN (<a
+href="ch15_pinn.html">Bab 29</a>) dan simulator graf (<a
+href="ch16_operator.html">Bab 30</a>) seperti untuk klasifikasi gambar.
+Mixed precision memungkinkan model fondasi cuaca dan protein dilatih
+dalam waktu yang wajar. Bayesian optimization dipakai bukan hanya untuk
+hyperparameter jaringan, tetapi juga untuk mengkalibrasi parameter
+simulasi yang mahal, di mana setiap evaluasi berarti satu simulasi
+penuh. Dan laporan dengan beberapa benih dan pita sebaran adalah
+pengingat yang sama dengan error bar di <a
+href="ch01b_statistik_bayes.html">Bab 2</a>: angka tanpa ketidakpastian
+hanya separuh cerita.</p>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
+<p>Bab ini mengikuti tugas dan materi kuliah Deep Learning and Neural
+Networks II (PyTorch dan autograd, jaringan visi dan transfer learning,
+pemantauan eksperimen dan pencarian hyperparameter, CNN lanjutan,
+transposed convolution dan visualisasi, autoencoder dan VAE, contoh
+adversarial dan GAN, normalizing flows). Makalah pendukung: <span
+class="citation" data-cites="paszke2019">Paszke dkk. (2019)</span>,
+<span class="citation" data-cites="bergstra2012">Bergstra dan Bengio
+(2012)</span>, <span class="citation" data-cites="snoek2012">Snoek,
+Larochelle, dan Adams (2012)</span>, <span class="citation"
+data-cites="yosinski2014">Yosinski dkk. (2014)</span>, <span
+class="citation" data-cites="zeiler2014">Zeiler dan Fergus
+(2014)</span>, dan <span class="citation"
+data-cites="micikevicius2018">Micikevicius dkk. (2017)</span>.</p>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-bergstra2012" class="csl-entry" role="listitem">
+Bergstra, James, dan Yoshua Bengio. 2012. <span>“Random Search for
+Hyper-Parameter Optimization.”</span> <em>Journal of Machine Learning
+Research</em> 13: 281–305.
+</div>
+<div id="ref-micikevicius2018" class="csl-entry" role="listitem">
+Micikevicius, Paulius, Sharan Narang, Jonah Alben, Gregory Diamos, Erich
+Elsen, David Garcia, Boris Ginsburg, dkk. 2017. <span>“Mixed Precision
+Training.”</span> arXiv:1710.03740. <a
+href="https://arxiv.org/abs/1710.03740">https://arxiv.org/abs/1710.03740</a>.
+</div>
+<div id="ref-paszke2019" class="csl-entry" role="listitem">
+Paszke, Adam, Sam Gross, Francisco Massa, Adam Lerer, James Bradbury,
+Gregory Chanan, Trevor Killeen, dkk. 2019. <span>“PyTorch: An Imperative
+Style, High-Performance Deep Learning Library.”</span> arXiv:1912.01703.
+<a
+href="https://arxiv.org/abs/1912.01703">https://arxiv.org/abs/1912.01703</a>.
+</div>
+<div id="ref-snoek2012" class="csl-entry" role="listitem">
+Snoek, Jasper, Hugo Larochelle, dan Ryan P. Adams. 2012.
+<span>“Practical Bayesian Optimization of Machine Learning
+Algorithms.”</span> arXiv:1206.2944. <a
+href="https://arxiv.org/abs/1206.2944">https://arxiv.org/abs/1206.2944</a>.
+</div>
+<div id="ref-yosinski2014" class="csl-entry" role="listitem">
+Yosinski, Jason, Jeff Clune, Yoshua Bengio, dan Hod Lipson. 2014.
+<span>“How transferable are features in deep neural networks?”</span>
+arXiv:1411.1792. <a
+href="https://arxiv.org/abs/1411.1792">https://arxiv.org/abs/1411.1792</a>.
+</div>
+<div id="ref-zeiler2014" class="csl-entry" role="listitem">
+Zeiler, Matthew D., dan Rob Fergus. 2014. <span>“Visualizing and
+Understanding Convolutional Networks.”</span> <em>Lecture Notes in
+Computer Science</em>, 818–33. <a
+href="https://doi.org/10.1007/978-3-319-10590-1_53">https://doi.org/10.1007/978-3-319-10590-1_53</a>.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch03_dl_basic.html"><span>Sebelumnya</span>Deep Learning: Teknik Dasar</a>
+  <a class="next" href="ch04_lstm_transformer.html"><span>Berikutnya</span>Mengingat: dari RNN ke LSTM dan Transformer</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

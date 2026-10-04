@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teori Belajar Statistik · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 3</p>
+<h1>Teori Belajar Statistik</h1>
+<p><span id="ch:teori" data-label="ch:teori"></span></p>
+<p>Kuliah Statistical Learning Theory and Applications dari Werner
+Zellinger saya ikuti pada musim panas 2025. Naskahnya pendek, bukunya
+tebal: rujukan utamanya adalah <em>Learning Theory from First
+Principles</em> <span class="citation" data-cites="bach2024">(Bach
+2024)</span>. Pertanyaan yang diajukan di halaman pertama naskah
+sederhana sekali. Kalau data tak terhingga, model apa yang terbaik, dan
+berapa galat terbaiknya? Kapan sebuah algoritme belajar dijamin semakin
+baik dengan bertambahnya data? Dan apakah belajar mungkin tanpa asumsi
+apa pun tentang data? Bab ini mengikuti jawaban-jawabannya. Ia lebih
+formal dari <a href="ch01_belajar_dari_data.html">Bab 1</a>, tetapi
+setiap definisi punya alasan yang konkret.</p>
+<h2 id="merumuskan-belajar">Merumuskan belajar</h2>
+<p>Data adalah <span class="math inline">\(n\)</span> pasangan <span
+class="math inline">\((\boldsymbol{x}_i,y_i)\)</span> yang ditarik
+independen dari distribusi <span class="math inline">\(P\)</span> yang
+tidak diketahui. Algoritme belajar adalah fungsi yang memetakan himpunan
+data ke sebuah model <span class="math inline">\(f\)</span>. Loss <span
+class="math inline">\(\ell(z,y)\)</span> mengukur kerugian memakai
+prediksi <span class="math inline">\(z\)</span> ketika jawabannya <span
+class="math inline">\(y\)</span>. Risiko model adalah loss harapan atas
+distribusi data, <span
+class="math inline">\(R(f)=\mathbb{E}_{(\boldsymbol{x},y)\sim
+P}[\ell(f(\boldsymbol{x}),y)]\)</span>, dan risiko empiris adalah
+rata-ratanya di data, <span class="math inline">\(\hat
+R(f)=\tfrac1n\sum_i\ell(f(\boldsymbol{x}_i),y_i)\)</span>.</p>
+<p>Model terbaik yang mungkin bisa ditulis tanpa melihat data sama
+sekali. Karena <span
+class="math inline">\(R(f)=\mathbb{E}_{\boldsymbol{x}}\big[\mathbb{E}[\ell(f(\boldsymbol{x}),y)\mid\boldsymbol{x}]\big]\)</span>,
+risiko diminimalkan dengan memilih, untuk setiap <span
+class="math inline">\(\boldsymbol{x}\)</span> secara terpisah, prediksi
+<span class="math inline">\(z\)</span> yang meminimalkan loss harapan
+bersyarat. Fungsi yang melakukannya disebut <em>risk minimizer</em>
+<span class="math inline">\(f^*\)</span>, dan risikonya, <span
+class="math inline">\(R^*\)</span>, adalah risiko minimal. Untuk regresi
+dengan loss kuadrat, <span
+class="math inline">\(\mathbb{E}[(z-y)^2\mid\boldsymbol{x}]\)</span>
+adalah parabola dalam <span class="math inline">\(z\)</span> yang
+minimum di rata-rata bersyarat, sehingga <span
+class="math inline">\(f^*(\boldsymbol{x})=\mathbb{E}[y\mid\boldsymbol{x}]\)</span>,
+sama dengan yang kita turunkan untuk satu konstanta di <a
+href="ch01b_statistik_bayes.html">Bab 2</a>. Untuk klasifikasi biner
+dengan loss 0–1, prediksi <span class="math inline">\(z=1\)</span> salah
+dengan peluang <span
+class="math inline">\(P(y=0\mid\boldsymbol{x})\)</span> dan prediksi
+<span class="math inline">\(z=0\)</span> salah dengan peluang <span
+class="math inline">\(P(y=1\mid\boldsymbol{x})\)</span>, sehingga yang
+terbaik adalah memilih kelas dengan peluang bersyarat lebih besar, dan
+<span
+class="math display">\[R^*=\mathbb{E}_{\boldsymbol{x}}\Big[\min\big\{P(y=1\mid\boldsymbol{x}),\
+1-P(y=1\mid\boldsymbol{x})\big\}\Big].\]</span> Itulah galat Bayes dari
+<a href="ch01b_statistik_bayes.html">Bab 2</a>, dalam bahasa yang lebih
+umum. Kalau <span class="math inline">\(P\)</span> diketahui, belajar
+menjadi trivial. Seluruh kesulitan berasal dari kenyataan bahwa <span
+class="math inline">\(P\)</span> hanya diketahui lewat sampel.</p>
+<h2 id="dua-sumber-galat">Dua sumber galat</h2>
+<p>Algoritme memilih model dari sebuah kelas <span
+class="math inline">\(\mathcal F\)</span>, misalnya semua fungsi linear
+atau semua jaringan berukuran tertentu. Galat berlebih model yang
+dipilih, <span class="math inline">\(\hat f\)</span>, terhadap yang
+terbaik yang mungkin bisa dipecah menjadi dua: <span
+class="math display">\[R(\hat f)-R^*=\underbrace{\Big(R(\hat
+f)-\inf_{f\in\mathcal F}R(f)\Big)}_{\text{galat estimasi}}
++\underbrace{\Big(\inf_{f\in\mathcal F}R(f)-R^*\Big)}_{\text{galat
+aproksimasi}}.\]</span> Galat aproksimasi adalah harga memilih kelas
+yang terlalu sempit: kalau fungsi sebenarnya melengkung dan kita hanya
+mengizinkan garis lurus, tidak ada jumlah data yang bisa menolong. Galat
+ini tidak bergantung pada data. Galat estimasi adalah harga memilih dari
+data yang terbatas: semakin kaya kelasnya, semakin mudah kita memilih
+anggota yang kebetulan cocok dengan noise di data latih. Galat ini
+mengecil dengan bertambahnya data dan membesar dengan bertambahnya
+kapasitas kelas. Kelas yang lebih kaya menurunkan yang pertama dan
+menaikkan yang kedua, bentuk umum dari tawar-menawar bias dan varians di
+<a href="ch01_belajar_dari_data.html">Bab 1</a>. Kapasitas dikendalikan
+dengan mengurangi parameter atau dengan menambahkan penalti norma,
+seperti weight decay.</p>
+<h2 id="kualitas-sebuah-algoritme">Kualitas sebuah algoritme</h2>
+<p>Kuliah membedakan beberapa cara menilai algoritme. Algoritme
+<em>konsisten</em> kalau risiko harapan model yang dihasilkannya
+mendekati <span class="math inline">\(R^*\)</span> ketika <span
+class="math inline">\(n\)</span> menuju tak hingga. Versi PAC,
+<em>probably approximately correct</em>, meminta lebih: dengan peluang
+paling sedikit <span class="math inline">\(1-\delta_n\)</span>, galat
+berlebihnya tidak lebih dari <span
+class="math inline">\(\epsilon_n\)</span>, dengan kedua batas mengecil
+ke nol. Algoritme <em>universally consistent</em> konsisten untuk setiap
+distribusi dalam sebuah kelas yang besar. Risiko <em>minimax</em>, <span
+class="math display">\[\inf_{\mathcal A}\ \sup_{P\in\mathcal P}\
+\mathbb{E}_{\text{data}\sim P^n}\big[R(\mathcal
+A(\text{data}))\big]-R^*,\]</span> menilai algoritme terbaik pada
+distribusi terburuknya. Salah satu tujuan utama teori belajar adalah
+algoritme yang mencapai laju penurunan risiko minimax yang optimal.</p>
+<h2 id="tidak-ada-makan-siang-gratis">Tidak ada makan siang gratis</h2>
+<p>Teorema <em>no free lunch</em> dalam kuliah menjawab pertanyaan
+ketiga di awal bab. Untuk klasifikasi biner dengan loss 0–1, kalau kelas
+distribusi yang diizinkan adalah <em>semua</em> distribusi pada ruang
+input yang tak terhingga, maka untuk setiap algoritme dan setiap ukuran
+data, ada distribusi yang membuat galat berlebih harapannya paling
+sedikit <span class="math inline">\(\tfrac12\)</span>. Gagasan
+pembuktiannya bisa diceritakan tanpa rumus. Pilih distribusi yang
+tersebar di banyak sekali titik, sehingga <span
+class="math inline">\(n\)</span> contoh hampir pasti tidak pernah
+menyentuh titik-titik uji. Lalu beri label pada titik-titik yang tidak
+terlihat itu secara acak. Apa pun yang dilakukan algoritme di titik yang
+belum pernah ia lihat, rata-ratanya ia benar separuh kali, padahal label
+itu sebenarnya tertentu, sehingga <span
+class="math inline">\(R^*=0\)</span>.</p>
+<p>Pesannya bukan bahwa belajar mustahil, melainkan bahwa belajar
+<em>tanpa asumsi</em> mustahil. Asumsi tentang distribusi, misalnya
+bahwa fungsi targetnya mulus, bahwa ia hanya bergantung pada sedikit
+arah, atau bahwa ia hampir linear, adalah apa yang membuat generalisasi
+mungkin. Inductive bias di <a href="ch00_peta.html">Bab 0</a> adalah
+nama lain dari asumsi itu.</p>
+<p>Kuliah merangkum “perlombaan ilmiah untuk adaptivitas” dengan
+beberapa laju konvergensi. Kalau fungsi target hanya diketahui Lipschitz
+di <span class="math inline">\(\mathbb{R}^d\)</span>, galat turun
+seperti <span class="math inline">\(n^{-1/d}\)</span>. Untuk <span
+class="math inline">\(d=10\)</span>, mengurangi galat setengahnya
+menuntut <span class="math inline">\(2^{10}\)</span>, sekitar seribu
+kali lebih banyak data. Inilah kutukan dimensi dalam bentuk yang paling
+telanjang. Kalau target punya <span class="math inline">\(m\)</span>
+turunan yang terbatas, laju membaik menjadi <span
+class="math inline">\(n^{-m/d}\)</span>, dan jaringan saraf bisa
+mencapai laju <span class="math inline">\(n^{-m/k}\)</span> kalau target
+sebenarnya hanya bergantung pada proyeksi berdimensi <span
+class="math inline">\(k\)</span> dari input, sesuatu yang menurut naskah
+kuliah tidak bisa dicapai metode kernel. Algoritme yang baik adalah
+algoritme yang menyesuaikan diri dengan struktur yang kebetulan ada,
+tanpa harus diberi tahu sebelumnya.</p>
+<h2 id="least-squares-di-bawah-kaca-pembesar">Least squares di bawah
+kaca pembesar</h2>
+<p>Kuliah memakai least squares sebagai laboratorium, karena semua efek
+penting, tawar-menawar bias dan varians, kutukan dimensi, dan efek
+regularisasi, bisa dihitung secara eksak di sana. Modelnya linear dalam
+parameter, <span
+class="math inline">\(f_{\boldsymbol\theta}(\boldsymbol{x})=\boldsymbol\theta^\top\phi(\boldsymbol{x})\)</span>,
+dengan peta fitur <span class="math inline">\(\phi\)</span> yang boleh
+nonlinear dalam <span class="math inline">\(\boldsymbol{x}\)</span>.
+Estimator OLS <span
+class="math inline">\(\hat{\boldsymbol\theta}=(\boldsymbol\Phi^\top\boldsymbol\Phi)^{-1}\boldsymbol\Phi^\top\boldsymbol{y}\)</span>
+diturunkan di <a href="ch01_belajar_dari_data.html">Bab 1</a>, dan
+prediksinya adalah proyeksi ortogonal <span
+class="math inline">\(\boldsymbol{y}\)</span> ke ruang kolom matriks
+fitur <span class="math inline">\(\boldsymbol\Phi\)</span>.</p>
+<p>Analisisnya paling bersih dalam <em>fixed design</em>: input dianggap
+tetap, misalnya titik-titik grid, dan hanya output yang acak, <span
+class="math inline">\(y_i=\boldsymbol\theta^{*\top}\phi(\boldsymbol{x}_i)+\epsilon_i\)</span>
+dengan noise independen berrata-rata nol dan varians <span
+class="math inline">\(\sigma^2\)</span>. Risiko diukur pada input yang
+sama. Dengan <span
+class="math inline">\(\hat{\boldsymbol\Sigma}=\tfrac1n\boldsymbol\Phi^\top\boldsymbol\Phi\)</span>,
+galat berlebih sebuah parameter adalah <span
+class="math inline">\((\boldsymbol\theta-\boldsymbol\theta^*)^\top\hat{\boldsymbol\Sigma}(\boldsymbol\theta-\boldsymbol\theta^*)\)</span>.
+OLS tak bias, <span
+class="math inline">\(\mathbb{E}[\hat{\boldsymbol\theta}]=\boldsymbol\theta^*\)</span>,
+dan kovariansnya <span
+class="math inline">\(\tfrac{\sigma^2}n\hat{\boldsymbol\Sigma}^{-1}\)</span>.
+Galat berlebih harapannya adalah jejak kovarians itu ditimbang dengan
+<span class="math inline">\(\hat{\boldsymbol\Sigma}\)</span>: <span
+class="math display">\[\mathbb{E}\big[R(\hat{\boldsymbol\theta})\big]-R^*=\mathrm{tr}\Big(\hat{\boldsymbol\Sigma}\cdot\frac{\sigma^2}n\hat{\boldsymbol\Sigma}^{-1}\Big)=\frac{\sigma^2d}n
+.\]</span> Rumus sesederhana ini memuat banyak pelajaran. Galat turun
+seperti <span class="math inline">\(1/n\)</span>, laju terbaik yang
+mungkin. Tetapi ia sebanding dengan jumlah parameter <span
+class="math inline">\(d\)</span>. Dengan <span
+class="math inline">\(d=50\)</span>, <span
+class="math inline">\(n=1000\)</span>, dan <span
+class="math inline">\(\sigma^2=1\)</span>, galat berlebihnya <span
+class="math inline">\(0{,}05\)</span>. Dengan <span
+class="math inline">\(d=500\)</span>, sepuluh kali lebih besar. Kalau
+<span class="math inline">\(d\)</span> mendekati <span
+class="math inline">\(n\)</span>, model bisa menghafal data latih, dan
+untuk <span class="math inline">\(d=n\)</span> dengan matriks yang bisa
+dibalik, prediksinya tepat sama dengan data, noise sekalipun.</p>
+<h2 id="ridge-dan-derajat-kebebasan">Ridge dan derajat kebebasan</h2>
+<p>Ridge regression menambahkan <span
+class="math inline">\(\lambda\|\boldsymbol\theta\|^2\)</span>, dengan
+solusi <span
+class="math inline">\(\hat{\boldsymbol\theta}_\lambda=\tfrac1n(\hat{\boldsymbol\Sigma}+\lambda\boldsymbol
+I)^{-1}\boldsymbol\Phi^\top\boldsymbol{y}\)</span>. Naskah kuliah
+memberi galat berlebih harapannya secara eksak sebagai jumlah dua suku:
+<span
+class="math display">\[\mathbb{E}\big[R(\hat{\boldsymbol\theta}_\lambda)\big]-R^*=\lambda^2\,\boldsymbol\theta^{*\top}(\hat{\boldsymbol\Sigma}+\lambda\boldsymbol
+I)^{-2}\hat{\boldsymbol\Sigma}\,\boldsymbol\theta^*
++\frac{\sigma^2}n\,\mathrm{tr}\big(\hat{\boldsymbol\Sigma}^2(\hat{\boldsymbol\Sigma}+\lambda\boldsymbol
+I)^{-2}\big).\]</span> Suku pertama adalah bias kuadrat: naik dengan
+<span class="math inline">\(\lambda\)</span>, karena parameter ditarik
+semakin kuat ke nol, dan tidak bergantung pada <span
+class="math inline">\(n\)</span>. Suku kedua adalah varians: turun
+dengan <span class="math inline">\(\lambda\)</span>, mendekati <span
+class="math inline">\(\sigma^2d/n\)</span> ketika <span
+class="math inline">\(\lambda\)</span> menuju nol, dan menghilang ketika
+<span class="math inline">\(\lambda\)</span> besar. Jejak di suku kedua,
+<span
+class="math inline">\(\mathrm{df}(\lambda)=\sum_i\lambda_i^2/(\lambda_i+\lambda)^2\)</span>
+dengan <span class="math inline">\(\lambda_i\)</span> nilai eigen <span
+class="math inline">\(\hat{\boldsymbol\Sigma}\)</span>, disebut
+<em>derajat kebebasan</em> efektif.</p>
+<p>Derajat kebebasan menjelaskan apa yang sebenarnya dilakukan
+regularisasi. Arah dengan nilai eigen jauh lebih besar dari <span
+class="math inline">\(\lambda\)</span> dihitung hampir penuh, arah
+dengan nilai eigen jauh lebih kecil hampir tidak dihitung. Untuk tiga
+arah dengan nilai eigen <span class="math inline">\(4\)</span>, <span
+class="math inline">\(1\)</span>, dan <span
+class="math inline">\(0{,}01\)</span>, dan <span
+class="math inline">\(\lambda=0{,}1\)</span>, sumbangannya <span
+class="math inline">\(16/16{,}81\approx0{,}95\)</span>, <span
+class="math inline">\(1/1{,}21\approx0{,}83\)</span>, dan <span
+class="math inline">\(0{,}0001/0{,}0121\approx0{,}01\)</span>, sehingga
+<span class="math inline">\(\mathrm{df}\approx1{,}79\)</span>. Model
+punya tiga parameter, tetapi variansnya seperti model dengan kurang dari
+dua parameter, karena arah yang hampir tidak didukung data praktis
+dimatikan.</p>
+<p>Dengan pilihan <span class="math inline">\(\lambda\)</span> yang
+tepat, naskah kuliah menunjukkan bahwa galat berlebih ridge bisa
+dibatasi oleh sebuah suku yang turun seperti <span
+class="math inline">\(1/\sqrt n\)</span> dan sama sekali tidak
+bergantung pada <span class="math inline">\(d\)</span>, hanya pada norma
+<span class="math inline">\(\boldsymbol\theta^*\)</span>, besar fitur,
+dan <span class="math inline">\(\sigma\)</span>. Bandingkan dengan OLS:
+OLS turun lebih cepat, seperti <span class="math inline">\(1/n\)</span>,
+tetapi dengan konstanta yang tumbuh dengan <span
+class="math inline">\(d\)</span>. Ridge turun lebih lambat dengan
+konstanta yang tidak bergantung pada <span
+class="math inline">\(d\)</span>. Untuk model dengan banyak parameter
+dibanding data, keadaan normal di deep learning, yang kedua jauh lebih
+menarik. Dalam praktik, <span class="math inline">\(\lambda\)</span>
+tidak dipilih dengan rumus karena <span
+class="math inline">\(\sigma\)</span> dan <span
+class="math inline">\(\boldsymbol\theta^*\)</span> tidak diketahui,
+melainkan dengan validasi silang, yang menurut kuliah menikmati laju
+optimal yang sama.</p>
+<h2 id="kernel">Kernel</h2>
+<p>Bagaimana kalau peta fitur <span class="math inline">\(\phi\)</span>
+berdimensi besar sekali, bahkan tak hingga? Teorema representer menjawab
+bahwa untuk minimisasi risiko empiris dengan penalti norma di ruang
+Hilbert, solusi optimalnya selalu bisa ditulis sebagai kombinasi fitur
+dari titik-titik data, <span
+class="math inline">\(\boldsymbol\theta=\sum_i\alpha_i\phi(\boldsymbol{x}_i)\)</span>,
+apa pun loss-nya, asalkan penaltinya naik dengan norma. Pembuktiannya
+pendek. Pecah <span class="math inline">\(\boldsymbol\theta\)</span>
+menjadi komponen di dalam rentang <span
+class="math inline">\(\phi(\boldsymbol{x}_i)\)</span> dan komponen tegak
+lurus terhadapnya. Komponen tegak lurus tidak mengubah satu pun prediksi
+di data latih, karena hasil kali dalamnya dengan setiap <span
+class="math inline">\(\phi(\boldsymbol{x}_i)\)</span> nol, tetapi
+menambah norma. Jadi solusi optimal tidak punya komponen tegak
+lurus.</p>
+<p>Akibatnya, semua yang dibutuhkan hanya hasil kali dalam antar fitur,
+<span
+class="math inline">\(k(\boldsymbol{x},\boldsymbol{x}&#39;)=\phi(\boldsymbol{x})^\top\phi(\boldsymbol{x}&#39;)\)</span>,
+yang disusun dalam matriks kernel <span
+class="math inline">\(\boldsymbol K\)</span>. Masalah di ruang
+berdimensi tak hingga menjadi masalah dengan <span
+class="math inline">\(n\)</span> variabel. Untuk loss kuadrat, kernel
+ridge regression memberi <span
+class="math inline">\(\boldsymbol\alpha=(\boldsymbol
+K+n\lambda\boldsymbol I)^{-1}\boldsymbol{y}\)</span> dan prediksi <span
+class="math inline">\(\hat
+f(\boldsymbol{x})=\sum_i\alpha_ik(\boldsymbol{x}_i,\boldsymbol{x})\)</span>,
+bentuk yang sama dengan rata-rata posterior Gaussian process di <a
+href="ch09_ml_advanced.html">Bab 15</a>. Teorema Aronszajn menjamin
+bahwa setiap fungsi <span class="math inline">\(k\)</span> yang selalu
+menghasilkan matriks semidefinit positif adalah hasil kali dalam di
+suatu ruang fitur, sehingga kita cukup merancang kernel, tanpa pernah
+menulis <span class="math inline">\(\phi\)</span>. Inilah <em>kernel
+trick</em>.</p>
+<p>Contoh kecil memperlihatkan fitur tersembunyi di balik kernel. Untuk
+<span class="math inline">\(\boldsymbol{x}=(x_1,x_2)\)</span>, kernel
+polinomial <span
+class="math inline">\(k(\boldsymbol{x},\boldsymbol{x}&#39;)=(\boldsymbol{x}^\top\boldsymbol{x}&#39;)^2\)</span>
+bisa diuraikan menjadi <span
+class="math inline">\((x_1x_1&#39;+x_2x_2&#39;)^2=x_1^2x_1&#39;^2+2x_1x_2x_1&#39;x_2&#39;+x_2^2x_2&#39;^2\)</span>,
+yaitu hasil kali dalam dari fitur <span
+class="math inline">\(\phi(\boldsymbol{x})=(x_1^2,\ \sqrt2x_1x_2,\
+x_2^2)\)</span>. Menghitung kernel hanya butuh satu hasil kali dalam dua
+dimensi lalu dikuadratkan, sedangkan fiturnya tiga dimensi. Untuk
+pangkat dan dimensi yang lebih tinggi, selisihnya meledak. Kernel Gauss,
+<span
+class="math inline">\(k(\boldsymbol{x},\boldsymbol{x}&#39;)=\exp(-\|\boldsymbol{x}-\boldsymbol{x}&#39;\|^2)\)</span>,
+berkorespondensi dengan ruang fitur berdimensi tak hingga, dan tetap
+dihitung dengan satu jarak.</p>
+<h2 id="di-luar-kelas">Di luar kelas</h2>
+<p>Teori di bab ini terdengar jauh dari praktik, tetapi ia menjawab
+pertanyaan yang muncul di seluruh buku. Mengapa ukuran data penting
+untuk model pengganti simulasi berdimensi tinggi? Laju <span
+class="math inline">\(n^{-1/d}\)</span> menjawabnya, dan juga
+menjelaskan mengapa struktur fisika yang mengurangi dimensi efektif
+begitu berharga (<a href="ch15_pinn.html">Bab 29</a> dan <a
+href="ch16_operator.html">Bab 30</a>). Mengapa jaringan saraf dengan
+parameter jauh lebih banyak dari data tetap bisa generalisasi? Derajat
+kebebasan efektif dan regularisasi implisit memberi sebagian jawabannya,
+dan double descent di <a href="ch01_belajar_dari_data.html">Bab 1</a>
+adalah kepingan lainnya. Dan teorema no free lunch adalah pengingat yang
+rendah hati: setiap keberhasilan sebuah metode adalah keberhasilan
+asumsinya.</p>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
+<p>Bab ini mengikuti naskah kuliah Statistical Learning Theory and
+Applications (pembelajaran terawasi dan risiko, minimisasi risiko
+empiris, konsistensi dan risiko minimax, teorema no free lunch, analisis
+least squares dan ridge dalam fixed design, teorema representer dan
+kernel). Rujukan utamanya adalah <span class="citation"
+data-cites="bach2024">Bach (2024)</span>.</p>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-bach2024" class="csl-entry" role="listitem">
+Bach, Francis. 2024. <em>Learning Theory from First Principles</em>. MIT
+Press.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch01b_statistik_bayes.html"><span>Sebelumnya</span>Memilih Model dengan Statistik dan Bayes</a>
+  <a class="next" href="ch02_optimasi.html"><span>Berikutnya</span>Optimasi: Turun Gunung dalam Kabut</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

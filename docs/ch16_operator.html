@@ -18,7 +18,7 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 26</p>
+<p class="chapnum">Bab 30</p>
 <h1>Belajar Menyelesaikan: Neural Operator dan Simulator</h1>
 <p><span id="ch:operator" data-label="ch:operator"></span></p>
 <p>Bab ini juga tidak berasal dari satu mata kuliah. Kuliah geometric
@@ -43,6 +43,25 @@ belajar pemetaan antar ruang fungsi itu sendiri, sehingga model yang
 dilatih pada grid kasar bisa dievaluasi pada grid yang lebih halus <span
 class="citation" data-cites="kovachki2023">(Kovachki dkk.
 2021)</span>.</p>
+<p>Contoh paling sederhana sebuah operator sudah kita kenal. Untuk
+persamaan panas <span
+class="math inline">\(\partial_tu=\kappa\,\partial_{xx}u\)</span> di
+garis tak hingga, solusi pada waktu <span
+class="math inline">\(t\)</span> adalah konvolusi syarat awal dengan
+kernel Gauss, <span
+class="math display">\[u(x,t)=\int\frac{1}{\sqrt{4\pi\kappa
+t}}\exp\Big(-\frac{(x-y)^2}{4\kappa t}\Big)\,u_0(y)\,\mathrm{d}y
+.\]</span> Operatornya linear: menjumlahkan dua syarat awal menjumlahkan
+solusinya. Di domain frekuensi, setiap mode Fourier <span
+class="math inline">\(e^{ikx}\)</span> hanya diredam, dengan faktor
+<span class="math inline">\(e^{-\kappa k^2t}\)</span>. Mode dengan
+bilangan gelombang <span class="math inline">\(k=10\)</span> meluruh
+seratus kali lebih cepat dari mode <span
+class="math inline">\(k=1\)</span>. Dua pengamatan ini, bahwa solusi
+bisa berupa operator integral dan bahwa ia sederhana di domain
+frekuensi, adalah benih dari Fourier neural operator di bawah. Untuk
+persamaan nonlinear seperti Navier–Stokes, tidak ada rumus seperti ini,
+dan jaringan harus mempelajari operatornya dari contoh.</p>
 <h3 id="deeponet">DeepONet</h3>
 <p>DeepONet <span class="citation" data-cites="lu2021">(Lu dkk.
 2021)</span> bertumpu pada teorema aproksimasi universal untuk operator.
@@ -58,20 +77,33 @@ Jaringan <em>trunk</em> menerima koordinat <span
 class="math inline">\(y\)</span> dan mengeluarkan fungsi basis <span
 class="math inline">\(t_k(y)\)</span>. Bentuk ini mengingatkan pada
 ekspansi deret seperti Fourier atau POD (<a
-href="ch17_penemuan_reduksi.html">Bab 27</a>), dengan perbedaan bahwa
+href="ch17_penemuan_reduksi.html">Bab 31</a>), dengan perbedaan bahwa
 basis dan koefisiennya sama-sama dipelajari. Karena trunk menerima
 koordinat kontinu, keluarannya bisa dievaluasi di titik mana pun.</p>
+<p>Untuk operator linear, bentuk ini bisa dipahami secara konkret.
+Misalkan <span class="math inline">\(G\)</span> adalah operator panas di
+atas pada selang dengan ujung bernilai nol, dan solusi diuraikan dalam
+mode sinus, <span class="math inline">\(t_k(y)=\sin(k\pi y)\)</span>.
+Koefisien setiap mode pada waktu <span class="math inline">\(t\)</span>
+adalah koefisien syarat awal dikali <span
+class="math inline">\(e^{-\kappa(k\pi)^2t}\)</span>, sebuah fungsi
+linear dari nilai-nilai <span class="math inline">\(v\)</span> di titik
+sensor. Branch dalam kasus ini cukup menjadi lapisan linear, dan trunk
+cukup mengeluarkan fungsi sinus. Untuk operator nonlinear, kedua
+jaringan harus menemukan basis dan koefisien yang cocok sendiri. Varian
+yang dilatih bersama residual persamaan, seperti PINN, disebut
+physics-informed DeepONet.</p>
 <h3 id="fourier-neural-operator">Fourier neural operator</h3>
 <p>Fourier neural operator <span class="citation"
 data-cites="li2021">(Li dkk. 2020)</span> berangkat dari bentuk solusi
 banyak PDE linear: konvolusi syarat awal dengan sebuah kernel, seperti
 kernel Gauss pada persamaan panas di <a href="ch09_ml_advanced.html">Bab
-11</a>. Satu lapisan FNO memakai operator integral dengan kernel yang
+15</a>. Satu lapisan FNO memakai operator integral dengan kernel yang
 dipelajari, <span class="math display">\[(\mathcal
 Kv)(x)=\int\kappa(x-y)\,v(y)\,\mathrm{d}y.\]</span> Karena kernel hanya
 bergantung pada selisih <span class="math inline">\(x-y\)</span>,
 operator ini adalah konvolusi, dan teorema konvolusi (<a
-href="ch05_computer_vision.html">Bab 7</a>) mengubahnya menjadi
+href="ch05_computer_vision.html">Bab 11</a>) mengubahnya menjadi
 perkalian di domain frekuensi: <span class="math display">\[\mathcal
 Kv=\mathcal F^{-1}\big(\boldsymbol R\cdot\mathcal Fv\big),\]</span>
 dengan <span class="math inline">\(\boldsymbol R\)</span> bobot yang
@@ -84,11 +116,35 @@ class="math inline">\(N\)</span> titik grid, dan karena bobotnya
 didefinisikan per frekuensi, bukan per titik grid, model yang sama bisa
 dijalankan pada resolusi yang berbeda. Pemotongan frekuensi juga punya
 sisi buruk: struktur yang tajam, seperti gelombang kejut, sulit diwakili
-oleh sedikit mode Fourier.</p>
+oleh sedikit mode Fourier. FFT juga mengandaikan grid teratur dan domain
+periodik, sehingga untuk geometri yang rumit dibutuhkan varian yang
+memetakan geometri ke grid teratur lebih dulu.</p>
+<p>Berapa banyak parameternya? Untuk lebar kanal <span
+class="math inline">\(d\)</span> dan <span
+class="math inline">\(m\)</span> mode yang disimpan dalam dua dimensi,
+setiap lapisan spektral menyimpan matriks kompleks <span
+class="math inline">\(d\times d\)</span> untuk setiap mode, kira-kira
+<span class="math inline">\(m^2d^2\)</span> bilangan kompleks. Dengan
+<span class="math inline">\(d=32\)</span> dan dua belas mode di setiap
+arah, itu sekitar <span class="math inline">\(1{,}5\)</span> juta
+bilangan kompleks per lapisan, dan jumlah ini tidak bergantung pada
+resolusi grid. Jaringan konvolusi biasa dengan kernel <span
+class="math inline">\(3\times3\)</span> jauh lebih hemat parameter,
+tetapi hanya melihat tetangga dekat. FNO melihat seluruh domain dalam
+satu lapisan, sesuai dengan watak persamaan eliptik seperti persamaan
+tekanan, di mana perubahan di satu titik langsung terasa di
+mana-mana.</p>
+<p>Gambar 30.1 merangkum satu lapisan FNO.</p>
+<figure id="fig:fno">
+<img src="fig/953849291fa1.svg" />
+<figcaption>Satu lapisan Fourier neural operator. Jalur atas mencampur
+informasi global lewat sedikit mode Fourier, jalur bawah menambahkan
+transformasi lokal titik demi titik.</figcaption>
+</figure>
 <h2 id="simulator-berbasis-graf">Simulator berbasis graf</h2>
 <p>Grid teratur jarang ditemui dalam simulasi teknik. Mesh menyesuaikan
 diri dengan geometri, dan partikel bergerak bebas. Di sini jaringan graf
-(<a href="ch07_geometric.html">Bab 9</a>) menjadi alat alami. Graph
+(<a href="ch07_geometric.html">Bab 13</a>) menjadi alat alami. Graph
 Network-based Simulator <span class="citation"
 data-cites="sanchez2020">(Sanchez-Gonzalez dkk. 2020)</span>
 memperlakukan setiap partikel sebagai simpul dan menghubungkan partikel
@@ -110,8 +166,41 @@ data-cites="brandstetter2022">(Brandstetter, Worrall, dan Welling
 2022)</span> merumuskan message passing sebagai solver PDE umum dan
 menunjukkan bahwa ia mencakup skema numerik klasik seperti beda hingga
 dan volume hingga sebagai kasus khusus. Hubungan ini sudah kita lihat di
-<a href="ch13_numerik_fluida.html">Bab 23</a>: volume hingga adalah
+<a href="ch13_numerik_fluida.html">Bab 27</a>: volume hingga adalah
 message passing fluks.</p>
+<p>Simulator graf juga membawa simetri fisika ke dalam arsitekturnya.
+Masukan untuk sisi biasanya berupa posisi relatif dan jarak antara dua
+partikel, bukan posisi mutlak, sehingga model otomatis invarian terhadap
+translasi: mendorong seluruh gelas air satu meter ke kanan tidak
+mengubah fisikanya. Karena setiap partikel hanya bicara dengan tetangga
+dalam radius tertentu, biayanya sebanding dengan jumlah partikel, sama
+seperti simulasi partikel klasik dengan daftar sel di <a
+href="ch14_fisika_komputasi.html">Bab 28</a>. Dan jumlah pesan yang
+dikirim sama dengan yang diterima kalau pesan dibuat antisimetris,
+sehingga momentum total terjaga, gagasan yang sama dengan hukum ketiga
+Newton.</p>
+<p>Satu langkah message passing dengan angka memperlihatkan apa yang
+dihitung jaringan seperti ini. Ambil tiga partikel di garis, di posisi
+<span class="math inline">\(0\)</span>, <span
+class="math inline">\(1\)</span>, dan <span
+class="math inline">\(3\)</span>, dengan radius tetangga <span
+class="math inline">\(1{,}5\)</span>, sehingga partikel pertama dan
+kedua bertetangga, sedangkan yang ketiga sendirian. Misalkan fungsi
+pesan yang dipelajari kebetulan berbentuk pegas, <span
+class="math inline">\(m_{ij}=k\,\big(|x_j-x_i|-\ell\big)\,\mathrm{sgn}(x_j-x_i)\)</span>
+dengan panjang istirahat <span class="math inline">\(\ell=0{,}8\)</span>
+dan <span class="math inline">\(k=2\)</span>. Pesan dari partikel kedua
+ke partikel pertama adalah <span
+class="math inline">\(2(1-0{,}8)\cdot(+1)=0{,}4\)</span>, dan dari
+pertama ke kedua <span
+class="math inline">\(2(1-0{,}8)\cdot(-1)=-0{,}4\)</span>. Partikel
+ketiga tidak menerima pesan apa pun. Kalau decoder menerjemahkan jumlah
+pesan menjadi percepatan, partikel pertama dan kedua saling menarik
+dengan percepatan yang sama besar dan berlawanan arah, dan pusat massa
+keduanya tidak bergerak. Jaringan sungguhan tidak diberi bentuk pegas.
+Ia mempelajari fungsi pesan dari data, dan karena masukannya hanya
+posisi relatif, sifat seperti invariansi translasi ikut terbawa ke apa
+pun yang dipelajarinya.</p>
 <h2 id="masalah-rollout">Masalah rollout</h2>
 <p>Hampir semua simulator yang dipelajari bekerja secara autoregresif:
 tebak langkah berikutnya, lalu pakai tebakan itu sebagai input untuk
@@ -137,7 +226,7 @@ panjang.</p>
 input dari simulasi sejati. Selama rollout, ia melihat input dari
 tebakannya sendiri, yang sedikit berbeda distribusinya. Ini covariate
 shift yang sama dengan behavioral cloning di <a href="ch10_rl.html">Bab
-12</a>. Beberapa obat sudah dicoba: menambahkan noise pada input selama
+16</a>. Beberapa obat sudah dicoba: menambahkan noise pada input selama
 pelatihan agar model terbiasa dengan input yang tidak sempurna <span
 class="citation" data-cites="sanchez2020">(Sanchez-Gonzalez dkk.
 2020)</span>, melatih dengan rollout beberapa langkah, atau, seperti
@@ -147,6 +236,30 @@ denoising mirip model difusi, supaya komponen frekuensi tinggi dengan
 amplitudo kecil tidak diabaikan. Analisis spektrum sering menunjukkan
 bahwa model kehilangan detail halus lebih dulu, dan detail itulah yang
 kemudian merusak stabilitas.</p>
+<p>Cara mengevaluasi juga perlu dipikirkan. Galat rata-rata kuadrat satu
+langkah hampir tidak mengatakan apa-apa tentang rollout panjang. Untuk
+aliran turbulen, yang kacau, dua simulasi yang mulai dari keadaan hampir
+sama pun akan berpisah setelah beberapa waktu, sehingga membandingkan
+medan titik demi titik setelah waktu itu tidak adil. Yang lebih bermakna
+adalah statistiknya: spektrum energi, profil rata-rata, distribusi
+besaran penting. Model yang baik menghasilkan aliran yang berbeda dari
+kenyataan tetapi punya statistik yang sama, seperti dua hari berangin
+yang tidak identik tetapi sama-sama khas untuk musim itu.</p>
+<p>Untuk membandingkan model secara adil, komunitas memakai himpunan
+tolok ukur bersama. Galat yang paling sering dilaporkan adalah galat
+<span class="math inline">\(L^2\)</span> relatif, <span
+class="math inline">\(\|\hat u-u\|/\|u\|\)</span>, dirata-ratakan atas
+kasus uji, pada satu langkah dan pada akhir rollout. Angka ini bisa
+menipu dengan dua cara. Galat relatif yang kecil bisa menyembunyikan
+galat besar di daerah kecil yang paling penting, misalnya di lapisan
+batas tempat gaya hambat ditentukan. Dan untuk sistem yang kacau,
+seperti dibahas di atas, galat titik demi titik pasti membesar setelah
+waktu tertentu, sehingga besaran yang diturunkan, seperti koefisien
+gaya, fluks panas, atau spektrum energi, lebih bermakna. Pertanyaan
+praktis lainnya adalah biaya total: berapa simulasi klasik yang
+dibutuhkan untuk menghasilkan data latih, berapa lama pelatihan, dan
+berapa kali model harus dipakai sebelum penghematannya menutup biaya
+itu.</p>
 <h2 id="model-fondasi-untuk-fisika-dan-cuaca">Model fondasi untuk fisika
 dan cuaca</h2>
 <p>Keberhasilan paling mencolok terjadi di prakiraan cuaca, di mana data
@@ -177,6 +290,15 @@ ditanya di titik mana pun. <span class="citation"
 data-cites="gupta2022">Gupta dan Brandstetter (2022)</span>
 membandingkan arsitektur secara sistematis pada berbagai skala ruang dan
 waktu.</p>
+<p>Prakiraan cuaca juga memperlihatkan mengapa ensemble penting.
+Atmosfer kacau, sehingga satu prakiraan deterministik untuk sepuluh hari
+ke depan cenderung menjadi kabur: model yang dilatih dengan galat
+kuadrat belajar meramal rata-rata dari semua kemungkinan, dan rata-rata
+dari banyak badai yang mungkin adalah langit yang setengah mendung di
+mana-mana. Model generatif seperti GenCast menghasilkan banyak
+kemungkinan yang masing-masing tajam, dan sebaran di antara mereka
+menjadi ukuran ketidakpastian, sesuatu yang dibutuhkan untuk memutuskan,
+misalnya, apakah sebuah wilayah perlu dievakuasi.</p>
 <h2 id="pertanyaan-yang-tetap-harus-diajukan">Pertanyaan yang tetap
 harus diajukan</h2>
 <p>Kembali ke tiga pertanyaan di <a href="ch00_peta.html">Bab 0</a>.
@@ -193,6 +315,34 @@ data-cites="lino2023">Lino dkk. (2023)</span> dan <span class="citation"
 data-cites="vinuesa2022">Vinuesa dan Brunton (2022)</span> memberi
 gambaran yang seimbang tentang kekuatan dan batas pendekatan ini dalam
 mekanika fluida.</p>
+<h2 id="perkembangan-riset">Perkembangan riset</h2>
+<p>Gagasan model fondasi untuk PDE berkembang cepat. Poseidon <span
+class="citation" data-cites="herde2024">(Herde dkk. 2024)</span> adalah
+transformer operator multiskala yang dipretraining pada sekumpulan besar
+simulasi persamaan fluida, dengan trik yang memanfaatkan sifat semigrup
+PDE bergantung waktu: solusi dari waktu <span
+class="math inline">\(t_1\)</span> ke <span
+class="math inline">\(t_3\)</span> sama dengan solusi dari <span
+class="math inline">\(t_1\)</span> ke <span
+class="math inline">\(t_2\)</span> lalu dari <span
+class="math inline">\(t_2\)</span> ke <span
+class="math inline">\(t_3\)</span>, sehingga setiap lintasan simulasi
+memberi banyak pasangan latih. Setelah disetel, ia dievaluasi pada lima
+belas tugas hilir, termasuk fisika yang tidak dilihat saat pretraining.
+DPOT <span class="citation" data-cites="hao2024dpot">(Hao dkk.
+2024)</span> memakai pretraining autoregresif dengan denoising, yaitu
+menambahkan noise pada input selama pretraining untuk mengatasi masalah
+rollout yang dibahas di atas, pada lebih dari seratus ribu lintasan dari
+belasan dataset PDE.</p>
+<p>Untuk mesh tak teratur di geometri industri, Transolver <span
+class="citation" data-cites="wu2024transolver">(Wu dkk. 2024)</span>
+mengelompokkan titik-titik mesh yang punya keadaan fisis serupa ke dalam
+“irisan” yang dipelajari, lalu menjalankan attention di antara
+irisan-irisan itu, bukan di antara jutaan titik. Biayanya linear
+terhadap jumlah titik, dan contoh penerapannya mencakup desain mobil dan
+airfoil. Gagasannya mirip dengan model reduksi di <a
+href="ch17_penemuan_reduksi.html">Bab 31</a>: cari sedikit “keadaan”
+yang mewakili banyak titik.</p>
 <h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini dirangkai dari kuliah Deep Learning: Geometric Techniques,
 Machine Learning: Advanced Techniques, dan bacaan selama tugas akhir.
@@ -232,6 +382,20 @@ Gupta, Jayesh K., dan Johannes Brandstetter. 2022. <span>“Towards
 Multi-spatiotemporal-scale Generalized PDE Modeling.”</span>
 arXiv:2209.15616. <a
 href="https://arxiv.org/abs/2209.15616">https://arxiv.org/abs/2209.15616</a>.
+</div>
+<div id="ref-hao2024dpot" class="csl-entry" role="listitem">
+Hao, Zhongkai, Chang Su, Songming Liu, Julius Berner, Chengyang Ying,
+Hang Su, Anima Anandkumar, Jian Song, dan Jun Zhu. 2024. <span>“DPOT:
+Auto-Regressive Denoising Operator Transformer for Large-Scale PDE
+Pre-Training.”</span> arXiv:2403.03542. <a
+href="https://arxiv.org/abs/2403.03542">https://arxiv.org/abs/2403.03542</a>.
+</div>
+<div id="ref-herde2024" class="csl-entry" role="listitem">
+Herde, Maximilian, Bogdan Raonić, Tobias Rohner, Roger Käppeli, Roberto
+Molinaro, Emmanuel de Bézenac, dan Siddhartha Mishra. 2024.
+<span>“Poseidon: Efficient Foundation Models for PDEs.”</span>
+arXiv:2405.19101. <a
+href="https://arxiv.org/abs/2405.19101">https://arxiv.org/abs/2405.19101</a>.
 </div>
 <div id="ref-kovachki2023" class="csl-entry" role="listitem">
 Kovachki, Nikola, Zongyi Li, Burigede Liu, Kamyar Azizzadenesheli,
@@ -321,6 +485,12 @@ Vinuesa, Ricardo, dan Steven L. Brunton. 2022. <span>“Enhancing
 computational fluid dynamics with machine learning.”</span> <em>Nature
 Computational Science</em> 2 (6): 358–66. <a
 href="https://doi.org/10.1038/s43588-022-00264-7">https://doi.org/10.1038/s43588-022-00264-7</a>.
+</div>
+<div id="ref-wu2024transolver" class="csl-entry" role="listitem">
+Wu, Haixu, Huakun Luo, Haowen Wang, Jianmin Wang, dan Mingsheng Long.
+2024. <span>“Transolver: A Fast Transformer Solver for PDEs on General
+Geometries.”</span> arXiv:2402.02366. <a
+href="https://arxiv.org/abs/2402.02366">https://arxiv.org/abs/2402.02366</a>.
 </div>
 </div>
 </main>

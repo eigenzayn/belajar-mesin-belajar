@@ -17,7 +17,7 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 15</p>
+<p class="chapnum">Bab 19</p>
 <h1>Mengendalikan Sistem</h1>
 <p><span id="ch:kendali" data-label="ch:kendali"></span></p>
 <p>Di semester pertama saya mengambil dua mata kuliah yang sekilas tidak
@@ -31,53 +31,137 @@ kandung reinforcement learning, dan bahwa model ruang keadaan adalah
 bahasa yang sama yang dipakai Kalman filter, state space model seperti
 Mamba, dan penemuan persamaan dari data.</p>
 <h2 id="sistem-dan-model">Sistem dan model</h2>
-<p>Sebuah sistem dinamis dijelaskan oleh keadaannya, yaitu sekumpulan
-besaran yang cukup untuk menentukan masa depannya kalau input diketahui.
-Untuk rangkaian listrik RC, keadaannya tegangan kapasitor. Untuk kaskade
-tangki air yang saling mengalirkan, keadaannya ketinggian air di setiap
-tangki. Untuk populasi pemangsa dan mangsa, keadaannya jumlah
-masing-masing hewan, dan persamaan Lotka–Volterra menggambarkan siklus
-naik turun yang khas: mangsa berlimpah membuat pemangsa bertambah,
-pemangsa yang banyak membuat mangsa berkurang, dan seterusnya. Bentuk
-umumnya adalah <span
-class="math display">\[\dot{\boldsymbol{x}}=\boldsymbol
-f(\boldsymbol{x},\boldsymbol u),\qquad \boldsymbol{y}=\boldsymbol
-h(\boldsymbol{x},\boldsymbol u),\]</span> dengan <span
+<p>Sebuah sistem dinamis dijelaskan oleh keadaannya, sekumpulan besaran
+yang cukup untuk menentukan masa depannya kalau input diketahui. Kuliah
+memakai tiga contoh yang terus kembali.</p>
+<p>Contoh pertama adalah rangkaian RC. Arus yang mengisi kapasitor
+sebanding dengan selisih tegangan sumber <span
+class="math inline">\(u\)</span> dan tegangan kapasitor <span
+class="math inline">\(v\)</span>, dibagi hambatan, sehingga <span
+class="math inline">\(C\dot v=(u-v)/R\)</span>, atau <span
+class="math display">\[\dot v=-\frac1\tau v+\frac1\tau
+u,\qquad\tau=RC.\]</span> Untuk input langkah setinggi <span
+class="math inline">\(U\)</span> mulai dari <span
+class="math inline">\(v(0)=0\)</span>, solusinya <span
+class="math inline">\(v(t)=U\big(1-e^{-t/\tau}\big)\)</span>. Setelah
+satu konstanta waktu, kapasitor terisi <span
+class="math inline">\(1-e^{-1}\approx63\)</span> persen. Setelah lima
+konstanta waktu, lebih dari 99 persen. Dengan <span
+class="math inline">\(R=10\ \mathrm{k\Omega}\)</span> dan <span
+class="math inline">\(C=100\ \mu\mathrm F\)</span>, <span
+class="math inline">\(\tau=1\)</span> detik. Hampir setiap sistem yang
+“menyusul” targetnya secara perlahan, dari termometer sampai suhu
+ruangan, punya perilaku orde satu seperti ini.</p>
+<p>Contoh kedua adalah kaskade tangki air. Untuk satu tangki dengan luas
+penampang <span class="math inline">\(A\)</span>, ketinggian air <span
+class="math inline">\(h\)</span> berubah menurut neraca massa: debit
+masuk dikurangi debit keluar. Debit keluar lewat lubang di dasar
+mengikuti hukum Torricelli, sebanding dengan <span
+class="math inline">\(\sqrt h\)</span>, sehingga <span
+class="math display">\[A\dot h=q_{\mathrm{in}}-k\sqrt h.\]</span> Model
+ini nonlinear. Di sekitar titik kesetimbangan <span
+class="math inline">\(h_0\)</span>, tempat <span
+class="math inline">\(q_{\mathrm{in}}=k\sqrt{h_0}\)</span>, kita bisa
+melinearkannya dengan mengganti <span class="math inline">\(\sqrt
+h\)</span> dengan garis singgungnya, <span class="math inline">\(\sqrt
+h\approx\sqrt{h_0}+(h-h_0)/(2\sqrt{h_0})\)</span>. Penyimpangan kecil
+<span class="math inline">\(\Delta h=h-h_0\)</span> lalu memenuhi <span
+class="math inline">\(A\,\dot{\Delta h}=\Delta
+q_{\mathrm{in}}-\frac{k}{2\sqrt{h_0}}\Delta h\)</span>, sistem orde satu
+dengan konstanta waktu <span
+class="math inline">\(2A\sqrt{h_0}/k\)</span>. Tangki yang lebih penuh
+bereaksi lebih lambat, karena perubahan kecil ketinggian hanya sedikit
+mengubah debit keluar.</p>
+<p>Contoh ketiga adalah persamaan pemangsa dan mangsa Lotka–Volterra,
+<span class="math inline">\(\dot x=ax-bxy\)</span> dan <span
+class="math inline">\(\dot y=-cy+dxy\)</span>, dengan <span
+class="math inline">\(x\)</span> mangsa dan <span
+class="math inline">\(y\)</span> pemangsa. Kesetimbangan yang menarik
+berada di <span class="math inline">\((c/d,\,a/b)\)</span>. Matriks
+Jacobian di titik itu adalah <span class="math display">\[\boldsymbol
+J=\begin{pmatrix}0&amp;-bc/d\\ad/b&amp;0\end{pmatrix},\]</span> dengan
+nilai eigen <span class="math inline">\(\pm i\sqrt{ac}\)</span>, murni
+imajiner. Linearisasinya berosilasi tanpa meluruh dan tanpa tumbuh,
+sesuai dengan siklus naik turun yang khas pada populasi: mangsa yang
+berlimpah membuat pemangsa bertambah, pemangsa yang banyak membuat
+mangsa berkurang, dan seterusnya, dengan periode sekitar <span
+class="math inline">\(2\pi/\sqrt{ac}\)</span>.</p>
+<p>Bentuk umumnya adalah <span
+class="math inline">\(\dot{\boldsymbol{x}}=\boldsymbol
+f(\boldsymbol{x},\boldsymbol u)\)</span> dan <span
+class="math inline">\(\boldsymbol{y}=\boldsymbol
+h(\boldsymbol{x},\boldsymbol u)\)</span>, dengan <span
 class="math inline">\(\boldsymbol u\)</span> input yang bisa kita atur
 dan <span class="math inline">\(\boldsymbol{y}\)</span> keluaran yang
-bisa kita ukur.</p>
-<p>Sebagian besar teori dibangun untuk sistem linear yang tidak berubah
-terhadap waktu, <span
+bisa kita ukur. Sebagian besar teori dibangun untuk sistem linear yang
+tidak berubah terhadap waktu, <span
 class="math display">\[\dot{\boldsymbol{x}}=\boldsymbol{A}\boldsymbol{x}+\boldsymbol
 B\boldsymbol u,\qquad \boldsymbol{y}=\boldsymbol
-C\boldsymbol{x}+\boldsymbol D\boldsymbol u.\]</span> Sistem nonlinear
-dilinearkan di sekitar titik kesetimbangan dengan mengganti <span
-class="math inline">\(\boldsymbol f\)</span> dengan matriks Jacobiannya.
-Solusi sistem linear adalah <span
-class="math inline">\(\boldsymbol{x}(t)=e^{\boldsymbol{A}t}\boldsymbol{x}_0+\int_0^te^{\boldsymbol{A}(t-\tau)}\boldsymbol
-B\boldsymbol u(\tau)\,\mathrm{d}\tau\)</span>, dan perilakunya
-ditentukan oleh nilai eigen <span
-class="math inline">\(\boldsymbol{A}\)</span>. Sistem stabil secara
-asimtotik, artinya kembali ke kesetimbangan dari gangguan apa pun, tepat
-ketika semua nilai eigen punya bagian real negatif. Bentuk Jordan
-menguraikan sistem menjadi mode-mode independen, sehingga setiap nilai
-eigen bisa dibaca sebagai satu cara sistem meluruh, tumbuh, atau
-berosilasi.</p>
+C\boldsymbol{x}+\boldsymbol D\boldsymbol u,\]</span> dan sistem
+nonlinear dilinearkan di sekitar kesetimbangannya dengan matriks
+Jacobian, persis seperti pada tangki dan populasi tadi.</p>
+<h2 id="solusi-mode-dan-kestabilan">Solusi, mode, dan kestabilan</h2>
+<p>Solusi sistem linear adalah <span
+class="math display">\[\boldsymbol{x}(t)=e^{\boldsymbol{A}t}\boldsymbol{x}_0+\int_0^te^{\boldsymbol{A}(t-\tau)}\boldsymbol
+B\boldsymbol u(\tau)\,\mathrm{d}\tau,\]</span> respons terhadap keadaan
+awal ditambah respons terhadap input. Prinsip superposisi berlaku:
+respons terhadap jumlah input adalah jumlah responsnya. Kalau <span
+class="math inline">\(\boldsymbol{A}\)</span> bisa didiagonalkan, <span
+class="math inline">\(\boldsymbol{A}=\boldsymbol
+V\boldsymbol\Lambda\boldsymbol V^{-1}\)</span>, maka <span
+class="math inline">\(e^{\boldsymbol{A}t}=\boldsymbol
+Ve^{\boldsymbol\Lambda t}\boldsymbol V^{-1}\)</span>, dan sistem terurai
+menjadi mode-mode independen yang masing-masing berkembang seperti <span
+class="math inline">\(e^{\lambda_it}\)</span>. Nilai eigen real negatif
+berarti peluruhan, nilai eigen kompleks berarti osilasi dengan frekuensi
+sebesar bagian imajinernya. Kalau <span
+class="math inline">\(\boldsymbol{A}\)</span> tidak bisa didiagonalkan,
+bentuk Jordan memberi mode yang dikalikan polinomial dalam <span
+class="math inline">\(t\)</span>, seperti <span
+class="math inline">\(te^{\lambda t}\)</span>.</p>
+<p>Sistem stabil secara asimtotik, artinya kembali ke kesetimbangan dari
+gangguan apa pun, tepat ketika semua nilai eigen <span
+class="math inline">\(\boldsymbol{A}\)</span> punya bagian real negatif.
+Matriks seperti ini disebut Hurwitz. Untuk sistem nonlinear, kestabilan
+linearisasinya menentukan kestabilan lokal, kecuali ketika ada nilai
+eigen di sumbu imajiner, seperti pada Lotka–Volterra, di mana
+linearisasi tidak cukup untuk memutuskan.</p>
 <h2 id="bisa-dicapai-bisa-diamati">Bisa dicapai, bisa diamati</h2>
 <p>Dua pertanyaan menentukan apakah sebuah sistem bisa dikendalikan
 dengan baik. Pertama, apakah input bisa membawa keadaan ke mana saja?
-Untuk sistem linear, jawabannya ya tepat ketika matriks <span
-class="math display">\[\mathcal R=\big[\boldsymbol B\ \
+Untuk sistem linear, jawabannya ya tepat ketika matriks keterjangkauan
+<span class="math display">\[\mathcal R=\big[\boldsymbol B\ \
 \boldsymbol{A}\boldsymbol B\ \ \boldsymbol{A}^2\boldsymbol B\ \cdots\
 \boldsymbol{A}^{n-1}\boldsymbol B\big]\]</span> berpangkat penuh. Kedua,
 apakah keadaan bisa direkonstruksi dari keluaran? Jawabannya ya tepat
-ketika matriks yang disusun dari <span class="math inline">\(\boldsymbol
-C,\boldsymbol C\boldsymbol{A},\dots,\boldsymbol
-C\boldsymbol{A}^{n-1}\)</span> berpangkat penuh. Dekomposisi Kalman
-memisahkan keadaan menjadi bagian yang bisa dicapai dan diamati, bagian
-yang hanya salah satunya, dan bagian yang tidak keduanya. Bagian yang
-tidak terjangkau dan tidak stabil adalah kabar buruk, karena tidak ada
-pengendali yang bisa menyelamatkannya.</p>
+ketika matriks keteramatan, yang disusun dari baris-baris <span
+class="math inline">\(\boldsymbol C,\boldsymbol
+C\boldsymbol{A},\dots,\boldsymbol C\boldsymbol{A}^{n-1}\)</span>,
+berpangkat penuh.</p>
+<p>Contoh paling sederhana memperlihatkan maknanya. Untuk massa tanpa
+gesekan yang didorong gaya, <span class="math inline">\(\ddot
+x=u\)</span>, keadaannya posisi dan kecepatan, dengan <span
+class="math inline">\(\boldsymbol{A}=\begin{pmatrix}0&amp;1\\0&amp;0\end{pmatrix}\)</span>
+dan <span class="math inline">\(\boldsymbol
+B=\begin{pmatrix}0\\1\end{pmatrix}\)</span>. Matriks <span
+class="math inline">\([\boldsymbol B\ \boldsymbol{A}\boldsymbol
+B]=\begin{pmatrix}0&amp;1\\1&amp;0\end{pmatrix}\)</span> berpangkat dua,
+jadi sistemnya bisa dicapai: gaya saja cukup untuk membawa massa ke
+posisi dan kecepatan mana pun. Kalau yang diukur posisi, <span
+class="math inline">\(\boldsymbol C=(1\ \ 0)\)</span>, matriks
+keteramatannya identitas dan sistemnya teramati: kecepatan bisa
+disimpulkan dari perubahan posisi. Kalau yang diukur hanya kecepatan,
+<span class="math inline">\(\boldsymbol C=(0\ \ 1)\)</span>, matriksnya
+<span
+class="math inline">\(\begin{pmatrix}0&amp;1\\0&amp;0\end{pmatrix}\)</span>
+berpangkat satu. Kita tidak akan pernah tahu posisi awal, karena
+menggeser seluruh lintasan tidak mengubah kecepatan sama sekali.</p>
+<p>Dekomposisi Kalman memisahkan keadaan menjadi bagian yang bisa
+dicapai dan diamati, bagian yang hanya salah satunya, dan bagian yang
+tidak keduanya. Bagian yang tidak terjangkau dan tidak stabil adalah
+kabar buruk, karena tidak ada pengendali yang bisa menyelamatkannya.
+Kalau bagian itu stabil, sistemnya disebut <em>stabilizable</em>, dan
+untuk keperluan praktis itu sudah cukup.</p>
 <h2 id="pengendali-dan-pengamat">Pengendali dan pengamat</h2>
 <p>Dengan umpan balik keadaan <span class="math inline">\(\boldsymbol
 u=-\boldsymbol K\boldsymbol{x}\)</span>, sistem tertutup menjadi <span
@@ -85,98 +169,348 @@ class="math inline">\(\dot{\boldsymbol{x}}=(\boldsymbol{A}-\boldsymbol
 B\boldsymbol K)\boldsymbol{x}\)</span>, dan kita bisa memilih <span
 class="math inline">\(\boldsymbol K\)</span> agar nilai eigen sistem
 tertutup berada di tempat yang kita inginkan, selama sistemnya bisa
-dicapai. Ambil contoh paling sederhana, sebuah massa tanpa gesekan,
-<span class="math inline">\(\ddot x=u\)</span>. Dengan keadaan posisi
-dan kecepatan serta <span class="math inline">\(u=-k_1x-k_2\dot
-x\)</span>, persamaan karakteristiknya <span
-class="math inline">\(s^2+k_2s+k_1=0\)</span>. Kalau kita menginginkan
-kedua kutub di <span class="math inline">\(-2\)</span>, polinomialnya
-harus <span class="math inline">\((s+2)^2=s^2+4s+4\)</span>, sehingga
-<span class="math inline">\(k_1=k_2=4\)</span>. Rumus Ackermann
-melakukan perhitungan yang sama untuk sistem dengan satu input berukuran
-berapa pun.</p>
+dicapai. Untuk massa tadi dengan <span
+class="math inline">\(u=-k_1x-k_2\dot x\)</span>, persamaan
+karakteristiknya <span class="math inline">\(s^2+k_2s+k_1=0\)</span>.
+Kalau kita menginginkan kedua kutub di <span
+class="math inline">\(-2\)</span>, polinomialnya harus <span
+class="math inline">\((s+2)^2=s^2+4s+4\)</span>, sehingga <span
+class="math inline">\(k_1=k_2=4\)</span>. Rumus Ackermann melakukan
+perhitungan yang sama untuk sistem satu input berukuran berapa pun:
+<span class="math inline">\(\boldsymbol K=(0\ \cdots\ 0\ 1)\,\mathcal
+R^{-1}\varphi(\boldsymbol{A})\)</span>, dengan <span
+class="math inline">\(\varphi\)</span> polinomial karakteristik yang
+diinginkan.</p>
 <p>Kalau keadaan tidak diukur seluruhnya, kita membangun pengamat yang
 menirukan sistem dan mengoreksi dirinya dengan galat keluaran, <span
 class="math display">\[\dot{\hat{\boldsymbol{x}}}=\boldsymbol{A}\hat{\boldsymbol{x}}+\boldsymbol
 B\boldsymbol u+\boldsymbol L\big(\boldsymbol{y}-\boldsymbol
-C\hat{\boldsymbol{x}}\big).\]</span> Prinsip pemisahan menyatakan bahwa
-pengendali dan pengamat bisa dirancang terpisah lalu digabung, dan
-kutub-kutub sistem gabungan adalah gabungan kutub keduanya.</p>
-<p>Alih-alih memilih kutub, kita juga bisa meminta pengendali terbaik
+C\hat{\boldsymbol{x}}\big).\]</span> Mengurangkan persamaan ini dari
+persamaan sistem memberi dinamika galat perkiraan, <span
+class="math inline">\(\boldsymbol
+e=\boldsymbol{x}-\hat{\boldsymbol{x}}\)</span>: <span
+class="math inline">\(\dot{\boldsymbol e}=(\boldsymbol{A}-\boldsymbol
+L\boldsymbol C)\boldsymbol e\)</span>. Input <span
+class="math inline">\(\boldsymbol u\)</span> hilang dari persamaan
+galat, sehingga galat perkiraan meluruh dengan laju yang kita pilih
+lewat <span class="math inline">\(\boldsymbol L\)</span>, terlepas dari
+apa yang dilakukan pengendali. Inilah inti prinsip pemisahan: pengendali
+dan pengamat bisa dirancang terpisah lalu digabung, dan kutub-kutub
+sistem gabungan adalah gabungan kutub keduanya. Biasanya pengamat dibuat
+beberapa kali lebih cepat dari pengendali, supaya perkiraannya sudah
+benar ketika pengendali membutuhkannya.</p>
+<h2 id="pengendali-optimal">Pengendali optimal</h2>
+<p>Alih-alih memilih kutub sendiri, kita bisa meminta pengendali terbaik
 menurut sebuah biaya. Linear quadratic regulator meminimalkan <span
 class="math display">\[J=\int_0^\infty\big(\boldsymbol{x}^\top\boldsymbol
 Q\boldsymbol{x}+\boldsymbol u^\top\boldsymbol R\boldsymbol
 u\big)\,\mathrm{d}t,\]</span> yang menimbang seberapa jauh keadaan
 menyimpang terhadap seberapa besar tenaga kendali yang dipakai.
-Jawabannya tetap berupa umpan balik linear, dengan <span
-class="math inline">\(\boldsymbol K\)</span> dari persamaan Riccati.
-Ketika pengukurannya berisik, pengamat optimalnya adalah Kalman filter
-<span class="citation" data-cites="kalman1960">(Kalman 1960)</span>, dan
-gabungan LQR dengan Kalman filter disebut LQG. Dari sudut pandang <a
-href="ch10_rl.html">Bab 12</a>, LQR adalah masalah reinforcement
-learning yang modelnya diketahui sempurna, dinamikanya linear, dan
-biayanya kuadratik, sehingga persamaan Bellman bisa diselesaikan secara
-tertutup.</p>
+Jawabannya tetap berupa umpan balik linear, <span
+class="math inline">\(\boldsymbol K=\boldsymbol R^{-1}\boldsymbol
+B^\top\boldsymbol P\)</span>, dengan <span
+class="math inline">\(\boldsymbol P\)</span> solusi persamaan aljabar
+Riccati <span class="math inline">\(\boldsymbol{A}^\top\boldsymbol
+P+\boldsymbol P\boldsymbol{A}-\boldsymbol P\boldsymbol B\boldsymbol
+R^{-1}\boldsymbol B^\top\boldsymbol P+\boldsymbol
+Q=\boldsymbol0\)</span>.</p>
+<p>Kasus skalar memperlihatkan isinya. Untuk integrator <span
+class="math inline">\(\dot x=u\)</span> dengan biaya <span
+class="math inline">\(\int(qx^2+ru^2)\,\mathrm{d}t\)</span>, persamaan
+Riccati menyusut menjadi <span
+class="math inline">\(-p^2/r+q=0\)</span>, sehingga <span
+class="math inline">\(p=\sqrt{qr}\)</span> dan <span
+class="math inline">\(K=p/r=\sqrt{q/r}\)</span>. Kalau galat posisi kita
+anggap seratus kali lebih mahal dari tenaga, <span
+class="math inline">\(q/r=100\)</span>, pengendalinya <span
+class="math inline">\(u=-10x\)</span> dan sistem tertutupnya meluruh
+dengan konstanta waktu satu per sepuluh detik. Kalau tenaga yang mahal,
+pengendalinya lebih lembut dan lebih lambat. LQR mengubah pertanyaan
+“kutubnya di mana?” menjadi pertanyaan yang lebih bermakna bagi
+insinyur: “apa yang lebih penting bagi saya?”.</p>
+<p>Ketika pengukurannya berisik, pengamat optimalnya adalah Kalman
+filter <span class="citation" data-cites="kalman1960">(Kalman
+1960)</span>, dan gabungan LQR dengan Kalman filter disebut LQG. Dari
+sudut pandang <a href="ch10_rl.html">Bab 16</a>, LQR adalah masalah
+reinforcement learning yang modelnya diketahui sempurna, dinamikanya
+linear, dan biayanya kuadratik, sehingga persamaan Bellman bisa
+diselesaikan secara tertutup. Fungsi nilainya tidak lain adalah <span
+class="math inline">\(\boldsymbol{x}^\top\boldsymbol
+P\boldsymbol{x}\)</span>.</p>
 <h2 id="domain-frekuensi">Domain frekuensi</h2>
 <p>Transformasi Laplace mengubah persamaan diferensial linear menjadi
-persamaan aljabar. Hubungan antara input dan keluaran menjadi fungsi
-alih, <span class="math inline">\(G(s)=\boldsymbol C(s\boldsymbol
-I-\boldsymbol{A})^{-1}\boldsymbol B+\boldsymbol D\)</span>. Sistem
-stabil dalam arti BIBO, yaitu input terbatas selalu menghasilkan
-keluaran terbatas, kalau semua kutub <span
-class="math inline">\(G(s)\)</span> berada di setengah bidang kiri.
-Respons frekuensi <span class="math inline">\(G(i\omega)\)</span>
-menyatakan bagaimana sinyal sinus diperkuat dan digeser fasenya, dan
-diagram Bode menggambarnya dalam skala logaritmik.</p>
-<p>Dalam lingkar umpan balik, pengendali <span
-class="math inline">\(R(s)\)</span> dan proses <span
-class="math inline">\(G(s)\)</span> membentuk fungsi lingkar terbuka
-<span class="math inline">\(L(s)=R(s)G(s)\)</span>, dan banyak sifat
-sistem tertutup bisa dibaca dari bentuk <span
-class="math inline">\(L\)</span>. Pengendali proporsional-integral
-menambahkan suku integral yang menghapus galat keadaan tunak, karena
-selama galat masih ada, integralnya terus tumbuh dan mendorong input.
-Kuliah merancang pengendali seperti ini dengan membentuk respons langkah
-yang diinginkan, lalu memeriksa kestabilannya dengan kriteria grafis.
-Bagian terakhir kuliah membawa semuanya ke dunia digital. Pengendali di
-komputer bekerja pada sampel, dan pemetaan <span
-class="math inline">\(z=e^{sT}\)</span> menghubungkan domain kontinu
-dengan domain diskret. Transformasi Tustin memberi cara praktis untuk
-mengubah pengendali kontinu menjadi algoritme diskret.</p>
+persamaan aljabar, karena turunan menjadi perkalian dengan <span
+class="math inline">\(s\)</span>. Hubungan antara input dan keluaran
+menjadi fungsi alih, <span class="math display">\[G(s)=\boldsymbol
+C(s\boldsymbol I-\boldsymbol{A})^{-1}\boldsymbol B+\boldsymbol
+D.\]</span> Untuk rangkaian RC tadi, <span
+class="math inline">\(G(s)=1/(\tau s+1)\)</span>. Sistem stabil dalam
+arti BIBO, yaitu input terbatas selalu menghasilkan keluaran terbatas,
+kalau semua kutub <span class="math inline">\(G(s)\)</span> berada di
+setengah bidang kiri. Respons frekuensi <span
+class="math inline">\(G(i\omega)\)</span> menyatakan bagaimana sinyal
+sinus diperkuat dan digeser fasenya. Untuk sistem orde satu, <span
+class="math inline">\(|G(i\omega)|=1/\sqrt{1+\omega^2\tau^2}\)</span>,
+yang pada <span class="math inline">\(\omega=1/\tau\)</span> bernilai
+<span class="math inline">\(1/\sqrt2\)</span>, sekitar <span
+class="math inline">\(-3\)</span> dB: frekuensi itulah batas antara yang
+diloloskan dan yang diredam. Diagram Bode menggambar magnitudo dan fase
+dalam skala logaritmik, sehingga sistem yang tersusun berurutan cukup
+dijumlahkan grafiknya.</p>
+<figure id="fig:lingkar">
+<img src="fig/081d39384a73.svg" />
+<figcaption>Lingkar kendali umpan balik dengan satu derajat kebebasan.
+Galat <span class="math inline">\(e=r-y\)</span> antara acuan dan
+keluaran diumpankan ke pengendali, yang menghasilkan input
+proses.</figcaption>
+</figure>
+<p>Dalam lingkar umpan balik (Gambar 19.1), fungsi alih dari acuan ke
+keluaran adalah <span class="math inline">\(T(s)=L(s)/(1+L(s))\)</span>
+dengan <span class="math inline">\(L=RG\)</span> fungsi lingkar terbuka,
+dan dari acuan ke galat <span
+class="math inline">\(S(s)=1/(1+L(s))\)</span>. Kedua fungsi ini
+berjumlah satu, sebuah batasan mendasar: kita tidak bisa sekaligus
+mengikuti acuan dengan sempurna dan mengabaikan noise pengukuran di
+frekuensi yang sama.</p>
+<p>Contoh dari kuliah memperlihatkan mengapa pengendali PI begitu
+populer. Ambil proses orde satu <span class="math inline">\(G=K/(\tau
+s+1)\)</span> dan pengendali proporsional <span
+class="math inline">\(R=K_p\)</span>. Untuk acuan langkah, teorema nilai
+akhir memberi galat keadaan tunak <span
+class="math display">\[e_\infty=\lim_{s\to0}s\cdot\frac1{1+K_pG(s)}\cdot\frac1s=\frac1{1+K_pK}.\]</span>
+Dengan <span class="math inline">\(K=1\)</span> dan <span
+class="math inline">\(K_p=9\)</span>, galatnya sepuluh persen, berapa
+lama pun kita menunggu. Menaikkan <span
+class="math inline">\(K_p\)</span> mengecilkan galat tetapi membuat
+sistem semakin agresif. Menambahkan suku integral, <span
+class="math inline">\(R=K_p+K_i/s\)</span>, menempatkan <span
+class="math inline">\(s\)</span> di penyebut <span
+class="math inline">\(L\)</span>, sehingga <span
+class="math inline">\(L(0)\)</span> tak hingga dan galat keadaan
+tunaknya nol. Secara intuitif, selama masih ada galat sekecil apa pun,
+integralnya terus tumbuh dan mendorong input, sampai galatnya
+benar-benar hilang. Kestabilan lingkar tertutup kemudian diperiksa
+dengan kriteria grafis seperti kriteria Nyquist, yang membaca kestabilan
+dari kurva <span class="math inline">\(L(i\omega)\)</span>, dan margin
+fase menyatakan seberapa jauh sistem dari batas ketidakstabilan.</p>
+<h2 id="merancang-lewat-respons-frekuensi">Merancang lewat respons
+frekuensi</h2>
+<h3 id="sistem-orde-dua-dan-bentuk-respons-tangga">Sistem orde dua dan
+bentuk respons tangga</h3>
+<p>Banyak lingkar kendali, setelah ditutup, berperilaku kira-kira
+seperti sistem orde dua, <span
+class="math display">\[G(s)=\frac{\omega_n^2}{s^2+2\zeta\omega_ns+\omega_n^2},\]</span>
+dengan frekuensi alami <span class="math inline">\(\omega_n\)</span> dan
+rasio redaman <span class="math inline">\(\zeta\)</span>. Kutubnya <span
+class="math inline">\(s=-\zeta\omega_n\pm
+j\omega_n\sqrt{1-\zeta^2}\)</span> untuk <span
+class="math inline">\(\zeta&lt;1\)</span>: bagian real menentukan
+seberapa cepat osilasi meluruh, bagian imajiner menentukan frekuensinya.
+Respons terhadap masukan tangga melampaui nilai akhirnya dengan
+<em>overshoot</em> <span
+class="math display">\[M_p=\exp\Big(-\frac{\pi\zeta}{\sqrt{1-\zeta^2}}\Big).\]</span>
+Dengan <span class="math inline">\(\zeta=0{,}707\)</span>, overshoot
+sekitar <span class="math inline">\(4{,}3\)</span> persen. Dengan <span
+class="math inline">\(\zeta=0{,}5\)</span>, sekitar 16 persen. Dengan
+<span class="math inline">\(\zeta=0{,}2\)</span>, lebih dari 50 persen,
+dan sistem berayun lama sebelum tenang. Rasio redaman sekitar <span
+class="math inline">\(0{,}7\)</span> sering dipilih sebagai kompromi
+antara cepat dan tidak berayun. Bayangkan peredam kejut mobil: terlalu
+lunak, mobil berayun setelah melewati polisi tidur; terlalu keras,
+guncangan diteruskan langsung ke penumpang.</p>
+<h3 id="diagram-bode">Diagram Bode</h3>
+<p>Untuk masukan sinus, sistem LTI yang stabil menghasilkan sinus dengan
+frekuensi yang sama, diperbesar <span
+class="math inline">\(|G(j\omega)|\)</span> kali dan digeser fasenya
+sebesar <span class="math inline">\(\arg G(j\omega)\)</span>. Diagram
+Bode menggambar keduanya terhadap frekuensi pada skala logaritmik,
+dengan magnitudo dalam desibel, <span
+class="math inline">\(20\log_{10}|G|\)</span>. Skala logaritmik punya
+keuntungan besar: untuk sistem yang tersusun seri, magnitudo dalam
+desibel dan fase cukup dijumlahkan. Sistem orde satu <span
+class="math inline">\(1/(1+sT)\)</span> datar di frekuensi rendah dan
+turun 20 dB per dekade di atas frekuensi sudut <span
+class="math inline">\(1/T\)</span>, dengan fase bergerak dari <span
+class="math inline">\(0^\circ\)</span> ke <span
+class="math inline">\(-90^\circ\)</span> dan bernilai <span
+class="math inline">\(-45^\circ\)</span> tepat di frekuensi sudut
+(Gambar 19.2). Sebuah integrator <span
+class="math inline">\(1/s\)</span> turun 20 dB per dekade di semua
+frekuensi dengan fase tetap <span
+class="math inline">\(-90^\circ\)</span>.</p>
+<figure id="fig:bode">
+<img src="fig/706f5eb1fcc5.svg" />
+<figcaption>Magnitudo sistem orde satu <span
+class="math inline">\(1/(1+sT)\)</span> pada diagram Bode, beserta
+asimtotnya. Di frekuensi sudut <span
+class="math inline">\(\omega=1/T\)</span>, kurva sebenarnya berada 3 dB
+di bawah titik temu asimtot.</figcaption>
+</figure>
+<h3 id="contoh-merancang-pengendali-pi">Contoh: merancang pengendali
+PI</h3>
+<p>Naskah kuliah memberi resep praktis yang menghubungkan respons tangga
+lingkar tertutup dengan dua angka pada lingkar terbuka <span
+class="math inline">\(L(s)=R(s)G(s)\)</span>: frekuensi potong <span
+class="math inline">\(\omega_C\)</span>, tempat <span
+class="math inline">\(|L(j\omega_C)|=1\)</span>, dan margin fase <span
+class="math inline">\(\phi=\arg L(j\omega_C)+180^\circ\)</span>. Untuk
+banyak lingkar berlaku kira-kira <span
+class="math display">\[\omega_Ct_r\approx1{,}5,\qquad
+\phi\,[^\circ]+\ddot u\,[\%]\approx70,\]</span> dengan <span
+class="math inline">\(t_r\)</span> waktu naik dan <span
+class="math inline">\(\ddot u\)</span> overshoot dalam persen. Kalau
+lingkar terbuka memuat integrator, galat tunak terhadap masukan tangga
+nol.</p>
+<p>Contoh di naskah adalah plant orde dua <span
+class="math inline">\(G(s)=5/(1+1{,}414s+s^2)\)</span>, dengan
+spesifikasi waktu naik sekitar tiga detik, overshoot sekitar sepuluh
+persen, dan tanpa galat tunak. Aturan praktis tadi memberi <span
+class="math inline">\(\omega_C=1{,}5/3=0{,}5\)</span> dan <span
+class="math inline">\(\phi=60^\circ\)</span>, sehingga di frekuensi
+potong fase lingkar terbuka harus <span
+class="math inline">\(-120^\circ\)</span>. Galat tunak nol menuntut
+integrator, sehingga dipakai pengendali PI <span
+class="math inline">\(R(s)=V_R(1+sT_R)/s\)</span>. Di <span
+class="math inline">\(\omega=0{,}5\)</span>, fase plant adalah <span
+class="math inline">\(-\arctan\big(0{,}707/0{,}75\big)\approx-43{,}3^\circ\)</span>,
+dan integrator menambah <span class="math inline">\(-90^\circ\)</span>,
+total <span class="math inline">\(-133{,}3^\circ\)</span>. Kurangnya
+<span class="math inline">\(13{,}3^\circ\)</span> disumbang oleh nol
+pengendali: <span
+class="math inline">\(\arctan(T_R\cdot0{,}5)=13{,}3^\circ\)</span>
+memberi <span class="math inline">\(T_R\approx0{,}473=1/2{,}11\)</span>.
+Penguatan <span class="math inline">\(V_R\)</span> dipilih agar <span
+class="math inline">\(|L(j0{,}5)|=1\)</span>. Magnitudo sisanya di
+frekuensi itu sekitar <span class="math inline">\(9{,}97\)</span>,
+sehingga <span class="math inline">\(V_R\approx0{,}1\)</span>. Lingkar
+tertutup yang dihasilkan punya kutub <span
+class="math inline">\(-0{,}368\pm0{,}776j\)</span> dan <span
+class="math inline">\(-0{,}678\)</span>, dan respons tangganya kira-kira
+memenuhi ketiga spesifikasi. Seluruh desain hanya memakai dua angka,
+tanpa menyelesaikan persamaan diferensial satu kali pun. Kekuatan cara
+pandang frekuensi terletak di sini.</p>
+<p>Bentuk pengendali yang paling banyak dipakai di industri adalah PID,
+<span class="math inline">\(R(s)=K_p+K_I/s+K_ds\)</span>. Suku
+proporsional bereaksi terhadap galat sekarang, suku integral terhadap
+galat yang menumpuk di masa lalu, dan suku derivatif terhadap arah galat
+ke masa depan. Pengendali PI di atas adalah PID tanpa suku
+derivatif.</p>
+<h2 id="sistem-diskret">Sistem diskret</h2>
+<p>Pengendali modern berjalan di komputer, yang bekerja pada sampel
+dengan periode <span class="math inline">\(T\)</span>. Kalau masukan
+ditahan tetap selama setiap periode, sistem kontinu <span
+class="math inline">\(\dot{\boldsymbol{x}}=\boldsymbol{A}\boldsymbol{x}+\boldsymbol
+Bu\)</span> menjadi sistem diskret <span
+class="math inline">\(\boldsymbol{x}_{k+1}=\boldsymbol{A}_d\boldsymbol{x}_k+\boldsymbol
+B_du_k\)</span> dengan <span
+class="math inline">\(\boldsymbol{A}_d=e^{\boldsymbol{A}T}\)</span> dan
+<span class="math inline">\(\boldsymbol
+B_d=\int_0^Te^{\boldsymbol{A}\tau}\,\mathrm{d}\tau\,\boldsymbol
+B\)</span>. Untuk sistem skalar <span class="math inline">\(\dot
+x=-x+u\)</span> dengan <span class="math inline">\(T=0{,}1\)</span>,
+<span class="math inline">\(A_d=e^{-0{,}1}\approx0{,}905\)</span> dan
+<span class="math inline">\(B_d=1-e^{-0{,}1}\approx0{,}095\)</span>.
+Diskretisasi ini eksak di titik-titik sampel, bukan aproksimasi.
+Pemetaan <span class="math inline">\(z=e^{sT}\)</span> menghubungkan
+domain kontinu dengan domain diskret: setengah bidang kiri yang stabil
+di domain <span class="math inline">\(s\)</span> terpetakan ke bagian
+dalam lingkaran satuan di domain <span class="math inline">\(z\)</span>,
+sehingga sistem diskret stabil kalau semua kutubnya berada di dalam
+lingkaran itu. Transformasi <span class="math inline">\(z\)</span>
+berperan seperti Laplace untuk barisan sampel.</p>
+<p>Untuk mengubah pengendali kontinu menjadi algoritme diskret, kita
+perlu mengganti <span class="math inline">\(s\)</span> dengan sesuatu
+dalam <span class="math inline">\(z\)</span>. Pendekatan Euler, <span
+class="math inline">\(s\approx(z-1)/T\)</span>, sederhana tetapi bisa
+memetakan sistem stabil menjadi tidak stabil kalau langkahnya besar.
+Transformasi Tustin, <span
+class="math inline">\(s\approx\frac2T\frac{z-1}{z+1}\)</span>, berasal
+dari aturan trapesium untuk integral. Ia memetakan seluruh setengah
+bidang kiri tepat ke dalam lingkaran satuan, sehingga pengendali yang
+stabil tetap stabil setelah didiskretkan, dengan sedikit distorsi
+frekuensi di dekat frekuensi Nyquist.</p>
 <h2 id="otomasi-di-pabrik">Otomasi di pabrik</h2>
 <p>Teori kendali bertemu kenyataan di lantai pabrik. Kuliah production
-automation memperlihatkan lapisan-lapisan yang menjalankan kendali itu.
-<em>Programmable logic controller</em> (PLC) membaca semua input,
-menjalankan programnya, lalu menulis semua output, dalam siklus yang
-berulang setiap beberapa milidetik. Programnya ditulis dalam bahasa
-standar IEC 61131-3, seperti diagram tangga yang meniru rangkaian relai,
-diagram blok fungsi, atau teks terstruktur. Sistem waktu nyata
-membedakan tenggat keras, yang tidak boleh terlewat sama sekali karena
-akibatnya berbahaya, dari tenggat lunak, yang sesekali boleh terlewat.
-Fieldbus menghubungkan sensor, aktuator, dan pengendali dengan
-komunikasi yang waktunya bisa dipastikan. Standar IEC 61499 memecah
-aplikasi otomasi menjadi blok fungsi yang digerakkan oleh kejadian dan
-bisa disebar ke banyak perangkat, sebuah langkah menuju pabrik yang bisa
-dikonfigurasi ulang dengan cepat, tema utama gerakan Industri 4.0.</p>
+automation memperlihatkan lapisan-lapisan yang menjalankannya, sering
+digambarkan sebagai piramida otomasi (Gambar 35.1). Di dasar ada sensor
+dan aktuator. Di atasnya pengendali, terutama PLC. Lalu SCADA yang
+memantau dan mengawasi, sistem pelaksanaan manufaktur (MES) yang
+menjadwalkan produksi, dan di puncak perencanaan sumber daya perusahaan
+(ERP). Semakin ke bawah, semakin ketat tuntutan waktunya: ERP berpikir
+dalam hari, pengendali dalam milidetik.</p>
+<figure id="fig:piramida">
+<img src="fig/ee572f85866a.svg" />
+<figcaption>Piramida otomasi. Lapisan bawah bekerja dekat dengan proses
+fisik dengan tuntutan waktu nyata yang ketat, lapisan atas bekerja
+dengan data agregat dan horizon waktu yang panjang.</figcaption>
+</figure>
+<p><em>Programmable logic controller</em> (PLC) bekerja dalam siklus
+pindai: baca semua input, jalankan program, tulis semua output, lalu
+ulangi, setiap beberapa milidetik. Programnya ditulis dalam bahasa
+standar IEC 61131-3: diagram tangga yang meniru rangkaian relai, diagram
+blok fungsi, teks terstruktur mirip Pascal, daftar instruksi mirip
+assembler, dan sequential function chart untuk urutan langkah. Sistem
+waktu nyata membedakan tenggat keras, yang tidak boleh terlewat sama
+sekali karena akibatnya berbahaya, dari tenggat lunak, yang sesekali
+boleh terlewat. Yang dikejar bukan kecepatan rata-rata, melainkan
+keterdugaan: variasi waktu respons, atau <em>jitter</em>, harus kecil
+dan terbatas.</p>
+<p>Fieldbus menghubungkan sensor, aktuator, dan pengendali dengan
+komunikasi yang waktunya bisa dipastikan. Kuliah membahas beberapa cara
+mengatur siapa boleh berbicara. Pada skema master–slave, satu master
+bertanya bergiliran. Pada token passing, hak berbicara berpindah seperti
+tongkat estafet. Pada CAN, semua simpul boleh mulai mengirim, dan
+bentrokan diselesaikan secara bitwise berdasarkan pengenal pesan,
+sehingga pesan berprioritas tinggi selalu menang tanpa membuang waktu.
+Varian Ethernet industri seperti PROFINET membawa determinisme ke
+jaringan Ethernet.</p>
+<p>Standar IEC 61499 memecah aplikasi otomasi menjadi blok fungsi yang
+digerakkan oleh kejadian, dengan input kejadian dan input data yang
+terpisah. Satu aplikasi bisa disebar ke banyak perangkat dan sumber
+daya, dan dipetakan ulang tanpa ditulis ulang, sebuah langkah menuju
+pabrik yang bisa dikonfigurasi ulang dengan cepat, tema utama gerakan
+Industri 4.0.</p>
 <h2 id="kendali-dan-machine-learning">Kendali dan machine learning</h2>
 <p>Hubungan antara kendali dan machine learning berjalan ke dua arah.
 Dari kendali ke machine learning: model ruang keadaan menjadi state
 space model di deep learning (<a href="ch04_lstm_transformer.html">Bab
-6</a>), metode adjoint dari kendali optimal menjadi cara melatih neural
-ODE (<a href="ch09_ml_advanced.html">Bab 11</a>), dan Kalman filter
-menjadi kerangka data assimilation (<a
-href="ch08_probabilistik.html">Bab 10</a>). Dari machine learning ke
-kendali: model dinamika bisa dipelajari dari data alih-alih diturunkan
-dari hukum fisika, lalu dipakai dalam pengendali prediktif yang
-mengoptimalkan beberapa langkah ke depan di setiap saat. Teori operator
-Koopman <span class="citation" data-cites="koopman1931">(Koopman
-1931)</span> menawarkan cara melihat sistem nonlinear sebagai sistem
-linear di ruang fungsi yang lebih besar, sehingga alat-alat kendali
-linear bisa dipakai kembali, sebuah gagasan yang kita temui lagi di <a
-href="ch17_penemuan_reduksi.html">Bab 27</a>. Reinforcement learning
-sendiri bisa dipandang sebagai kendali optimal tanpa model, dan pada
-sistem nyata keduanya sering digabung: model fisika memberi dasar,
-pembelajaran mengoreksi apa yang tidak dimodelkan.</p>
+9</a>), metode adjoint dari kendali optimal menjadi cara melatih neural
+ODE (<a href="ch09_ml_advanced.html">Bab 15</a>), Kalman filter menjadi
+kerangka data assimilation (<a href="ch08_probabilistik.html">Bab
+14</a>), dan analisis nilai eigen dari kestabilan menjadi alat untuk
+memahami vanishing gradient dan rollout yang meledak (<a
+href="ch16_operator.html">Bab 30</a>).</p>
+<p>Dari machine learning ke kendali: model dinamika bisa dipelajari dari
+data alih-alih diturunkan dari hukum fisika, sebuah bidang lama yang
+disebut identifikasi sistem, lalu dipakai dalam pengendali prediktif
+yang mengoptimalkan beberapa langkah ke depan di setiap saat dan hanya
+menjalankan langkah pertama. Teori operator Koopman <span
+class="citation" data-cites="koopman1931">(Koopman 1931)</span>
+menawarkan cara melihat sistem nonlinear sebagai sistem linear di ruang
+fungsi yang lebih besar, sehingga alat-alat kendali linear bisa dipakai
+kembali (<a href="ch17_penemuan_reduksi.html">Bab 31</a>). Reinforcement
+learning sendiri bisa dipandang sebagai kendali optimal tanpa model, dan
+pada sistem nyata keduanya sering digabung: model fisika memberi dasar
+dan jaminan, pembelajaran mengoreksi apa yang tidak dimodelkan <span
+class="citation" data-cites="brunton2022">(Brunton dan Kutz
+2022)</span>.</p>
+<h2 id="perkembangan-riset">Perkembangan riset</h2>
+<p>Model predictive control menyelesaikan masalah optimasi berkendala di
+setiap langkah, dengan model sistem untuk meramal beberapa langkah ke
+depan. Karena itu ia menjadi salah satu tempat paling alami bagi machine
+learning dalam kendali. Ulasan <span class="citation"
+data-cites="hewing2020">Hewing dkk. (2020)</span> membagi riset
+<em>learning-based MPC</em> menjadi tiga kelompok. Kelompok terbesar
+memakai data untuk memperbaiki model prediksi, misalnya dengan Gaussian
+process yang juga memberi ketidakpastian, sehingga kendala keselamatan
+bisa ditegakkan dengan margin yang sesuai. Kelompok kedua mempelajari
+parameter pengendali itu sendiri, yaitu fungsi biaya dan kendala yang
+menghasilkan kinerja lingkar tertutup terbaik. Kelompok ketiga memakai
+MPC sebagai lapisan pengaman di atas pengendali yang dipelajari,
+misalnya policy reinforcement learning, sehingga aksi yang melanggar
+kendala dikoreksi sebelum diterapkan. Pola ketiga menjawab kekhawatiran
+yang sering muncul di bab ini: jaminan kestabilan dan keselamatan tidak
+boleh dikorbankan demi kinerja.</p>
 <h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti naskah kuliah Control Systems (sistem dan model,
 sifat sistem, sistem LTI, keterjangkauan dan keteramatan, pengendali dan
@@ -192,6 +526,13 @@ data-entry-spacing="0" role="list">
 Brunton, Steven L., dan J. Nathan Kutz. 2022. <em>Data-Driven Science
 and Engineering: Machine Learning, Dynamical Systems, and Control</em>.
 2 ed. Cambridge University Press.
+</div>
+<div id="ref-hewing2020" class="csl-entry" role="listitem">
+Hewing, Lukas, Kim P. Wabersich, Marcel Menner, dan Melanie N.
+Zeilinger. 2020. <span>“Learning-Based Model Predictive Control: Toward
+Safe Learning in Control.”</span> <em>Annual Review of Control,
+Robotics, and Autonomous Systems</em> 3 (1): 269–96. <a
+href="https://doi.org/10.1146/annurev-control-090419-075625">https://doi.org/10.1146/annurev-control-090419-075625</a>.
 </div>
 <div id="ref-kalman1960" class="csl-entry" role="listitem">
 Kalman, R. E. 1960. <span>“A New Approach to Linear Filtering and

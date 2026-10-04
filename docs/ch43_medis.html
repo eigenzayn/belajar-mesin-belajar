@@ -17,7 +17,7 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 21</p>
+<p class="chapnum">Bab 25</p>
 <h1>Melihat ke Dalam Tubuh</h1>
 <p><span id="ch:medis" data-label="ch:medis"></span></p>
 <p>Kuliah deep learning for medical imaging dimulai bukan dengan
@@ -33,28 +33,93 @@ pengukuran fisik dengan satuan dan noise yang khas, gambar sering
 berbentuk volume tiga dimensi, data berlabel mahal karena butuh dokter
 ahli, dan kesalahan bisa berakibat fatal. Bab ini mengikuti jalan dari
 foton ke diagnosis.</p>
+<h2 id="gelombang-dan-fourier">Gelombang dan Fourier</h2>
+<p>Naskah kuliah membuka dengan osilator harmonik, sistem paling
+sederhana yang berosilasi. Massa <span class="math inline">\(m\)</span>
+pada pegas dengan konstanta <span class="math inline">\(k\)</span>
+merasakan gaya pemulih yang sebanding dengan simpangannya, sehingga
+hukum Newton memberi <span class="math inline">\(m\ddot x=-kx\)</span>.
+Solusinya <span
+class="math inline">\(x(t)=A\cos(\omega_0t+\varphi)\)</span> dengan
+<span class="math inline">\(\omega_0=\sqrt{k/m}\)</span>: frekuensinya
+ditentukan sistem, sedangkan amplitudo dan fase ditentukan keadaan awal.
+Banyak sistem yang jauh lebih rumit, dari molekul yang bergetar sampai
+rangkaian listrik, berperilaku seperti osilator harmonik di sekitar
+titik setimbangnya, karena setiap potensial yang mulus tampak seperti
+parabola kalau dilihat cukup dekat. Kalau ada gesekan, osilasinya
+meluruh secara eksponensial. Gelombang adalah osilasi yang merambat:
+setiap titik berosilasi, dan fasenya bergeser sepanjang arah rambat.</p>
+<p>Analisis Fourier menyatakan sinyal apa pun sebagai jumlah gelombang
+sinus dengan frekuensi berbeda. Alat ini akan muncul lagi di jantung
+tomografi, dan sudah kita temui di pengolahan sinyal (<a
+href="ch30_sinyal.html">Bab 18</a>). Dua sifatnya paling penting di
+sini. Konvolusi di ruang menjadi perkalian di frekuensi, sehingga
+penyaringan bisa dilakukan dengan mengalikan spektrum. Dan teorema
+sampling berlaku juga di pemindai: detektor yang jaraknya terlalu
+renggang tidak bisa menangkap detail halus, dan detail yang terlewat
+muncul kembali sebagai pola palsu yang disebut <em>aliasing</em>. Naskah
+kuliah mencatat bahwa syarat sampling yang ideal untuk detektor CT tidak
+bisa dipenuhi secara teknis, sehingga pembuat pemindai memakai trik
+seperti menggeser detektor seperempat lebarnya atau menggoyang titik
+fokus tabung sinar-X.</p>
+<p>Cahaya, gelombang radio, dan sinar-X adalah gelombang elektromagnetik
+yang sama dengan panjang gelombang berbeda. Ketika melewati materi,
+gelombang bisa dibiaskan, dipantulkan, diinterferensikan, dihamburkan,
+atau diserap. Untuk hamburan oleh partikel yang jauh lebih kecil dari
+panjang gelombang, kekuatan hamburan naik dengan pangkat empat
+frekuensi, sehingga cahaya biru dihamburkan jauh lebih kuat dari cahaya
+merah. Naskah kuliah memakai contoh ini untuk menjelaskan mengapa langit
+biru dan senja merah, sebelum beralih ke foton berenergi jauh lebih
+tinggi.</p>
 <h2 id="sinar-x-dan-penyerapan">Sinar-X dan penyerapan</h2>
 <p>Sinar-X dihasilkan dengan menembakkan elektron yang dipercepat
-tegangan tinggi ke sebuah anoda. Energi foton terbesar yang bisa muncul
-sama dengan energi kinetik elektron, <span
+tegangan tinggi ke sebuah anoda, biasanya dari tungsten. Elektron yang
+diperlambat mendadak di dalam anoda memancarkan <em>Bremsstrahlung</em>,
+spektrum kontinu yang dibatasi energi kinetik elektron, dan elektron
+yang menendang keluar elektron dalam atom anoda menghasilkan garis
+karakteristik yang tajam. Energi foton terbesar yang bisa muncul sama
+dengan energi kinetik elektron, <span
 class="math inline">\(E=h\nu=eU\)</span>, sehingga tabung dengan
-tegangan 100 kilovolt menghasilkan foton sampai 100 kiloelektronvolt.
-Ketika berkas sinar-X melewati tubuh, sebagian foton diserap atau
-dihamburkan. Penurunan intensitas di setiap irisan tipis sebanding
-dengan intensitas yang datang dan dengan ketebalan irisan, <span
+tegangan 100 kilovolt menghasilkan foton sampai 100
+kiloelektronvolt.</p>
+<p>Di dalam tubuh, foton berinteraksi dengan materi terutama dengan dua
+cara. Pada efek fotolistrik, foton diserap seluruhnya dan melepaskan
+sebuah elektron. Efek ini kuat untuk unsur dengan nomor atom tinggi,
+seperti kalsium di tulang atau iodium pada zat kontras, dan memberi
+kontras yang tajam. Pada hamburan Compton, foton menumbuk elektron yang
+terikat lemah, kehilangan sebagian energinya, dan berbelok arah. Foton
+terhambur ini tidak membawa informasi tentang di mana ia seharusnya
+mendarat, dan membuat gambar berkabut. Kolimator dan grid anti hamburan,
+yaitu lamel-lamel penyerap yang hanya meloloskan foton yang datang dari
+arah yang benar, menyaringnya sebelum mencapai detektor.</p>
+<p>Penurunan intensitas di setiap irisan tipis sebanding dengan
+intensitas yang datang dan dengan ketebalan irisan, <span
 class="math inline">\(\,\mathrm{d}I=-\mu I\,\mathrm{d}s\)</span>, dengan
 <span class="math inline">\(\mu\)</span> koefisien atenuasi jaringan.
-Memisahkan variabel dan mengintegrasikan memberi hukum Beer–Lambert,
-<span
+Memisahkan variabel, <span
+class="math inline">\(\,\mathrm{d}I/I=-\mu\,\mathrm{d}s\)</span>, lalu
+mengintegrasikan dari pintu masuk sampai pintu keluar memberi hukum
+Beer–Lambert, <span
 class="math display">\[I=I_0\exp\Big(-\int\mu(s)\,\mathrm{d}s\Big).\]</span>
 Untuk jaringan seragam dengan <span class="math inline">\(\mu=0{,}2\
 \mathrm{cm}^{-1}\)</span> setebal 10 cm, hanya <span
 class="math inline">\(e^{-2}\approx13{,}5\)</span> persen foton yang
-tembus. Tulang menyerap jauh lebih kuat dari jaringan lunak, itulah
-sebabnya tulang tampak terang pada foto rontgen. Kuliah juga membahas
-sisi praktisnya: grid anti hamburan yang menyaring foton yang berbelok
-arah, detektor digital, dan dosis radiasi, yang di Eropa Tengah secara
-alami sekitar dua milisievert per tahun.</p>
+tembus. Ketebalan yang menyerap tepat separuh foton, <span
+class="math inline">\(\ln2/\mu\)</span>, di sini sekitar <span
+class="math inline">\(3{,}5\)</span> cm. Tulang menyerap jauh lebih kuat
+dari jaringan lunak, itulah sebabnya tulang tampak terang pada foto
+rontgen.</p>
+<p>Setiap foton yang diserap menyimpan energi di jaringan, dan di
+situlah harga sebuah gambar. Dosis serap diukur dalam gray, satu joule
+per kilogram. Jenis radiasi berbeda merusak jaringan dengan efektivitas
+berbeda, sehingga dosis ekuivalen mengalikan dosis serap dengan faktor
+bobot radiasi: satu untuk foton, dua puluh untuk partikel alfa. Organ
+berbeda juga punya kepekaan berbeda, dan dosis efektif menjumlahkan
+dosis ekuivalen setiap organ dengan bobot kepekaannya. Hasilnya
+dinyatakan dalam sievert. Paparan alami di Eropa Tengah sekitar dua
+milisievert per tahun, dan setiap pemeriksaan dengan sinar-X menambahkan
+sesuatu ke angka itu, sehingga selalu ada tarik-menarik antara kualitas
+gambar dan dosis.</p>
 <h2 id="tomografi-komputer">Tomografi komputer</h2>
 <p>Foto rontgen biasa menumpuk seluruh tubuh menjadi satu bayangan.
 Tomografi komputer mengukur banyak proyeksi dari berbagai sudut lalu
@@ -62,51 +127,130 @@ merekonstruksi peta <span class="math inline">\(\mu\)</span> di setiap
 titik irisan. Dari hukum Beer–Lambert, setiap pengukuran memberi
 integral garis koefisien atenuasi, <span
 class="math display">\[p(\theta,r)=-\ln\frac{I}{I_0}=\int_{\text{garis}(\theta,r)}\mu(x,y)\,\mathrm{d}s,\]</span>
-dan kumpulan semua integral garis disebut transformasi Radon. Masalah
-utama CT adalah membalik transformasi ini.</p>
-<p>Cara paling naif adalah <em>backprojection</em>: setiap proyeksi
-“dioleskan” kembali sepanjang garisnya, lalu semua sudut dijumlahkan.
-Hasilnya kabur, karena setiap titik terang ikut menyebar ke seluruh
-garis yang melewatinya, dengan kekaburan yang meluruh seperti <span
-class="math inline">\(1/r\)</span>. Teorema irisan pusat menjelaskan
-obatnya: transformasi Fourier satu dimensi dari sebuah proyeksi sama
-dengan satu irisan melalui pusat dari transformasi Fourier dua dimensi
-gambar. Karena irisan-irisan itu berkumpul rapat di dekat pusat dan
-jarang di frekuensi tinggi, frekuensi rendah terwakili berlebihan.
-Mengalikan setiap proyeksi dengan filter yang naik linear terhadap
-frekuensi, <span class="math inline">\(|k|\)</span>, sebelum
-backprojection mengoreksi ketidakseimbangan itu. Inilah <em>filtered
-backprojection</em> <span class="citation" data-cites="kak1988">(Kak dan
-Slaney 1988)</span>, algoritme yang bekerja di dalam hampir semua
-pemindai CT sejak pemindai pertama yang dibangun Hounsfield <span
-class="citation" data-cites="hounsfield1973">(Hounsfield
-1973)</span>.</p>
+dengan <span class="math inline">\(\theta\)</span> arah proyeksi dan
+<span class="math inline">\(r\)</span> jarak garis dari pusat. Kumpulan
+semua integral garis disebut transformasi Radon. Masalah utama CT adalah
+membalik transformasi ini.</p>
+<p>Data mentah biasanya disusun sebagai gambar dengan sudut di satu
+sumbu dan posisi detektor di sumbu lain. Sebuah titik kecil di <span
+class="math inline">\((x_0,y_0)\)</span> hanya dilewati garis yang
+memenuhi <span
+class="math inline">\(r=x_0\cos\theta+y_0\sin\theta\)</span>. Untuk
+semua sudut, titik itu menggambar sebuah kurva sinus, dengan amplitudo
+sama dengan jaraknya dari pusat dan fase sesuai arahnya. Karena itu data
+mentah ini disebut <em>sinogram</em> (Gambar 25.1). Sebuah benda nyata
+adalah tumpukan banyak titik, dan sinogramnya adalah tumpukan banyak
+kurva sinus. Untuk menguji algoritme rekonstruksi, dipakai gambar uji
+standar seperti phantom Shepp–Logan, sekumpulan elips yang meniru
+penampang kepala.</p>
+<figure id="fig:sinogram">
+<img src="fig/211c401b904e.svg" />
+<figcaption>Sinogram tiga titik: di <span class="math inline">\((0{,}8;\
+0{,}3)\)</span>, di <span class="math inline">\((-0{,}2;\
+0{,}6)\)</span>, dan di pusat. Setiap titik menggambar kurva <span
+class="math inline">\(r=x_0\cos\theta+y_0\sin\theta\)</span>. Titik di
+pusat selalu terproyeksi ke <span
+class="math inline">\(r=0\)</span>.</figcaption>
+</figure>
+<p>Cara paling naif untuk membalik transformasi Radon adalah
+<em>backprojection</em>: setiap proyeksi “dioleskan” kembali sepanjang
+garisnya, lalu semua sudut dijumlahkan. Hasilnya kabur, karena setiap
+titik terang ikut menyebar ke seluruh garis yang melewatinya, dengan
+kekaburan yang meluruh seperti <span
+class="math inline">\(1/r\)</span>.</p>
+<p>Obatnya datang dari teorema irisan pusat: transformasi Fourier satu
+dimensi dari proyeksi pada sudut <span
+class="math inline">\(\theta\)</span> sama dengan nilai transformasi
+Fourier dua dimensi gambar, <span class="math inline">\(F\)</span>, di
+sepanjang garis melalui pusat dengan arah yang sama. Dari teorema ini,
+rekonstruksi bisa diturunkan dalam dua baris. Gambar adalah transformasi
+Fourier balik dari <span class="math inline">\(F\)</span>, <span
+class="math display">\[\mu(x,y)=\iint
+F(u,v)\,e^{i2\pi(ux+vy)}\,\mathrm{d}u\,\mathrm{d}v .\]</span> Sekarang
+ganti ke koordinat polar, <span
+class="math inline">\(u=k\cos\theta\)</span> dan <span
+class="math inline">\(v=k\sin\theta\)</span>, dengan <span
+class="math inline">\(\theta\)</span> dari 0 sampai <span
+class="math inline">\(\pi\)</span> dan <span
+class="math inline">\(k\)</span> dari minus sampai plus tak hingga.
+Elemen luasnya berubah menjadi <span
+class="math inline">\(\,\mathrm{d}u\,\mathrm{d}v=|k|\,\mathrm{d}k\,\mathrm{d}\theta\)</span>,
+persis seperti luas cincin tipis yang tumbuh dengan jari-jarinya.
+Menurut teorema irisan pusat, <span
+class="math inline">\(F(k\cos\theta,k\sin\theta)\)</span> adalah
+transformasi Fourier proyeksi, <span
+class="math inline">\(P_\theta(k)\)</span>. Maka <span
+class="math display">\[\mu(x,y)=\int_0^\pi\Big[\int_{-\infty}^{\infty}P_\theta(k)\,|k|\,e^{i2\pi
+kr}\,\mathrm{d}k\Big]_{r=x\cos\theta+y\sin\theta}\,\mathrm{d}\theta
+.\]</span> Bagian dalam adalah proyeksi yang spektrumnya dikalikan <span
+class="math inline">\(|k|\)</span>, lalu dikembalikan ke ruang. Bagian
+luar adalah backprojection. Faktor <span
+class="math inline">\(|k|\)</span> yang muncul dari perubahan koordinat
+itulah filter ramp, filter lolos tinggi yang mengoreksi frekuensi rendah
+yang terwakili berlebihan. Inilah <em>filtered backprojection</em> <span
+class="citation" data-cites="kak1988">(Kak dan Slaney 1988)</span>,
+algoritme yang bekerja di dalam hampir semua pemindai CT sejak pemindai
+pertama yang dibangun Hounsfield <span class="citation"
+data-cites="hounsfield1973">(Hounsfield 1973)</span>. Dalam praktik,
+filter ramp yang murni memperkuat noise frekuensi tinggi, sehingga
+ujungnya dilandaikan. Memilih bentuk filter adalah tawar-menawar antara
+ketajaman tepi dan kehalusan gambar.</p>
 <p>Nilai yang ditampilkan bukan <span class="math inline">\(\mu\)</span>
 langsung, melainkan satuan Hounsfield, <span
 class="math inline">\(\mathrm{HU}=1000\,(\mu-\mu_{\mathrm{air}})/\mu_{\mathrm{air}}\)</span>,
 dengan <span class="math inline">\(\mu_{\mathrm{air}}\)</span> koefisien
 atenuasi air. Air bernilai 0 dan udara sekitar <span
 class="math inline">\(-1000\)</span>, sedangkan tulang padat bisa
-beberapa ratus sampai lebih dari seribu. Skala yang dibakukan ini
-membuat citra dari pemindai berbeda bisa dibandingkan, dan menjadi
-alasan mengapa normalisasi intensitas untuk jaringan saraf pada CT
-berbeda dari normalisasi pada foto biasa. Benda logam seperti tambalan
-gigi menyerap hampir semua foton dan merusak asumsi rekonstruksi,
-sehingga muncul artefak bergaris yang khas.</p>
+beberapa ratus sampai lebih dari seribu. Rentang ini jauh lebih lebar
+dari yang bisa dibedakan mata pada layar, sehingga dokter memakai
+jendela: hanya rentang tertentu yang dipetakan ke skala abu-abu, dan
+nilai di luarnya menjadi hitam atau putih. Jendela otak, misalnya,
+memetakan sekitar 0 sampai 80 HU ke seluruh skala abu-abu, sehingga
+perbedaan halus antara materi abu-abu dan materi putih terlihat jelas.
+Jendela paru jauh lebih lebar dan berpusat pada nilai negatif. Skala
+yang dibakukan ini membuat citra dari pemindai berbeda bisa
+dibandingkan, dan menjadi alasan mengapa normalisasi intensitas untuk
+jaringan saraf pada CT berbeda dari normalisasi pada foto biasa:
+memotong ke jendela yang relevan sering lebih berguna daripada
+standardisasi buta.</p>
+<p>Ada beberapa artefak yang khas. Benda logam seperti tambalan gigi
+menyerap hampir semua foton dan merusak asumsi rekonstruksi, sehingga
+muncul garis-garis terang dan gelap. Foton berenergi rendah lebih mudah
+terserap, sehingga berkas menjadi “lebih keras” saat menembus tubuh, dan
+bagian tengah benda seragam tampak lebih gelap dari tepinya. Pasien yang
+bergerak selama pemindaian membuat proyeksi-proyeksi tidak konsisten
+satu sama lain.</p>
 <h2 id="kedokteran-nuklir">Kedokteran nuklir</h2>
-<p>Pada skintigrafi dan PET, sumber radiasinya ada di dalam tubuh.
-Pasien diberi zat penanda radioaktif yang terkumpul di jaringan dengan
-aktivitas tertentu, misalnya sel tumor yang memakan banyak glukosa. Pada
-PET, positron yang dipancarkan bertemu elektron dan musnah menjadi dua
-foton yang terbang ke arah berlawanan. Detektor yang menangkap kedua
-foton pada saat yang hampir bersamaan tahu bahwa peristiwanya terjadi di
-sepanjang garis penghubung keduanya, sehingga rekonstruksinya kembali
-menjadi masalah tomografi. Gambarnya menunjukkan fungsi, bukan anatomi,
-dan sering digabung dengan CT yang memberi anatomi.</p>
+<p>Pada skintigrafi, SPECT, dan PET, sumber radiasinya ada di dalam
+tubuh. Pasien diberi zat penanda radioaktif yang terkumpul di jaringan
+dengan aktivitas tertentu, misalnya tulang yang sedang memperbaiki diri
+atau sel tumor yang memakan banyak glukosa. Gambarnya menunjukkan
+fungsi, bukan anatomi.</p>
+<p>Penanda yang paling penting untuk skintigrafi adalah teknesium-99m,
+yang memancarkan sinar gamma 140 kiloelektronvolt dan bisa dilekatkan ke
+banyak biomolekul. Waktu paruhnya enam jam. Peluruhan radioaktif
+mengikuti <span class="math inline">\(N(t)=N_0\,2^{-t/T_{1/2}}\)</span>,
+sehingga setelah satu hari, empat waktu paruh, tinggal <span
+class="math inline">\(2^{-4}\)</span> atau sekitar enam persen aktivitas
+awal. Waktu paruh ini cukup panjang untuk menyiapkan dan menjalankan
+pemeriksaan, dan cukup pendek agar pasien tidak lama terpapar. Kamera
+gamma memakai kolimator, pelat timbal dengan lubang-lubang panjang yang
+hanya meloloskan sinar dari satu arah, karena sinar gamma tidak bisa
+difokuskan dengan lensa. Kolimator membuang sebagian besar foton,
+sehingga gambar kedokteran nuklir selalu berisik. SPECT memutar kamera
+di sekitar pasien dan merekonstruksi irisan dengan cara yang sama
+seperti CT.</p>
+<p>Pada PET, positron yang dipancarkan bertemu elektron dan musnah
+menjadi dua foton 511 kiloelektronvolt yang terbang ke arah berlawanan.
+Detektor yang menangkap kedua foton pada saat yang hampir bersamaan tahu
+bahwa peristiwanya terjadi di sepanjang garis penghubung keduanya, tanpa
+perlu kolimator. Rekonstruksinya kembali menjadi masalah tomografi.
+Karena gambar PET menunjukkan fungsi tetapi hanya sedikit anatomi, ia
+sering digabung dengan CT dalam satu pemindai.</p>
 <h2 id="deep-learning-untuk-citra-medis">Deep learning untuk citra
 medis</h2>
 <p>Tugas-tugas utama di citra medis sama dengan di <a
-href="ch05_computer_vision.html">Bab 7</a>: klasifikasi, deteksi, dan
+href="ch05_computer_vision.html">Bab 11</a>: klasifikasi, deteksi, dan
 segmentasi, dengan rekonstruksi sebagai tugas tambahan yang khas.
 Klasifikasi lesi kulit dengan jaringan konvolusi yang dilatih pada lebih
 dari seratus ribu gambar mencapai kinerja setara dokter kulit dalam
@@ -114,30 +258,55 @@ percobaan <span class="citation" data-cites="esteva2017">Esteva dkk.
 (2017)</span>. Untuk segmentasi organ dan tumor, U-Net <span
 class="citation" data-cites="ronneberger2015">(Ronneberger, Fischer, dan
 Brox 2015)</span> yang awalnya dirancang untuk citra biomedis menjadi
-standar. nnU-Net <span class="citation"
-data-cites="isensee2021">(Isensee dkk. 2021)</span> menunjukkan bahwa
-sebagian besar keberhasilan datang dari menyetel resep dengan benar
-untuk setiap himpunan data, yaitu resolusi, normalisasi, augmentasi, dan
-arsitektur, dan bahwa resep itu bisa dibuat otomatis dari sifat-sifat
-datanya.</p>
+standar. Jalur turun mengecilkan gambar dan menangkap konteks, jalur
+naik mengembalikan resolusinya, dan sambungan lompat dari setiap tingkat
+jalur turun ke tingkat yang sama di jalur naik membawa detail halus yang
+hilang saat gambar dikecilkan. Untuk volume tiga dimensi, semua
+konvolusi menjadi tiga dimensi, dan memori GPU menjadi batas, sehingga
+volume sering dipotong menjadi balok-balok kecil. nnU-Net <span
+class="citation" data-cites="isensee2021">(Isensee dkk. 2021)</span>
+menunjukkan bahwa sebagian besar keberhasilan datang dari menyetel resep
+dengan benar untuk setiap himpunan data, yaitu resolusi, normalisasi,
+augmentasi, dan arsitektur, dan bahwa resep itu bisa dibuat otomatis
+dari sifat-sifat datanya.</p>
+<p>Data berlabel di bidang ini mahal, sehingga dua teknik dari bab-bab
+sebelumnya selalu dipakai. Augmentasi menambah variasi dengan memutar,
+mencerminkan, dan merenggangkan gambar secara elastis, serta mengubah
+kontras sedikit. Tetapi augmentasi harus masuk akal secara anatomi:
+membalik kiri dan kanan bisa mengubah makna sebuah temuan jantung.
+Transfer learning memulai dari jaringan yang sudah dilatih pada data
+besar. Model fondasi yang dilatih tanpa label pada jutaan citra medis
+semakin sering menjadi titik awal ini.</p>
 <p>Segmentasi dinilai dengan koefisien Dice, <span
 class="math inline">\(2|A\cap B|/(|A|+|B|)\)</span>, ukuran tumpang
 tindih antara daerah tebakan <span class="math inline">\(A\)</span> dan
 daerah yang benar <span class="math inline">\(B\)</span>. Dice
 berkerabat dekat dengan Tanimoto di <a href="ch41_molekul.html">Bab
-19</a>: kalau Tanimoto <span class="math inline">\(T=|A\cap B|/|A\cup
+23</a>: kalau Tanimoto <span class="math inline">\(T=|A\cap B|/|A\cup
 B|\)</span>, maka Dice <span class="math inline">\(=2T/(1+T)\)</span>,
 karena <span class="math inline">\(|A|+|B|=|A\cup B|+|A\cap B|\)</span>.
-Tumor yang kecil membuat Dice peka sekali: meleset beberapa voxel saja
-sudah menurunkan skor dengan tajam.</p>
+Tumor yang kecil membuat Dice peka sekali. Untuk tumor berukuran 100
+voxel, tebakan yang bergeser sehingga hanya 80 voxel yang tumpang
+tindih, dengan ukuran tebakan tetap 100, memberi Dice <span
+class="math inline">\(160/200=0{,}8\)</span>. Pergeseran yang sama pada
+organ berukuran 10 000 voxel nyaris tidak terasa. Karena itu Dice juga
+dipakai langsung sebagai loss dalam bentuk lunak, dengan probabilitas
+sebagai pengganti keanggotaan biner, sehingga kelas kecil tidak
+tenggelam di bawah latar belakang yang luas, masalah ketidakseimbangan
+kelas yang sama dengan di <a href="ch01_belajar_dari_data.html">Bab
+1</a>.</p>
 <p>Rekonstruksi juga mulai dibantu jaringan saraf. CT dosis rendah
 memakai lebih sedikit foton sehingga lebih aman, tetapi gambarnya lebih
 berisik. Jaringan bisa membersihkan noise setelah rekonstruksi, atau
 algoritme rekonstruksi iteratif bisa dibuka menjadi lapisan-lapisan yang
 dipelajari, seperti yang disinggung di <a href="ch30_sinyal.html">Bab
-14</a>. Di semua penerapan ini, pengetahuan fisika tentang bagaimana
-citra terbentuk tetap menjadi pegangan untuk memeriksa apakah sebuah
-hasil masuk akal.</p>
+18</a>. Pendekatan yang paling hati-hati menjaga operator fisikanya,
+yaitu transformasi Radon, di dalam jaringan, sehingga hasilnya tetap
+konsisten dengan data yang diukur. Di semua penerapan ini, pengetahuan
+fisika tentang bagaimana citra terbentuk tetap menjadi pegangan untuk
+memeriksa apakah sebuah hasil masuk akal. Jaringan yang “membersihkan”
+gambar terlalu agresif bisa menghapus lesi kecil, atau lebih buruk,
+menggambar struktur yang tampak meyakinkan tetapi tidak ada.</p>
 <h2 id="batas-dan-tanggung-jawab">Batas dan tanggung jawab</h2>
 <p>Kuliah AI dalam ilmu hayati dan kuliah tentang AI dan masyarakat
 sama-sama menyoroti batas sistem seperti ini. Model bisa belajar jalan
@@ -145,16 +314,39 @@ pintas, misalnya penanda di sudut gambar yang hanya muncul pada pasien
 dari rumah sakit tertentu. Model yang dilatih di satu rumah sakit bisa
 jatuh kinerjanya di rumah sakit lain dengan pemindai berbeda. Dan model
 bisa bekerja lebih buruk untuk kelompok pasien yang kurang terwakili
-dalam data latih. Alat-alat XAI di <a href="ch11_xai.html">Bab 13</a>
+dalam data latih. Alat-alat XAI di <a href="ch11_xai.html">Bab 17</a>
 membantu menemukan masalah seperti ini, dan regulasi di <a
-href="ch51_ai_manusia.html">Bab 31</a> menetapkan kewajiban bagi sistem
+href="ch51_ai_manusia.html">Bab 35</a> menetapkan kewajiban bagi sistem
 AI berisiko tinggi, termasuk alat diagnosis.</p>
+<h2 id="perkembangan-riset">Perkembangan riset</h2>
+<p>Citra medis juga mendapat model fondasinya sendiri. RETFound <span
+class="citation" data-cites="zhou2023retfound">(Zhou dkk. 2023)</span>
+dilatih secara self-supervised pada 1,6 juta citra retina tanpa label,
+lalu disetel untuk mendeteksi penyakit mata dengan sedikit data
+berlabel. Yang lebih mengejutkan, model ini juga dipakai untuk meramal
+penyakit sistemik seperti gagal jantung dan serangan jantung dari citra
+retina. MedSAM <span class="citation" data-cites="ma2024medsam">(Ma dkk.
+2024)</span> menyesuaikan Segment Anything untuk citra medis dengan
+lebih dari 1,5 juta pasangan citra dan topeng dari sepuluh modalitas,
+dan dievaluasi pada 86 tugas validasi internal serta 60 tugas
+eksternal.</p>
+<p>Untuk teks medis, Med-PaLM <span class="citation"
+data-cites="singhal2023">(Singhal dkk. 2023)</span> mengevaluasi model
+bahasa besar pada soal-soal ujian kedokteran dan pertanyaan kesehatan
+sehari-hari. Akurasi pada soal pilihan ganda gaya ujian lisensi dokter
+Amerika mencapai 67,6 persen untuk Flan-PaLM, lebih dari 17 poin di atas
+rekor sebelumnya. Tetapi evaluasi oleh dokter memperlihatkan celah
+penting dalam ketepatan fakta, penalaran, dan potensi bahaya, dan versi
+yang disetel, Med-PaLM, masih kalah dari klinisi. Makalah ini menjadi
+contoh baik mengapa angka benchmark tidak cukup di bidang medis, sejalan
+dengan bagian batas dan tanggung jawab di atas.</p>
 <h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti naskah dasar Deep Learning for Medical Imaging
-(gelombang, analisis Fourier, gelombang elektromagnetik, pencitraan
-sinar-X, tomografi komputer, kedokteran nuklir). Untuk rekonstruksi
-tomografi, <span class="citation" data-cites="kak1988">Kak dan Slaney
-(1988)</span> adalah rujukan klasik.</p>
+(osilasi dan gelombang, analisis Fourier, gelombang elektromagnetik,
+pencitraan sinar-X dan dosimetri, tomografi komputer, kedokteran
+nuklir). Untuk rekonstruksi tomografi, <span class="citation"
+data-cites="kak1988">Kak dan Slaney (1988)</span> adalah rujukan
+klasik.</p>
 <h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
@@ -182,11 +374,31 @@ href="https://doi.org/10.1038/s41592-020-01008-z">https://doi.org/10.1038/s41592
 Kak, Avinash C., dan Malcolm Slaney. 1988. <em>Principles of
 Computerized Tomographic Imaging</em>. IEEE Press.
 </div>
+<div id="ref-ma2024medsam" class="csl-entry" role="listitem">
+Ma, Jun, Yuting He, Feifei Li, Lin Han, Chenyu You, dan Bo Wang. 2024.
+<span>“Segment anything in medical images.”</span> <em>Nature
+Communications</em> 15 (1). <a
+href="https://doi.org/10.1038/s41467-024-44824-z">https://doi.org/10.1038/s41467-024-44824-z</a>.
+</div>
 <div id="ref-ronneberger2015" class="csl-entry" role="listitem">
 Ronneberger, Olaf, Philipp Fischer, dan Thomas Brox. 2015. <span>“U-Net:
 Convolutional Networks for Biomedical Image Segmentation.”</span>
 arXiv:1505.04597. <a
 href="https://arxiv.org/abs/1505.04597">https://arxiv.org/abs/1505.04597</a>.
+</div>
+<div id="ref-singhal2023" class="csl-entry" role="listitem">
+Singhal, Karan, Shekoofeh Azizi, Tao Tu, S. Sara Mahdavi, Jason Wei,
+Hyung Won Chung, Nathan Scales, dkk. 2023. <span>“Large language models
+encode clinical knowledge.”</span> <em>Nature</em> 620 (7972): 172–80.
+<a
+href="https://doi.org/10.1038/s41586-023-06291-2">https://doi.org/10.1038/s41586-023-06291-2</a>.
+</div>
+<div id="ref-zhou2023retfound" class="csl-entry" role="listitem">
+Zhou, Yukun, Mark A. Chia, Siegfried K. Wagner, Murat S. Ayhan, Dominic
+J. Williamson, Robbert R. Struyven, Timing Liu, dkk. 2023. <span>“A
+foundation model for generalizable disease detection from retinal
+images.”</span> <em>Nature</em> 622 (7981): 156–63. <a
+href="https://doi.org/10.1038/s41586-023-06555-x">https://doi.org/10.1038/s41586-023-06555-x</a>.
 </div>
 </div>
 </main>

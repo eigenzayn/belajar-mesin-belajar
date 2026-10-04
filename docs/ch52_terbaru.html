@@ -17,7 +17,7 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 32</p>
+<p class="chapnum">Bab 38</p>
 <h1>Ke Mana Arah AI</h1>
 <p><span id="ch:terbaru" data-label="ch:terbaru"></span></p>
 <p>Selama dua tahun kuliah, bidang ini bergerak lebih cepat daripada
@@ -52,9 +52,38 @@ class="math inline">\(C\)</span>, misalnya <span
 class="math inline">\(L(N)\approx(N_c/N)^{\alpha}\)</span> dengan <span
 class="math inline">\(\alpha\)</span> kecil. Hukum pangkat berarti garis
 lurus pada skala log–log: setiap kali model diperbesar sepuluh kali,
-loss turun dengan faktor yang kira-kira tetap. Komputasi pelatihan
-transformer bisa diperkirakan dengan aturan praktis <span
-class="math inline">\(C\approx6ND\)</span> operasi floating point:
+loss turun dengan faktor yang kira-kira tetap. Untuk ketergantungan pada
+jumlah parameter, mereka melaporkan <span
+class="math inline">\(\alpha\approx0{,}076\)</span> dan <span
+class="math inline">\(N_c\approx8{,}8\times10^{13}\)</span>. Dengan
+angka ini, model berparameter sepuluh juta punya loss sekitar <span
+class="math inline">\(3{,}4\)</span>, dan model sepuluh miliar parameter
+sekitar <span class="math inline">\(2{,}0\)</span> (Gambar 38.1).
+Eksponen sekecil itu berarti setiap pengurangan loss yang berarti
+menuntut model yang berlipat-lipat lebih besar.</p>
+<figure id="fig:scaling">
+<img src="fig/8b848bb157d4.svg" />
+<figcaption>Hukum penskalaan <span
+class="math inline">\(L(N)=(N_c/N)^{\alpha}\)</span> dengan konstanta
+yang dilaporkan <span class="citation" data-cites="kaplan2020">Kaplan
+dkk. (2020)</span>. Pada skala log–log, hukum pangkat menjadi garis
+lurus.</figcaption>
+</figure>
+<p>Sebelum masuk ke model, teks dipotong menjadi token. Kebanyakan model
+memakai varian <em>byte-pair encoding</em> <span class="citation"
+data-cites="sennrich2016">(Sennrich, Haddow, dan Birch 2015)</span>:
+mulai dari huruf-huruf, lalu berulang kali gabungkan pasangan simbol
+yang paling sering muncul bersebelahan di korpus. Dari korpus yang
+berisi kata “main”, “mainan”, dan “bermain”, pasangan seperti “m”+“a”
+lalu “ma”+“i” lalu “mai”+“n” cepat menjadi satu token “main”, sehingga
+ketiga kata berbagi potongan yang sama, dan kata yang belum pernah
+dilihat seperti “permainan” tetap bisa ditulis dari potongan-potongan
+yang dikenal. Inilah sebabnya model bahasa tidak pernah benar-benar
+bertemu kata asing, dan juga sebabnya bahasa dengan sedikit data latih,
+termasuk bahasa Indonesia dibanding bahasa Inggris, sering dipotong
+menjadi lebih banyak token per kata, sehingga lebih mahal diproses.
+Komputasi pelatihan transformer bisa diperkirakan dengan aturan praktis
+<span class="math inline">\(C\approx6ND\)</span> operasi floating point:
 sekitar dua operasi per parameter per token untuk lintasan maju, dan
 sekitar empat untuk lintasan mundur. <span class="citation"
 data-cites="hoffmann2022">Hoffmann dkk. (2022)</span> menunjukkan bahwa
@@ -67,7 +96,7 @@ class="math inline">\(6\times7\times10^{10}\times1{,}4\times10^{12}
 \approx5{,}9\times10^{23}\)</span> operasi. Angka ini menarik
 dibandingkan dengan ambang <span class="math inline">\(10^{25}\)</span>
 operasi yang dipakai AI Act untuk menandai model dengan risiko sistemik
-(<a href="ch51_ai_manusia.html">Bab 31</a>): ambang itu kira-kira tujuh
+(<a href="ch51_ai_manusia.html">Bab 35</a>): ambang itu kira-kira tujuh
 belas kali lebih besar.</p>
 <p>Supaya model raksasa lebih murah dijalankan, arsitektur <em>mixture
 of experts</em> <span class="citation" data-cites="fedus2022">(Fedus,
@@ -87,6 +116,76 @@ class="math inline">\(r=8\)</span>, satu matriks penuh punya sekitar
 16,8 juta parameter, sedangkan koreksinya hanya <span
 class="math inline">\(2\times4096\times8=65\,536\)</span>, kurang dari
 setengah persen.</p>
+<p>Menjalankan model juga punya hitungannya sendiri. Bobot model 70
+miliar parameter dalam presisi 16 bit memakan sekitar 140 gigabyte
+memori. Kuantisasi ke 4 bit menurunkannya menjadi sekitar 35 gigabyte,
+dengan penurunan kualitas yang biasanya kecil. Selama membangkitkan
+teks, transformer menyimpan key dan value semua token sebelumnya agar
+tidak dihitung ulang (<a href="ch04_lstm_transformer.html">Bab 9</a>).
+Untuk model dengan 80 lapisan dan delapan kepala key–value berdimensi
+128, setiap token butuh <span
+class="math inline">\(2\times80\times8\times128\)</span> bilangan, yaitu
+sekitar <span class="math inline">\(0{,}33\)</span> megabyte dalam
+presisi 16 bit. Untuk konteks 128 ribu token, itu sekitar 42 gigabyte,
+lebih dari bobot model yang sudah dikuantisasi. Memori ini, bukan
+komputasi, sering menjadi batas panjang konteks, dan karena itulah
+arsitektur rekuren seperti xLSTM dan Mamba, yang ingatannya berukuran
+tetap, kembali menarik.</p>
+<h2 id="efisiensi-dan-keterbukaan">Efisiensi dan keterbukaan</h2>
+<p>Model terbesar mahal untuk dijalankan, sehingga banyak penerapan
+memakai model yang jauh lebih kecil yang belajar dari model besar.
+<em>Knowledge distillation</em> <span class="citation"
+data-cites="hinton2015">(Hinton, Vinyals, dan Dean 2015)</span> melatih
+model murid untuk meniru distribusi keluaran model guru, bukan hanya
+label yang benar. Kuncinya adalah suhu <span
+class="math inline">\(T\)</span> pada softmax, <span
+class="math inline">\(p_i=e^{z_i/T}/\sum_je^{z_j/T}\)</span>. Untuk
+logit guru <span class="math inline">\((3,1,0)\)</span>, suhu satu
+memberi peluang <span class="math inline">\((0{,}84;\ 0{,}11;\
+0{,}04)\)</span>, hampir sama dengan label one-hot. Suhu tiga memberi
+<span class="math inline">\((0{,}53;\ 0{,}27;\ 0{,}20)\)</span>, yang
+memperlihatkan bahwa menurut guru, kelas kedua jauh lebih mirip dengan
+jawaban yang benar daripada kelas ketiga. Informasi tentang kemiripan
+antar kelas inilah, yang disebut penulisnya <em>dark knowledge</em>,
+yang membuat murid belajar lebih banyak dari setiap contoh. Distilasi,
+kuantisasi, dan pemangkasan bersama-sama membuat model yang dulu butuh
+pusat data bisa berjalan di laptop atau ponsel.</p>
+<p>Model berbobot terbuka juga mengejar model tertutup. DeepSeek-V3
+<span class="citation" data-cites="deepseekv3">(DeepSeek-AI dkk.
+2024)</span> adalah model mixture of experts dengan 671 miliar parameter
+total, tetapi hanya 37 miliar yang aktif untuk setiap token. Laporan
+teknisnya menyebut seluruh pelatihannya membutuhkan sekitar 2,8 juta jam
+GPU, angka yang oleh penulisnya ditonjolkan sebagai hemat untuk model
+sebesar itu, dan kinerjanya dilaporkan sebanding dengan model tertutup
+terkemuka. Bobot model seperti ini bisa diunduh, diperiksa, dan disetel
+siapa saja, dengan segala manfaat dan risiko yang dibahas di <a
+href="ch51c_keselamatan.html">Bab 36</a>.</p>
+<h2 id="mengukur-yang-sulit-diukur">Mengukur yang sulit diukur</h2>
+<p>Benchmark adalah cara bidang ini mengukur kemajuan, dan benchmark
+cepat jenuh. Model mutakhir sudah melampaui 90 persen pada MMLU,
+kumpulan soal pilihan ganda dari puluhan bidang yang beberapa tahun lalu
+dianggap sulit. Humanity’s Last Exam <span class="citation"
+data-cites="phan2025">(Phan dkk. 2025)</span> dirancang sebagai
+jawabannya: 2500 soal dari puluhan bidang, ditulis para ahli di seluruh
+dunia, dengan jawaban yang tidak ambigu, mudah diperiksa otomatis, dan
+tidak bisa ditemukan dengan pencarian internet biasa. Saat diterbitkan,
+model-model terbaik masih mencapai akurasi rendah, dan juga buruk dalam
+menilai seberapa yakin mereka seharusnya.</p>
+<p>Benchmark yang lebih dekat ke pekerjaan nyata juga muncul. SWE-bench
+<span class="citation" data-cites="jimenez2023">(Jimenez dkk.
+2023)</span> berisi 2294 masalah dari isu GitHub sungguhan di dua belas
+repositori Python populer. Model diberi seluruh kode dan deskripsi
+masalahnya, lalu harus mengubah kode itu sehingga uji yang terkait
+lolos, tugas yang menuntut membaca konteks panjang, mengubah beberapa
+berkas sekaligus, dan berinteraksi dengan lingkungan eksekusi, persis
+pekerjaan agen pemrograman di bawah.</p>
+<p>Semua benchmark publik menghadapi masalah yang sama dengan pembagian
+data di <a href="ch01_belajar_dari_data.html">Bab 1</a>: kebocoran.
+Kalau soal-soal benchmark ikut masuk ke data pelatihan yang diambil dari
+internet, skor tinggi tidak lagi mengukur kemampuan, melainkan ingatan.
+Kumpulan soal tersembunyi, soal yang terus diperbarui, dan evaluasi pada
+tugas yang dibuat setelah tanggal batas data pelatihan adalah
+upaya-upaya untuk menjaga agar angka tetap jujur.</p>
 <h2 id="menyelaraskan-model-dengan-manusia">Menyelaraskan model dengan
 manusia</h2>
 <p>Model bahasa yang hanya dilatih menebak kata berikutnya belum tentu
@@ -96,7 +195,7 @@ tiga langkah: penyetelan dengan contoh jawaban yang ditulis manusia,
 pelatihan model ganjaran dari perbandingan pasangan jawaban <span
 class="citation" data-cites="christiano2017">(Christiano dkk.
 2017)</span>, lalu optimasi model bahasa terhadap model ganjaran itu
-dengan PPO (<a href="ch10_rl.html">Bab 12</a>), sambil menjaga agar ia
+dengan PPO (<a href="ch10_rl.html">Bab 16</a>), sambil menjaga agar ia
 tidak terlalu jauh dari model awal.</p>
 <p>Direct preference optimization <span class="citation"
 data-cites="rafailov2023">(Rafailov dkk. 2023)</span> memperlihatkan
@@ -124,7 +223,15 @@ class="math display">\[\mathcal{L}_{\mathrm{DPO}}=-\log\sigma\Big(\beta\log\frac
 x)}{\pi_{\mathrm{ref}}(y_w\mid x)}-\beta\log\frac{\pi_\theta(y_l\mid
 x)}{\pi_{\mathrm{ref}}(y_l\mid x)}\Big),\]</span> sebuah binary
 cross-entropy biasa, tanpa model ganjaran terpisah dan tanpa sampling
-selama pelatihan.</p>
+selama pelatihan. Sebagai gambaran skalanya, kalau selisih ganjaran
+implisit kedua jawaban adalah satu, model Bradley–Terry memberi peluang
+<span class="math inline">\(\sigma(1)\approx0{,}73\)</span> bahwa
+jawaban yang lebih baik memang dipilih, dan loss-nya <span
+class="math inline">\(-\ln0{,}73\approx0{,}31\)</span>. Pelatihan
+mendorong selisih itu membesar, tetapi faktor <span
+class="math inline">\(\beta\)</span> dan rasio terhadap model acuan
+menjaga agar model tidak menjauh terlalu banyak dari bahasa yang
+wajar.</p>
 <h2 id="model-yang-bernalar">Model yang bernalar</h2>
 <p><span class="citation" data-cites="wei2022">Wei dkk. (2022)</span>
 menunjukkan bahwa meminta model menuliskan langkah-langkah penalarannya
@@ -136,10 +243,23 @@ bahwa reinforcement learning dengan ganjaran yang bisa diperiksa secara
 otomatis, misalnya apakah jawaban akhir sebuah soal matematika benar
 atau apakah sebuah program lolos uji, membuat model belajar menulis
 rantai penalaran panjang, memeriksa ulang, dan mencoba jalan lain ketika
-buntu. Pola ini mengingatkan pada pelajaran dari AlphaZero di <a
-href="ch02b_ai_klasik.html">Bab 3</a>: memberi model lebih banyak waktu
-untuk “berpikir” saat menjawab, dengan mencari dan memeriksa, menjadi
-sumbu penskalaan baru di samping ukuran model.</p>
+buntu. Algoritme yang dipakai, GRPO <span class="citation"
+data-cites="shao2024">(Shao dkk. 2024)</span>, adalah varian PPO tanpa
+critic. Untuk setiap soal, model menghasilkan sekelompok jawaban, dan
+keunggulan setiap jawaban diukur relatif terhadap teman sekelompoknya,
+<span class="math inline">\(A_i=(r_i-\bar r)/\mathrm{std}(r)\)</span>.
+Kalau dari empat jawaban dua benar (ganjaran satu) dan dua salah (nol),
+rata-ratanya <span class="math inline">\(0{,}5\)</span>, simpangan
+bakunya <span class="math inline">\(0{,}5\)</span>, dan keunggulannya
+<span class="math inline">\(+1\)</span> untuk yang benar dan <span
+class="math inline">\(-1\)</span> untuk yang salah. Rata-rata kelompok
+menggantikan fungsi nilai sebagai baseline, gagasan yang sama dengan
+baseline pada REINFORCE di <a href="ch10_rl.html">Bab 16</a>, dan model
+nilai yang besar tidak perlu dilatih sama sekali. Pola ini mengingatkan
+pada pelajaran dari AlphaZero di <a href="ch02b_ai_klasik.html">Bab
+5</a>: memberi model lebih banyak waktu untuk “berpikir” saat menjawab,
+dengan mencari dan memeriksa, menjadi sumbu penskalaan baru di samping
+ukuran model.</p>
 <p>Hasilnya terlihat jelas dalam matematika. AlphaGeometry <span
 class="citation" data-cites="trinh2024">(Trinh dkk. 2024)</span>
 menggabungkan model bahasa dengan mesin deduksi simbolik untuk
@@ -161,13 +281,23 @@ parameternya. Agen pemrograman yang bisa membaca kode, menjalankan uji,
 dan memperbaiki kesalahannya sendiri menjadi salah satu penerapan yang
 paling cepat berkembang. Sebagian besar masalah lama muncul kembali
 dalam bentuk baru: credit assignment untuk tugas panjang (<a
-href="ch10_rl.html">Bab 12</a>), galat yang menumpuk sepanjang banyak
+href="ch10_rl.html">Bab 16</a>), galat yang menumpuk sepanjang banyak
 langkah seperti pada rollout simulator (<a href="ch16_operator.html">Bab
-26</a>), dan pertanyaan siapa yang bertanggung jawab ketika agen
-bertindak (<a href="ch51_ai_manusia.html">Bab 31</a>).</p>
+30</a>), dan pertanyaan siapa yang bertanggung jawab ketika agen
+bertindak (<a href="ch51_ai_manusia.html">Bab 35</a>).</p>
+<p>Agen juga mulai keluar dari layar. Model
+<em>vision-language-action</em> seperti RT-2 <span class="citation"
+data-cites="brohan2023">(Brohan dkk. 2023)</span> melatih model
+penglihatan dan bahasa yang sudah dilatih pada data web untuk
+mengeluarkan aksi robot sebagai token, sehingga robot bisa menerima
+perintah seperti “ambil benda yang bisa dipakai sebagai palu” dan
+memanfaatkan pengetahuan umum yang tidak pernah ada di data robotnya. Di
+sini juga, lapisan-lapisan klasik dari <a href="ch33_robot.html">Bab
+21</a>, seperti kendali tingkat rendah dan pengaman, tetap bekerja di
+bawah model besar itu.</p>
 <h2 id="gambar-video-dan-model-dunia">Gambar, video, dan model
 dunia</h2>
-<p>Model difusi dari <a href="ch09_ml_advanced.html">Bab 11</a> menjadi
+<p>Model difusi dari <a href="ch09_ml_advanced.html">Bab 15</a> menjadi
 mesin di balik generator gambar modern. Latent diffusion <span
 class="citation" data-cites="rombach2022">(Rombach dkk. 2021)</span>
 menjalankan difusi di ruang laten sebuah autoencoder, bukan di ruang
@@ -189,9 +319,9 @@ yang baik untuk mengujinya.</p>
 kepada John Hopfield dan Geoffrey Hinton untuk penemuan dasar yang
 memungkinkan machine learning dengan jaringan saraf tiruan, dan setengah
 Hadiah Nobel Kimia diberikan kepada Demis Hassabis dan John Jumper untuk
-prediksi struktur protein (<a href="ch42_protein.html">Bab 20</a>).
+prediksi struktur protein (<a href="ch42_protein.html">Bab 24</a>).
 Jaringan Hopfield yang dihargai itu adalah leluhur langsung jaringan
-Hopfield modern di <a href="ch04_lstm_transformer.html">Bab 6</a>.</p>
+Hopfield modern di <a href="ch04_lstm_transformer.html">Bab 9</a>.</p>
 <p>Di bidang cuaca, model berbasis machine learning seperti GraphCast
 <span class="citation" data-cites="lam2023">(Lam dkk. 2023)</span>,
 GenCast <span class="citation" data-cites="price2025">(Price dkk.
@@ -215,12 +345,12 @@ tetap sulit (<a href="ch01_belajar_dari_data.html">Bab 1</a>). Model
 besar tetap bisa belajar jalan pintas yang salah, dan evaluasi yang
 jujur tetap memerlukan pembagian data yang hati-hati. Optimasi tetap
 bergantung pada condition number dan noise (<a
-href="ch02_optimasi.html">Bab 2</a>). Model generatif tetap bisa
+href="ch02_optimasi.html">Bab 4</a>). Model generatif tetap bisa
 berhalusinasi, sehingga penalaran yang bisa diperiksa dan sumber yang
 bisa dikutip menjadi semakin berharga. Dan sistem yang kuat tetap harus
 dijelaskan dengan jujur kepada orang-orang yang hidupnya terdampak (<a
-href="ch11_xai.html">Bab 13</a> dan <a href="ch51_ai_manusia.html">Bab
-31</a>).</p>
+href="ch11_xai.html">Bab 17</a> dan <a href="ch51_ai_manusia.html">Bab
+35</a>).</p>
 <p>Kalau ada satu benang merah yang saya bawa dari empat semester ini,
 mungkin begini: kemajuan terbesar jarang datang dari membuang apa yang
 sudah diketahui. LSTM bertahan karena constant error carousel adalah
@@ -264,6 +394,13 @@ Opportunities and Risks of Foundation Models.”</span> arXiv:2108.07258.
 <a
 href="https://arxiv.org/abs/2108.07258">https://arxiv.org/abs/2108.07258</a>.
 </div>
+<div id="ref-brohan2023" class="csl-entry" role="listitem">
+Brohan, Anthony, Noah Brown, Justice Carbajal, Yevgen Chebotar, Xi Chen,
+Krzysztof Choromanski, Tianli Ding, dkk. 2023. <span>“RT-2:
+Vision-Language-Action Models Transfer Web Knowledge to Robotic
+Control.”</span> arXiv:2307.15818. <a
+href="https://arxiv.org/abs/2307.15818">https://arxiv.org/abs/2307.15818</a>.
+</div>
 <div id="ref-christiano2017" class="csl-entry" role="listitem">
 Christiano, Paul, Jan Leike, Tom B. Brown, Miljan Martic, Shane Legg,
 dan Dario Amodei. 2017. <span>“Deep reinforcement learning from human
@@ -277,6 +414,12 @@ Capability in LLMs via Reinforcement Learning.”</span> arXiv:2501.12948.
 <a
 href="https://arxiv.org/abs/2501.12948">https://arxiv.org/abs/2501.12948</a>.
 </div>
+<div id="ref-deepseekv3" class="csl-entry" role="listitem">
+DeepSeek-AI, Aixin Liu, Bei Feng, Bing Xue, Bingxuan Wang, Bochao Wu,
+Chengda Lu, dkk. 2024. <span>“DeepSeek-V3 Technical Report.”</span>
+arXiv:2412.19437. <a
+href="https://arxiv.org/abs/2412.19437">https://arxiv.org/abs/2412.19437</a>.
+</div>
 <div id="ref-fedus2022" class="csl-entry" role="listitem">
 Fedus, William, Barret Zoph, dan Noam Shazeer. 2021. <span>“Switch
 Transformers: Scaling to Trillion Parameter Models with Simple and
@@ -287,6 +430,11 @@ href="https://arxiv.org/abs/2101.03961">https://arxiv.org/abs/2101.03961</a>.
 Ha, David, dan Jürgen Schmidhuber. 2018. <span>“World Models.”</span>
 arXiv:1803.10122. <a
 href="https://arxiv.org/abs/1803.10122">https://arxiv.org/abs/1803.10122</a>.
+</div>
+<div id="ref-hinton2015" class="csl-entry" role="listitem">
+Hinton, Geoffrey, Oriol Vinyals, dan Jeff Dean. 2015. <span>“Distilling
+the Knowledge in a Neural Network.”</span> arXiv:1503.02531. <a
+href="https://arxiv.org/abs/1503.02531">https://arxiv.org/abs/1503.02531</a>.
 </div>
 <div id="ref-hoffmann2022" class="csl-entry" role="listitem">
 Hoffmann, Jordan, Sebastian Borgeaud, Arthur Mensch, Elena Buchatskaya,
@@ -300,6 +448,12 @@ Hu, Edward J., Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi
 Li, Shean Wang, Lu Wang, dan Weizhu Chen. 2021. <span>“LoRA: Low-Rank
 Adaptation of Large Language Models.”</span> arXiv:2106.09685. <a
 href="https://arxiv.org/abs/2106.09685">https://arxiv.org/abs/2106.09685</a>.
+</div>
+<div id="ref-jimenez2023" class="csl-entry" role="listitem">
+Jimenez, Carlos E., John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei,
+Ofir Press, dan Karthik Narasimhan. 2023. <span>“SWE-bench: Can Language
+Models Resolve Real-World GitHub Issues?”</span> arXiv:2310.06770. <a
+href="https://arxiv.org/abs/2310.06770">https://arxiv.org/abs/2310.06770</a>.
 </div>
 <div id="ref-kaplan2020" class="csl-entry" role="listitem">
 Kaplan, Jared, Sam McCandlish, Tom Henighan, Tom B. Brown, Benjamin
@@ -353,6 +507,12 @@ Peebles, William, dan Saining Xie. 2022. <span>“Scalable Diffusion
 Models with Transformers.”</span> arXiv:2212.09748. <a
 href="https://arxiv.org/abs/2212.09748">https://arxiv.org/abs/2212.09748</a>.
 </div>
+<div id="ref-phan2025" class="csl-entry" role="listitem">
+Phan, Long, Alice Gatti, Ziwen Han, Nathaniel Li, Josephina Hu, Hugh
+Zhang, Chen Bo Calvin Zhang, dkk. 2025. <span>“Humanity’s Last
+Exam.”</span> arXiv:2501.14249. <a
+href="https://arxiv.org/abs/2501.14249">https://arxiv.org/abs/2501.14249</a>.
+</div>
 <div id="ref-price2025" class="csl-entry" role="listitem">
 Price, Ilan, Alvaro Sanchez-Gonzalez, Ferran Alet, Tom R. Andersson,
 Andrew El-Kadi, Dominic Masters, Timo Ewalds, dkk. 2025.
@@ -379,6 +539,19 @@ Rombach, Robin, Andreas Blattmann, Dominik Lorenz, Patrick Esser, dan
 Björn Ommer. 2021. <span>“High-Resolution Image Synthesis with Latent
 Diffusion Models.”</span> arXiv:2112.10752. <a
 href="https://arxiv.org/abs/2112.10752">https://arxiv.org/abs/2112.10752</a>.
+</div>
+<div id="ref-sennrich2016" class="csl-entry" role="listitem">
+Sennrich, Rico, Barry Haddow, dan Alexandra Birch. 2015. <span>“Neural
+Machine Translation of Rare Words with Subword Units.”</span>
+arXiv:1508.07909. <a
+href="https://arxiv.org/abs/1508.07909">https://arxiv.org/abs/1508.07909</a>.
+</div>
+<div id="ref-shao2024" class="csl-entry" role="listitem">
+Shao, Zhihong, Peiyi Wang, Qihao Zhu, Runxin Xu, Junxiao Song, Xiao Bi,
+Haowei Zhang, dkk. 2024. <span>“DeepSeekMath: Pushing the Limits of
+Mathematical Reasoning in Open Language Models.”</span>
+arXiv:2402.03300. <a
+href="https://arxiv.org/abs/2402.03300">https://arxiv.org/abs/2402.03300</a>.
 </div>
 <div id="ref-touvron2023" class="csl-entry" role="listitem">
 Touvron, Hugo, Thibaut Lavril, Gautier Izacard, Xavier Martinet,
@@ -421,7 +594,7 @@ class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </section>
 </main>
 <nav class="pager">
-  <a class="prev" href="ch51_ai_manusia.html"><span>Sebelumnya</span>AI, Hukum, dan Manusia</a>
+  <a class="prev" href="ch51b_kuantum.html"><span>Sebelumnya</span>Informasi Kuantum dan Machine Learning Kuantum</a>
   <a class="next" href="lampA_glosarium.html"><span>Berikutnya</span>Glosarium</a>
 </nav>
 <footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>

@@ -1,0 +1,162 @@
+\chapter{Informasi Kuantum dan Machine Learning Kuantum}
+\label{ch:kuantum}
+
+Pada musim panas 2025 saya mengikuti kuliah Quantum Information dari Johannes Kofler, dengan delapan tugas yang membawa kami dari
+keadaan satu qubit sampai keterkaitan, teleportasi, dan pengukuran kuantum yang presisi. Naskah kuliahnya dibuka dengan kalimat
+yang menjadi tema seluruh bab ini: informasi itu fisis. Ia selalu dibawa oleh benda fisik, dan kalau benda itu mengikuti hukum
+mekanika kuantum, aturan pengolahan informasinya ikut berubah. Bab ini merangkum kuliah itu, lalu melihat apa yang terjadi ketika
+gagasan-gagasannya bertemu dengan machine learning, dengan bantuan catatan kuliah Quantum Computing dari Richard Kueng dan buku
+\citet{schuld2021}.
+
+\section{Qubit}
+
+Bit klasik bernilai 0 atau 1. Qubit adalah sistem dua keadaan yang bisa berada dalam superposisi,
+\begin{equation}
+\ket{\psi}=\alpha\ket0+\beta\ket1,\qquad |\alpha|^2+|\beta|^2=1,
+\end{equation}
+dengan amplitudo kompleks $\alpha$ dan $\beta$. Mengukur qubit di basis $\{\ket0,\ket1\}$ memberi hasil 0 dengan peluang $|\alpha|^2$ dan
+1 dengan peluang $|\beta|^2$, aturan Born, dan setelah pengukuran keadaannya runtuh ke hasil yang terukur. Untuk
+$\ket+=(\ket0+\ket1)/\sqrt2$, kedua hasil sama mungkin. Superposisi bukan sekadar ketidaktahuan tentang keadaan yang sebenarnya
+sudah tertentu, dan perbedaannya terlihat lewat interferensi.
+
+Gerbang kuantum adalah matriks uniter. Gerbang Hadamard,
+$H=\tfrac1{\sqrt2}\begin{pmatrix}1&1\\1&-1\end{pmatrix}$, mengubah $\ket0$ menjadi $\ket+$ dan $\ket1$ menjadi
+$\ket-=(\ket0-\ket1)/\sqrt2$. Terapkan $H$ dua kali pada $\ket0$: hasil pertama $\ket+$, hasil kedua
+$\tfrac1{\sqrt2}(H\ket0+H\ket1)=\tfrac12\big[(\ket0+\ket1)+(\ket0-\ket1)\big]=\ket0$. Amplitudo untuk $\ket1$ dari dua jalur saling
+menghapus, sedangkan amplitudo untuk $\ket0$ saling menguatkan. Kalau superposisi hanya berarti ``koin yang belum dilihat'', koin
+acak yang dilempar dua kali tetap acak. Qubit kembali pasti ke $\ket0$. Naskah kuliah memakai interferometer Mach--Zehnder dan
+percobaan celah ganda untuk menunjukkan gejala yang sama dengan foton sungguhan, termasuk teka-teki bom Elitzur--Vaidman, di
+mana keberadaan sebuah bom bisa dideteksi tanpa satu foton pun menyentuhnya.
+
+Keadaan sebuah qubit bisa digambar sebagai titik pada bola Bloch. Kutub utara adalah $\ket0$, kutub selatan $\ket1$, dan khatulistiwa
+berisi superposisi sama rata dengan fase berbeda, termasuk $\ket+$ dan $\ket-$. Gerbang satu qubit adalah rotasi bola itu.
+
+\section{Banyak qubit dan keterkaitan}
+
+Keadaan $n$ qubit hidup di ruang berdimensi $2^n$, hasil kali tensor ruang setiap qubit. Lima puluh qubit sudah membutuhkan
+$2^{50}\approx10^{15}$ amplitudo kompleks untuk ditulis lengkap, lebih dari memori komputer biasa. Inilah alasan sistem kuantum
+sulit disimulasikan secara klasik, dan sekaligus alasan Feynman mengusulkan komputer kuantum untuk menyimulasikan alam.
+
+Sebagian keadaan banyak qubit tidak bisa ditulis sebagai hasil kali keadaan masing-masing qubit. Keadaan Bell
+\begin{equation}
+\ket{\Phi^+}=\tfrac1{\sqrt2}\big(\ket{00}+\ket{11}\big)
+\end{equation}
+adalah contohnya. Kalau ia hasil kali $(a\ket0+b\ket1)(c\ket0+d\ket1)$, koefisien $\ket{01}$, yaitu $ad$, harus nol, sehingga $a$ atau $d$
+nol, padahal koefisien $\ket{00}=ac$ dan $\ket{11}=bd$ sama-sama bukan nol. Kontradiksi. Keadaan seperti ini disebut \istilah{entangled}.
+Mengukur qubit pertama memberi 0 atau 1 secara acak, tetapi qubit kedua selalu memberi hasil yang sama, sejauh apa pun keduanya
+dipisahkan. Keadaan Bell dibuat dengan dua gerbang: Hadamard pada qubit pertama, lalu CNOT yang membalik qubit kedua kalau qubit
+pertama bernilai 1.
+
+Qubit yang terkait tidak punya keadaan sendiri. Matriks densitas tereduksi dari satu qubit $\ket{\Phi^+}$ adalah $\tfrac12\bm I$, campuran
+sempurna, dengan entropi von Neumann satu bit, padahal keadaan keseluruhannya murni dengan entropi nol. Informasi tersimpan
+seluruhnya di korelasi, tidak di bagian-bagiannya. Entropi von Neumann adalah perluasan entropi Shannon (\cref{lamp:matematika})
+ke keadaan kuantum, dihitung dari nilai eigen matriks densitas. Interaksi yang tidak terkendali dengan lingkungan menciptakan
+keterkaitan semacam ini antara qubit dan lingkungannya, sehingga qubit kehilangan superposisinya dan berperilaku seperti bit klasik
+acak. Proses ini, \istilah{decoherence}, adalah musuh utama komputer kuantum.
+
+\section{Apa yang tidak bisa dan bisa dilakukan}
+
+Teorema \istilah{no-cloning} menyatakan bahwa keadaan kuantum yang tidak diketahui tidak bisa disalin. Pembuktiannya hanya butuh
+linearitas. Misalkan ada mesin uniter yang menyalin, $U\ket\psi\ket s=\ket\psi\ket\psi$ untuk setiap $\ket\psi$. Maka ia menyalin $\ket0$
+dan $\ket1$. Karena linear, ia memetakan $(\ket0+\ket1)/\sqrt2$ ke $(\ket{00}+\ket{11})/\sqrt2$, padahal salinan yang benar adalah
+$\tfrac12(\ket0+\ket1)(\ket0+\ket1)$, yang memuat suku $\ket{01}$ dan $\ket{10}$. Keduanya berbeda, sehingga mesin seperti itu tidak ada.
+Sifat ini membuat informasi kuantum tidak bisa disadap tanpa meninggalkan jejak, dasar dari distribusi kunci kuantum.
+
+Keterkaitan membuka protokol yang tidak punya padanan klasik. Pada \istilah{superdense coding}, dua orang yang sudah berbagi pasangan
+Bell bisa mengirim dua bit klasik dengan mengirim hanya satu qubit. Pada \istilah{teleportation}, keadaan sebuah qubit yang tidak
+diketahui dipindahkan dari satu tempat ke tempat lain dengan memakai satu pasangan Bell dan mengirim dua bit klasik. Keadaan aslinya
+hancur dalam proses itu, sesuai no-cloning, dan karena bit klasik harus dikirim, tidak ada informasi yang bergerak lebih cepat dari
+cahaya.
+
+\section{Bell dan dunia yang tidak lokal}
+
+Einstein, Podolsky, dan Rosen berargumen pada 1935 bahwa korelasi sempurna pada keadaan terkait berarti hasil pengukuran sudah
+ditentukan sebelumnya oleh ``variabel tersembunyi''. Bell menunjukkan bahwa gagasan itu bisa diuji. Dalam bentuk CHSH, dua pihak
+masing-masing memilih satu dari dua pengaturan pengukuran, $a$ atau $a'$ dan $b$ atau $b'$, dan mencatat hasil $\pm1$. Untuk teori
+apa pun yang realis dan lokal, kombinasi korelasi
+\begin{equation}
+S=E(a,b)+E(a,b')+E(a',b)-E(a',b')
+\end{equation}
+tidak bisa melebihi 2. Alasannya bisa diperiksa langsung. Kalau setiap hasil sudah tertentu sebelumnya, $S$ untuk satu kejadian
+sama dengan $A(B+B')+A'(B-B')$, dan karena $B,B'\in\{\pm1\}$, salah satu dari $B+B'$ dan $B-B'$ bernilai nol dan yang lain $\pm2$,
+sehingga nilainya $\pm2$. Rata-ratanya pun tidak bisa melewati 2. Mekanika kuantum dengan keadaan Bell dan sudut pengukuran yang
+tepat memberi $S=2\sqrt2\approx2{,}83$. Percobaan-percobaan yang semakin bersih selama setengah abad memperlihatkan pelanggaran ini,
+dan Hadiah Nobel Fisika 2022 diberikan kepada Alain Aspect, John Clauser, dan Anton Zeilinger untuk percobaan dengan foton yang
+terkait. Kuliah menghubungkannya dengan distribusi kunci kuantum berbasis keterkaitan: penyadap yang mengganggu pasangan foton akan
+menurunkan nilai $S$, dan penurunan itu bisa dideteksi.
+
+\section{Algoritme kuantum}
+
+Algoritme pertama yang dibahas kuliah adalah algoritme Deutsch. Diberikan fungsi rahasia $f:\{0,1\}\to\{0,1\}$, tentukan apakah $f$
+konstan atau seimbang. Secara klasik, $f$ harus ditanya dua kali. Dengan rangkaian kuantum yang memakai Hadamard di awal dan di
+akhir, satu pertanyaan sudah cukup, karena kedua nilai $f$ masuk ke fase superposisi dan interferensi di akhir mengubah beda fase itu
+menjadi hasil pengukuran yang pasti. Hasilnya tidak berguna secara praktis, tetapi polanya, superposisi lalu fase lalu interferensi,
+adalah resep di balik semua algoritme kuantum.
+
+Algoritme Grover mencari satu entri di antara $N$ yang tidak terurut dengan sekitar $\tfrac\pi4\sqrt N$ pertanyaan, sedangkan pencarian
+klasik butuh rata-rata $N/2$. Untuk sejuta entri, sekitar 785 pertanyaan dibanding setengah juta. Percepatannya kuadratik, bukan
+eksponensial. Algoritme Shor memfaktorkan bilangan bulat jauh lebih cepat dari algoritme klasik terbaik yang diketahui, sehingga
+mengancam kriptografi RSA, dan karena itulah kriptografi pascakuantum kini sedang dibakukan. Kedua algoritme membutuhkan qubit yang
+jauh lebih banyak dan jauh lebih bebas galat daripada yang tersedia sekarang. Perangkat saat ini, dengan puluhan sampai ratusan qubit
+yang berisik, oleh \citet{preskill2018} dinamai era NISQ, \emph{noisy intermediate-scale quantum}.
+
+\section{Mengukur dengan presisi kuantum}
+
+Bab terakhir naskah kuliah membahas metrologi kuantum, yang menyambung langsung ke teori estimasi di \cref{ch:sinyal}. Untuk menaksir
+sebuah fase $\varphi$ dengan $N$ probe yang independen, galatnya turun seperti $1/\sqrt N$, batas yang disebut \emph{standard quantum
+limit}. Inilah varians rata-rata dari \cref{lamp:matematika}, dalam bahasa fisika. Kalau $N$ probe dibuat saling terkait, fasenya
+terkumpul $N$ kali lebih cepat, dan galatnya bisa turun seperti $1/N$, batas Heisenberg. Dengan sejuta foton, selisihnya seribu
+kali. Batas-batas ini dirumuskan dengan informasi Fisher kuantum dan batas Cramér--Rao, alat yang sama dengan CRLB di
+\cref{ch:sinyal}. Detektor gelombang gravitasi sudah memakai cahaya dengan keadaan kuantum khusus untuk menekan noise di bawah batas
+klasik.
+
+\section{Machine learning dengan komputer kuantum}
+
+Pertemuan antara komputasi kuantum dan machine learning berjalan ke dua arah. Machine learning dipakai untuk mengendalikan dan
+mengkalibrasi perangkat kuantum, membaca hasil pengukuran yang berisik, dan menyimulasikan sistem kuantum, seperti FermiNet di
+\cref{ch:fiskom}. Arah sebaliknya, komputer kuantum untuk machine learning, adalah pokok buku \citet{schuld2021}.
+
+Langkah pertama selalu memasukkan data klasik ke keadaan kuantum. \emph{Basis encoding} menulis bit-bit data sebagai keadaan basis.
+\emph{Amplitude encoding} menyimpan vektor $2^n$ dimensi sebagai amplitudo $n$ qubit. Sepuluh qubit memuat vektor 1024 dimensi.
+\emph{Angle encoding} memakai setiap fitur sebagai sudut rotasi satu qubit. Pilihan ini bukan detail teknis, karena ia menentukan fungsi
+apa yang bisa dihitung model, dan menyiapkan keadaan dengan amplitude encoding secara umum mahal, sehingga keuntungan eksponensial
+dari penyimpanan yang padat bisa hilang di langkah ini.
+
+Model yang paling banyak diteliti untuk perangkat NISQ adalah \istilah{variational quantum circuit}: rangkaian dengan sudut rotasi yang
+menjadi parameter, keluaran berupa nilai harapan sebuah pengukuran, dan parameter yang dioptimasi oleh komputer klasik. Gradien
+dihitung dengan \istilah{parameter-shift rule}. Untuk gerbang rotasi $e^{-i\theta P/2}$ dengan $P$ matriks Pauli, nilai harapan keluaran
+adalah fungsi sinusoidal dari $\theta$, $f(\theta)=A+B\cos\theta+C\sin\theta$, dan turunannya bisa dihitung tepat dari dua evaluasi
+rangkaian yang sama,
+\begin{equation}
+\frac{\partial f}{\partial\theta}=\frac{f(\theta+\tfrac\pi2)-f(\theta-\tfrac\pi2)}2 .
+\end{equation}
+Memeriksanya mudah: $\cos(\theta\pm\pi/2)=\mp\sin\theta$ dan $\sin(\theta\pm\pi/2)=\pm\cos\theta$, sehingga selisihnya dibagi dua adalah
+$-B\sin\theta+C\cos\theta$, tepat turunan $f$. Berbeda dengan beda hingga, aturan ini eksak, bukan aproksimasi.
+
+Cara pandang kedua menghubungkan semua ini dengan \cref{ch:teori}. Peta fitur kuantum $\vx\mapsto\ket{\phi(\vx)}$ mendefinisikan kernel
+$k(\vx,\vx')=|\braket{\phi(\vx)}{\phi(\vx')}|^2$, yang bisa ditaksir dengan mengukur tumpang tindih dua keadaan
+\citep{havlicek2019}. Model kuantum yang dilatih dengan cara ini adalah metode kernel, sehingga teorema representer, regularisasi,
+dan analisis generalisasinya berlaku. Pertanyaannya bergeser menjadi: apakah ada kernel yang berguna untuk data nyata, mudah dihitung
+dengan komputer kuantum, dan sulit dihitung dengan komputer klasik?
+
+Kuliah dan bacaannya juga jujur tentang hambatannya. Rangkaian variasional yang acak dan dalam punya lanskap loss yang hampir datar di
+mana-mana, \emph{barren plateau} \citep{mcclean2018}: gradiennya mengecil eksponensial terhadap jumlah qubit, masalah vanishing gradient
+dari \cref{ch:lstm} dalam bentuk yang lebih parah. Noise perangkat menambah galat pada setiap evaluasi. Memuat data klasik bisa
+menghabiskan keuntungan apa pun. Dan untuk banyak tugas, belum ada bukti bahwa model kuantum lebih baik dari model klasik yang
+dirancang dengan baik. Tempat yang paling menjanjikan untuk keunggulan kuantum barangkali bukan data klasik seperti gambar atau teks,
+melainkan data yang memang kuantum sejak awal, dari sensor kuantum atau simulasi sistem kuantum.
+
+\section{Perkembangan riset}
+
+Perangkat kuantum berkembang cepat, dengan perhatian utama pada koreksi galat: banyak qubit fisik yang berisik digabung menjadi
+satu qubit logis yang lebih andal, dan percobaan-percobaan terbaru mulai memperlihatkan bahwa galat logis bisa turun ketika ukuran
+kode koreksi dinaikkan. Machine learning ikut berperan di sini, misalnya untuk men-decode sindrom galat dengan cepat. Pada saat yang
+sama, banyak klaim keunggulan kuantum untuk tugas tertentu kemudian disusul oleh algoritme klasik yang lebih baik, sehingga bidang
+ini sedang belajar membedakan percepatan yang mendasar dari percepatan yang hanya mencerminkan algoritme klasik yang belum optimal.
+Sikap yang sehat, seperti di bagian-bagian lain buku ini, adalah membandingkan dengan pembanding klasik terbaik, bukan yang
+termudah.
+
+\sumberbab{Bab ini mengikuti naskah kuliah Quantum Information (keadaan dan pengukuran kuantum, percobaan satu qubit, keadaan banyak
+qubit dan gerbang, no-cloning, superdense coding, teleportasi, ketaksamaan Bell dan distribusi kunci kuantum, keadaan campuran dan
+dekoherensi, entropi, kanal kuantum, metrologi kuantum). Bacaan pendamping: catatan kuliah Introduction to Quantum Computing,
+\citet{nielsen2010}, dan untuk machine learning kuantum \citet{schuld2021}.}

@@ -18,7 +18,7 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 2</p>
+<p class="chapnum">Bab 4</p>
 <h1>Optimasi: Turun Gunung dalam Kabut</h1>
 <p><span id="ch:optimasi" data-label="ch:optimasi"></span></p>
 <p>Optimizer sudah saya pakai sejak tugas deep learning di semester
@@ -148,7 +148,7 @@ satu langkah.</p>
 <p>Itulah inti masalah optimasi dalam praktik. Gradient descent lambat
 bukan karena fungsinya rumit, melainkan karena skala arah-arahnya
 berbeda jauh. Pada lembah yang lonjong, lintasannya berzig-zag
-menyeberangi lembah alih-alih berjalan menyusurinya (Gambar 2.1).</p>
+menyeberangi lembah alih-alih berjalan menyusurinya (Gambar 4.1).</p>
 <figure id="fig:zigzag">
 <img src="fig/bd77fb3b799a.svg" />
 <figcaption>Pada lembah lonjong, gradient descent berzig-zag. Momentum
@@ -171,9 +171,36 @@ penurunan yang dijanjikan oleh garis singgung. Prosedur
 <em>backtracking</em> memulai dari <span
 class="math inline">\(\alpha=1\)</span> lalu terus mengalikannya dengan
 sebuah faktor <span class="math inline">\(\beta\in(0,1)\)</span> sampai
-syarat itu terpenuhi. Di deep learning, line search jarang dipakai,
-karena setiap evaluasi <span class="math inline">\(f\)</span> berarti
-melewati seluruh data. Gagasannya muncul kembali dalam L-BFGS.</p>
+syarat itu terpenuhi.</p>
+<p>Syarat Armijo saja bisa dipenuhi oleh langkah yang kecil sekali,
+karena langkah kecil hampir selalu menurunkan fungsi sedikit. Syarat
+Wolfe menambahkan syarat kelengkungan, <span
+class="math inline">\(\nabla f(\boldsymbol{x}_k+\alpha\boldsymbol
+d_k)^\top\boldsymbol d_k\ge c_2\nabla
+f(\boldsymbol{x}_k)^\top\boldsymbol d_k\)</span> dengan <span
+class="math inline">\(c&lt;c_2&lt;1\)</span>: di titik baru, kemiringan
+sepanjang arah langkah harus sudah jauh lebih landai daripada di titik
+awal. Langkah yang terlalu pendek, yang masih berada di bagian curam,
+ditolak. Kedua syarat bersama menjepit panjang langkah dari dua
+sisi.</p>
+<p>Contoh dengan angka membantu. Ambil <span
+class="math inline">\(f(x)=x^2\)</span> di <span
+class="math inline">\(x_0=1\)</span> dengan arah <span
+class="math inline">\(d=-f&#39;(1)=-2\)</span> dan <span
+class="math inline">\(c=10^{-4}\)</span>. Langkah <span
+class="math inline">\(\alpha=1\)</span> membawa ke <span
+class="math inline">\(x=-1\)</span>, dengan <span
+class="math inline">\(f=1\)</span>, tidak turun sama sekali, sehingga
+ditolak. Dengan <span class="math inline">\(\beta=\tfrac12\)</span>,
+langkah <span class="math inline">\(\alpha=\tfrac12\)</span> membawa
+tepat ke <span class="math inline">\(x=0\)</span>, dengan <span
+class="math inline">\(f=0\)</span>. Syarat Armijo meminta <span
+class="math inline">\(f\le1-10^{-4}\cdot\tfrac12\cdot4\approx0{,}9998\)</span>,
+dan terpenuhi. Backtracking berhenti setelah satu kali mengecilkan
+langkah, dan kebetulan mendarat tepat di minimum. Di deep learning, line
+search jarang dipakai, karena setiap evaluasi <span
+class="math inline">\(f\)</span> berarti melewati seluruh data.
+Gagasannya muncul kembali dalam L-BFGS.</p>
 <h2 id="metode-newton-dan-kerabatnya">Metode Newton dan kerabatnya</h2>
 <p>Metode Newton memanfaatkan kelengkungan. Ia meminimalkan model
 kuadrat lokal <span class="math inline">\(f(\boldsymbol{x}_k)+\nabla
@@ -196,7 +223,33 @@ L-BFGS, membangun aproksimasi Hessian dari selisih gradien beberapa
 iterasi terakhir <span class="citation"
 data-cites="nocedal2006">(Nocedal dan Wright 2006)</span>. L-BFGS
 populer untuk masalah deterministik berukuran sedang, termasuk tahap
-akhir pelatihan PINN.</p>
+akhir pelatihan PINN. Gagasannya bertumpu pada <em>secant
+condition</em>: aproksimasi Hessian yang baru, <span
+class="math inline">\(\boldsymbol B_{k+1}\)</span>, harus memetakan
+langkah terakhir <span class="math inline">\(\boldsymbol
+s_k=\boldsymbol{x}_{k+1}-\boldsymbol{x}_k\)</span> ke perubahan gradien
+yang teramati, <span class="math inline">\(\boldsymbol y_k=\nabla
+f(\boldsymbol{x}_{k+1})-\nabla f(\boldsymbol{x}_k)\)</span>, yaitu <span
+class="math inline">\(\boldsymbol B_{k+1}\boldsymbol s_k=\boldsymbol
+y_k\)</span>. Dalam satu dimensi, syarat ini tidak lain adalah turunan
+kedua yang ditaksir dengan beda hingga dari dua gradien. BFGS memilih,
+di antara semua matriks yang memenuhi syarat itu, yang paling dekat
+dengan aproksimasi sebelumnya, dan L-BFGS hanya menyimpan sepuluh sampai
+dua puluh pasangan <span class="math inline">\((\boldsymbol
+s,\boldsymbol y)\)</span> terakhir alih-alih matriks penuh.</p>
+<p>Kuliah deep learning juga membahas dua cara lain memanfaatkan
+kelengkungan. Metode <em>conjugate gradient</em> memilih arah-arah yang
+saling “konjugat” terhadap Hessian, sehingga langkah di satu arah tidak
+merusak kemajuan di arah-arah sebelumnya. Untuk fungsi kuadrat
+berdimensi <span class="math inline">\(N\)</span>, ia mencapai minimum
+eksak dalam paling banyak <span class="math inline">\(N\)</span>
+langkah, dan dalam praktik galatnya menyusut dengan faktor sekitar <span
+class="math inline">\((\sqrt\kappa-1)/(\sqrt\kappa+1)\)</span> per
+langkah. Metode <em>trust region</em> membalik urutan pertanyaan line
+search. Alih-alih memilih arah lalu panjang langkah, ia menetapkan
+jari-jari kepercayaan, mencari langkah terbaik untuk model kuadrat di
+dalam jari-jari itu, lalu memperbesar jari-jarinya kalau model ternyata
+meramal penurunan dengan baik dan memperkecilnya kalau tidak.</p>
 <h2 id="stochastic-gradient-descent">Stochastic gradient descent</h2>
 <p>Dalam machine learning, <span class="math inline">\(f\)</span> adalah
 rata-rata loss atas <span class="math inline">\(N\)</span> contoh, jadi
@@ -246,7 +299,22 @@ konsisten menumpuk. Gradient descent biasa mirip orang yang berhenti
 total di setiap langkah lalu melihat lagi ke mana arah turun. Momentum
 mirip bola yang menggelinding: ia membawa kecepatannya, tidak langsung
 berbalik karena satu gundukan kecil, dan melaju lebih cepat di lereng
-yang panjang. Zig-zag di Gambar 2.1 teredam dengan cara ini.</p>
+yang panjang. Zig-zag di Gambar 4.1 teredam dengan cara ini.</p>
+<p>Berapa besar keuntungannya? Untuk fungsi kuadrat dengan condition
+number <span class="math inline">\(\kappa\)</span>, heavy ball dengan
+<span class="math inline">\(\alpha\)</span> dan <span
+class="math inline">\(\beta\)</span> yang dipilih optimal menyusutkan
+galat dengan faktor sekitar <span
+class="math inline">\((\sqrt\kappa-1)/(\sqrt\kappa+1)\)</span> per
+langkah, bukan <span
+class="math inline">\((\kappa-1)/(\kappa+1)\)</span>. Untuk <span
+class="math inline">\(\kappa=100\)</span> dari contoh di atas, faktornya
+<span class="math inline">\(9/11\)</span> alih-alih <span
+class="math inline">\(99/101\)</span>, dan jumlah langkah untuk
+mengecilkan galat sejuta kali turun dari sekitar 690 menjadi sekitar
+<span class="math inline">\(\ln(10^{-6})/\ln(9/11)\approx69\)</span>.
+Momentum mengganti <span class="math inline">\(\kappa\)</span> dengan
+akarnya, sama seperti conjugate gradient.</p>
 <p>Masalah condition number juga bisa diserang dengan memberi setiap
 parameter laju belajarnya sendiri. AdaGrad membagi langkah dengan akar
 jumlah kuadrat gradien masa lalu, RMSProp memakai rata-rata bergerak
@@ -305,6 +373,58 @@ data-cites="loshchilov2019">(Loshchilov dan Hutter 2017)</span>.</p>
 langkah, lalu menurun perlahan, misalnya mengikuti kurva kosinus.
 Warm-up mencegah langkah awal yang terlalu agresif ketika statistik Adam
 belum stabil.</p>
+<p>Untuk jaringan rekuren, kadang gradien tiba-tiba membesar ribuan kali
+karena perkalian berulang melewati banyak langkah waktu (<a
+href="ch04_lstm_transformer.html">Bab 9</a>). Satu langkah dengan
+gradien seperti itu bisa melempar bobot jauh dari daerah yang baik.
+<em>Gradient clipping</em> menskalakan ulang gradien kalau normanya
+melebihi ambang <span class="math inline">\(\tau\)</span>: <span
+class="math inline">\(\boldsymbol g\leftarrow\boldsymbol
+g\cdot\min\big(1,\tau/\|\boldsymbol g\|\big)\)</span>. Arahnya
+dipertahankan, hanya panjangnya dibatasi. Gradien dengan norma 50 dan
+ambang 5 diperkecil sepuluh kali. Langkah ini murah dan menjadi bagian
+standar pelatihan model bahasa.</p>
+<p>Seberapa besar mini-batch yang sebaiknya dipakai? Karena gradien
+mini-batch adalah rata-rata <span class="math inline">\(B\)</span>
+gradien yang hampir independen, variansnya menyusut seperti <span
+class="math inline">\(1/B\)</span>, dan simpangan bakunya seperti <span
+class="math inline">\(1/\sqrt B\)</span>. Batch empat kali lebih besar
+hanya mengurangi noise separuhnya, padahal biayanya empat kali lipat.
+Aturan praktis yang sering dipakai, menaikkan laju belajar sebanding
+dengan ukuran batch, berasal dari pengamatan bahwa yang menentukan
+dinamika SGD adalah perbandingan laju belajar terhadap ukuran batch,
+setidaknya selama batch belum terlalu besar.</p>
+<h2 id="optimasi-dengan-kendala">Optimasi dengan kendala</h2>
+<p>Banyak masalah punya kendala: parameter harus positif, jumlah peluang
+harus satu, anggaran tidak boleh terlampaui. Untuk kendala persamaan
+<span class="math inline">\(h(\boldsymbol{x})=0\)</span>, metode pengali
+Lagrange menyatakan bahwa di optimum, gradien fungsi tujuan harus
+sejajar dengan gradien kendala, <span class="math inline">\(\nabla
+f(\boldsymbol{x}^*)=\lambda\nabla h(\boldsymbol{x}^*)\)</span>.
+Alasannya geometris: kalau <span class="math inline">\(\nabla f\)</span>
+punya komponen yang menyinggung permukaan kendala, kita masih bisa
+bergeser sepanjang permukaan itu dan menurunkan <span
+class="math inline">\(f\)</span>.</p>
+<p>Contoh paling sederhana: minimalkan <span
+class="math inline">\(x^2+y^2\)</span> dengan syarat <span
+class="math inline">\(x+y=1\)</span>, yaitu titik terdekat ke asal di
+sebuah garis. Syarat Lagrange memberi <span
+class="math inline">\((2x,2y)=\lambda(1,1)\)</span>, sehingga <span
+class="math inline">\(x=y\)</span>, dan dari kendala <span
+class="math inline">\(x=y=\tfrac12\)</span>, dengan <span
+class="math inline">\(\lambda=1\)</span>. Pengali Lagrange punya arti:
+ia adalah laju perubahan nilai optimum ketika kendala dilonggarkan.
+Kalau syaratnya menjadi <span
+class="math inline">\(x+y=1+\varepsilon\)</span>, nilai optimumnya <span
+class="math inline">\((1+\varepsilon)^2/2\approx\tfrac12+\varepsilon\)</span>,
+naik dengan laju <span class="math inline">\(\lambda=1\)</span>. Inilah
+harga bayangan yang sama dengan variabel dual dalam program linear (<a
+href="ch02b_ai_klasik.html">Bab 5</a>). Untuk kendala pertidaksamaan,
+syarat Karush–Kuhn–Tucker menambahkan bahwa pengali harus nonnegatif dan
+nol untuk kendala yang tidak aktif. Di deep learning, kendala biasanya
+ditangani dengan cara yang lebih kasar: suku penalti di loss, atau
+reparameterisasi, misalnya menulis parameter positif sebagai eksponen
+dari parameter bebas.</p>
 <h2 id="lanskap-loss-jaringan-dalam">Lanskap loss jaringan dalam</h2>
 <p>Lanskap loss jaringan dalam ternyata berbeda dari intuisi dimensi
 rendah. Untuk fungsi acak di dimensi tinggi, sebagian besar titik kritis
@@ -321,10 +441,10 @@ condition number yang sama muncul di banyak tempat dalam buku ini dengan
 nama yang berbeda. Filter adaptif LMS dalam pemrosesan sinyal adalah SGD
 dengan mini-batch satu sampel, dan kecepatan konvergensinya ditentukan
 oleh sebaran nilai eigen matriks autokorelasi input (<a
-href="ch30_sinyal.html">Bab 14</a>). Algoritme RLS, yang memperbarui
+href="ch30_sinyal.html">Bab 18</a>). Algoritme RLS, yang memperbarui
 invers matriks itu, adalah kerabat metode Newton. Faktorisasi matriks
 dalam sistem rekomendasi dilatih dengan SGD (<a
-href="ch50_rekomendasi.html">Bab 30</a>), dan model molekul dilatih
+href="ch50_rekomendasi.html">Bab 34</a>), dan model molekul dilatih
 dengan Adam seperti jaringan lain.</p>
 <p>Di simulasi, loss sebuah PINN adalah jumlah beberapa suku: residu
 persamaan diferensial, syarat batas, syarat awal, dan data. Suku-suku
@@ -336,7 +456,42 @@ sehingga jaringan memenuhi persamaan di dalam domain tetapi melupakan
 syarat batasnya. Resep yang sering dipakai adalah memulai dengan Adam
 untuk keluar dari daerah awal yang buruk, melanjutkan dengan L-BFGS
 untuk turun tajam ke minimum, dan menyeimbangkan bobot suku-suku loss
-secara adaptif (<a href="ch15_pinn.html">Bab 25</a>).</p>
+secara adaptif (<a href="ch15_pinn.html">Bab 29</a>).</p>
+<h2 id="perkembangan-riset">Perkembangan riset</h2>
+<p>Teori di awal bab ini meramalkan bahwa gradient descent dengan
+langkah <span class="math inline">\(\eta\)</span> hanya stabil kalau
+kelengkungan terbesar <span class="math inline">\(L\)</span> lebih kecil
+dari <span class="math inline">\(2/\eta\)</span>. <span class="citation"
+data-cites="cohen2021">Cohen dkk. (2021)</span> mengamati sesuatu yang
+aneh pada pelatihan jaringan saraf dengan gradien penuh. Kelengkungan
+terbesar Hessian naik selama pelatihan sampai menyentuh <span
+class="math inline">\(2/\eta\)</span>, lalu berhenti di sana dan
+melayang tepat di atas batas itu. Loss naik-turun dalam jangka pendek,
+tetapi tetap turun dalam jangka panjang. Rezim ini dinamai <em>edge of
+stability</em>. Jaringan seolah menyesuaikan lanskapnya sendiri dengan
+langkah yang dipakai, sesuatu yang tidak diramalkan analisis klasik
+dengan <span class="math inline">\(L\)</span> tetap.</p>
+<p>Optimizer baru terus bermunculan. Lion <span class="citation"
+data-cites="chen2023lion">(Chen dkk. 2023)</span> ditemukan bukan oleh
+manusia, melainkan oleh pencarian program otomatis atas ruang algoritme
+optimasi. Hasilnya ternyata sederhana sekali: hanya menyimpan momentum,
+lalu memperbarui setiap parameter dengan tanda dari campuran momentum
+dan gradien, <span
+class="math inline">\(\boldsymbol{w}\leftarrow\boldsymbol{w}-\eta\,\mathrm{sign}(\boldsymbol
+c)\)</span>. Semua parameter bergerak dengan besar langkah yang sama,
+dan memorinya separuh Adam karena tidak menyimpan rata-rata kuadrat
+gradien. Muon mengambil sudut pandang matriks: pembaruan untuk satu
+matriks bobot dibuat ortogonal sebelum diterapkan, sehingga semua arah
+singular bergerak sama cepat. <span class="citation"
+data-cites="liu2025muon">Liu dkk. (2025)</span> melaporkan bahwa dengan
+weight decay dan penskalaan per parameter yang tepat, Muon mencapai
+efisiensi komputasi sekitar dua kali AdamW dalam pelatihan model bahasa
+besar. Schedule-Free <span class="citation"
+data-cites="defazio2024">(Defazio dkk. 2024)</span> menghapus jadwal
+laju belajar sama sekali dengan teori yang menyatukan penjadwalan dan
+perata-rataan iterasi, dan tidak menambah hyperparameter. Ketiga contoh
+ini memperlihatkan bahwa pertanyaan lama di bab ini, bagaimana mengatasi
+condition number dan noise, masih menghasilkan jawaban baru.</p>
 <h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Teori konvergensi, line search, dan metode Newton mengikuti naskah
 kuliah Numerical Optimization for AI. Bagian SGD, momentum, dan
@@ -361,6 +516,24 @@ Bottou, Léon, Frank E. Curtis, dan Jorge Nocedal. 2018.
 <em>SIAM Review</em> 60 (2): 223–311. <a
 href="https://doi.org/10.1137/16M1080173">https://doi.org/10.1137/16M1080173</a>.
 </div>
+<div id="ref-chen2023lion" class="csl-entry" role="listitem">
+Chen, Xiangning, Chen Liang, Da Huang, Esteban Real, Kaiyuan Wang, Yao
+Liu, Hieu Pham, dkk. 2023. <span>“Symbolic Discovery of Optimization
+Algorithms.”</span> arXiv:2302.06675. <a
+href="https://arxiv.org/abs/2302.06675">https://arxiv.org/abs/2302.06675</a>.
+</div>
+<div id="ref-cohen2021" class="csl-entry" role="listitem">
+Cohen, Jeremy M., Simran Kaur, Yuanzhi Li, J. Zico Kolter, dan Ameet
+Talwalkar. 2021. <span>“Gradient Descent on Neural Networks Typically
+Occurs at the Edge of Stability.”</span> arXiv:2103.00065. <a
+href="https://arxiv.org/abs/2103.00065">https://arxiv.org/abs/2103.00065</a>.
+</div>
+<div id="ref-defazio2024" class="csl-entry" role="listitem">
+Defazio, Aaron, Xingyu Alice Yang, Harsh Mehta, Konstantin Mishchenko,
+Ahmed Khaled, dan Ashok Cutkosky. 2024. <span>“The Road Less
+Scheduled.”</span> arXiv:2405.15682. <a
+href="https://arxiv.org/abs/2405.15682">https://arxiv.org/abs/2405.15682</a>.
+</div>
 <div id="ref-hochreiter1997flat" class="csl-entry" role="listitem">
 Hochreiter, Sepp, dan Jürgen Schmidhuber. 1997. <span>“Flat
 Minima.”</span> <em>Neural Computation</em> 9 (1): 1–42. <a
@@ -377,6 +550,12 @@ href="https://arxiv.org/abs/1609.04836">https://arxiv.org/abs/1609.04836</a>.
 Kingma, Diederik P., dan Jimmy Ba. 2014. <span>“Adam: A Method for
 Stochastic Optimization.”</span> arXiv:1412.6980. <a
 href="https://arxiv.org/abs/1412.6980">https://arxiv.org/abs/1412.6980</a>.
+</div>
+<div id="ref-liu2025muon" class="csl-entry" role="listitem">
+Liu, Jingyuan, Jianlin Su, Xingcheng Yao, Zhejun Jiang, Guokun Lai,
+Yulun Du, Yidao Qin, dkk. 2025. <span>“Muon is Scalable for LLM
+Training.”</span> arXiv:2502.16982. <a
+href="https://arxiv.org/abs/2502.16982">https://arxiv.org/abs/2502.16982</a>.
 </div>
 <div id="ref-loshchilov2019" class="csl-entry" role="listitem">
 Loshchilov, Ilya, dan Frank Hutter. 2017. <span>“Decoupled Weight Decay
@@ -415,7 +594,7 @@ href="https://doi.org/10.1137/20M1318043">https://doi.org/10.1137/20M1318043</a>
 </div>
 </main>
 <nav class="pager">
-  <a class="prev" href="ch01_belajar_dari_data.html"><span>Sebelumnya</span>Belajar dari Data</a>
+  <a class="prev" href="ch01c_teori_belajar.html"><span>Sebelumnya</span>Teori Belajar Statistik</a>
   <a class="next" href="ch02b_ai_klasik.html"><span>Berikutnya</span>AI Klasik: Mencari, Merencanakan, Memutuskan</a>
 </nav>
 <footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>

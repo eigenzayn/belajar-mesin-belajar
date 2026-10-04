@@ -40,6 +40,7 @@ def tex(s):
     for a, b in uni.items():
         s = s.replace(a, b)
     s = s.replace("�ber", "{\\\"U}ber")  # Crossref returns a broken U-umlaut for courant1928
+    s = s.replace("$π\\_0$", "$\\pi_0$").replace("π", "$\\pi$")  # arXiv title of black2024
     return s
 
 
@@ -73,7 +74,13 @@ def names_cr(j):
     out = []
     for a in j.get("author", []):
         if "family" in a:
-            out.append(f"{a['family']}, {a.get('given', '')}".strip(", "))
+            fam, giv = a["family"], a.get("given", "")
+            # Crossref sometimes puts a middle initial or particle into the family field
+            # ("D. Jagtap", "Em Karniadakis"); move the leading part back to the given name.
+            m = re.match(r"^((?:[A-Z][a-z]?\.?\s)+)([A-Z][\w-]+)$", fam)
+            if m and m.group(1).strip().lower() not in {"di", "de", "da", "du", "le", "la"}:
+                fam, giv = m.group(2), (giv + " " + m.group(1)).strip()
+            out.append(f"{fam}, {giv}".strip(", "))
         elif "name" in a:
             out.append("{" + a["name"] + "}")
     return " and ".join(tex(n) for n in out)

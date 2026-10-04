@@ -1,23 +1,29 @@
 # Belajar Mesin Belajar
 
-Catatan kuliah Master Artificial Intelligence di Linz, ditulis ulang menjadi buku berbahasa Indonesia:
-dari neuron sampai difusi, dengan analogi sehari-hari, penurunan rumus, dan contoh hitungan.
+Catatan kuliah Master Artificial Intelligence di Linz, ditulis ulang dan diperluas menjadi buku berbahasa Indonesia:
+dari data dan neuron sampai sinyal, molekul, dan fluida, dengan analogi sehari-hari, penurunan rumus, dan contoh hitungan.
 
 - Baca daring: https://eigenzayn.github.io/belajar-mesin-belajar/
 - Unduh PDF: [docs/Belajar_Mesin_Belajar.pdf](docs/Belajar_Mesin_Belajar.pdf)
 
 ## Isi
 
-Enam bagian, sekitar 35 bab:
+Enam bagian berisi 38 bab ditambah Peta Perjalanan, tiga lampiran, dan indeks:
 
-1. **Fondasi**: belajar dari data, optimasi, AI klasik, belajar tanpa label
-2. **Deep learning dan persepsi**: jaringan saraf, LSTM dan transformer, computer vision, model generatif,
-   geometric deep learning, model probabilistik, model difusi dan flow matching, reinforcement learning, XAI
+1. **Fondasi**: belajar dari data, statistik dan Bayes untuk memilih model, teori belajar statistik, optimasi,
+   AI klasik, belajar tanpa label
+2. **Deep learning dan persepsi**: jaringan saraf dan praktiknya, LSTM sampai xLSTM, bahasa (NLP), computer vision,
+   model generatif, geometric deep learning, model probabilistik, Gaussian process dan model difusi,
+   reinforcement learning, XAI
 3. **Sinyal, sensor, dan sistem**: estimasi dan filter adaptif, radar, kendali, komputasi pervasif, robot
 4. **AI untuk ilmu hayati**: genom, molekul dan obat, protein, citra medis
 5. **AI untuk simulasi**: fluida, metode numerik, fisika komputasi, PINN, neural operator, SINDy dan ROM,
    model hibrida, recurrence CFD
-6. **AI, manusia, dan masa depan**: sistem rekomendasi, hukum dan masyarakat, perkembangan terbaru
+6. **AI, manusia, dan masa depan**: sistem rekomendasi, hukum dan masyarakat, keselamatan AI, informasi kuantum,
+   perkembangan terbaru
+
+Lampiran: glosarium, bekal matematika, dan panduan meneliti, menerbitkan, dan mematenkan.
+Hampir setiap bab ditutup dengan bagian *Perkembangan riset* yang merangkum makalah beberapa tahun terakhir.
 
 ## Struktur repositori
 
@@ -41,5 +47,6 @@ Buku diperiksa terhadap OpenLibrary atau halaman hak ciptanya. Laporan pemeriksa
 
 ## Catatan hak cipta
 
-Isi buku ditulis ulang dengan kata-kata sendiri. Slide, naskah, dan soal ujian kuliah tetap milik para
-pengajarnya dan tidak disertakan di repositori ini.
+Isi buku ditulis ulang dengan kata-kata sendiri dari kuliah yang diikuti, lalu diperluas dengan bacaan di luar
+kuliah (bagian perkembangan riset, beberapa bab dari literatur, dan lampiran). Slide, naskah, dan soal ujian kuliah
+tetap milik para pengajarnya dan tidak disertakan di repositori ini.

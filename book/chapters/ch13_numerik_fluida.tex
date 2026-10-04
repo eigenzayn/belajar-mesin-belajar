@@ -20,24 +20,85 @@ momentum, atau energi yang hilang atau muncul di dalam domain kecuali lewat bata
 \cref{ch:gdl} kita melihat bahwa bentuk ini adalah message passing: setiap sel mengumpulkan ``pesan''
 fluks dari tetangganya.
 
-Nilai di sisi sel harus diperkirakan dari nilai di pusat sel. Untuk suku difusi, beda pusat bekerja
-baik. Untuk suku konveksi, pilihannya lebih rumit. Beda pusat akurat orde dua, tetapi menghasilkan
-osilasi yang tidak fisis kalau konveksi jauh lebih kuat daripada difusi di skala sel, yaitu kalau
-bilangan Péclet sel lebih besar dari dua. Skema \istilah{upwind} mengambil nilai dari sel di hulu
-aliran. Ia stabil dan tidak berosilasi, tetapi hanya orde satu, dan galatnya berperilaku seperti
-difusi tambahan yang meratakan gradien tajam, gejala yang disebut \istilah{numerical diffusion}. Skema
-orde lebih tinggi seperti second-order upwind dan skema dengan limiter mencari jalan tengah. Kuliah
-memperlihatkan contohnya pada perambatan gelombang permukaan, di mana antarmuka air dan udara
-mengabur dengan skema orde satu dan tetap tajam dengan skema yang lebih baik.
-
-Untuk waktu, metode eksplisit menghitung keadaan baru langsung dari keadaan lama. Murah per langkah,
-tetapi langkahnya dibatasi oleh syarat Courant--Friedrichs--Lewy \citep{courant1928},
+Cara kerjanya paling mudah dilihat pada contoh yang bisa dihitung dengan tangan. Ambil batang sepanjang
+setengah meter yang dibagi lima sel sama panjang, $\Delta x=0{,}1$ m, dengan temperatur $100$ di ujung kiri dan
+$500$ di ujung kanan, tanpa aliran dan tanpa sumber (\cref{fig:stensil}). Untuk sel dalam $P$ dengan tetangga
+barat $W$ dan timur $E$, fluks difusi lewat sisi timur adalah $\Gamma A(T_E-T_P)/\Delta x$ dan lewat sisi barat
+$\Gamma A(T_P-T_W)/\Delta x$. Neraca keadaan tunak menyamakan keduanya, sehingga dengan $D=\Gamma A/\Delta x$,
 \begin{equation}
-\mathrm{CFL}=\frac{u\,\Delta t}{\Delta x}\le C_{\max},
+2D\,T_P=D\,T_W+D\,T_E .
 \end{equation}
-yang secara intuitif berarti informasi tidak boleh melompati lebih dari sekitar satu sel dalam satu
-langkah. Metode implisit menyelesaikan sistem persamaan untuk keadaan baru. Mahal per langkah,
-tetapi stabil untuk langkah yang jauh lebih besar.
+Untuk sel pertama, batasnya hanya setengah sel jauhnya, sehingga fluks di sisi barat menjadi
+$2D(T_P-T_A)$, dan persamaannya $3T_1=T_2+2T_A$. Sel terakhir mendapat bentuk yang sama dengan $T_B$. Kelima
+persamaan ini membentuk sistem tridiagonal, karena setiap sel hanya bicara dengan dua tetangganya, dan bisa
+diselesaikan dalam satu sapuan maju dan satu sapuan mundur dengan algoritme Thomas (TDMA) yang dibahas di kuliah.
+Hasilnya $140$, $220$, $300$, $380$, dan $460$. Memeriksa sel pertama: $3\cdot140=420=220+200$. Profilnya linear,
+persis seperti solusi eksak untuk konduksi tunak tanpa sumber.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[x=1.5cm,y=1cm]
+  \draw[thick] (0,0) rectangle (5,1);
+  \foreach \i in {1,...,4} \draw (\i,0) -- (\i,1);
+  \foreach \i in {1,...,5} \fill[biru] (\i-0.5,0.5) circle (2pt);
+  \node[label,below] at (1.5,0) {$W$};
+  \node[label,below] at (2.5,0) {$P$};
+  \node[label,below] at (3.5,0) {$E$};
+  \node[label,above] at (2,1) {$w$};
+  \node[label,above] at (3,1) {$e$};
+  \draw[panah,oranye] (1.75,0.75) -- (2.25,0.75);
+  \draw[panah,oranye] (2.75,0.75) -- (3.25,0.75);
+  \node[label,left] at (0,0.5) {$T_A$};
+  \node[label,right] at (5,0.5) {$T_B$};
+\end{tikzpicture}
+\caption{Grid volume hingga satu dimensi. Nilai disimpan di pusat sel ($W$, $P$, $E$), fluks dihitung di sisi
+sel ($w$, $e$). Fluks yang keluar dari $P$ lewat $e$ adalah fluks yang masuk ke $E$.}
+\label{fig:stensil}
+\end{figure}
+
+Nilai di sisi sel harus diperkirakan dari nilai di pusat sel. Untuk suku difusi, beda pusat seperti di atas
+bekerja baik. Untuk suku konveksi, pilihannya lebih rumit. Tambahkan aliran dengan fluks massa $F=\rho uA$ ke
+contoh tadi. Dengan beda pusat, nilai di sisi timur diambil sebagai rata-rata, $\phi_e=(\phi_P+\phi_E)/2$, dan
+setelah semua suku dikumpulkan, persamaan sel berbentuk $a_P\phi_P=a_W\phi_W+a_E\phi_E$ dengan
+\begin{equation}
+a_W=D+\frac F2,\qquad a_E=D-\frac F2 .
+\end{equation}
+Kalau $F/D$, yaitu bilangan Péclet sel $\mathrm{Pe}=\rho u\Delta x/\Gamma$, lebih besar dari dua, koefisien $a_E$
+menjadi negatif. Artinya, menaikkan nilai di hilir justru menurunkan nilai di sel ini, sesuatu yang tidak pernah
+terjadi secara fisis, dan solusinya mulai berosilasi. Beda pusat akurat orde dua, tetapi hanya bisa dipakai kalau
+grid cukup halus untuk menjaga Pe di bawah dua.
+
+Skema \istilah{upwind} mengambil nilai sisi dari sel di hulu aliran: untuk aliran ke kanan, $\phi_e=\phi_P$.
+Koefisiennya menjadi $a_W=D+F$ dan $a_E=D$, selalu positif, sehingga tidak ada osilasi. Harganya adalah akurasi.
+Uraian Taylor menunjukkan apa yang hilang: nilai sebenarnya di sisi adalah
+$\phi_e=\phi_P+\tfrac{\Delta x}{2}\partial\phi/\partial x+\dots$, sehingga upwind membuang suku
+$\rho u\tfrac{\Delta x}{2}\partial\phi/\partial x$ dari fluks. Suku yang dibuang berbentuk persis seperti fluks
+difusi dengan koefisien
+\begin{equation}
+\Gamma_{\mathrm{num}}=\frac{\rho u\Delta x}{2}.
+\end{equation}
+Skema ini diam-diam menambahkan difusi. Untuk air yang mengalir satu meter per detik di grid satu sentimeter,
+viskositas kinematik semunya $u\Delta x/2=0{,}005\ \mathrm{m^2/s}$, lima ribu kali viskositas air yang
+sebenarnya. Gejala ini disebut \istilah{numerical diffusion} atau \istilah{false diffusion}, dan ia meratakan setiap
+gradien tajam. Skema orde lebih tinggi seperti second-order upwind dan QUICK, serta skema dengan limiter, mencari
+jalan tengah: akurat di daerah yang mulus, dan kembali ke perilaku upwind di dekat lompatan agar tidak berosilasi.
+Kuliah memperlihatkan contohnya pada perambatan gelombang permukaan, di mana antarmuka air dan udara mengabur
+dengan skema orde satu dan tetap tajam dengan skema yang lebih baik.
+
+Untuk waktu, metode eksplisit menghitung keadaan baru langsung dari keadaan lama. Untuk konveksi murni dengan
+upwind, langkah eksplisitnya
+\begin{equation}
+\phi_i^{n+1}=(1-C)\,\phi_i^n+C\,\phi_{i-1}^n,\qquad C=\frac{u\,\Delta t}{\Delta x}.
+\end{equation}
+Kalau $0\le C\le1$, nilai baru adalah rata-rata berbobot dua nilai lama, sehingga tidak mungkin melampaui
+nilai terbesar atau jatuh di bawah nilai terkecil yang sudah ada. Kalau $C>1$, bobot $1-C$ menjadi negatif, dan
+galat kecil diperbesar di setiap langkah sampai simulasi meledak. Inilah syarat Courant--Friedrichs--Lewy
+\citep{courant1928}, $\mathrm{CFL}=u\Delta t/\Delta x\le C_{\max}$, yang secara intuitif berarti informasi tidak
+boleh melompati lebih dari sekitar satu sel dalam satu langkah. Dengan $u=1$ m/s dan $\Delta x=1$ cm, langkah
+waktu eksplisit paling besar sepersekian ratus detik. Metode implisit menghitung fluks dengan nilai di langkah
+baru, sehingga harus menyelesaikan sistem persamaan untuk seluruh grid di setiap langkah. Mahal per langkah,
+tetapi stabil untuk langkah yang jauh lebih besar. Stabil belum berarti akurat: langkah waktu yang besar tetap
+melewatkan dinamika yang lebih cepat dari langkah itu.
 
 \section{Tekanan dan kecepatan}
 
@@ -52,11 +113,63 @@ perbarui tekanan dan kecepatan, lalu ulangi sampai konvergen. Pendekatan yang me
 persamaan-persamaan ini bergantian disebut \istilah{segregated solver}, sedangkan solver
 \istilah{coupled} menyelesaikannya bersama dalam satu sistem besar.
 
+Langkah kedua adalah inti algoritmenya. Persamaan momentum diskret untuk sebuah sel berbentuk
+$a_Pu_P=\sum a_{nb}u_{nb}+A\,\Delta p+b$, dengan $\Delta p$ beda tekanan di kedua sisi sel. Kalau tekanan dikoreksi
+dengan $p'$ dan kecepatan dengan $u'$, SIMPLE mengabaikan sumbangan koreksi kecepatan tetangga, sehingga yang
+tersisa adalah hubungan sederhana $u'_P=d_P\,\Delta p'$ dengan $d_P=A/a_P$. Penyederhanaan inilah yang membuat
+metodenya bekerja dan sekaligus membuatnya lambat: koreksi tekanan yang dihitung cenderung terlalu besar.
+Karena itu tekanan baru hanya diambil sebagian, $p=p^*+\alpha_pp'$, dengan faktor \istilah{under-relaxation}
+$\alpha_p$ yang sering sekitar $0{,}3$. Varian seperti SIMPLEC dan PISO memperbaiki penyederhanaan itu sehingga
+butuh lebih sedikit relaksasi.
+
 Kuliah menekankan perbedaan antara konvergensi numerik dan konvergensi fisis. Residu yang turun
 beberapa orde menunjukkan bahwa sistem persamaan diskret sudah terselesaikan. Itu belum berarti
 besaran yang kita pedulikan, misalnya gaya hambat atau temperatur di sebuah titik, sudah tidak
 berubah lagi, apalagi bahwa hasilnya benar secara fisis. Memantau besaran fisis dan menguji
 kebebasan hasil terhadap ukuran grid adalah bagian wajib setiap simulasi.
+
+\section{Menyelesaikan sistem linear yang besar}
+
+Setiap langkah implisit dan setiap koreksi tekanan di SIMPLE berujung pada sistem linear $\mA\bm\phi=\bm b$ dengan jutaan
+baris. Matriksnya jarang, karena setiap sel hanya bicara dengan tetangganya, sehingga eliminasi Gauss yang mengisi
+matriks dengan nol-nol yang berubah menjadi bukan nol tidak praktis. Kuliah membahas metode iteratif.
+
+Metode Jacobi menyelesaikan persamaan setiap sel untuk nilai sel itu sendiri, dengan nilai tetangga dari iterasi
+sebelumnya: $\phi_P^{(k+1)}=\big(a_W\phi_W^{(k)}+a_E\phi_E^{(k)}+b_P\big)/a_P$. Gauss--Seidel memakai nilai tetangga yang baru saja
+diperbarui di iterasi yang sama, sehingga informasi menyebar lebih cepat. Ambil sistem kecil $4\phi_1-\phi_2=3$ dan
+$-\phi_1+4\phi_2=3$, yang solusinya $\phi_1=\phi_2=1$. Mulai dari nol, Jacobi memberi $(0{,}75;\ 0{,}75)$, lalu
+$(0{,}9375;\ 0{,}9375)$, lalu $(0{,}984;\ 0{,}984)$: galatnya menyusut empat kali per iterasi. Gauss--Seidel memberi
+$\phi_1=0{,}75$, lalu langsung memakainya untuk $\phi_2=(3+0{,}75)/4=0{,}9375$, dan pada iterasi kedua sudah $(0{,}984;\ 0{,}996)$:
+galatnya menyusut enam belas kali per iterasi.
+
+Laju susut itu adalah jari-jari spektral matriks iterasi, nilai eigen terbesarnya dalam nilai mutlak. Untuk contoh di atas
+nilainya $1/4$ untuk Jacobi dan $1/16$ untuk Gauss--Seidel. Masalahnya, untuk persamaan Poisson di grid halus, jari-jari
+spektral itu mendekati satu, dan semakin halus grid, semakin dekat. Analisis Fourier seperti di \cref{ch:fiskom} menunjukkan
+sebabnya: iterasi lokal meredam galat berfrekuensi tinggi dengan cepat, tetapi galat yang halus, yang merentang banyak sel,
+hampir tidak berkurang, karena setiap sel hanya melihat tetangganya dan informasi merambat satu sel per iterasi.
+
+\istilah{Multigrid} memanfaatkan kelemahan itu. Setelah beberapa iterasi meratakan galat frekuensi tinggi, sisa galat yang
+halus dipindahkan ke grid yang lebih kasar. Di sana, galat yang tadinya halus menjadi relatif lebih bergelombang terhadap
+ukuran sel, sehingga kembali mudah diredam. Proses ini diulang turun sampai grid kasar, lalu koreksinya dibawa naik
+kembali (\cref{fig:vcycle}). Dengan siklus seperti ini, biaya menyelesaikan sistem menjadi sebanding dengan jumlah sel,
+batas terbaik yang mungkin. Ide piramida yang sama muncul di visi komputer dan di U-Net (\cref{ch:cv}). Keluarga lain,
+metode Krylov seperti conjugate gradient untuk matriks simetris dan GMRES untuk yang tidak simetris, mencari solusi terbaik di
+ruang yang direntang $\bm b,\mA\bm b,\mA^2\bm b,\dots$, dan dalam praktik digabung dengan multigrid sebagai prakondisi.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[x=1.2cm,y=0.9cm]
+  \foreach \i/\y in {0/3,1/2,2/1,3/0,4/1,5/2,6/3}{\node[bulat,minimum size=5mm,inner sep=0pt,fill=biru!20] (n\i) at (\i,\y) {};}
+  \foreach \a/\b in {0/1,1/2,2/3,3/4,4/5,5/6}{\draw[panah] (n\a) -- (n\b);}
+  \node[label,left] at (n0.west) {grid halus};
+  \node[label,below] at (n3.south) {grid paling kasar};
+  \node[label,above left] at (1.5,2.5) {meratakan, lalu turun};
+  \node[label,above right] at (4.5,2.5) {koreksi, lalu naik};
+\end{tikzpicture}
+\caption{Siklus V pada multigrid. Di setiap tingkat, iterasi lokal meredam galat yang bergelombang. Galat yang halus
+diteruskan ke grid lebih kasar, diselesaikan di sana, lalu koreksinya dibawa kembali ke grid halus.}
+\label{fig:vcycle}
+\end{figure}
 
 \section{Turbulensi}
 
@@ -80,11 +193,40 @@ $k$-$\varepsilon$ di aliran bebas, dan menjadi salah satu model paling banyak di
 Ketika anisotropi turbulensi penting, seperti di dalam siklon gas atau pusaran ujung sayap, model
 Reynolds stress menyelesaikan persamaan transport untuk setiap komponen tegangan.
 
-Turbulensi sering digambarkan sebagai kaskade energi. Pusaran besar menerima energi dari aliran
-rata-rata, pecah menjadi pusaran yang lebih kecil, dan seterusnya, sampai pusaran terkecil cukup
-kecil untuk diredam viskositas menjadi panas. Seperti air terjun bertingkat, energi mengalir dari
-kolam besar ke kolam-kolam yang semakin kecil, dan model turbulensi hanya perlu tahu berapa banyak
-air yang jatuh ke dasar, bukan bentuk setiap riaknya.
+\subsection{Di dekat dinding}
+
+Lapisan batas turbulen punya struktur berlapis yang hampir universal (\cref{fig:loglaw}). Jarak dan
+kecepatan dinyatakan dalam satuan dinding: kecepatan gesek $u_\tau=\sqrt{\tau_w/\rho}$ dari tegangan dinding
+$\tau_w$, jarak tak berdimensi $y^+=yu_\tau/\nu$, dan kecepatan tak berdimensi $u^+=u/u_\tau$. Sangat dekat
+dengan dinding, di bawah $y^+$ sekitar lima, gesekan kental mendominasi dan $u^+=y^+$. Lebih jauh, kira-kira dari
+$y^+=30$, berlaku hukum logaritmik
+\begin{equation}
+u^+=\frac1\kappa\ln y^++B,
+\end{equation}
+dengan konstanta von Kármán $\kappa\approx0{,}41$ dan $B\approx5$. Di antaranya ada lapisan penyangga. Untuk air
+dengan $u_\tau=5$ cm/s, $y^+=1$ berarti hanya $\nu/u_\tau=20$ mikrometer dari dinding. Menyelesaikan lapisan
+setipis ini dengan grid mahal, sehingga banyak simulasi memakai \istilah{wall function}: sel pertama sengaja
+diletakkan di daerah logaritmik, dan hukum di atas dipakai untuk menghitung tegangan dinding tanpa
+menyelesaikan lapisan di bawahnya. Kuliah menekankan bahwa wall function hanya sah kalau $y^+$ sel pertama
+memang berada di rentang itu, sehingga memeriksa $y^+$ adalah bagian dari memeriksa grid.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=0.62\linewidth,height=4.6cm,xmode=log,axis lines=left,xmin=1,xmax=1000,ymin=0,ymax=25,
+  xlabel={\small $y^+$},ylabel={\small $u^+$},ytick={0,10,20}]
+  \addplot[biru,thick,domain=1:11,samples=30] {x};
+  \addplot[oranye,thick,domain=5:1000,samples=60] {ln(x)/0.41+5};
+  \node[label] at (axis cs:2.2,14) {$u^+=y^+$};
+  \node[label] at (axis cs:250,13) {$u^+=\tfrac1\kappa\ln y^++B$};
+  \draw[dashed,abu] (axis cs:5,0) -- (axis cs:5,25);
+  \draw[dashed,abu] (axis cs:30,0) -- (axis cs:30,25);
+\end{axis}
+\end{tikzpicture}
+\caption{Hukum dinding. Lapisan kental ($y^+<5$) mengikuti garis lurus, daerah logaritmik ($y^+>30$) mengikuti
+hukum log, dan di antaranya ada lapisan penyangga.}
+\label{fig:loglaw}
+\end{figure}
 
 \subsection{Large eddy simulation}
 
@@ -111,7 +253,10 @@ Banyak aliran industri melibatkan lebih dari satu fase: gelembung gas di dalam c
 dalam gas, tetesan di dalam udara. Kuliah membahas beberapa keluarga pendekatan.
 
 Metode \istilah{volume of fluid} \citep{hirt1981} melacak antarmuka antara dua fluida yang tidak
-bercampur dengan sebuah fraksi volume yang bernilai satu di satu fase dan nol di fase lain. Massa jenis
+bercampur dengan sebuah fraksi volume $\alpha$ yang bernilai satu di satu fase dan nol di fase lain. Fraksi
+itu hanya dibawa aliran, $\partial\alpha/\partial t+\nabla\cdot(\alpha\vu)=0$, sehingga persoalan numeriknya
+adalah menjaga lompatan tajam dari nol ke satu tetap tajam, persis masalah numerical diffusion di atas. Kuliah
+membahas skema donor--akseptor dan rekonstruksi geometris antarmuka untuk keperluan ini. Massa jenis
 dan viskositas dirata-ratakan menurut fraksi itu, dan tegangan permukaan masuk lewat lompatan
 tekanan Young--Laplace di antarmuka, $\Delta p=\sigma\kappa$, dengan $\kappa$ kelengkungan antarmuka.
 Contohnya di kuliah termasuk gelombang di tangki yang bergoyang dan aliran kapiler di saluran mikro.
@@ -119,7 +264,14 @@ Contohnya di kuliah termasuk gelombang di tangki yang bergoyang dan aliran kapil
 Untuk partikel atau tetesan yang tersebar, pendekatan Euler--Lagrange melacak setiap partikel, atau
 sekelompok partikel yang mewakilinya, dalam kerangka Lagrange, sementara fase kontinu diselesaikan di
 grid. Kopling bisa satu arah, ketika partikel hanya dibawa aliran, atau dua arah, ketika partikel
-juga memberi gaya balik ke fluida. Untuk aliran butiran padat, metode elemen diskret \citep{cundall1979}
+juga memberi gaya balik ke fluida. Seberapa setia partikel mengikuti aliran ditentukan bilangan Stokes,
+perbandingan waktu respons partikel $\tau_p=\rho_pd^2/(18\mu)$ dengan waktu khas aliran $L/U$. Waktu respons ini
+turun dari hambatan Stokes pada bola kecil, $3\pi\mu d$ kali selisih kecepatan, dibagi massa bola. Tetesan air
+berdiameter 10 mikrometer di udara punya $\tau_p\approx0{,}3$ milidetik. Dalam aliran satu meter per detik
+melewati benda satu sentimeter, bilangan Stokesnya sekitar $0{,}03$, dan tetesan itu berbelok bersama udara.
+Tetesan seratus mikrometer punya $\tau_p$ seratus kali lebih besar, bilangan Stokes sekitar tiga, dan
+tetesan itu menabrak benda alih-alih berbelok. Perbedaan ini menentukan, misalnya, apakah sebuah filter
+menangkap partikel atau tidak. Untuk aliran butiran padat, metode elemen diskret \citep{cundall1979}
 menyelesaikan gerak setiap butir dan tumbukannya, dan gabungannya dengan CFD dipakai untuk unggun
 terfluidisasi dan pengangkutan pneumatik. Ketika partikel terlalu banyak untuk dilacak satu per satu,
 model dua fluida memperlakukan kedua fase sebagai kontinum yang saling menembus, digandeng oleh fraksi
@@ -133,6 +285,16 @@ sekali. Dan setiap kasus baru, dengan geometri atau syarat batas berbeda, harus 
 Machine learning masuk lewat ketiga pintu itu: model penutup yang dipelajari dari data simulasi teliti
 (\cref{ch:hibrida}), model pengganti yang menggantikan solver (\cref{ch:pinn,ch:operator}), dan metode
 yang memanfaatkan pola berulang agar simulasi panjang bisa diekstrapolasi dengan murah (\cref{ch:rcfd}).
+
+\section{Perkembangan riset}
+
+Gerakan \istilah{differentiable physics} membawa solver CFD ke kerangka yang sama dengan jaringan saraf. JAX-Fluids
+\citep{bezgin2023} adalah solver untuk aliran termampatkan dua fase yang seluruhnya ditulis dalam JAX, sehingga bisa
+diturunkan secara otomatis dari keluaran sampai ke parameter dan syarat awal. Komponen machine learning, misalnya skema
+rekonstruksi fluks yang dipelajari, bisa dimasukkan ke dalam solver dan dioptimasi ujung ke ujung, persis gagasan
+solver-in-the-loop di \cref{ch:hibrida}. Solver yang bisa diturunkan juga berguna tanpa machine learning: gradien hasil
+simulasi terhadap parameter desain memungkinkan optimasi bentuk dan kalibrasi model dengan cara yang sama seperti melatih
+jaringan.
 
 \sumberbab{Bab ini mengikuti kuliah Numerical Methods in Fluid Mechanics bagian volume hingga,
 kopling tekanan dan kecepatan, turbulensi, panas dan spesies, serta multifase. Bacaan pendamping:

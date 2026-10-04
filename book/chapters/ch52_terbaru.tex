@@ -19,7 +19,33 @@ Pendorong utamanya adalah pengamatan empiris yang disebut \istilah{scaling laws}
 menemukan bahwa loss model bahasa turun mengikuti hukum pangkat terhadap jumlah parameter $N$, jumlah
 data $D$, dan komputasi $C$, misalnya $L(N)\approx(N_c/N)^{\alpha}$ dengan $\alpha$ kecil. Hukum pangkat
 berarti garis lurus pada skala log--log: setiap kali model diperbesar sepuluh kali, loss turun dengan
-faktor yang kira-kira tetap. Komputasi pelatihan transformer bisa diperkirakan dengan aturan praktis
+faktor yang kira-kira tetap. Untuk ketergantungan pada jumlah parameter, mereka melaporkan $\alpha\approx0{,}076$
+dan $N_c\approx8{,}8\times10^{13}$. Dengan angka ini, model berparameter sepuluh juta punya loss sekitar $3{,}4$, dan
+model sepuluh miliar parameter sekitar $2{,}0$ (\cref{fig:scaling}). Eksponen sekecil itu berarti setiap pengurangan
+loss yang berarti menuntut model yang berlipat-lipat lebih besar.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=0.64\linewidth,height=4.6cm,xmode=log,ymode=log,axis lines=left,xmin=1e6,xmax=1e11,ymin=1.5,ymax=4.5,
+  xlabel={\small parameter $N$},ylabel={\small loss uji},ytick={2,3,4},yticklabels={$2$,$3$,$4$},
+  log basis x=10]
+  \addplot[biru,thick,domain=1e6:1e11,samples=40] {(8.8e13/x)^0.076};
+\end{axis}
+\end{tikzpicture}
+\caption{Hukum penskalaan $L(N)=(N_c/N)^{\alpha}$ dengan konstanta yang dilaporkan \citet{kaplan2020}. Pada skala
+log--log, hukum pangkat menjadi garis lurus.}
+\label{fig:scaling}
+\end{figure}
+
+Sebelum masuk ke model, teks dipotong menjadi token. Kebanyakan model memakai varian \istilah{byte-pair encoding}
+\citep{sennrich2016}: mulai dari huruf-huruf, lalu berulang kali gabungkan pasangan simbol yang paling sering muncul
+bersebelahan di korpus. Dari korpus yang berisi kata ``main'', ``mainan'', dan ``bermain'', pasangan seperti
+``m''+``a'' lalu ``ma''+``i'' lalu ``mai''+``n'' cepat menjadi satu token ``main'', sehingga ketiga kata berbagi potongan
+yang sama, dan kata yang belum pernah dilihat seperti ``permainan'' tetap bisa ditulis dari potongan-potongan yang
+dikenal. Inilah sebabnya model bahasa tidak pernah benar-benar bertemu kata asing, dan juga sebabnya bahasa dengan
+sedikit data latih, termasuk bahasa Indonesia dibanding bahasa Inggris, sering dipotong menjadi lebih banyak token
+per kata, sehingga lebih mahal diproses. Komputasi pelatihan transformer bisa diperkirakan dengan aturan praktis
 $C\approx6ND$ operasi floating point: sekitar dua operasi per parameter per token untuk lintasan maju,
 dan sekitar empat untuk lintasan mundur. \citet{hoffmann2022} menunjukkan bahwa untuk anggaran komputasi
 tertentu, banyak model sebelumnya terlalu besar dan dilatih dengan terlalu sedikit data, dan bahwa
@@ -36,6 +62,49 @@ melatih ulang semua parameternya, LoRA \citep{hu2022} membekukan matriks bobot $
 hanya mempelajari koreksi berpangkat rendah $\bm B\bm A$ dengan $\bm B\in\R^{d\times r}$ dan
 $\bm A\in\R^{r\times d}$. Untuk $d=4096$ dan $r=8$, satu matriks penuh punya sekitar 16,8 juta parameter,
 sedangkan koreksinya hanya $2\times4096\times8=65\,536$, kurang dari setengah persen.
+
+Menjalankan model juga punya hitungannya sendiri. Bobot model 70 miliar parameter dalam presisi 16 bit memakan
+sekitar 140 gigabyte memori. Kuantisasi ke 4 bit menurunkannya menjadi sekitar 35 gigabyte, dengan penurunan kualitas
+yang biasanya kecil. Selama membangkitkan teks, transformer menyimpan key dan value semua token sebelumnya agar tidak
+dihitung ulang (\cref{ch:lstm}). Untuk model dengan 80 lapisan dan delapan kepala key--value berdimensi 128, setiap
+token butuh $2\times80\times8\times128$ bilangan, yaitu sekitar $0{,}33$ megabyte dalam presisi 16 bit. Untuk konteks
+128 ribu token, itu sekitar 42 gigabyte, lebih dari bobot model yang sudah dikuantisasi. Memori ini, bukan komputasi,
+sering menjadi batas panjang konteks, dan karena itulah arsitektur rekuren seperti xLSTM dan Mamba, yang ingatannya
+berukuran tetap, kembali menarik.
+
+\section{Efisiensi dan keterbukaan}
+
+Model terbesar mahal untuk dijalankan, sehingga banyak penerapan memakai model yang jauh lebih kecil yang belajar dari model besar.
+\istilah{Knowledge distillation} \citep{hinton2015} melatih model murid untuk meniru distribusi keluaran model guru, bukan hanya label
+yang benar. Kuncinya adalah suhu $T$ pada softmax, $p_i=e^{z_i/T}/\sum_je^{z_j/T}$. Untuk logit guru $(3,1,0)$, suhu satu memberi
+peluang $(0{,}84;\ 0{,}11;\ 0{,}04)$, hampir sama dengan label one-hot. Suhu tiga memberi $(0{,}53;\ 0{,}27;\ 0{,}20)$, yang
+memperlihatkan bahwa menurut guru, kelas kedua jauh lebih mirip dengan jawaban yang benar daripada kelas ketiga. Informasi tentang
+kemiripan antar kelas inilah, yang disebut penulisnya \emph{dark knowledge}, yang membuat murid belajar lebih banyak dari setiap contoh.
+Distilasi, kuantisasi, dan pemangkasan bersama-sama membuat model yang dulu butuh pusat data bisa berjalan di laptop atau ponsel.
+
+Model berbobot terbuka juga mengejar model tertutup. DeepSeek-V3 \citep{deepseekv3} adalah model mixture of experts dengan 671 miliar
+parameter total, tetapi hanya 37 miliar yang aktif untuk setiap token. Laporan teknisnya menyebut seluruh pelatihannya membutuhkan
+sekitar 2,8 juta jam GPU, angka yang oleh penulisnya ditonjolkan sebagai hemat untuk model sebesar itu, dan kinerjanya dilaporkan sebanding dengan
+model tertutup terkemuka. Bobot model seperti ini bisa diunduh, diperiksa, dan disetel siapa saja, dengan segala manfaat dan risiko
+yang dibahas di \cref{ch:keselamatan}.
+
+\section{Mengukur yang sulit diukur}
+
+Benchmark adalah cara bidang ini mengukur kemajuan, dan benchmark cepat jenuh. Model mutakhir sudah melampaui 90 persen pada MMLU,
+kumpulan soal pilihan ganda dari puluhan bidang yang beberapa tahun lalu dianggap sulit. Humanity's Last Exam \citep{phan2025} dirancang
+sebagai jawabannya: 2500 soal dari puluhan bidang, ditulis para ahli di seluruh dunia, dengan jawaban yang tidak ambigu, mudah
+diperiksa otomatis, dan tidak bisa ditemukan dengan pencarian internet biasa. Saat diterbitkan, model-model terbaik masih mencapai
+akurasi rendah, dan juga buruk dalam menilai seberapa yakin mereka seharusnya.
+
+Benchmark yang lebih dekat ke pekerjaan nyata juga muncul. SWE-bench \citep{jimenez2023} berisi 2294 masalah dari isu GitHub sungguhan di
+dua belas repositori Python populer. Model diberi seluruh kode dan deskripsi masalahnya, lalu harus mengubah kode itu sehingga uji yang
+terkait lolos, tugas yang menuntut membaca konteks panjang, mengubah beberapa berkas sekaligus, dan berinteraksi dengan lingkungan
+eksekusi, persis pekerjaan agen pemrograman di bawah.
+
+Semua benchmark publik menghadapi masalah yang sama dengan pembagian data di \cref{ch:data}: kebocoran. Kalau soal-soal benchmark
+ikut masuk ke data pelatihan yang diambil dari internet, skor tinggi tidak lagi mengukur kemampuan, melainkan ingatan. Kumpulan soal
+tersembunyi, soal yang terus diperbarui, dan evaluasi pada tugas yang dibuat setelah tanggal batas data pelatihan adalah upaya-upaya
+untuk menjaga agar angka tetap jujur.
 
 \section{Menyelaraskan model dengan manusia}
 
@@ -60,6 +129,10 @@ saling menghapus dalam selisih itu. Hasilnya, preferensi bisa dipelajari langsun
 \Loss_{\mathrm{DPO}}=-\log\sigma\Big(\beta\log\frac{\pi_\theta(y_w\mid x)}{\pi_{\mathrm{ref}}(y_w\mid x)}-\beta\log\frac{\pi_\theta(y_l\mid x)}{\pi_{\mathrm{ref}}(y_l\mid x)}\Big),
 \end{equation}
 sebuah binary cross-entropy biasa, tanpa model ganjaran terpisah dan tanpa sampling selama pelatihan.
+Sebagai gambaran skalanya, kalau selisih ganjaran implisit kedua jawaban adalah satu, model Bradley--Terry memberi
+peluang $\sigma(1)\approx0{,}73$ bahwa jawaban yang lebih baik memang dipilih, dan loss-nya $-\ln0{,}73\approx0{,}31$.
+Pelatihan mendorong selisih itu membesar, tetapi faktor $\beta$ dan rasio terhadap model acuan menjaga agar model tidak
+menjauh terlalu banyak dari bahasa yang wajar.
 
 \section{Model yang bernalar}
 
@@ -68,7 +141,12 @@ sebuah binary cross-entropy biasa, tanpa model ganjaran terpisah dan tanpa sampl
 berikutnya melatih kemampuan ini secara langsung. DeepSeek-R1 \citep{deepseek2025} memperlihatkan bahwa
 reinforcement learning dengan ganjaran yang bisa diperiksa secara otomatis, misalnya apakah jawaban akhir
 sebuah soal matematika benar atau apakah sebuah program lolos uji, membuat model belajar menulis rantai
-penalaran panjang, memeriksa ulang, dan mencoba jalan lain ketika buntu. Pola ini mengingatkan pada
+penalaran panjang, memeriksa ulang, dan mencoba jalan lain ketika buntu. Algoritme yang dipakai, GRPO \citep{shao2024}, adalah varian PPO tanpa
+critic. Untuk setiap soal, model menghasilkan sekelompok jawaban, dan keunggulan setiap jawaban diukur relatif
+terhadap teman sekelompoknya, $A_i=(r_i-\bar r)/\mathrm{std}(r)$. Kalau dari empat jawaban dua benar (ganjaran satu)
+dan dua salah (nol), rata-ratanya $0{,}5$, simpangan bakunya $0{,}5$, dan keunggulannya $+1$ untuk yang benar dan $-1$
+untuk yang salah. Rata-rata kelompok menggantikan fungsi nilai sebagai baseline, gagasan yang sama dengan baseline
+pada REINFORCE di \cref{ch:rl}, dan model nilai yang besar tidak perlu dilatih sama sekali. Pola ini mengingatkan pada
 pelajaran dari AlphaZero di \cref{ch:klasik}: memberi model lebih banyak waktu untuk ``berpikir'' saat
 menjawab, dengan mencari dan memeriksa, menjadi sumbu penskalaan baru di samping ukuran model.
 
@@ -91,6 +169,12 @@ dan memperbaiki kesalahannya sendiri menjadi salah satu penerapan yang paling ce
 besar masalah lama muncul kembali dalam bentuk baru: credit assignment untuk tugas panjang (\cref{ch:rl}),
 galat yang menumpuk sepanjang banyak langkah seperti pada rollout simulator (\cref{ch:operator}), dan
 pertanyaan siapa yang bertanggung jawab ketika agen bertindak (\cref{ch:manusia}).
+
+Agen juga mulai keluar dari layar. Model \istilah{vision-language-action} seperti RT-2 \citep{brohan2023} melatih model
+penglihatan dan bahasa yang sudah dilatih pada data web untuk mengeluarkan aksi robot sebagai token, sehingga robot bisa
+menerima perintah seperti ``ambil benda yang bisa dipakai sebagai palu'' dan memanfaatkan pengetahuan umum yang tidak
+pernah ada di data robotnya. Di sini juga, lapisan-lapisan klasik dari \cref{ch:robot}, seperti kendali tingkat rendah dan
+pengaman, tetap bekerja di bawah model besar itu.
 
 \section{Gambar, video, dan model dunia}
 

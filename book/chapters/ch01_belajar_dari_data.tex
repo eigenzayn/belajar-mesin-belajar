@@ -115,6 +115,7 @@ Noise berekor tebal seperti Laplace menghasilkan loss mutlak, yang tidak terlalu
 satu pencilan.
 
 \section{Prior sebagai regularisasi}
+\label{sec:prior}
 
 Maximum likelihood hanya mendengarkan data. Kalau datanya sedikit, model mudah percaya pada
 kebetulan. Pendekatan Bayesian menambahkan \istilah{prior} $p(\vw)$, yaitu keyakinan awal tentang
@@ -137,6 +138,48 @@ temperatur dalam kelvin tidak boleh negatif, dan solusi harus simetris kalau geo
 simetris. Semua itu bisa dibaca sebagai prior yang kuat. PINN (\cref{ch:pinn}) memasukkan
 persamaan diferensial ke dalam loss dengan cara yang mirip suku $-\log p(\vw)$ di atas, hanya
 saja ``prior''-nya menyangkut fungsi keluaran, bukan bobot.
+
+\section{Regresi linear sampai tuntas}
+
+Semua gagasan di atas bisa dilihat bekerja pada model paling sederhana. Regresi linear memodelkan $\hat y=\vw^\top\vx$,
+dengan komponen konstan disisipkan ke dalam $\vx$ sebagai fitur bernilai satu. Untuk $N$ contoh yang disusun sebagai baris
+matriks $\mX$ dan target $\vy$, loss kuadrat rata-rata adalah $\tfrac1N\|\vy-\mX\vw\|^2$. Gradiennya terhadap $\vw$ adalah
+$-\tfrac2N\mX^\top(\vy-\mX\vw)$, dan menyamakannya dengan nol memberi \istilah{normal equations}
+\begin{equation}
+\mX^\top\mX\,\vw=\mX^\top\vy,\qquad \hat\vw=\big(\mX^\top\mX\big)^{-1}\mX^\top\vy .
+\end{equation}
+Namanya berasal dari tafsiran geometrisnya. Syarat $\mX^\top(\vy-\mX\hat\vw)=\bm0$ berarti sisa $\vy-\mX\hat\vw$ tegak lurus,
+\emph{normal}, terhadap setiap kolom $\mX$. Prediksi $\mX\hat\vw$ adalah proyeksi ortogonal $\vy$ ke ruang yang direntang
+fitur-fitur, titik terdekat yang bisa dicapai model.
+
+Untuk satu fitur ditambah konstanta, rumusnya menyederhana menjadi kemiringan $\hat w_1=S_{xy}/S_{xx}$ dan titik potong
+$\hat w_0=\bar y-\hat w_1\bar x$, dengan $S_{xy}=\sum(x_i-\bar x)(y_i-\bar y)$ dan $S_{xx}=\sum(x_i-\bar x)^2$. Ambil tiga titik
+$(1,2)$, $(2,3)$, dan $(3,5)$. Rata-ratanya $\bar x=2$ dan $\bar y=10/3$. Simpangan $x$ adalah $(-1,0,1)$ dan simpangan $y$
+adalah $(-4/3,-1/3,5/3)$, sehingga $S_{xy}=4/3+0+5/3=3$ dan $S_{xx}=2$. Kemiringannya $1{,}5$ dan titik potongnya
+$10/3-3=1/3$. Garis $\hat y=1/3+1{,}5x$ meramal $1{,}83$, $3{,}33$, dan $4{,}83$, dengan sisa $0{,}17$, $-0{,}33$, dan $0{,}17$.
+Jumlah sisanya nol, dan jumlah sisa dikali $x$ juga nol, persis seperti yang diminta normal equations.
+
+Ridge regression menambahkan $\lambda\|\vw\|^2$, dan dengan langkah yang sama solusinya menjadi
+$\hat\vw=(\mX^\top\mX+\lambda\bm I)^{-1}\mX^\top\vy$. Penambahan $\lambda$ pada diagonal punya dua efek. Secara statistik, ia
+menarik bobot ke nol, sesuai prior Gauss dari \cref{sec:prior}. Secara numerik, ia membuat matriks yang dibalik selalu bisa
+dibalik dan kondisinya lebih baik. Kalau dua fitur hampir identik, $\mX^\top\mX$ hampir singular, dan regresi biasa bisa
+memberi bobot $+1000$ dan $-999$ yang saling menghapus. Ridge memilih $0{,}5$ dan $0{,}5$.
+
+\section{Dari regresi ke klasifikasi}
+
+Untuk label biner, regresi logistik memodelkan peluang kelas positif sebagai $p=\sigma(\vw^\top\vx)$ dengan
+$\sigma(a)=1/(1+e^{-a})$. Loss-nya adalah binary cross-entropy yang diturunkan di atas. Gradiennya punya bentuk yang sangat
+rapi. Turunan sigmoid adalah $\sigma'(a)=\sigma(a)(1-\sigma(a))$, dan turunan $-y\ln p-(1-y)\ln(1-p)$ terhadap $p$ adalah
+$-y/p+(1-y)/(1-p)$. Mengalikan keduanya lewat aturan rantai,
+\begin{equation}
+\frac{\partial\Loss}{\partial a}=\Big(-\frac yp+\frac{1-y}{1-p}\Big)p(1-p)=-y(1-p)+(1-y)p=p-y,
+\end{equation}
+sehingga $\nabla_{\vw}\Loss=(p-y)\vx$. Gradiennya adalah galat prediksi dikali input, bentuk yang sama dengan regresi linear.
+Kalau model yakin $p=0{,}9$ untuk contoh yang ternyata negatif, gradiennya $0{,}9\vx$, dorongan kuat untuk memperbaiki. Kalau
+ia sudah benar dengan $p=0{,}99$ untuk contoh positif, dorongannya hanya $-0{,}01\vx$. Berbeda dengan regresi linear, tidak
+ada solusi tertutup, karena $p$ bergantung nonlinear pada $\vw$, sehingga regresi logistik dilatih dengan metode iteratif
+dari \cref{ch:optimasi}. Batas keputusannya, tempat $p=0{,}5$, adalah bidang $\vw^\top\vx=0$: regresi logistik adalah
+pengklasifikasi linear dengan keluaran peluang.
 
 \section{Mengukur generalisasi}
 
@@ -318,6 +361,13 @@ memplot recall terhadap $1-\text{specificity}$ untuk semua ambang keputusan. Lua
 AUC, sama dengan peluang model memberi skor lebih tinggi pada satu contoh positif acak dibanding
 satu contoh negatif acak.
 
+Tafsiran peluang AUC memberi cara menghitungnya langsung. Misalkan model memberi skor $0{,}9$ dan $0{,}6$ untuk dua contoh
+positif, serta $0{,}7$, $0{,}4$, dan $0{,}2$ untuk tiga contoh negatif. Ada $2\times3=6$ pasangan positif--negatif. Skor $0{,}9$
+lebih tinggi dari ketiga skor negatif. Skor $0{,}6$ lebih tinggi dari $0{,}4$ dan $0{,}2$, tetapi kalah dari $0{,}7$. Dari enam
+pasangan, lima diurutkan dengan benar, sehingga AUC $=5/6\approx0{,}83$. Nilai $0{,}5$ berarti urutan acak, dan nilai satu
+berarti setiap positif diberi skor lebih tinggi dari setiap negatif. AUC hanya menilai urutan, bukan kalibrasi: mengalikan
+semua skor dengan setengah tidak mengubah AUC sama sekali, walau peluang yang dikeluarkan model menjadi salah semua.
+
 \section{Generalisasi di luar kelas}
 
 Pertanyaan-pertanyaan di bab ini akan muncul lagi di setiap bidang yang dibahas buku ini, dengan
@@ -340,6 +390,28 @@ Yang ketiga adalah mahalnya data. Satu label ahli radiologi, satu pengukuran ass
 CFD penuh bisa memakan waktu dan biaya besar. Di sinilah prior, dalam bentuk simetri, pengetahuan
 domain, atau hukum fisika, menjadi berharga: ia mengurangi data yang dibutuhkan dan menjaga model
 tetap masuk akal di luar daerah yang pernah dilihatnya.
+
+\section{Perkembangan riset}
+
+Pertanyaan paling dasar di bab ini, mengapa model yang mampu menghafal data latih tetap bisa generalisasi, masih
+menjadi bidang riset yang aktif. Kurva double descent \citep{belkin2019} memperlihatkan bahwa galat uji bisa turun lagi
+setelah model melewati titik ketika ia tepat bisa menghafal data. Fenomena yang lebih mengejutkan disebut
+\istilah{grokking} \citep{power2022}. Pada himpunan data kecil yang dibangkitkan secara algoritmik, misalnya tabel
+penjumlahan modulo sebuah bilangan prima, jaringan mula-mula menghafal data latih dengan akurasi uji setara tebakan
+acak, lalu, jauh setelah titik overfitting, tiba-tiba mencapai generalisasi sempurna. Pembelajaran ternyata bisa terus
+berlangsung di bawah permukaan walau loss latih sudah nol. Data yang lebih sedikit membutuhkan optimasi yang lebih lama
+sebelum lompatan itu terjadi.
+
+Arah lain menyangkut ketidakpastian. Model yang mengeluarkan satu angka atau satu label tidak memberi tahu seberapa
+jauh angka itu bisa dipercaya. \istilah{Conformal prediction} \citep{angelopoulos2021} menawarkan jaminan yang tidak
+bergantung pada model maupun distribusi data. Resepnya sederhana. Sisihkan himpunan kalibrasi berisi $n$ contoh,
+hitung skor ketidaksesuaian untuk setiap contoh, misalnya galat mutlak $|y_i-\hat y_i|$ untuk regresi, lalu ambil
+kuantil ke-$\lceil(n+1)(1-\alpha)\rceil/n$ dari skor-skor itu sebagai $\hat q$. Untuk contoh baru, interval
+$[\hat y-\hat q,\ \hat y+\hat q]$ memuat jawaban yang benar dengan peluang paling sedikit $1-\alpha$. Dengan seribu contoh
+kalibrasi dan $\alpha=0{,}1$, $\hat q$ adalah skor terbesar ke-901. Jaminannya hanya membutuhkan satu asumsi: contoh
+kalibrasi dan contoh baru bisa ditukar urutannya tanpa mengubah distribusi bersamanya. Karena itu, conformal prediction
+bisa dibungkuskan pada model apa pun yang sudah dilatih, dari jaringan saraf di citra medis sampai model pengganti di
+simulasi.
 
 \sumberbab{Bab ini merangkai materi dari Machine Learning: Basic Techniques, Supervised dan
 Unsupervised Techniques, Statistical Learning Theory, serta bagian pembuka Deep Learning:

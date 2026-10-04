@@ -117,7 +117,18 @@ f(\vx_k+\alpha\bm d_k)\le f(\vx_k)+c\,\alpha\,\nabla f(\vx_k)^\top\bm d_k,\qquad
 \]
 yang meminta agar penurunan nyata setidaknya sebagian kecil dari penurunan yang dijanjikan oleh
 garis singgung. Prosedur \istilah{backtracking} memulai dari $\alpha=1$ lalu terus mengalikannya
-dengan sebuah faktor $\beta\in(0,1)$ sampai syarat itu terpenuhi. Di deep learning, line search
+dengan sebuah faktor $\beta\in(0,1)$ sampai syarat itu terpenuhi.
+
+Syarat Armijo saja bisa dipenuhi oleh langkah yang kecil sekali, karena langkah kecil hampir selalu menurunkan
+fungsi sedikit. Syarat Wolfe menambahkan syarat kelengkungan,
+$\nabla f(\vx_k+\alpha\bm d_k)^\top\bm d_k\ge c_2\nabla f(\vx_k)^\top\bm d_k$ dengan $c<c_2<1$: di titik baru, kemiringan
+sepanjang arah langkah harus sudah jauh lebih landai daripada di titik awal. Langkah yang terlalu pendek, yang masih
+berada di bagian curam, ditolak. Kedua syarat bersama menjepit panjang langkah dari dua sisi.
+
+Contoh dengan angka membantu. Ambil $f(x)=x^2$ di $x_0=1$ dengan arah $d=-f'(1)=-2$ dan $c=10^{-4}$. Langkah $\alpha=1$
+membawa ke $x=-1$, dengan $f=1$, tidak turun sama sekali, sehingga ditolak. Dengan $\beta=\tfrac12$, langkah
+$\alpha=\tfrac12$ membawa tepat ke $x=0$, dengan $f=0$. Syarat Armijo meminta $f\le1-10^{-4}\cdot\tfrac12\cdot4\approx0{,}9998$,
+dan terpenuhi. Backtracking berhenti setelah satu kali mengecilkan langkah, dan kebetulan mendarat tepat di minimum. Di deep learning, line search
 jarang dipakai, karena setiap evaluasi $f$ berarti melewati seluruh data. Gagasannya muncul
 kembali dalam L-BFGS.
 
@@ -138,7 +149,21 @@ mana pun yang gradiennya nol, termasuk saddle point.
 
 Metode \istilah{quasi-Newton} seperti BFGS, dan versi hemat memorinya L-BFGS, membangun
 aproksimasi Hessian dari selisih gradien beberapa iterasi terakhir \citep{nocedal2006}. L-BFGS
-populer untuk masalah deterministik berukuran sedang, termasuk tahap akhir pelatihan PINN.
+populer untuk masalah deterministik berukuran sedang, termasuk tahap akhir pelatihan PINN. Gagasannya bertumpu
+pada \istilah{secant condition}: aproksimasi Hessian yang baru, $\bm B_{k+1}$, harus memetakan langkah terakhir
+$\bm s_k=\vx_{k+1}-\vx_k$ ke perubahan gradien yang teramati, $\bm y_k=\nabla f(\vx_{k+1})-\nabla f(\vx_k)$, yaitu
+$\bm B_{k+1}\bm s_k=\bm y_k$. Dalam satu dimensi, syarat ini tidak lain adalah turunan kedua yang ditaksir dengan beda
+hingga dari dua gradien. BFGS memilih, di antara semua matriks yang memenuhi syarat itu, yang paling dekat dengan
+aproksimasi sebelumnya, dan L-BFGS hanya menyimpan sepuluh sampai dua puluh pasangan $(\bm s,\bm y)$ terakhir alih-alih
+matriks penuh.
+
+Kuliah deep learning juga membahas dua cara lain memanfaatkan kelengkungan. Metode \istilah{conjugate gradient} memilih
+arah-arah yang saling ``konjugat'' terhadap Hessian, sehingga langkah di satu arah tidak merusak kemajuan di arah-arah
+sebelumnya. Untuk fungsi kuadrat berdimensi $N$, ia mencapai minimum eksak dalam paling banyak $N$ langkah, dan dalam
+praktik galatnya menyusut dengan faktor sekitar $(\sqrt\kappa-1)/(\sqrt\kappa+1)$ per langkah. Metode \istilah{trust region}
+membalik urutan pertanyaan line search. Alih-alih memilih arah lalu panjang langkah, ia menetapkan jari-jari kepercayaan,
+mencari langkah terbaik untuk model kuadrat di dalam jari-jari itu, lalu memperbesar jari-jarinya kalau model ternyata
+meramal penurunan dengan baik dan memperkecilnya kalau tidak.
 
 \section{Stochastic gradient descent}
 
@@ -181,6 +206,12 @@ mirip bola yang menggelinding: ia membawa kecepatannya, tidak langsung berbalik 
 gundukan kecil, dan melaju lebih cepat di lereng yang panjang. Zig-zag di \cref{fig:zigzag}
 teredam dengan cara ini.
 
+Berapa besar keuntungannya? Untuk fungsi kuadrat dengan condition number $\kappa$, heavy ball dengan $\alpha$ dan $\beta$
+yang dipilih optimal menyusutkan galat dengan faktor sekitar $(\sqrt\kappa-1)/(\sqrt\kappa+1)$ per langkah, bukan
+$(\kappa-1)/(\kappa+1)$. Untuk $\kappa=100$ dari contoh di atas, faktornya $9/11$ alih-alih $99/101$, dan jumlah langkah
+untuk mengecilkan galat sejuta kali turun dari sekitar 690 menjadi sekitar $\ln(10^{-6})/\ln(9/11)\approx69$. Momentum
+mengganti $\kappa$ dengan akarnya, sama seperti conjugate gradient.
+
 Masalah condition number juga bisa diserang dengan memberi setiap parameter laju belajarnya
 sendiri. AdaGrad membagi langkah dengan akar jumlah kuadrat gradien masa lalu, RMSProp memakai
 rata-rata bergerak agar pembagi itu tidak terus membesar, dan Adam \citep{kingma2015}
@@ -219,6 +250,34 @@ Laju belajar yang tetap pun jarang optimal. Pola yang umum adalah \istilah{warm-
 kecil dan naik selama beberapa ratus langkah, lalu menurun perlahan, misalnya mengikuti kurva
 kosinus. Warm-up mencegah langkah awal yang terlalu agresif ketika statistik Adam belum stabil.
 
+Untuk jaringan rekuren, kadang gradien tiba-tiba membesar ribuan kali karena perkalian berulang melewati banyak
+langkah waktu (\cref{ch:lstm}). Satu langkah dengan gradien seperti itu bisa melempar bobot jauh dari daerah yang baik.
+\istilah{Gradient clipping} menskalakan ulang gradien kalau normanya melebihi ambang $\tau$:
+$\bm g\leftarrow\bm g\cdot\min\big(1,\tau/\|\bm g\|\big)$. Arahnya dipertahankan, hanya panjangnya dibatasi. Gradien dengan
+norma 50 dan ambang 5 diperkecil sepuluh kali. Langkah ini murah dan menjadi bagian standar pelatihan model bahasa.
+
+Seberapa besar mini-batch yang sebaiknya dipakai? Karena gradien mini-batch adalah rata-rata $B$ gradien yang hampir
+independen, variansnya menyusut seperti $1/B$, dan simpangan bakunya seperti $1/\sqrt B$. Batch empat kali lebih besar
+hanya mengurangi noise separuhnya, padahal biayanya empat kali lipat. Aturan praktis yang sering dipakai, menaikkan
+laju belajar sebanding dengan ukuran batch, berasal dari pengamatan bahwa yang menentukan dinamika SGD adalah
+perbandingan laju belajar terhadap ukuran batch, setidaknya selama batch belum terlalu besar.
+
+\section{Optimasi dengan kendala}
+
+Banyak masalah punya kendala: parameter harus positif, jumlah peluang harus satu, anggaran tidak boleh terlampaui.
+Untuk kendala persamaan $h(\vx)=0$, metode pengali Lagrange menyatakan bahwa di optimum, gradien fungsi tujuan harus
+sejajar dengan gradien kendala, $\nabla f(\vx^*)=\lambda\nabla h(\vx^*)$. Alasannya geometris: kalau $\nabla f$ punya
+komponen yang menyinggung permukaan kendala, kita masih bisa bergeser sepanjang permukaan itu dan menurunkan $f$.
+
+Contoh paling sederhana: minimalkan $x^2+y^2$ dengan syarat $x+y=1$, yaitu titik terdekat ke asal di sebuah garis.
+Syarat Lagrange memberi $(2x,2y)=\lambda(1,1)$, sehingga $x=y$, dan dari kendala $x=y=\tfrac12$, dengan $\lambda=1$.
+Pengali Lagrange punya arti: ia adalah laju perubahan nilai optimum ketika kendala dilonggarkan. Kalau syaratnya
+menjadi $x+y=1+\varepsilon$, nilai optimumnya $(1+\varepsilon)^2/2\approx\tfrac12+\varepsilon$, naik dengan laju $\lambda=1$.
+Inilah harga bayangan yang sama dengan variabel dual dalam program linear (\cref{ch:klasik}). Untuk kendala
+pertidaksamaan, syarat Karush--Kuhn--Tucker menambahkan bahwa pengali harus nonnegatif dan nol untuk kendala yang tidak
+aktif. Di deep learning, kendala biasanya ditangani dengan cara yang lebih kasar: suku penalti di loss, atau
+reparameterisasi, misalnya menulis parameter positif sebagai eksponen dari parameter bebas.
+
 \section{Lanskap loss jaringan dalam}
 
 Lanskap loss jaringan dalam ternyata berbeda dari intuisi dimensi rendah. Untuk fungsi acak di
@@ -245,6 +304,26 @@ suku batas, sehingga jaringan memenuhi persamaan di dalam domain tetapi melupaka
 yang sering dipakai adalah memulai dengan Adam untuk keluar dari daerah awal yang buruk, melanjutkan
 dengan L-BFGS untuk turun tajam ke minimum, dan menyeimbangkan bobot suku-suku loss secara adaptif
 (\cref{ch:pinn}).
+
+\section{Perkembangan riset}
+
+Teori di awal bab ini meramalkan bahwa gradient descent dengan langkah $\eta$ hanya stabil kalau kelengkungan terbesar
+$L$ lebih kecil dari $2/\eta$. \citet{cohen2021} mengamati sesuatu yang aneh pada pelatihan jaringan saraf dengan
+gradien penuh. Kelengkungan terbesar Hessian naik selama pelatihan sampai menyentuh $2/\eta$, lalu berhenti di sana
+dan melayang tepat di atas batas itu. Loss naik-turun dalam jangka pendek, tetapi tetap turun dalam jangka panjang.
+Rezim ini dinamai \istilah{edge of stability}. Jaringan seolah menyesuaikan lanskapnya sendiri dengan langkah yang
+dipakai, sesuatu yang tidak diramalkan analisis klasik dengan $L$ tetap.
+
+Optimizer baru terus bermunculan. Lion \citep{chen2023lion} ditemukan bukan oleh manusia, melainkan oleh pencarian
+program otomatis atas ruang algoritme optimasi. Hasilnya ternyata sederhana sekali: hanya menyimpan momentum, lalu
+memperbarui setiap parameter dengan tanda dari campuran momentum dan gradien, $\vw\leftarrow\vw-\eta\,\mathrm{sign}(\bm c)$.
+Semua parameter bergerak dengan besar langkah yang sama, dan memorinya separuh Adam karena tidak menyimpan rata-rata
+kuadrat gradien. Muon mengambil sudut pandang matriks: pembaruan untuk satu matriks bobot dibuat ortogonal sebelum
+diterapkan, sehingga semua arah singular bergerak sama cepat. \citet{liu2025muon} melaporkan bahwa dengan weight decay
+dan penskalaan per parameter yang tepat, Muon mencapai efisiensi komputasi sekitar dua kali AdamW dalam pelatihan model
+bahasa besar. Schedule-Free \citep{defazio2024} menghapus jadwal laju belajar sama sekali dengan teori yang menyatukan
+penjadwalan dan perata-rataan iterasi, dan tidak menambah hyperparameter. Ketiga contoh ini memperlihatkan bahwa
+pertanyaan lama di bab ini, bagaimana mengatasi condition number dan noise, masih menghasilkan jawaban baru.
 
 \sumberbab{Teori konvergensi, line search, dan metode Newton mengikuti naskah kuliah Numerical
 Optimization for AI. Bagian SGD, momentum, dan optimizer adaptif mengikuti bab metode belajar di

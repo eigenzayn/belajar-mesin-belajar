@@ -1,0 +1,157 @@
+\chapter{Teori Belajar Statistik}
+\label{ch:teori}
+
+Kuliah Statistical Learning Theory and Applications dari Werner Zellinger saya ikuti pada musim panas 2025. Naskahnya pendek,
+bukunya tebal: rujukan utamanya adalah \emph{Learning Theory from First Principles} \citep{bach2024}. Pertanyaan yang diajukan
+di halaman pertama naskah sederhana sekali. Kalau data tak terhingga, model apa yang terbaik, dan berapa galat terbaiknya?
+Kapan sebuah algoritme belajar dijamin semakin baik dengan bertambahnya data? Dan apakah belajar mungkin tanpa asumsi apa pun
+tentang data? Bab ini mengikuti jawaban-jawabannya. Ia lebih formal dari \cref{ch:data}, tetapi setiap definisi punya alasan
+yang konkret.
+
+\section{Merumuskan belajar}
+
+Data adalah $n$ pasangan $(\vx_i,y_i)$ yang ditarik independen dari distribusi $P$ yang tidak diketahui. Algoritme belajar adalah
+fungsi yang memetakan himpunan data ke sebuah model $f$. Loss $\ell(z,y)$ mengukur kerugian memakai prediksi $z$ ketika jawabannya
+$y$. Risiko model adalah loss harapan atas distribusi data, $R(f)=\E_{(\vx,y)\sim P}[\ell(f(\vx),y)]$, dan risiko empiris adalah rata-ratanya
+di data, $\hat R(f)=\tfrac1n\sum_i\ell(f(\vx_i),y_i)$.
+
+Model terbaik yang mungkin bisa ditulis tanpa melihat data sama sekali. Karena $R(f)=\E_{\vx}\big[\E[\ell(f(\vx),y)\mid\vx]\big]$, risiko
+diminimalkan dengan memilih, untuk setiap $\vx$ secara terpisah, prediksi $z$ yang meminimalkan loss harapan bersyarat. Fungsi
+yang melakukannya disebut \istilah{risk minimizer} $f^*$, dan risikonya, $R^*$, adalah risiko minimal. Untuk regresi dengan loss
+kuadrat, $\E[(z-y)^2\mid\vx]$ adalah parabola dalam $z$ yang minimum di rata-rata bersyarat, sehingga $f^*(\vx)=\E[y\mid\vx]$, sama dengan
+yang kita turunkan untuk satu konstanta di \cref{ch:stat}. Untuk klasifikasi biner dengan loss 0--1, prediksi $z=1$ salah dengan
+peluang $P(y=0\mid\vx)$ dan prediksi $z=0$ salah dengan peluang $P(y=1\mid\vx)$, sehingga yang terbaik adalah memilih kelas dengan
+peluang bersyarat lebih besar, dan
+\begin{equation}
+R^*=\E_{\vx}\Big[\min\big\{P(y=1\mid\vx),\ 1-P(y=1\mid\vx)\big\}\Big].
+\end{equation}
+Itulah galat Bayes dari \cref{ch:stat}, dalam bahasa yang lebih umum. Kalau $P$ diketahui, belajar menjadi trivial. Seluruh
+kesulitan berasal dari kenyataan bahwa $P$ hanya diketahui lewat sampel.
+
+\section{Dua sumber galat}
+
+Algoritme memilih model dari sebuah kelas $\mathcal F$, misalnya semua fungsi linear atau semua jaringan berukuran tertentu.
+Galat berlebih model yang dipilih, $\hat f$, terhadap yang terbaik yang mungkin bisa dipecah menjadi dua:
+\begin{equation}
+R(\hat f)-R^*=\underbrace{\Big(R(\hat f)-\inf_{f\in\mathcal F}R(f)\Big)}_{\text{galat estimasi}}
++\underbrace{\Big(\inf_{f\in\mathcal F}R(f)-R^*\Big)}_{\text{galat aproksimasi}}.
+\end{equation}
+Galat aproksimasi adalah harga memilih kelas yang terlalu sempit: kalau fungsi sebenarnya melengkung dan kita hanya mengizinkan
+garis lurus, tidak ada jumlah data yang bisa menolong. Galat ini tidak bergantung pada data. Galat estimasi adalah harga memilih
+dari data yang terbatas: semakin kaya kelasnya, semakin mudah kita memilih anggota yang kebetulan cocok dengan noise di data latih.
+Galat ini mengecil dengan bertambahnya data dan membesar dengan bertambahnya kapasitas kelas. Kelas yang lebih kaya menurunkan
+yang pertama dan menaikkan yang kedua, bentuk umum dari tawar-menawar bias dan varians di \cref{ch:data}. Kapasitas dikendalikan
+dengan mengurangi parameter atau dengan menambahkan penalti norma, seperti weight decay.
+
+\section{Kualitas sebuah algoritme}
+
+Kuliah membedakan beberapa cara menilai algoritme. Algoritme \istilah{konsisten} kalau risiko harapan model yang dihasilkannya
+mendekati $R^*$ ketika $n$ menuju tak hingga. Versi PAC, \emph{probably approximately correct}, meminta lebih: dengan peluang
+paling sedikit $1-\delta_n$, galat berlebihnya tidak lebih dari $\epsilon_n$, dengan kedua batas mengecil ke nol. Algoritme
+\istilah{universally consistent} konsisten untuk setiap distribusi dalam sebuah kelas yang besar. Risiko \istilah{minimax},
+\begin{equation}
+\inf_{\mathcal A}\ \sup_{P\in\mathcal P}\ \E_{\text{data}\sim P^n}\big[R(\mathcal A(\text{data}))\big]-R^*,
+\end{equation}
+menilai algoritme terbaik pada distribusi terburuknya. Salah satu tujuan utama teori belajar adalah algoritme yang mencapai laju
+penurunan risiko minimax yang optimal.
+
+\section{Tidak ada makan siang gratis}
+
+Teorema \emph{no free lunch} dalam kuliah menjawab pertanyaan ketiga di awal bab. Untuk klasifikasi biner dengan loss 0--1, kalau
+kelas distribusi yang diizinkan adalah \emph{semua} distribusi pada ruang input yang tak terhingga, maka untuk setiap algoritme dan
+setiap ukuran data, ada distribusi yang membuat galat berlebih harapannya paling sedikit $\tfrac12$. Gagasan pembuktiannya bisa
+diceritakan tanpa rumus. Pilih distribusi yang tersebar di banyak sekali titik, sehingga $n$ contoh hampir pasti tidak pernah
+menyentuh titik-titik uji. Lalu beri label pada titik-titik yang tidak terlihat itu secara acak. Apa pun yang dilakukan algoritme di
+titik yang belum pernah ia lihat, rata-ratanya ia benar separuh kali, padahal label itu sebenarnya tertentu, sehingga $R^*=0$.
+
+Pesannya bukan bahwa belajar mustahil, melainkan bahwa belajar \emph{tanpa asumsi} mustahil. Asumsi tentang distribusi, misalnya
+bahwa fungsi targetnya mulus, bahwa ia hanya bergantung pada sedikit arah, atau bahwa ia hampir linear, adalah apa yang membuat
+generalisasi mungkin. Inductive bias di \cref{ch:peta} adalah nama lain dari asumsi itu.
+
+Kuliah merangkum ``perlombaan ilmiah untuk adaptivitas'' dengan beberapa laju konvergensi. Kalau fungsi target hanya diketahui
+Lipschitz di $\R^d$, galat turun seperti $n^{-1/d}$. Untuk $d=10$, mengurangi galat setengahnya menuntut $2^{10}$, sekitar seribu
+kali lebih banyak data. Inilah kutukan dimensi dalam bentuk yang paling telanjang. Kalau target punya $m$ turunan yang terbatas,
+laju membaik menjadi $n^{-m/d}$, dan jaringan saraf bisa mencapai laju $n^{-m/k}$ kalau target sebenarnya hanya bergantung pada
+proyeksi berdimensi $k$ dari input, sesuatu yang menurut naskah kuliah tidak bisa dicapai metode kernel. Algoritme yang baik adalah
+algoritme yang menyesuaikan diri dengan struktur yang kebetulan ada, tanpa harus diberi tahu sebelumnya.
+
+\section{Least squares di bawah kaca pembesar}
+
+Kuliah memakai least squares sebagai laboratorium, karena semua efek penting, tawar-menawar bias dan varians, kutukan dimensi, dan
+efek regularisasi, bisa dihitung secara eksak di sana. Modelnya linear dalam parameter, $f_{\bm\theta}(\vx)=\bm\theta^\top\phi(\vx)$, dengan
+peta fitur $\phi$ yang boleh nonlinear dalam $\vx$. Estimator OLS $\hat{\bm\theta}=(\bm\Phi^\top\bm\Phi)^{-1}\bm\Phi^\top\vy$ diturunkan di
+\cref{ch:data}, dan prediksinya adalah proyeksi ortogonal $\vy$ ke ruang kolom matriks fitur $\bm\Phi$.
+
+Analisisnya paling bersih dalam \emph{fixed design}: input dianggap tetap, misalnya titik-titik grid, dan hanya output yang acak,
+$y_i=\bm\theta^{*\top}\phi(\vx_i)+\epsilon_i$ dengan noise independen berrata-rata nol dan varians $\sigma^2$. Risiko diukur pada
+input yang sama. Dengan $\hat{\bm\Sigma}=\tfrac1n\bm\Phi^\top\bm\Phi$, galat berlebih sebuah parameter adalah
+$(\bm\theta-\bm\theta^*)^\top\hat{\bm\Sigma}(\bm\theta-\bm\theta^*)$. OLS tak bias, $\E[\hat{\bm\theta}]=\bm\theta^*$, dan kovariansnya
+$\tfrac{\sigma^2}n\hat{\bm\Sigma}^{-1}$. Galat berlebih harapannya adalah jejak kovarians itu ditimbang dengan $\hat{\bm\Sigma}$:
+\begin{equation}
+\E\big[R(\hat{\bm\theta})\big]-R^*=\mathrm{tr}\Big(\hat{\bm\Sigma}\cdot\frac{\sigma^2}n\hat{\bm\Sigma}^{-1}\Big)=\frac{\sigma^2d}n .
+\end{equation}
+Rumus sesederhana ini memuat banyak pelajaran. Galat turun seperti $1/n$, laju terbaik yang mungkin. Tetapi ia sebanding dengan
+jumlah parameter $d$. Dengan $d=50$, $n=1000$, dan $\sigma^2=1$, galat berlebihnya $0{,}05$. Dengan $d=500$, sepuluh kali lebih besar.
+Kalau $d$ mendekati $n$, model bisa menghafal data latih, dan untuk $d=n$ dengan matriks yang bisa dibalik, prediksinya tepat sama
+dengan data, noise sekalipun.
+
+\section{Ridge dan derajat kebebasan}
+
+Ridge regression menambahkan $\lambda\|\bm\theta\|^2$, dengan solusi $\hat{\bm\theta}_\lambda=\tfrac1n(\hat{\bm\Sigma}+\lambda\bm I)^{-1}\bm\Phi^\top\vy$.
+Naskah kuliah memberi galat berlebih harapannya secara eksak sebagai jumlah dua suku:
+\begin{equation}
+\E\big[R(\hat{\bm\theta}_\lambda)\big]-R^*=\lambda^2\,\bm\theta^{*\top}(\hat{\bm\Sigma}+\lambda\bm I)^{-2}\hat{\bm\Sigma}\,\bm\theta^*
++\frac{\sigma^2}n\,\mathrm{tr}\big(\hat{\bm\Sigma}^2(\hat{\bm\Sigma}+\lambda\bm I)^{-2}\big).
+\end{equation}
+Suku pertama adalah bias kuadrat: naik dengan $\lambda$, karena parameter ditarik semakin kuat ke nol, dan tidak bergantung pada $n$.
+Suku kedua adalah varians: turun dengan $\lambda$, mendekati $\sigma^2d/n$ ketika $\lambda$ menuju nol, dan menghilang ketika $\lambda$
+besar. Jejak di suku kedua, $\mathrm{df}(\lambda)=\sum_i\lambda_i^2/(\lambda_i+\lambda)^2$ dengan $\lambda_i$ nilai eigen $\hat{\bm\Sigma}$,
+disebut \istilah{derajat kebebasan} efektif.
+
+Derajat kebebasan menjelaskan apa yang sebenarnya dilakukan regularisasi. Arah dengan nilai eigen jauh lebih besar dari $\lambda$
+dihitung hampir penuh, arah dengan nilai eigen jauh lebih kecil hampir tidak dihitung. Untuk tiga arah dengan nilai eigen $4$, $1$,
+dan $0{,}01$, dan $\lambda=0{,}1$, sumbangannya $16/16{,}81\approx0{,}95$, $1/1{,}21\approx0{,}83$, dan $0{,}0001/0{,}0121\approx0{,}01$,
+sehingga $\mathrm{df}\approx1{,}79$. Model punya tiga parameter, tetapi variansnya seperti model dengan kurang dari dua parameter, karena
+arah yang hampir tidak didukung data praktis dimatikan.
+
+Dengan pilihan $\lambda$ yang tepat, naskah kuliah menunjukkan bahwa galat berlebih ridge bisa dibatasi oleh sebuah suku yang turun
+seperti $1/\sqrt n$ dan sama sekali tidak bergantung pada $d$, hanya pada norma $\bm\theta^*$, besar fitur, dan $\sigma$. Bandingkan dengan
+OLS: OLS turun lebih cepat, seperti $1/n$, tetapi dengan konstanta yang tumbuh dengan $d$. Ridge turun lebih lambat dengan konstanta
+yang tidak bergantung pada $d$. Untuk model dengan banyak parameter dibanding data, keadaan normal di deep learning, yang kedua
+jauh lebih menarik. Dalam praktik, $\lambda$ tidak dipilih dengan rumus karena $\sigma$ dan $\bm\theta^*$ tidak diketahui, melainkan
+dengan validasi silang, yang menurut kuliah menikmati laju optimal yang sama.
+
+\section{Kernel}
+
+Bagaimana kalau peta fitur $\phi$ berdimensi besar sekali, bahkan tak hingga? Teorema representer menjawab bahwa untuk minimisasi
+risiko empiris dengan penalti norma di ruang Hilbert, solusi optimalnya selalu bisa ditulis sebagai kombinasi fitur dari titik-titik
+data, $\bm\theta=\sum_i\alpha_i\phi(\vx_i)$, apa pun loss-nya, asalkan penaltinya naik dengan norma. Pembuktiannya pendek. Pecah
+$\bm\theta$ menjadi komponen di dalam rentang $\phi(\vx_i)$ dan komponen tegak lurus terhadapnya. Komponen tegak lurus tidak mengubah
+satu pun prediksi di data latih, karena hasil kali dalamnya dengan setiap $\phi(\vx_i)$ nol, tetapi menambah norma. Jadi solusi
+optimal tidak punya komponen tegak lurus.
+
+Akibatnya, semua yang dibutuhkan hanya hasil kali dalam antar fitur, $k(\vx,\vx')=\phi(\vx)^\top\phi(\vx')$, yang disusun dalam matriks
+kernel $\bm K$. Masalah di ruang berdimensi tak hingga menjadi masalah dengan $n$ variabel. Untuk loss kuadrat, kernel ridge regression
+memberi $\bm\alpha=(\bm K+n\lambda\bm I)^{-1}\vy$ dan prediksi $\hat f(\vx)=\sum_i\alpha_ik(\vx_i,\vx)$, bentuk yang sama dengan rata-rata
+posterior Gaussian process di \cref{ch:mlat}. Teorema Aronszajn menjamin bahwa setiap fungsi $k$ yang selalu menghasilkan matriks
+semidefinit positif adalah hasil kali dalam di suatu ruang fitur, sehingga kita cukup merancang kernel, tanpa pernah menulis $\phi$.
+Inilah \istilah{kernel trick}.
+
+Contoh kecil memperlihatkan fitur tersembunyi di balik kernel. Untuk $\vx=(x_1,x_2)$, kernel polinomial $k(\vx,\vx')=(\vx^\top\vx')^2$
+bisa diuraikan menjadi $(x_1x_1'+x_2x_2')^2=x_1^2x_1'^2+2x_1x_2x_1'x_2'+x_2^2x_2'^2$, yaitu hasil kali dalam dari fitur
+$\phi(\vx)=(x_1^2,\ \sqrt2x_1x_2,\ x_2^2)$. Menghitung kernel hanya butuh satu hasil kali dalam dua dimensi lalu dikuadratkan,
+sedangkan fiturnya tiga dimensi. Untuk pangkat dan dimensi yang lebih tinggi, selisihnya meledak. Kernel Gauss,
+$k(\vx,\vx')=\exp(-\|\vx-\vx'\|^2)$, berkorespondensi dengan ruang fitur berdimensi tak hingga, dan tetap dihitung dengan satu jarak.
+
+\section{Di luar kelas}
+
+Teori di bab ini terdengar jauh dari praktik, tetapi ia menjawab pertanyaan yang muncul di seluruh buku. Mengapa ukuran data penting
+untuk model pengganti simulasi berdimensi tinggi? Laju $n^{-1/d}$ menjawabnya, dan juga menjelaskan mengapa struktur fisika yang
+mengurangi dimensi efektif begitu berharga (\cref{ch:pinn,ch:operator}). Mengapa jaringan saraf dengan parameter jauh lebih banyak dari
+data tetap bisa generalisasi? Derajat kebebasan efektif dan regularisasi implisit memberi sebagian jawabannya, dan double descent di
+\cref{ch:data} adalah kepingan lainnya. Dan teorema no free lunch adalah pengingat yang rendah hati: setiap keberhasilan sebuah metode
+adalah keberhasilan asumsinya.
+
+\sumberbab{Bab ini mengikuti naskah kuliah Statistical Learning Theory and Applications (pembelajaran terawasi dan risiko, minimisasi
+risiko empiris, konsistensi dan risiko minimax, teorema no free lunch, analisis least squares dan ridge dalam fixed design, teorema
+representer dan kernel). Rujukan utamanya adalah \citet{bach2024}.}

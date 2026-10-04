@@ -18,7 +18,7 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 13</p>
+<p class="chapnum">Bab 17</p>
 <h1>Membuka Kotak Hitam: AI dan Visualisasi</h1>
 <p><span id="ch:xai" data-label="ch:xai"></span></p>
 <p>Kuliah AI and visualization saya ikuti pada musim dingin 2025/26,
@@ -88,15 +88,32 @@ seratus kotak kecil membuat hasil ini langsung terasa masuk akal.</p>
 <h2 id="menjelaskan-lewat-proyeksi">Menjelaskan lewat proyeksi</h2>
 <p>Data berdimensi tinggi, termasuk aktivasi di dalam jaringan saraf,
 bisa diproyeksikan ke dua dimensi untuk dilihat. PCA (<a
-href="ch02c_unsupervised.html">Bab 4</a>) mempertahankan varians global,
-t-SNE mempertahankan tetangga lokal, dan UMAP <span class="citation"
-data-cites="mcinnes2018">(McInnes, Healy, dan Melville 2018)</span>
-berusaha menjaga keduanya. Kuliah meluangkan waktu khusus untuk salah
-baca yang umum pada t-SNE: hyperparameter seperti perplexity amat
-menentukan, ukuran kelompok di peta tidak berarti apa-apa, jarak antar
-kelompok bisa menipu, noise acak kadang tampak berpola, dan untuk
+href="ch02c_unsupervised.html">Bab 6</a>) mempertahankan varians global,
+t-SNE <span class="citation" data-cites="vandermaaten2008">(Maaten dan
+Hinton 2008)</span> mempertahankan tetangga lokal, dan UMAP <span
+class="citation" data-cites="mcinnes2018">(McInnes, Healy, dan Melville
+2018)</span> berusaha menjaga keduanya. Kuliah meluangkan waktu khusus
+untuk salah baca yang umum pada t-SNE: hyperparameter seperti perplexity
+amat menentukan, ukuran kelompok di peta tidak berarti apa-apa, jarak
+antar kelompok bisa menipu, noise acak kadang tampak berpola, dan untuk
 melihat topologi kita mungkin butuh beberapa peta dengan setelan
 berbeda.</p>
+<p>Salah baca itu bisa dipahami dari cara t-SNE bekerja. Untuk setiap
+titik di ruang asal, t-SNE mengubah jarak ke titik-titik lain menjadi
+peluang bertetangga <span class="math inline">\(p_{ij}\)</span> dengan
+kernel Gauss, yang lebarnya dipilih per titik agar setiap titik punya
+kira-kira sejumlah tetangga efektif yang sama, yaitu perplexity. Di peta
+dua dimensi, peluang <span class="math inline">\(q_{ij}\)</span>
+dihitung dengan distribusi Student-<span
+class="math inline">\(t\)</span> berekor tebal, lalu posisi titik di
+peta digeser untuk meminimalkan <span
+class="math inline">\(\mathrm{KL}(P\|Q)=\sum
+p_{ij}\log(p_{ij}/q_{ij})\)</span>. Karena lebar kernel disesuaikan per
+titik, kelompok yang rapat dan kelompok yang renggang di ruang asal
+sama-sama tampil dengan ukuran serupa di peta. Dan karena KL ini
+menghukum keras tetangga dekat yang dipisahkan, tetapi hampir tidak
+peduli pada titik jauh yang didekatkan, jarak antar kelompok di peta
+tidak punya arti yang bisa diandalkan.</p>
 <p>Proyeksi juga bisa menunjukkan proses yang berjalan dalam waktu.
 Kalau setiap keadaan sebuah proses, misalnya setiap langkah algoritme,
 setiap posisi permainan catur, atau setiap epoch pelatihan jaringan,
@@ -114,16 +131,46 @@ menampilkan efek rata-rata satu fitur terhadap prediksi, dengan
 merata-ratakan atas nilai fitur-fitur lain. <em>Individual conditional
 expectation</em> menampilkan kurva yang sama untuk setiap contoh secara
 terpisah, sehingga interaksi antar fitur yang tersembunyi di balik
-rata-rata menjadi terlihat.</p>
+rata-rata menjadi terlihat. Ambil model <span
+class="math inline">\(f(x_1,x_2)=x_1x_2\)</span> dengan <span
+class="math inline">\(x_2\)</span> bernilai <span
+class="math inline">\(+1\)</span> atau <span
+class="math inline">\(-1\)</span> sama seringnya. Separuh kurva ICE
+untuk <span class="math inline">\(x_1\)</span> naik, separuh lagi turun,
+dan PDP, rata-ratanya, datar sempurna (Gambar 17.1). Kalau hanya melihat
+PDP, kita akan menyimpulkan bahwa <span
+class="math inline">\(x_1\)</span> tidak berpengaruh sama sekali,
+padahal ia berpengaruh, hanya arahnya bergantung pada <span
+class="math inline">\(x_2\)</span>.</p>
+<figure id="fig:ice">
+<img src="fig/7faeba6902e1.svg" />
+<figcaption>Kurva ICE (garis tipis) untuk model dengan interaksi. Kurva
+naik untuk sebagian contoh dan turun untuk sebagian lain, sehingga
+rata-ratanya, PDP (garis putus-putus), datar dan menyembunyikan pengaruh
+fitur itu.</figcaption>
+</figure>
 <p>LIME <span class="citation" data-cites="ribeiro2016">(Ribeiro, Singh,
 dan Guestrin 2016)</span> menjelaskan satu prediksi dengan membangun
 model sederhana yang hanya berlaku di sekitar contoh itu. Contoh
 diganggu sedikit demi sedikit, misalnya dengan menyembunyikan
 potongan-potongan gambar (<em>superpixel</em>), model asli ditanya untuk
 setiap versi, lalu model linear dilatih untuk meniru jawabannya secara
-lokal. Bobot model linear itu menjadi penjelasan. Model surrogate global
-melakukan hal serupa untuk seluruh data, dengan risiko bahwa model
-sederhana itu tidak cukup setia.</p>
+lokal. Secara formal, LIME mencari <span
+class="math display">\[g^*=\operatorname*{arg\,min}_{g\in G}\
+\sum_{z}\pi_x(z)\big(f(z)-g(z)\big)^2+\Omega(g),\]</span> dengan <span
+class="math inline">\(z\)</span> contoh-contoh yang diganggu, <span
+class="math inline">\(\pi_x(z)\)</span> bobot yang makin kecil untuk
+<span class="math inline">\(z\)</span> yang makin jauh dari <span
+class="math inline">\(x\)</span>, dan <span
+class="math inline">\(\Omega(g)\)</span> penalti kerumitan, misalnya
+batas jumlah fitur yang boleh dipakai. Ini regresi linear berbobot
+dengan regularisasi dari <a href="ch01_belajar_dari_data.html">Bab
+1</a>. Bobot model linear itu menjadi penjelasan. Kelemahannya juga
+terlihat dari rumus ini: hasilnya bergantung pada cara mengganggu contoh
+dan pada lebar <span class="math inline">\(\pi_x\)</span>, sehingga dua
+setelan yang sama-sama masuk akal bisa memberi penjelasan yang berbeda.
+Model surrogate global melakukan hal serupa untuk seluruh data, dengan
+risiko bahwa model sederhana itu tidak cukup setia.</p>
 <p>Nilai Shapley berasal dari teori permainan kooperatif. Pertanyaannya:
 kalau sekelompok pemain bersama menghasilkan keuntungan, berapa bagian
 yang adil untuk setiap pemain? Jawaban Shapley adalah rata-rata
@@ -134,10 +181,45 @@ Dengan A saja 10, dengan B saja 20, dan dengan keduanya 40. Kalau A
 datang lebih dulu, kontribusinya 10, dan kalau datang setelah B,
 kontribusinya 20. Rata-ratanya 15. Dengan cara yang sama, B mendapat
 <span class="math inline">\((20+30)/2=25\)</span>. Jumlah keduanya tepat
-40, prediksi penuh. SHAP <span class="citation"
+40, prediksi penuh. Secara umum, untuk <span
+class="math inline">\(n\)</span> fitur dan fungsi nilai <span
+class="math inline">\(v(S)\)</span> yang memberi prediksi dengan hanya
+memakai himpunan fitur <span class="math inline">\(S\)</span>, <span
+class="math display">\[\phi_i=\sum_{S\subseteq\{1,\dots,n\}\setminus\{i\}}\frac{|S|!\,(n-|S|-1)!}{n!}\big(v(S\cup\{i\})-v(S)\big).\]</span>
+Bobotnya adalah peluang bahwa, dalam urutan kedatangan yang acak, tepat
+fitur-fitur di <span class="math inline">\(S\)</span> datang sebelum
+<span class="math inline">\(i\)</span>: ada <span
+class="math inline">\(|S|!\)</span> cara menyusun yang datang lebih
+dulu, <span class="math inline">\((n-|S|-1)!\)</span> cara menyusun yang
+datang belakangan, dari <span class="math inline">\(n!\)</span> urutan.
+Nilai Shapley adalah satu-satunya pembagian yang memenuhi empat sifat
+sekaligus: jumlahnya sama dengan prediksi penuh dikurangi prediksi
+kosong, fitur yang berperan identik mendapat bagian sama, fitur yang
+tidak pernah berpengaruh mendapat nol, dan untuk jumlah dua model,
+nilainya juga dijumlahkan. SHAP <span class="citation"
 data-cites="lundberg2017">(Lundberg dan Lee 2017)</span> membuat
 perhitungan ini praktis untuk model dengan banyak fitur, karena jumlah
-urutan yang mungkin tumbuh secara faktorial.</p>
+urutan yang mungkin tumbuh secara faktorial. Yang sering terlupa adalah
+bahwa <span class="math inline">\(v(S)\)</span> harus didefinisikan: apa
+artinya model “tanpa” sebuah fitur? Biasanya fitur yang hilang diganti
+nilai dari data latar, dan kalau fitur-fitur saling berkorelasi,
+penggantian itu bisa menciptakan contoh yang tidak realistis, seperti
+orang berusia sepuluh tahun dengan gelar doktor.</p>
+<p>Pertanyaan “bagaimana kalau” dijawab oleh <em>counterfactual
+explanation</em> <span class="citation"
+data-cites="wachter2017">(Wachter, Mittelstadt, dan Russell
+2017)</span>: cari contoh <span class="math inline">\(x&#39;\)</span>
+yang sedekat mungkin dengan <span class="math inline">\(x\)</span>
+tetapi menghasilkan keputusan yang diinginkan, misalnya dengan
+meminimalkan <span
+class="math inline">\(\lambda\big(f(x&#39;)-y&#39;\big)^2+d(x,x&#39;)\)</span>.
+Jawabannya berbentuk kalimat yang langsung bisa dipakai: “kredit Anda
+akan disetujui kalau pendapatan Anda 400 euro lebih tinggi per bulan”.
+Penjelasan seperti ini tidak membuka isi model sama sekali, sehingga
+cocok untuk hak atas penjelasan dalam GDPR (<a
+href="ch51_ai_manusia.html">Bab 35</a>). Tetapi ia harus dibatasi pada
+perubahan yang mungkin: menyarankan seseorang menjadi lebih muda bukan
+penjelasan yang berguna.</p>
 <h2 id="menjelaskan-lewat-gradien">Menjelaskan lewat gradien</h2>
 <p>Untuk jaringan saraf, gradien keluaran terhadap input memberi peta
 kepekaan langsung: piksel mana yang paling mengubah skor kelas kalau
@@ -148,11 +230,32 @@ Integrated gradients <span class="citation"
 data-cites="sundararajan2017">(Sundararajan, Taly, dan Yan 2017)</span>
 menjumlahkan gradien sepanjang jalur dari gambar acuan, misalnya gambar
 hitam, ke gambar asli, dan memenuhi sifat bahwa jumlah atribusinya sama
-dengan selisih keluaran. Grad-CAM <span class="citation"
-data-cites="selvaraju2017">(Selvaraju dkk. 2016)</span> memakai gradien
-terhadap peta fitur lapisan konvolusi terakhir untuk menimbang peta-peta
-itu, sehingga menghasilkan peta panas kasar yang menunjukkan daerah
-gambar yang dipakai model. Layer-wise relevance propagation <span
+dengan selisih keluaran: <span
+class="math display">\[\mathrm{IG}_i(x)=(x_i-x_i&#39;)\int_0^1\frac{\partial
+f}{\partial x_i}\big(x&#39;+\alpha(x-x&#39;)\big)\,\mathrm{d}\alpha
+.\]</span> Contoh kecil memperlihatkan mengapa sifat ini penting. Untuk
+<span class="math inline">\(f(x_1,x_2)=x_1x_2\)</span> di <span
+class="math inline">\(x=(2,3)\)</span> dengan acuan nol, di sepanjang
+jalur <span class="math inline">\(\partial f/\partial
+x_1=3\alpha\)</span>, sehingga <span
+class="math inline">\(\mathrm{IG}_1=2\int_0^13\alpha\,\mathrm{d}\alpha=3\)</span>,
+dan dengan cara yang sama <span
+class="math inline">\(\mathrm{IG}_2=3\)</span>. Jumlahnya 6, tepat <span
+class="math inline">\(f(x)-f(0)\)</span>. Atribusi gradien kali input,
+yang memakai gradien di titik akhir saja, memberi <span
+class="math inline">\(3\cdot2=6\)</span> dan <span
+class="math inline">\(2\cdot3=6\)</span>, dengan jumlah 12, dua kali
+lipat dari keluaran yang ingin dijelaskan. Grad-CAM <span
+class="citation" data-cites="selvaraju2017">(Selvaraju dkk. 2016)</span>
+memakai gradien terhadap peta fitur lapisan konvolusi terakhir untuk
+menimbang peta-peta itu. Bobot peta ke-<span
+class="math inline">\(k\)</span> adalah rata-rata gradien skor kelas
+<span class="math inline">\(y^c\)</span> terhadap peta itu, <span
+class="math inline">\(\alpha_k=\tfrac1Z\sum_{i,j}\partial y^c/\partial
+A^k_{ij}\)</span>, dan peta panasnya <span
+class="math inline">\(\mathrm{ReLU}\big(\sum_k\alpha_kA^k\big)\)</span>,
+sehingga menghasilkan peta panas kasar yang menunjukkan daerah gambar
+yang dipakai model. Layer-wise relevance propagation <span
 class="citation" data-cites="bach2015">(Bach dkk. 2015)</span> membagi
 skor keluaran mundur ke input lapisan demi lapisan dengan aturan
 kekekalan relevansi.</p>
@@ -162,6 +265,16 @@ penting secara biologis, seperti tudung dan bilah, tetapi kadang juga
 latar belakang, misalnya rumput atau tangan yang memegang jamur. Peta
 seperti ini tidak membuktikan bahwa model benar, tetapi amat berguna
 untuk menemukan jalan pintas yang tidak diinginkan.</p>
+<p>Sebaliknya, peta yang tampak masuk akal juga belum tentu setia pada
+model. <span class="citation" data-cites="adebayo2018">Adebayo dkk.
+(2018)</span> mengusulkan uji kewarasan yang sederhana: acak bobot
+jaringan lapisan demi lapisan, atau latih ulang dengan label acak, lalu
+lihat apakah peta penjelasannya ikut berubah. Beberapa metode populer
+menghasilkan peta yang hampir sama untuk jaringan terlatih dan jaringan
+acak. Metode seperti itu lebih banyak memperlihatkan tepi-tepi gambar
+daripada apa yang dipelajari model, seperti detektor tepi yang kebetulan
+rapi. Pelajarannya berlaku untuk semua XAI: penjelasan juga harus diuji,
+bukan hanya dinikmati.</p>
 <h2 id="menjelaskan-lewat-contoh-dan-konsep">Menjelaskan lewat contoh
 dan konsep</h2>
 <p>Manusia sering menjelaskan dengan contoh: “ini mirip kasus yang
@@ -203,10 +316,35 @@ molekul membantu ahli kimia memutuskan bagian mana yang perlu diubah.
 Dalam pemrosesan sinyal dan sistem tertanam, kita perlu tahu sensor mana
 yang paling menentukan sebuah keputusan. Dalam simulasi, keterjelasan
 bisa diambil sejauh-jauhnya: metode seperti SINDy (<a
-href="ch17_penemuan_reduksi.html">Bab 27</a>) tidak menjelaskan model
+href="ch17_penemuan_reduksi.html">Bab 31</a>) tidak menjelaskan model
 kotak hitam, melainkan menghasilkan persamaan yang bisa dibaca langsung.
 Itu barangkali bentuk penjelasan yang paling disukai <span
 class="citation" data-cites="rudin2019">Rudin (2019)</span>.</p>
+<h2 id="perkembangan-riset">Perkembangan riset</h2>
+<p>Untuk model bahasa besar, riset keterjelasan bergeser ke
+<em>mechanistic interpretability</em>: mencoba membaca mekanisme di
+dalam jaringan, bukan hanya atribusi pada input. Masalah utamanya adalah
+<em>polysemanticity</em>. Satu neuron sering aktif untuk banyak konsep
+yang tidak berhubungan, karena jaringan diduga menyimpan lebih banyak
+fitur daripada jumlah neuronnya, sebagai arah-arah yang saling bertumpuk
+di ruang aktivasi (<em>superposition</em>). <span class="citation"
+data-cites="cunningham2023">Cunningham dkk. (2023)</span> melatih sparse
+autoencoder untuk merekonstruksi aktivasi internal model bahasa dari
+kombinasi jarang arah-arah yang jauh lebih banyak dari jumlah neuron.
+Fitur yang ditemukan lebih monosemantik, satu fitur untuk satu konsep,
+dan bisa dipakai untuk menunjuk fitur mana yang secara kausal
+bertanggung jawab atas sebuah perilaku. Gagasannya adalah analisis
+faktor jarang dari <a href="ch02c_unsupervised.html">Bab 6</a>,
+diterapkan pada aktivasi jaringan.</p>
+<p>Arah lain membangun keterjelasan ke dalam arsitektur, sejalan dengan
+saran <span class="citation" data-cites="rudin2019">Rudin (2019)</span>.
+Concept bottleneck model <span class="citation"
+data-cites="koh2020">(Koh dkk. 2020)</span> memaksa jaringan memprediksi
+dulu konsep-konsep yang bermakna bagi manusia, misalnya “ada taji
+tulang” pada citra rontgen lutut, lalu memprediksi label akhir hanya
+dari konsep itu. Dokter bisa melihat konsep mana yang dipercaya model,
+dan bisa mengoreksinya saat model dipakai. Koreksi seperti itu
+dilaporkan meningkatkan akurasi secara nyata.</p>
 <h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti enam kuliah AI and Visualization beserta labnya:
 dasar visualisasi, menjelaskan algoritme, proyeksi, teknik penjelasan
@@ -218,6 +356,12 @@ data-cites="munzner2014">Munzner (2014)</span> untuk visualisasi.</p>
 <h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
+<div id="ref-adebayo2018" class="csl-entry" role="listitem">
+Adebayo, Julius, Justin Gilmer, Michael Muelly, Ian Goodfellow, Moritz
+Hardt, dan Been Kim. 2018. <span>“Sanity Checks for Saliency
+Maps.”</span> arXiv:1810.03292. <a
+href="https://arxiv.org/abs/1810.03292">https://arxiv.org/abs/1810.03292</a>.
+</div>
 <div id="ref-bach2015" class="csl-entry" role="listitem">
 Bach, Sebastian, Alexander Binder, Grégoire Montavon, Frederick
 Klauschen, Klaus-Robert Müller, dan Wojciech Samek. 2015. <span>“On
@@ -226,6 +370,12 @@ Layer-Wise Relevance Propagation.”</span> <em>PLOS ONE</em> 10 (7):
 e0130140. <a
 href="https://doi.org/10.1371/journal.pone.0130140">https://doi.org/10.1371/journal.pone.0130140</a>.
 </div>
+<div id="ref-cunningham2023" class="csl-entry" role="listitem">
+Cunningham, Hoagy, Aidan Ewart, Logan Riggs, Robert Huben, dan Lee
+Sharkey. 2023. <span>“Sparse Autoencoders Find Highly Interpretable
+Features in Language Models.”</span> arXiv:2309.08600. <a
+href="https://arxiv.org/abs/2309.08600">https://arxiv.org/abs/2309.08600</a>.
+</div>
 <div id="ref-kim2018" class="csl-entry" role="listitem">
 Kim, Been, Martin Wattenberg, Justin Gilmer, Carrie Cai, James Wexler,
 Fernanda Viegas, dan Rory Sayres. 2017. <span>“Interpretability Beyond
@@ -233,10 +383,21 @@ Feature Attribution: Quantitative Testing with Concept Activation
 Vectors (TCAV).”</span> arXiv:1711.11279. <a
 href="https://arxiv.org/abs/1711.11279">https://arxiv.org/abs/1711.11279</a>.
 </div>
+<div id="ref-koh2020" class="csl-entry" role="listitem">
+Koh, Pang Wei, Thao Nguyen, Yew Siang Tang, Stephen Mussmann, Emma
+Pierson, Been Kim, dan Percy Liang. 2020. <span>“Concept Bottleneck
+Models.”</span> arXiv:2007.04612. <a
+href="https://arxiv.org/abs/2007.04612">https://arxiv.org/abs/2007.04612</a>.
+</div>
 <div id="ref-lundberg2017" class="csl-entry" role="listitem">
 Lundberg, Scott, dan Su-In Lee. 2017. <span>“A Unified Approach to
 Interpreting Model Predictions.”</span> arXiv:1705.07874. <a
 href="https://arxiv.org/abs/1705.07874">https://arxiv.org/abs/1705.07874</a>.
+</div>
+<div id="ref-vandermaaten2008" class="csl-entry" role="listitem">
+Maaten, Laurens van der, dan Geoffrey Hinton. 2008. <span>“Visualizing
+Data using t-<span>SNE</span>.”</span> <em>Journal of Machine Learning
+Research</em> 9: 2579–2605.
 </div>
 <div id="ref-mcinnes2018" class="csl-entry" role="listitem">
 McInnes, Leland, John Healy, dan James Melville. 2018. <span>“UMAP:
@@ -281,6 +442,12 @@ href="https://arxiv.org/abs/1312.6034">https://arxiv.org/abs/1312.6034</a>.
 Sundararajan, Mukund, Ankur Taly, dan Qiqi Yan. 2017. <span>“Axiomatic
 Attribution for Deep Networks.”</span> arXiv:1703.01365. <a
 href="https://arxiv.org/abs/1703.01365">https://arxiv.org/abs/1703.01365</a>.
+</div>
+<div id="ref-wachter2017" class="csl-entry" role="listitem">
+Wachter, Sandra, Brent Mittelstadt, dan Chris Russell. 2017.
+<span>“Counterfactual Explanations without Opening the Black Box:
+Automated Decisions and the GDPR.”</span> arXiv:1711.00399. <a
+href="https://arxiv.org/abs/1711.00399">https://arxiv.org/abs/1711.00399</a>.
 </div>
 </div>
 </main>

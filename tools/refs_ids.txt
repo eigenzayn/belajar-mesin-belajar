@@ -269,3 +269,142 @@ trinh2024 | doi:10.1038/s41586-023-06747-5 | geometry
 ha2018 | arxiv:1803.10122 | world models
 mccabe2023 | arxiv:2310.02994 | multiple physics
 ohana2024 | arxiv:2412.00568 | the well
+e2018 | arxiv:1710.00211 | deep ritz
+wang2024causal | doi:10.1016/j.cma.2024.116813 | causality
+jagtap2020 | doi:10.4208/cicp.OA-2020-0164 | extended physics-informed
+rackauckas2020 | arxiv:2001.04385 | universal differential equations
+anderson2004 | doi:10.1037/0033-295X.111.4.1036 | integrated theory
+chouldechova2017 | doi:10.1089/big.2016.0047 | fair prediction
+dwork2006 | doi:10.1007/11681878_14 | calibrating noise
+hardt2016 | arxiv:1610.02413 | equality of opportunity
+shao2024 | arxiv:2402.03300 | deepseekmath
+brohan2023 | arxiv:2307.15818 | rt-2
+sennrich2016 | arxiv:1508.07909 | subword
+tesauro1995 | doi:10.1145/203330.203343 | temporal difference
+dijkstra1959 | doi:10.1007/BF01386390 | two problems
+robinson1965 | doi:10.1145/321250.321253 | resolution
+adebayo2018 | arxiv:1810.03292 | sanity checks
+wachter2017 | arxiv:1711.00399 | counterfactual
+alkin2024vil | arxiv:2406.04303 | vision-lstm
+beck2025xlstm7b | arxiv:2503.13427 | xlstm 7b
+auer2025tirex | arxiv:2505.23719 | tirex
+power2022 | arxiv:2201.02177 | grokking
+angelopoulos2021 | arxiv:2107.07511 | conformal
+chen2023lion | arxiv:2302.06675 | symbolic discovery
+liu2025muon | arxiv:2502.16982 | muon
+defazio2024 | arxiv:2405.15682 | schedule
+cohen2021 | arxiv:2103.00065 | edge of stability
+romeraparedes2024 | doi:10.1038/s41586-023-06924-6 | mathematical discoveries
+mankowitz2023 | doi:10.1038/s41586-023-06004-9 | sorting
+schrittwieser2020 | doi:10.1038/s41586-020-03051-4 | planning
+valmeekam2023 | arxiv:2206.10498 | planbench
+chen2020simclr | arxiv:2002.05709 | contrastive
+oquab2023 | arxiv:2304.07193 | dinov2
+he2022mae | arxiv:2111.06377 | masked autoencoders
+assran2023 | arxiv:2301.08243 | joint-embedding
+liu2024kan | arxiv:2404.19756 | kan
+yang2022mup | arxiv:2203.03466 | tensor programs
+ravi2024 | arxiv:2408.00714 | sam 2
+yang2024depth | arxiv:2401.10891 | depth anything
+kerbl2023 | doi:10.1145/3592433 | gaussian splatting
+song2023consistency | arxiv:2303.01469 | consistency models
+esser2024 | arxiv:2403.03206 | rectified flow transformers
+liao2023equiformer | arxiv:2206.11990 | equiformer
+batatia2022 | arxiv:2206.07697 | mace
+rampasek2022 | arxiv:2205.12454 | graph transformer
+brehmer2023 | arxiv:2305.18415 | geometric algebra transformer
+cranmer2020sbi | doi:10.1073/pnas.1912789117 | simulation-based inference
+hafner2023 | arxiv:2301.04104 | world models
+chen2021dt | arxiv:2106.01345 | decision transformer
+cunningham2023 | arxiv:2309.08600 | sparse autoencoders
+koh2020 | arxiv:2007.04612 | concept bottleneck
+monga2021 | doi:10.1109/MSP.2020.3016905 | algorithm unrolling
+revach2022 | arxiv:2107.10043 | kalmannet
+hewing2020 | doi:10.1146/annurev-control-090419-075625 | model predictive control
+yuan2024 | doi:10.1038/s41746-024-01062-3 | self-supervised
+chi2023 | arxiv:2303.04137 | diffusion policy
+black2024 | arxiv:2410.24164 | vision-language-action
+oxe2023 | arxiv:2310.08864 | open x-embodiment
+avsec2021 | doi:10.1038/s41592-021-01252-x | gene expression
+nguyen2024evo | doi:10.1126/science.ado9336 | sequence modeling
+zhou2023dnabert2 | arxiv:2306.15006 | dnabert-2
+cheng2023 | doi:10.1126/science.adg7492 | missense
+cui2024 | doi:10.1038/s41592-024-02201-0 | scgpt
+corso2023 | arxiv:2210.01776 | diffdock
+bran2024 | arxiv:2304.05376 | chemcrow
+lin2023esm | doi:10.1126/science.ade2574 | evolutionary-scale
+watson2023 | doi:10.1038/s41586-023-06415-8 | de novo design
+dauparas2022 | doi:10.1126/science.add2187 | proteinmpnn
+hayes2025 | doi:10.1126/science.ads0018 | evolution
+singhal2023 | doi:10.1038/s41586-023-06291-2 | clinical knowledge
+ma2024medsam | doi:10.1038/s41467-024-44824-z | segment anything
+zhou2023retfound | doi:10.1038/s41586-023-06555-x | retinal
+bezgin2023 | arxiv:2203.13760 | jax-fluids
+pfau2020 | arxiv:1909.02487 | many-electron
+greydanus2019 | arxiv:1906.01563 | hamiltonian neural
+wang2024pirate | arxiv:2402.00326 | piratenets
+rathore2024 | arxiv:2402.01868 | challenges
+herde2024 | arxiv:2405.19101 | poseidon
+hao2024dpot | arxiv:2403.03542 | auto-regressive denoising
+wu2024transolver | arxiv:2402.02366 | transolver
+kramer2024 | doi:10.1146/annurev-fluid-121021-025220 | operator inference
+messenger2021 | doi:10.1016/j.jcp.2021.110525 | weak
+kochkov2024 | doi:10.1038/s41586-024-07744-y | neural general circulation
+rajput2023 | arxiv:2305.05065 | generative retrieval
+zhai2024 | arxiv:2402.17152 | actions speak louder
+kirchenbauer2023 | arxiv:2301.10226 | watermark
+hoorijani2024 | doi:10.1007/s11012-024-01763-9 | online recurrence
+pirker2025seg | doi:10.1016/j.ces.2025.121469 | segregation
+lumetzberger2025 | doi:10.1016/j.ces.2025.121624 | propagator
+shariatifar2026 | doi:10.1016/j.cherd.2026.09.003 | accuracy assessment
+shaik2026 | doi:10.1016/j.cherd.2026.02.039 | mri-validated
+morton1956 | doi:10.1098/rspa.1956.0011 | turbulent gravitational convection
+arjovsky2017 | arxiv:1701.07875 | wasserstein
+heusel2017 | arxiv:1706.08500 | two time-scale
+ho2022cfg | arxiv:2207.12598 | classifier-free
+fischler1981 | doi:10.1145/358669.358692 | random sample consensus
+canny1986 | doi:10.1109/TPAMI.1986.4767851 | edge detection
+hu2008 | doi:10.1109/ICDM.2008.22 | implicit feedback
+kang2018 | arxiv:1808.09781 | self-attentive sequential
+anscombe1973 | doi:10.1080/00031305.1973.10478966 | graphs in statistical
+mackay1992 | doi:10.1162/neco.1992.4.3.415 | bayesian interpolation
+howard2017 | arxiv:1704.04861 | mobilenets
+hu2018se | arxiv:1709.01507 | squeeze-and-excitation
+tolstikhin2021 | arxiv:2105.01601 | mlp-mixer
+paszke2019 | arxiv:1912.01703 | pytorch
+snoek2012 | arxiv:1206.2944 | bayesian optimization
+yosinski2014 | arxiv:1411.1792 | transferable
+zeiler2014 | doi:10.1007/978-3-319-10590-1_53 | visualizing and understanding
+micikevicius2018 | arxiv:1710.03740 | mixed precision
+finn2017 | arxiv:1703.03400 | model-agnostic
+sutton1990 | doi:10.1016/B978-1-55860-141-3.50030-4 | integrated architectures
+sutton1999 | doi:10.1016/S0004-3702(99)00052-1 | semi-mdps
+bellemare2016 | arxiv:1606.01868 | count-based
+kurmi2018 | doi:10.3390/jimaging4080102 | airborne optical sectioning
+schedl2020 | doi:10.1038/s42256-020-00261-3 | search and rescue
+shi2000 | doi:10.1109/34.868688 | normalized cuts
+levoy1996 | doi:10.1145/237170.237199 | light field rendering
+comaniciu2002 | doi:10.1109/34.1000236 | mean shift
+pennington2014 | doi:10.3115/v1/D14-1162 | glove
+antol2015 | arxiv:1505.00468 | visual question answering
+porter1980 | doi:10.1108/eb046814 | suffix stripping
+bender2021 | doi:10.1145/3442188.3445922 | stochastic parrots
+schuld2021 | doi:10.1007/978-3-030-83098-4 | machine learning with quantum computers
+nielsen2010 | doi:10.1017/CBO9780511976667 | quantum computation
+mcclean2018 | doi:10.1038/s41467-018-07090-4 | barren plateaus
+preskill2018 | doi:10.22331/q-2018-08-06-79 | nisq
+havlicek2019 | doi:10.1038/s41586-019-0980-2 | quantum-enhanced feature spaces
+bengio2025iasr | arxiv:2501.17805 | international ai safety report
+amodei2016 | arxiv:1606.06565 | concrete problems
+hendrycks2023 | arxiv:2306.12001 | catastrophic
+mitchell2021 | arxiv:2104.12871 | harder than we think
+morris2023 | arxiv:2311.02462 | levels of agi
+eloundou2023 | arxiv:2303.10130 | gpts are gpts
+strubell2019 | arxiv:1906.02243 | energy and policy
+hinton2015 | arxiv:1503.02531 | distilling
+jimenez2023 | arxiv:2310.06770 | swe-bench
+phan2025 | arxiv:2501.14249 | humanity
+deepseekv3 | arxiv:2412.19437 | deepseek-v3
+furst2022 | arxiv:2110.11316 | cloob
+sanchez2023 | doi:10.1038/s41467-023-42328-w | contrastive learning
+morcos2011 | doi:10.1073/pnas.1111471108 | direct-coupling analysis

@@ -17,7 +17,7 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 7</p>
+<p class="chapnum">Bab 11</p>
 <h1>Melihat: Computer Vision</h1>
 <p><span id="ch:cv" data-label="ch:cv"></span></p>
 <p>Computer vision adalah salah satu kuliah pertama saya, di semester
@@ -49,6 +49,60 @@ dengan <span class="math inline">\(D\)</span> diameter bukaan,
 menentukan seberapa cepat kekaburan itu tumbuh. Bukaan kecil memberi
 <em>depth of field</em> yang lebar, dengan harga gambar yang lebih
 gelap.</p>
+<p>Persamaan lensa tipis langsung memberi angka yang bisa dirasakan.
+Untuk lensa <span class="math inline">\(f=50\)</span> mm dan benda
+sejauh dua meter, <span
+class="math inline">\(1/z_i=1/50-1/2000=39/2000\)</span>, sehingga
+sensor harus berada <span class="math inline">\(51{,}3\)</span> mm di
+belakang lensa. Untuk benda sejauh sepuluh meter, jaraknya <span
+class="math inline">\(50{,}25\)</span> mm. Memindahkan fokus dari
+sepuluh meter ke dua meter berarti menggeser lensa sekitar satu
+milimeter, dan benda di tak hingga difokuskan tepat pada jarak <span
+class="math inline">\(f\)</span>. Lensa <span
+class="math inline">\(f/2\)</span> dengan panjang fokus 50 mm punya
+bukaan selebar 25 mm. Menutup bukaan ke <span
+class="math inline">\(f/4\)</span> membuat diameter bukaan setengahnya,
+sehingga lingkaran kabur untuk setiap benda yang tidak fokus juga
+setengahnya, dan rentang jarak yang tampak tajam melebar. Harganya,
+cahaya yang masuk tinggal seperempat, karena luas bukaan sebanding
+dengan kuadrat diameternya.</p>
+<h3 id="medan-cahaya-dan-bukaan-sintetis">Medan cahaya dan bukaan
+sintetis</h3>
+<p>Kuliah ini diberikan oleh kelompok Oliver Bimber, yang banyak
+meneliti <em>light field</em>. Kamera biasa merekam berapa banyak cahaya
+yang jatuh di setiap piksel, tetapi tidak dari arah mana cahaya itu
+datang. Medan cahaya merekam keduanya: intensitas setiap berkas sebagai
+fungsi empat koordinat, dua untuk posisi di bidang lensa <span
+class="math inline">\((u,v)\)</span> dan dua untuk posisi di bidang
+sensor <span class="math inline">\((s,t)\)</span> <span class="citation"
+data-cites="levoy1996">(Levoy dan Hanrahan 1996)</span>. Medan cahaya
+bisa direkam dengan larik banyak kamera, dengan susunan lensa mikro di
+depan sensor, atau dengan satu kamera yang dipindah-pindahkan.</p>
+<p>Dengan medan cahaya, fokus bisa dipilih setelah pemotretan. Gambar
+dari setiap sudut pandang digeser sebanding dengan disparitas yang
+sesuai untuk kedalaman tertentu, lalu semuanya dirata-ratakan. Benda
+pada kedalaman itu jatuh di tempat yang sama di semua gambar dan tampak
+tajam. Benda pada kedalaman lain jatuh di tempat yang berbeda-beda dan
+menjadi kabur. Hasilnya setara dengan foto dari lensa raksasa seukuran
+seluruh larik kamera, yang disebut <em>synthetic aperture</em>. Sifat
+ini punya akibat yang tidak terduga: penghalang di depan bidang fokus,
+seperti dedaunan, ikut dirata-ratakan dan memudar, sedangkan benda di
+belakangnya, yang di setiap gambar hanya terlihat sebagian lewat celah
+yang berbeda, muncul kembali.</p>
+<p><em>Airborne optical sectioning</em> <span class="citation"
+data-cites="kurmi2018">(Kurmi, Schedl, dan Bimber 2018)</span>, dari
+kelompok yang sama di Linz, membawa gagasan ini ke drone. Drone terbang
+sambil memotret hutan dari banyak posisi, dan gambar-gambar itu digabung
+menjadi satu bukaan sintetis selebar puluhan meter yang difokuskan ke
+permukaan tanah, sehingga daun-daun di atasnya memudar. Makalahnya
+menempatkan pendekatan ini sebagai alternatif yang lebih murah dari
+lidar dan yang tidak bergantung pada pencocokan titik seperti
+fotogrametri. Penerapan lanjutannya mencakup pencarian dan penyelamatan
+orang di bawah kanopi hutan <span class="citation"
+data-cites="schedl2020">(Schedl, Kurmi, dan Bimber 2020)</span>. Kuliah
+juga menunjukkan penerapan lain dari tumpukan fokus, misalnya
+memperkirakan kedalaman dari seberapa kabur setiap bagian gambar
+(<em>depth from defocus</em>) dengan fitur dari jaringan saraf.</p>
 <p>Untuk komputasi, kita kembali ke model lubang jarum. Titik <span
 class="math inline">\((X,Y,Z)\)</span> dalam koordinat kamera jatuh di
 bidang gambar pada <span class="math inline">\(x=fX/Z\)</span> dan <span
@@ -84,7 +138,7 @@ warna lainnya ditebak dari piksel tetangga dalam proses yang disebut
 <p>Gambar bisa diperlakukan sebagai fungsi <span
 class="math inline">\(I(x,y)\)</span>, dan banyak operasi dasarnya
 berupa konvolusi dengan kernel kecil (<a href="ch03_dl_basic.html">Bab
-5</a>). Filter kotak atau Gauss meratakan gambar dan menekan noise.
+7</a>). Filter kotak atau Gauss meratakan gambar dan menekan noise.
 Turunan, misalnya kernel Sobel, menonjolkan tepi. Laplacian, <span
 class="math inline">\(\nabla^2I=I_{xx}+I_{yy}\)</span>, menonjolkan
 perubahan tajam ke segala arah. Besar dan arah gradien <span
@@ -108,6 +162,31 @@ terbagi oleh bilangan yang hampir nol di frekuensi tempat kernel lemah,
 dan hasilnya meledak. Solusinya adalah regularisasi, misalnya filter
 Wiener. Tema yang sama akan muncul lagi pada masalah invers dalam
 simulasi.</p>
+<p>Kernel Sobel untuk arah horizontal adalah <span
+class="math display">\[k_x=\begin{pmatrix}-1&amp;0&amp;1\\-2&amp;0&amp;2\\-1&amp;0&amp;1\end{pmatrix},\]</span>
+sebuah beda pusat di arah <span class="math inline">\(x\)</span> yang
+dihaluskan dengan bobot <span class="math inline">\((1,2,1)\)</span> di
+arah <span class="math inline">\(y\)</span>. Terapkan pada potongan
+<span class="math inline">\(3\times3\)</span> yang kolom kirinya
+bernilai 10 dan dua kolom kanannya bernilai 50, tepi tegak antara gelap
+dan terang. Hasilnya <span
+class="math inline">\((-10+50)+2(-10+50)+(-10+50)=160\)</span>. Pada
+daerah yang rata, hasilnya nol. Kernel transposnya, <span
+class="math inline">\(k_y\)</span>, menangkap tepi mendatar, dan dari
+kedua hasil diperoleh besar gradien <span
+class="math inline">\(\sqrt{g_x^2+g_y^2}\)</span> dan arahnya <span
+class="math inline">\(\operatorname{atan2}(g_y,g_x)\)</span>.</p>
+<p>Detektor tepi Canny <span class="citation"
+data-cites="canny1986">(Canny 1986)</span> membangun di atas gradien ini
+dengan empat langkah. Gambar dihaluskan dengan Gauss supaya noise tidak
+dianggap tepi. Besar dan arah gradien dihitung. Tepi ditipiskan dengan
+hanya mempertahankan piksel yang gradiennya maksimum lokal sepanjang
+arah gradien, sehingga tepi setebal satu piksel. Terakhir, dua ambang
+dipakai: piksel di atas ambang tinggi pasti tepi, piksel di bawah ambang
+rendah pasti bukan, dan piksel di antaranya diterima hanya kalau
+tersambung dengan tepi yang pasti. Ambang ganda ini, yang disebut
+histeresis, menjaga garis tepi tetap utuh walau di beberapa tempat
+kontrasnya melemah.</p>
 <p>Objek bisa tampak besar atau kecil. <em>Gaussian pyramid</em> membuat
 salinan gambar yang berulang kali dihaluskan lalu diperkecil
 setengahnya, sehingga algoritme yang bekerja pada satu ukuran bisa
@@ -136,7 +215,7 @@ Dari satu sudut, balon-balon tampak sebagai titik-titik yang bertumpuk.
 Dari sudut lain, panjangnya terlihat jelas dan balon-balon tampak
 tersebar. PCA memilih sudut pandang tempat data paling tersebar, karena
 di sanalah perbedaan antar objek paling terlihat. PCA akan muncul lagi
-dengan nama lain di <a href="ch17_penemuan_reduksi.html">Bab 27</a>,
+dengan nama lain di <a href="ch17_penemuan_reduksi.html">Bab 31</a>,
 yaitu <em>proper orthogonal decomposition</em>, alat utama untuk
 mereduksi medan aliran.</p>
 <p>Selama dua dekade, visi komputer bergantung pada fitur yang dirancang
@@ -164,13 +243,37 @@ dari mobil yang lain.</p>
 <p>Cara klasik memandang segmentasi sebagai pengelompokan. <span
 class="math inline">\(k\)</span>-means <span class="citation"
 data-cites="lloyd1982">(Lloyd 1982)</span> mengelompokkan piksel
-berdasarkan warna dan posisi. Pendekatan graf menganggap piksel sebagai
+berdasarkan warna dan posisi. <em>Mean shift</em> <span class="citation"
+data-cites="comaniciu2002">(Comaniciu dan Meer 2002)</span> tidak perlu
+jumlah kelompok di awal. Ia memandang piksel sebagai sampel dari sebuah
+kerapatan, ditaksir dengan kernel seperti di <a
+href="ch01b_statistik_bayes.html">Bab 2</a>, lalu menggeser setiap titik
+berulang-ulang ke rata-rata berbobot tetangganya. Setiap langkah naik ke
+arah gradien kerapatan, sehingga titik-titik berkumpul di puncak-puncak
+kerapatan, dan semua piksel yang berakhir di puncak yang sama membentuk
+satu segmen. Lebar kernel kembali menjadi kenop yang menentukan berapa
+banyak segmen yang muncul. Pendekatan graf menganggap piksel sebagai
 simpul dengan bobot kemiripan, lalu memotong graf di tempat ikatannya
 paling lemah, dan pemotongan ini bisa didekati dengan vektor eigen
 Laplacian graf, konsep yang muncul lagi di <a
-href="ch07_geometric.html">Bab 9</a>. <em>Hough transform</em>
-mendeteksi bentuk parametrik seperti garis: setiap titik tepi “memilih”
-semua garis <span
+href="ch07_geometric.html">Bab 13</a>. Pemotongan paling murah, yang
+hanya menjumlahkan bobot sisi yang diputus, cenderung memisahkan satu
+piksel yang terisolasi, karena memotong sedikit sisi selalu murah. <span
+class="citation" data-cites="shi2000">Shi dan Malik (2000)</span>
+mengusulkan <em>normalized cut</em>, yang membagi biaya potongan dengan
+total ikatan setiap bagian ke seluruh graf, <span
+class="math display">\[\mathrm{Ncut}(A,B)=\frac{\mathrm{cut}(A,B)}{\mathrm{assoc}(A,V)}+\frac{\mathrm{cut}(A,B)}{\mathrm{assoc}(B,V)},\]</span>
+sehingga potongan yang menghasilkan bagian yang amat kecil mendapat
+hukuman besar. Mencari Ncut minimum secara eksak sulit, tetapi versi
+yang dilonggarkan menjadi masalah nilai eigen umum <span
+class="math inline">\((\boldsymbol D-\boldsymbol
+W)\boldsymbol{y}=\lambda\boldsymbol D\boldsymbol{y}\)</span>, dengan
+<span class="math inline">\(\boldsymbol W\)</span> matriks bobot dan
+<span class="math inline">\(\boldsymbol D\)</span> matriks diagonal
+derajat. Vektor eigen dengan nilai eigen terkecil kedua memberi
+partisinya: piksel dengan nilai positif di satu sisi, negatif di sisi
+lain. <em>Hough transform</em> mendeteksi bentuk parametrik seperti
+garis: setiap titik tepi “memilih” semua garis <span
 class="math inline">\(\rho=x\cos\theta+y\sin\theta\)</span> yang
 melewatinya, dan garis yang nyata mengumpulkan suara terbanyak.</p>
 <p>Cara modern memakai jaringan encoder dan decoder. Encoder mengecilkan
@@ -179,7 +282,7 @@ transposed convolution. U-Net <span class="citation"
 data-cites="ronneberger2015">(Ronneberger, Fischer, dan Brox
 2015)</span> menambahkan <em>skip connection</em> dari setiap tingkat
 encoder ke tingkat decoder yang sesuai, sehingga detail halus tidak
-hilang (Gambar 7.1). Model fondasi seperti Segment Anything <span
+hilang (Gambar 11.1). Model fondasi seperti Segment Anything <span
 class="citation" data-cites="kirillov2023">(Kirillov dkk. 2023)</span>
 kini bisa memotong objek apa pun dari petunjuk sederhana seperti satu
 klik.</p>
@@ -268,9 +371,9 @@ optical flow. Hubungannya bahkan lebih dalam. Untuk zat pewarna yang
 terbawa aliran tak termampatkan, kekekalan konsentrasi <span
 class="math inline">\(c\)</span> berbunyi <span
 class="math inline">\(\partial_tc+\boldsymbol{u}\cdot\nabla
-c=0\)</span>, dan itu adalah Persamaan (7.3) dengan <span
+c=0\)</span>, dan itu adalah Persamaan (11.5) dengan <span
 class="math inline">\(I\)</span> diganti <span
-class="math inline">\(c\)</span>. Suku kehalusan dalam Persamaan (7.5)
+class="math inline">\(c\)</span>. Suku kehalusan dalam Persamaan (11.7)
 bisa diganti syarat fisika seperti <span
 class="math inline">\(\nabla\cdot\boldsymbol{u}=0\)</span>. <span
 class="citation" data-cites="raissi2020">Raissi, Yazdani, dan
@@ -278,7 +381,7 @@ Karniadakis (2020)</span> membawa gagasan ini sampai ujungnya: dari
 video konsentrasi zat pewarna saja, sebuah PINN menyimpulkan medan
 kecepatan dan tekanan yang tidak pernah diukur, dengan memaksakan
 persamaan Navier–Stokes di dalam loss (<a href="ch15_pinn.html">Bab
-25</a>).</p>
+29</a>).</p>
 <h2 id="deteksi-objek">Deteksi objek</h2>
 <p>Deteksi menjawab dua pertanyaan sekaligus: apa, dan di mana.
 Keluarannya berupa kotak pembatas beserta kelasnya. Tumpang tindih
@@ -299,6 +402,19 @@ class="citation" data-cites="redmon2016">(Redmon dkk. 2015)</span>
 membagi gambar menjadi grid dan membiarkan setiap sel langsung
 memprediksi kotak dan kelas dalam satu lintasan. Jauh lebih cepat, cocok
 untuk waktu nyata.</p>
+<p>Contoh dengan angka: kotak tebakan dari <span
+class="math inline">\((0,0)\)</span> sampai <span
+class="math inline">\((4,4)\)</span> dan kotak benar dari <span
+class="math inline">\((2,2)\)</span> sampai <span
+class="math inline">\((6,6)\)</span> masing-masing berluas 16, dan
+irisannya kotak <span class="math inline">\(2\times2\)</span> berluas 4.
+Gabungannya <span class="math inline">\(16+16-4=28\)</span>, sehingga
+IoU <span class="math inline">\(=4/28\approx0{,}14\)</span>. Walau kedua
+kotak tampak bersinggungan cukup banyak, deteksi ini akan dianggap salah
+dengan ambang yang lazim <span class="math inline">\(0{,}5\)</span>.
+Untuk mencapai IoU <span class="math inline">\(0{,}5\)</span>, dua kotak
+berukuran sama yang bergeser sepanjang diagonal hanya boleh bergeser
+sekitar seperlima sisinya di setiap arah.</p>
 <p>Banyak kotak yang tumpang tindih untuk objek yang sama dibersihkan
 dengan <em>non-maximum suppression</em>: simpan kotak dengan skor
 tertinggi, buang kotak lain yang tumpang tindihnya dengan kotak itu
@@ -350,6 +466,42 @@ kedalamannya.</p>
 dari kamera yang bergerak: cocokkan fitur antar foto, perkirakan pose
 kamera, triangulasi titik-titik tiga dimensi, lalu perhalus semuanya
 bersama-sama.</p>
+<h3 id="homografi-dan-ransac">Homografi dan RANSAC</h3>
+<p>Kalau kamera memotret bidang datar, atau berputar di tempat tanpa
+bergeser, dua gambar dihubungkan oleh <em>homography</em>, sebuah
+matriks <span class="math inline">\(3\times3\)</span> <span
+class="math inline">\(\boldsymbol H\)</span> dalam koordinat homogen,
+<span class="math inline">\(\tilde{\boldsymbol{x}}&#39;\sim\boldsymbol
+H\tilde{\boldsymbol{x}}\)</span>. Matriks ini punya delapan derajat
+kebebasan, karena skalanya tidak penting, dan setiap pasangan titik yang
+bersesuaian memberi dua persamaan, sehingga empat pasangan sudah cukup
+untuk menentukannya. Homografi dipakai untuk menjahit foto panorama,
+meluruskan dokumen yang difoto miring, dan mengkalibrasi kamera dengan
+papan catur.</p>
+<p>Masalahnya, pasangan titik yang ditemukan dengan pencocokan fitur
+seperti SIFT selalu mengandung pasangan yang salah. Kuadrat terkecil
+biasa akan ditarik jauh oleh satu pasangan yang salah saja. RANSAC <span
+class="citation" data-cites="fischler1981">(Fischler dan Bolles
+1981)</span> membalik caranya: ambil sampel minimal secara acak, empat
+pasangan untuk homografi, hitung model dari sampel itu, lalu hitung
+berapa banyak pasangan lain yang setuju dengan model itu dalam toleransi
+tertentu. Ulangi, dan simpan model dengan pendukung terbanyak. Berapa
+kali harus diulang? Kalau fraksi pasangan yang benar adalah <span
+class="math inline">\(w\)</span>, peluang satu sampel berisi <span
+class="math inline">\(s\)</span> pasangan benar semua adalah <span
+class="math inline">\(w^s\)</span>, dan peluang <span
+class="math inline">\(N\)</span> sampel semuanya gagal adalah <span
+class="math inline">\((1-w^s)^N\)</span>. Supaya peluang berhasil paling
+sedikit <span class="math inline">\(p\)</span>, <span
+class="math display">\[N\ge\frac{\log(1-p)}{\log(1-w^s)}.\]</span>
+Dengan separuh pasangan benar, <span class="math inline">\(s=4\)</span>,
+dan <span class="math inline">\(p=0{,}99\)</span>, peluang satu sampel
+bersih <span class="math inline">\(1/16\)</span>, dan dibutuhkan sekitar
+72 percobaan. Kalau hanya sepertiga pasangan yang benar, angka itu naik
+menjadi sekitar 370. Ukuran sampel minimal menentukan: untuk model
+dengan delapan pasangan, seperti matriks fundamental dengan algoritme
+delapan titik, separuh pasangan benar sudah menuntut sekitar 1200
+percobaan.</p>
 <h2 id="visi-tiga-dimensi">Visi tiga dimensi</h2>
 <p>Dunia tiga dimensi bisa direpresentasikan dengan banyak cara. Peta
 kedalaman memberi satu angka per piksel. Grid voxel sederhana, tetapi
@@ -382,7 +534,7 @@ dengan membandingkan warna hasil render dengan foto, dan setelah
 terlatih, ia bisa merender sudut pandang yang belum pernah difoto. NeRF
 adalah contoh <em>neural field</em>, fungsi kontinu dari koordinat ke
 besaran fisik. Neural field dibahas lebih luas di <a
-href="ch09_ml_advanced.html">Bab 11</a>, dan kekerabatannya dengan PINN
+href="ch09_ml_advanced.html">Bab 15</a>, dan kekerabatannya dengan PINN
 dekat sekali.</p>
 <p>Pertemuan terakhir membahas arah-arah baru: <em>vision
 transformer</em> yang memotong gambar menjadi petak <span
@@ -397,7 +549,34 @@ data-cites="eykholt2018">(Eykholt dkk. 2017)</span>. Alat seperti
 Grad-CAM <span class="citation" data-cites="selvaraju2017">(Selvaraju
 dkk. 2016)</span> membantu melihat bagian gambar mana yang dipakai model
 untuk memutuskan, topik yang kembali di <a href="ch11_xai.html">Bab
-13</a>.</p>
+17</a>.</p>
+<h2 id="perkembangan-riset">Perkembangan riset</h2>
+<p>Visi komputer bergerak ke model fondasi yang bisa dipakai tanpa
+pelatihan ulang. SAM 2 <span class="citation"
+data-cites="ravi2024">(Ravi dkk. 2024)</span> memperluas Segment
+Anything dari gambar ke video, dengan transformer yang membawa ingatan
+aliran (streaming memory) dari bingkai ke bingkai. Dataset video
+segmentasinya dikumpulkan dengan mesin data yang melibatkan pengguna:
+model menyarankan topeng, manusia mengoreksi, dan model dilatih ulang
+dengan koreksi itu. Pada segmentasi gambar, SAM 2 dilaporkan lebih
+akurat dan enam kali lebih cepat dari SAM. Depth Anything <span
+class="citation" data-cites="yang2024depth">(Yang dkk. 2024)</span>
+melakukan hal serupa untuk estimasi kedalaman dari satu gambar, dengan
+sekitar 62 juta gambar tanpa label yang dianotasi otomatis. Kedalaman
+dari satu kamera, yang secara geometris tidak bisa ditentukan seperti
+dibahas di bagian stereo, ditebak dari pengetahuan tentang bentuk dunia
+yang dipelajari dari data.</p>
+<p>Di grafika dan rekonstruksi tiga dimensi, 3D Gaussian splatting <span
+class="citation" data-cites="kerbl2023">(Kerbl dkk. 2023)</span>
+mengganti neural field dengan jutaan Gaussian tiga dimensi yang posisi,
+kovarians anisotropik, warna, dan opasitasnya dioptimalkan langsung dari
+foto-foto kalibrasi. Rendering dilakukan dengan memproyeksikan Gaussian
+ke bidang gambar dan menumpuknya, bukan dengan menembakkan sinar
+melewati jaringan saraf. Hasilnya adalah sintesis sudut pandang baru
+secara waktu nyata pada resolusi 1080p. Gagasan dasarnya, mewakili
+adegan sebagai sekumpulan fungsi Gauss, menyambung dengan model campuran
+Gauss di <a href="ch02c_unsupervised.html">Bab 6</a> dan NDT di <a
+href="ch33_robot.html">Bab 21</a>.</p>
 <h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti sebelas kuliah Computer Vision beserta
 praktikumnya: pembentukan citra, pengolahan citra, machine learning
@@ -410,6 +589,18 @@ class="citation" data-cites="hartley2004">Hartley dan Zisserman
 <h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
+<div id="ref-canny1986" class="csl-entry" role="listitem">
+Canny, John. 1986. <span>“A Computational Approach to Edge
+Detection.”</span> <em>IEEE Transactions on Pattern Analysis and Machine
+Intelligence</em> PAMI–8 (6): 679–98. <a
+href="https://doi.org/10.1109/TPAMI.1986.4767851">https://doi.org/10.1109/TPAMI.1986.4767851</a>.
+</div>
+<div id="ref-comaniciu2002" class="csl-entry" role="listitem">
+Comaniciu, D., dan P. Meer. 2002. <span>“Mean shift: a robust approach
+toward feature space analysis.”</span> <em>IEEE Transactions on Pattern
+Analysis and Machine Intelligence</em> 24 (5): 603–19. <a
+href="https://doi.org/10.1109/34.1000236">https://doi.org/10.1109/34.1000236</a>.
+</div>
 <div id="ref-dosovitskiy2021" class="csl-entry" role="listitem">
 Dosovitskiy, Alexey, Lucas Beyer, Alexander Kolesnikov, Dirk
 Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, dkk.
@@ -431,6 +622,11 @@ Thomas Brox. 2015. <span>“FlowNet: Learning Optical Flow with
 Convolutional Networks.”</span> arXiv:1504.06852. <a
 href="https://arxiv.org/abs/1504.06852">https://arxiv.org/abs/1504.06852</a>.
 </div>
+<div id="ref-fischler1981" class="csl-entry" role="listitem">
+Fischler, Martin A., dan Robert C. Bolles. 1981. <span>“Random sample
+consensus.”</span> <em>Communications of the ACM</em> 24 (6): 381–95. <a
+href="https://doi.org/10.1145/358669.358692">https://doi.org/10.1145/358669.358692</a>.
+</div>
 <div id="ref-girshick2015" class="csl-entry" role="listitem">
 Girshick, Ross. 2015. <span>“Fast R-CNN.”</span> arXiv:1504.08083. <a
 href="https://arxiv.org/abs/1504.08083">https://arxiv.org/abs/1504.08083</a>.
@@ -451,6 +647,13 @@ variables into principal components.”</span> <em>Journal of Educational
 Psychology</em> 24 (6): 417–41. <a
 href="https://doi.org/10.1037/h0071325">https://doi.org/10.1037/h0071325</a>.
 </div>
+<div id="ref-kerbl2023" class="csl-entry" role="listitem">
+Kerbl, Bernhard, Georgios Kopanas, Thomas Leimkuehler, dan George
+Drettakis. 2023. <span>“3D Gaussian Splatting for Real-Time Radiance
+Field Rendering.”</span> <em>ACM Transactions on Graphics</em> 42 (4):
+1–14. <a
+href="https://doi.org/10.1145/3592433">https://doi.org/10.1145/3592433</a>.
+</div>
 <div id="ref-kirillov2023" class="csl-entry" role="listitem">
 Kirillov, Alexander, Eric Mintun, Nikhila Ravi, Hanzi Mao, Chloe
 Rolland, Laura Gustafson, Tete Xiao, dkk. 2023. <span>“Segment
@@ -462,6 +665,18 @@ Krizhevsky, Alex, Ilya Sutskever, dan Geoffrey E. Hinton. 2017.
 <span>“ImageNet classification with deep convolutional neural
 networks.”</span> <em>Communications of the ACM</em> 60 (6): 84–90. <a
 href="https://doi.org/10.1145/3065386">https://doi.org/10.1145/3065386</a>.
+</div>
+<div id="ref-kurmi2018" class="csl-entry" role="listitem">
+Kurmi, Indrajit, David C. Schedl, dan Oliver Bimber. 2018.
+<span>“Airborne Optical Sectioning.”</span> <em>Journal of Imaging</em>
+4 (8): 102. <a
+href="https://doi.org/10.3390/jimaging4080102">https://doi.org/10.3390/jimaging4080102</a>.
+</div>
+<div id="ref-levoy1996" class="csl-entry" role="listitem">
+Levoy, Marc, dan Pat Hanrahan. 1996. <span>“Light field
+rendering.”</span> Dalam <em>Proceedings of the 23rd annual conference
+on Computer graphics and interactive techniques</em>, 31–42. <a
+href="https://doi.org/10.1145/237170.237199">https://doi.org/10.1145/237170.237199</a>.
 </div>
 <div id="ref-lloyd1982" class="csl-entry" role="listitem">
 Lloyd, S. 1982. <span>“Least squares quantization in PCM.”</span>
@@ -495,6 +710,12 @@ from flow visualizations.”</span> <em>Science</em> 367 (6481): 1026–30.
 <a
 href="https://doi.org/10.1126/science.aaw4741">https://doi.org/10.1126/science.aaw4741</a>.
 </div>
+<div id="ref-ravi2024" class="csl-entry" role="listitem">
+Ravi, Nikhila, Valentin Gabeur, Yuan-Ting Hu, Ronghang Hu, Chaitanya
+Ryali, Tengyu Ma, Haitham Khedr, dkk. 2024. <span>“SAM 2: Segment
+Anything in Images and Videos.”</span> arXiv:2408.00714. <a
+href="https://arxiv.org/abs/2408.00714">https://arxiv.org/abs/2408.00714</a>.
+</div>
 <div id="ref-redmon2016" class="csl-entry" role="listitem">
 Redmon, Joseph, Santosh Divvala, Ross Girshick, dan Ali Farhadi. 2015.
 <span>“You Only Look Once: Unified, Real-Time Object Detection.”</span>
@@ -513,12 +734,24 @@ Convolutional Networks for Biomedical Image Segmentation.”</span>
 arXiv:1505.04597. <a
 href="https://arxiv.org/abs/1505.04597">https://arxiv.org/abs/1505.04597</a>.
 </div>
+<div id="ref-schedl2020" class="csl-entry" role="listitem">
+Schedl, David C., Indrajit Kurmi, dan Oliver Bimber. 2020. <span>“Search
+and rescue with airborne optical sectioning.”</span> <em>Nature Machine
+Intelligence</em> 2 (12): 783–90. <a
+href="https://doi.org/10.1038/s42256-020-00261-3">https://doi.org/10.1038/s42256-020-00261-3</a>.
+</div>
 <div id="ref-selvaraju2017" class="csl-entry" role="listitem">
 Selvaraju, Ramprasaath R., Michael Cogswell, Abhishek Das, Ramakrishna
 Vedantam, Devi Parikh, dan Dhruv Batra. 2016. <span>“Grad-CAM: Visual
 Explanations from Deep Networks via Gradient-based Localization.”</span>
 arXiv:1610.02391. <a
 href="https://arxiv.org/abs/1610.02391">https://arxiv.org/abs/1610.02391</a>.
+</div>
+<div id="ref-shi2000" class="csl-entry" role="listitem">
+Shi, Jianbo, dan J. Malik. 2000. <span>“Normalized cuts and image
+segmentation.”</span> <em>IEEE Transactions on Pattern Analysis and
+Machine Intelligence</em> 22 (8): 888–905. <a
+href="https://doi.org/10.1109/34.868688">https://doi.org/10.1109/34.868688</a>.
 </div>
 <div id="ref-szeliski2022" class="csl-entry" role="listitem">
 Szeliski, Richard. 2022. <em>Computer Vision: Algorithms and
@@ -535,10 +768,16 @@ Recognition.”</span> <em>Journal of Cognitive Neuroscience</em> 3 (1):
 71–86. <a
 href="https://doi.org/10.1162/jocn.1991.3.1.71">https://doi.org/10.1162/jocn.1991.3.1.71</a>.
 </div>
+<div id="ref-yang2024depth" class="csl-entry" role="listitem">
+Yang, Lihe, Bingyi Kang, Zilong Huang, Xiaogang Xu, Jiashi Feng, dan
+Hengshuang Zhao. 2024. <span>“Depth Anything: Unleashing the Power of
+Large-Scale Unlabeled Data.”</span> arXiv:2401.10891. <a
+href="https://arxiv.org/abs/2401.10891">https://arxiv.org/abs/2401.10891</a>.
+</div>
 </div>
 </main>
 <nav class="pager">
-  <a class="prev" href="ch04_lstm_transformer.html"><span>Sebelumnya</span>Mengingat: dari RNN ke LSTM dan Transformer</a>
+  <a class="prev" href="ch04b_nlp.html"><span>Sebelumnya</span>Bahasa: dari Kantong Kata ke Model Bahasa Besar</a>
   <a class="next" href="ch06_arsitektur_generatif.html"><span>Berikutnya</span>Arsitektur Modern dan Model Generatif</a>
 </nav>
 <footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>

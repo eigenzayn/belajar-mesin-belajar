@@ -17,7 +17,7 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 31</p>
+<p class="chapnum">Bab 35</p>
 <h1>AI, Hukum, dan Manusia</h1>
 <p><span id="ch:manusia" data-label="ch:manusia"></span></p>
 <p>Di sela kuliah teknis, saya mengikuti serangkaian mata kuliah yang
@@ -75,7 +75,24 @@ kualitas data, membuat dokumentasi teknis, mencatat log, memastikan
 pengawasan manusia, serta memenuhi syarat akurasi dan ketahanan. Lebih
 ke bawah, sistem dengan risiko terbatas seperti chatbot terutama dikenai
 kewajiban transparansi: pengguna harus tahu bahwa mereka berbicara
-dengan mesin. Sistem lainnya praktis bebas.</p>
+dengan mesin. Sistem lainnya, seperti filter spam atau AI dalam
+permainan video, praktis bebas (Gambar 35.1).</p>
+<figure id="fig:piramida">
+<img src="fig/7b53a912f451.svg" />
+<figcaption>Piramida risiko AI Act. Semakin tinggi tingkat risikonya,
+semakin berat kewajibannya, sampai larangan penuh di
+puncak.</figcaption>
+</figure>
+<p>AI Act tidak hanya mengatur pembuat sistem. Pihak yang memakai sistem
+berisiko tinggi dalam kegiatan profesionalnya, disebut
+<em>deployer</em>, wajib memakainya sesuai petunjuk, menugaskan orang
+yang kompeten untuk mengawasinya, memantau operasinya, dan menyimpan
+log. Lembaga publik dan beberapa penyedia layanan penting juga harus
+menilai dampak sistem itu terhadap hak-hak dasar sebelum memakainya.
+Sejak Februari 2025, penyedia maupun pengguna sistem AI juga wajib
+berupaya memastikan bahwa staf yang menangani sistem itu punya literasi
+AI yang memadai, kewajiban yang menyambung langsung dengan kuliah
+communicating AI di bawah.</p>
 <p>Model AI serbaguna, seperti model bahasa besar, ditambahkan menjelang
 akhir perundingan. Penyedianya wajib menyiapkan dokumentasi teknis dan
 informasi bagi pihak yang membangun aplikasi di atasnya. Model yang
@@ -97,6 +114,20 @@ untuk tujuan yang dinyatakan; data yang dikumpulkan sesedikit mungkin;
 data harus akurat; data tidak disimpan lebih lama dari perlu; dan
 integritas serta kerahasiaannya dijaga. Pengendali data bertanggung
 jawab membuktikan kepatuhan pada semua prinsip itu.</p>
+<p>Pemrosesan data pribadi hanya sah kalau punya salah satu dari enam
+dasar hukum: persetujuan orang yang bersangkutan, pelaksanaan kontrak,
+kewajiban hukum, perlindungan kepentingan vital seseorang, pelaksanaan
+tugas untuk kepentingan umum, atau kepentingan sah pengendali yang tidak
+dikalahkan oleh hak orang yang datanya diproses. Persetujuan, yang
+paling sering dibayangkan orang, justru sering bukan pilihan terbaik
+untuk melatih model, karena ia harus bebas, spesifik, dan bisa ditarik
+kapan saja, dan menghapus pengaruh satu orang dari model yang sudah
+dilatih bukan perkara mudah. Orang yang datanya diproses juga punya hak:
+mengetahui data apa yang disimpan, membetulkannya, menghapusnya,
+membawanya ke penyedia lain, dan menolak pemrosesan tertentu. Data
+kesehatan, data genetik, dan data biometrik termasuk kategori khusus
+yang pemrosesannya pada dasarnya dilarang kecuali ada pengecualian yang
+jelas, aturan yang relevan bagi bab-bab ilmu hayati di buku ini.</p>
 <p>Satu ketentuan berbicara langsung tentang AI. Seseorang berhak untuk
 tidak tunduk pada keputusan yang semata-mata didasarkan pada pemrosesan
 otomatis, termasuk profiling, kalau keputusan itu berakibat hukum atau
@@ -113,6 +144,53 @@ perangkat lunak, termasuk sistem AI, dan meringankan beban pembuktian
 bagi korban dalam kasus yang secara teknis rumit. Usulan arahan tanggung
 jawab AI membahas pengungkapan bukti dan anggapan hubungan sebab-akibat
 yang bisa dibantah ketika sistem AI terlibat dalam kerugian.</p>
+<p>Bagi orang teknik, prinsip meminimalkan data punya padanan matematis
+yang menarik. <em>Differential privacy</em> <span class="citation"
+data-cites="dwork2006">(Dwork dkk. 2006)</span> menjamin bahwa hasil
+sebuah analisis hampir tidak berubah, apakah data satu orang tertentu
+ikut atau tidak. Caranya dengan menambahkan noise yang terukur. Untuk
+menghitung berapa pasien di sebuah rumah sakit yang mengidap penyakit
+tertentu, satu orang paling banyak mengubah hitungan sebesar satu.
+Menambahkan noise Laplace dengan skala <span
+class="math inline">\(1/\varepsilon\)</span> membuat peluang setiap
+hasil berubah paling banyak dengan faktor <span
+class="math inline">\(e^\varepsilon\)</span> ketika satu orang
+ditambahkan atau dihapus. Dengan <span
+class="math inline">\(\varepsilon=1\)</span>, noise-nya punya simpangan
+baku sekitar <span class="math inline">\(1{,}4\)</span>: tidak berarti
+untuk hitungan ribuan, tetapi cukup untuk menyamarkan apakah satu orang
+tertentu ada di dalam data. Parameter <span
+class="math inline">\(\varepsilon\)</span> adalah anggaran privasi.
+Semakin kecil, semakin terlindung, dan semakin berisik hasilnya.</p>
+<h2 id="keadilan-bisa-diukur-tetapi-tidak-sekaligus">Keadilan bisa
+diukur, tetapi tidak sekaligus</h2>
+<p>Kalau sebuah model memutuskan sesuatu tentang manusia, kita bisa
+bertanya apakah ia adil terhadap kelompok yang berbeda. Pertanyaan ini
+ternyata punya beberapa jawaban matematis yang saling bertentangan.
+Misalkan sebuah model menyetujui kredit untuk 50 dari 100 pemohon di
+kelompok A dan 30 dari 100 di kelompok B. <em>Demographic parity</em>
+menuntut tingkat persetujuan yang sama. Di sini selisihnya <span
+class="math inline">\(0{,}2\)</span>, dan rasionya <span
+class="math inline">\(0{,}6\)</span>, di bawah ambang empat perlima yang
+dipakai sebagai pedoman praktis di beberapa yurisdiksi. Tetapi mungkin
+kelompok B memang lebih sering gagal bayar dalam data. Ukuran lain,
+<em>equal opportunity</em> <span class="citation"
+data-cites="hardt2016">(Hardt, Price, dan Srebro 2016)</span>, hanya
+menuntut bahwa di antara orang yang benar-benar mampu membayar, tingkat
+persetujuannya sama di kedua kelompok, yaitu true positive rate yang
+setara. Ukuran ketiga, kalibrasi, menuntut bahwa skor risiko <span
+class="math inline">\(0{,}7\)</span> berarti peluang gagal bayar <span
+class="math inline">\(0{,}7\)</span> di kelompok mana pun.</p>
+<p><span class="citation" data-cites="chouldechova2017">Chouldechova
+(2017)</span> memperlihatkan bahwa kalau tingkat dasar kedua kelompok
+berbeda, sebuah skor yang terkalibrasi tidak mungkin sekaligus
+menyamakan tingkat positif palsu dan tingkat negatif palsu antar
+kelompok, kecuali prediksinya sempurna. Jadi memilih ukuran keadilan
+bukan keputusan teknis semata, melainkan keputusan nilai: kesalahan mana
+yang paling merugikan, dan bagi siapa. Inilah titik di mana kuliah hukum
+dan sosiologi bertemu dengan kuliah teknis. Model bisa dirancang untuk
+memenuhi ukuran mana pun yang dipilih, tetapi pilihannya harus dibuat
+dan dipertanggungjawabkan oleh manusia.</p>
 <h2 id="teknologi-dan-masyarakat">Teknologi dan masyarakat</h2>
 <p>Kuliah sosiologi dimulai dengan konsep <em>sociological
 imagination</em> dari <span class="citation"
@@ -138,9 +216,9 @@ pengawasan. Kita sudah melihat contoh kecilnya: embedding kata yang
 menyerap stereotip gender <span class="citation"
 data-cites="bolukbasi2016">(Bolukbasi dkk. 2016)</span>, sistem
 rekomendasi yang memperkuat popularitas (<a
-href="ch50_rekomendasi.html">Bab 30</a>), dan model medis yang belajar
+href="ch50_rekomendasi.html">Bab 34</a>), dan model medis yang belajar
 penanda rumah sakit alih-alih penyakit (<a href="ch43_medis.html">Bab
-21</a>).</p>
+25</a>).</p>
 <h2 id="bagaimana-manusia-memandang-mesin">Bagaimana manusia memandang
 mesin</h2>
 <p>Robopsychology bukan psikologi untuk robot, melainkan psikologi
@@ -198,6 +276,23 @@ data seperlunya. Dokumentasikan apa yang dilakukan model dan di mana
 batasnya, karena regulasi semakin mewajibkannya dan karena itu adalah
 praktik teknik yang baik. Dan jelaskan sistem dengan jujur, tanpa
 melebih-lebihkan kecerdasannya dan tanpa meremehkan risikonya.</p>
+<h2 id="perkembangan-riset">Perkembangan riset</h2>
+<p>Kewajiban transparansi untuk konten sintetis menimbulkan pertanyaan
+teknis: bagaimana mengenali teks yang dibuat mesin? <span
+class="citation" data-cites="kirchenbauer2023">Kirchenbauer dkk.
+(2023)</span> mengusulkan watermark untuk keluaran model bahasa. Sebelum
+setiap token dibangkitkan, sebagian kosakata dipilih secara acak sebagai
+daftar “hijau” berdasarkan token sebelumnya, dan peluang token hijau
+sedikit dinaikkan. Manusia tidak melihat perbedaannya, tetapi pemeriksa
+yang tahu cara memilih daftar hijau bisa menghitung berapa banyak token
+hijau dalam sebuah teks. Tanpa watermark, sekitar separuh token jatuh di
+daftar hijau secara kebetulan. Dengan watermark, jauh lebih banyak. Uji
+statistik <span class="math inline">\(z\)</span> sederhana memberi nilai
+<span class="math inline">\(p\)</span> yang bisa ditafsirkan, dan
+beberapa puluh token sudah cukup untuk deteksi yang meyakinkan.
+Watermark seperti ini bisa dilemahkan dengan memparafrasa teks, sehingga
+ia melengkapi, bukan menggantikan, kewajiban hukum dan literasi AI yang
+dibahas di bab ini.</p>
 <h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti kuliah AI and Law I dan II (definisi AI, AI Act,
 GDPR, kontrak, tanggung jawab produk), AI in Society dan Technology and
@@ -218,6 +313,18 @@ Adam Kalai. 2016. <span>“Man is to Computer Programmer as Woman is to
 Homemaker? Debiasing Word Embeddings.”</span> arXiv:1607.06520. <a
 href="https://arxiv.org/abs/1607.06520">https://arxiv.org/abs/1607.06520</a>.
 </div>
+<div id="ref-chouldechova2017" class="csl-entry" role="listitem">
+Chouldechova, Alexandra. 2017. <span>“Fair Prediction with Disparate
+Impact: A Study of Bias in Recidivism Prediction Instruments.”</span>
+<em>Big Data</em> 5 (2): 153–63. <a
+href="https://doi.org/10.1089/big.2016.0047">https://doi.org/10.1089/big.2016.0047</a>.
+</div>
+<div id="ref-dwork2006" class="csl-entry" role="listitem">
+Dwork, Cynthia, Frank McSherry, Kobbi Nissim, dan Adam Smith. 2006.
+<span>“Calibrating Noise to Sensitivity in Private Data
+Analysis.”</span> <em>Lecture Notes in Computer Science</em>, 265–84. <a
+href="https://doi.org/10.1007/11681878_14">https://doi.org/10.1007/11681878_14</a>.
+</div>
 <div id="ref-epley2007" class="csl-entry" role="listitem">
 Epley, Nicholas, Adam Waytz, dan John T. Cacioppo. 2007. <span>“On
 seeing human: A three-factor theory of anthropomorphism.”</span>
@@ -236,10 +343,21 @@ Journal of the European Union, L 119.
 on artificial intelligence (Artificial Intelligence Act).”</span>
 Official Journal of the European Union, 12 July 2024.
 </div>
+<div id="ref-hardt2016" class="csl-entry" role="listitem">
+Hardt, Moritz, Eric Price, dan Nathan Srebro. 2016. <span>“Equality of
+Opportunity in Supervised Learning.”</span> arXiv:1610.02413. <a
+href="https://arxiv.org/abs/1610.02413">https://arxiv.org/abs/1610.02413</a>.
+</div>
 <div id="ref-hleg2019" class="csl-entry" role="listitem">
 High-Level Expert Group on Artificial Intelligence. 2019. <span>“A
 definition of <span>AI</span>: Main capabilities and
 disciplines.”</span> European Commission.
+</div>
+<div id="ref-kirchenbauer2023" class="csl-entry" role="listitem">
+Kirchenbauer, John, Jonas Geiping, Yuxin Wen, Jonathan Katz, Ian Miers,
+dan Tom Goldstein. 2023. <span>“A Watermark for Large Language
+Models.”</span> arXiv:2301.10226. <a
+href="https://arxiv.org/abs/2301.10226">https://arxiv.org/abs/2301.10226</a>.
 </div>
 <div id="ref-long2020" class="csl-entry" role="listitem">
 Long, Duri, dan Brian Magerko. 2020. <span>“What is AI Literacy?
@@ -278,7 +396,7 @@ PublicAffairs.
 </main>
 <nav class="pager">
   <a class="prev" href="ch50_rekomendasi.html"><span>Sebelumnya</span>Belajar dari Jejak Pengguna</a>
-  <a class="next" href="ch52_terbaru.html"><span>Berikutnya</span>Ke Mana Arah AI</a>
+  <a class="next" href="ch51c_keselamatan.html"><span>Berikutnya</span>Kecerdasan Umum, Superintelligence, dan Keselamatan AI</a>
 </nav>
 <footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
 </body>

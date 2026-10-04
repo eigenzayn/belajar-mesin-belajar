@@ -44,7 +44,38 @@ antarsebab. Nilai buruk menaikkan keyakinan bahwa mata kuliahnya sulit dan menur
 bahwa mahasiswanya cerdas. Kalau kemudian kita tahu mata kuliahnya memang sulit, nilai buruk
 itu sudah ``terjelaskan'', dan keyakinan tentang kecerdasan mahasiswa naik kembali. Pola ini
 disebut \istilah{explaining away}. Bayesian network menangani semua pola ini dengan satu algoritme
-inferensi yang sama, tanpa aturan khusus untuk masing-masing.
+inferensi yang sama, tanpa aturan khusus untuk masing-masing (\cref{fig:mahasiswa}).
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[x=1.8cm,y=1.2cm]
+  \node[bulat,minimum size=9mm] (D) at (0,1) {$D$};
+  \node[bulat,minimum size=9mm] (I) at (2,1) {$I$};
+  \node[bulat,minimum size=9mm] (G) at (1,0) {$G$};
+  \node[bulat,minimum size=9mm] (S) at (3,0) {$S$};
+  \node[bulat,minimum size=9mm] (L) at (1,-1) {$L$};
+  \draw[panah] (D) -- (G);
+  \draw[panah] (I) -- (G);
+  \draw[panah] (I) -- (S);
+  \draw[panah] (G) -- (L);
+  \node[label,left] at (D.west) {kesulitan};
+  \node[label,right] at (I.east) {kecerdasan};
+  \node[label,left] at (G.west) {nilai};
+  \node[label,right] at (S.east) {skor tes};
+  \node[label,left] at (L.west) {surat rekomendasi};
+\end{tikzpicture}
+\caption{Jaringan mahasiswa. Distribusi gabungannya
+$p(D,I,G,S,L)=p(D)\,p(I)\,p(G\mid D,I)\,p(S\mid I)\,p(L\mid G)$.}
+\label{fig:mahasiswa}
+\end{figure}
+
+Explaining away paling mudah dilihat dengan angka pada contoh yang lebih kecil. Rumput basah ($W$) bisa disebabkan
+hujan ($R$) atau penyiram ($S$), yang saling independen dengan $p(R)=0{,}2$ dan $p(S)=0{,}1$, dan rumput basah tepat
+ketika salah satunya terjadi. Peluang rumput basah adalah $1-0{,}8\cdot0{,}9=0{,}28$. Begitu kita melihat rumput basah,
+peluang hujan naik dari $0{,}2$ menjadi $p(R\mid W)=0{,}2/0{,}28\approx0{,}71$. Lalu kita melihat penyiram sedang menyala.
+Penyiram sudah cukup menjelaskan rumput basah, sehingga rumput basah tidak lagi memberi informasi tentang hujan, dan
+$p(R\mid W,S)$ kembali ke $0{,}2$. Dua sebab yang semula independen menjadi saling bergantung begitu akibat bersamanya
+diamati.
 
 \subsection{Membaca independensi dari graf}
 
@@ -74,6 +105,21 @@ sedangkan urutan yang buruk bisa membuat faktor sebesar tabel gabungan. Untuk gr
 pohon, biayanya linear. Untuk graf umum, inferensi eksak termasuk masalah NP-hard, dan biayanya
 bergantung secara eksponensial pada ukuran faktor terbesar yang tidak bisa dihindari.
 
+Contoh rantai tiga variabel biner membuat penghematannya terlihat. Misalkan $A\to B\to C$ dengan $p(A{=}1)=0{,}3$,
+$p(B{=}1\mid A)$ bernilai $0{,}2$ untuk $A=0$ dan $0{,}9$ untuk $A=1$, serta $p(C{=}1\mid B)$ bernilai $0{,}1$ untuk $B=0$ dan $0{,}8$ untuk
+$B=1$. Untuk menghitung $p(C{=}1)=\sum_a\sum_bp(a)\,p(b\mid a)\,p(C{=}1\mid b)$, penjumlahan atas $a$ didorong ke dalam karena hanya dua
+faktor pertama yang menyebut $A$. Hasilnya faktor baru $\tau(b)=\sum_ap(a)p(b\mid a)$, dengan
+$\tau(1)=0{,}7\cdot0{,}2+0{,}3\cdot0{,}9=0{,}41$ dan $\tau(0)=0{,}59$. Lalu $p(C{=}1)=0{,}59\cdot0{,}1+0{,}41\cdot0{,}8=0{,}387$. Untuk rantai $n$
+variabel biner, menjumlahkan tabel gabungan membutuhkan $2^{n-1}$ suku, sedangkan eliminasi hanya beberapa operasi per variabel. Dengan
+tiga puluh variabel, selisihnya antara setengah miliar suku dan seratusan operasi.
+
+Kalau banyak kueri harus dijawab pada jaringan yang sama, eliminasi yang diulang untuk setiap kueri membuang kerja. Kuliah membahas
+\istilah{clique tree}: variabel-variabel dikelompokkan ke dalam klik yang disusun sebagai pohon, lalu pesan dikirim sekali ke arah akar dan
+sekali kembali ke daun. Setelah dua sapuan itu, setiap klik menyimpan distribusi marginal variabel-variabelnya, sehingga semua kueri
+tunggal bisa dijawab sekaligus. Inilah message passing dari \cref{ch:gdl} dalam bentuk probabilistik. Pada graf yang punya siklus,
+pesan yang sama kadang tetap dikirim berulang-ulang sampai stabil, versi \emph{loopy} yang tidak dijamin benar tetapi sering cukup baik
+dalam praktik.
+
 \section{Inferensi dengan sampel}
 
 Kalau inferensi eksak terlalu mahal, kita bisa memperkirakan peluang dengan menarik sampel. Cara
@@ -83,7 +129,7 @@ tidak cocok dengan pengamatan. Cara ini boros sekali kalau pengamatannya jarang 
 hampir semua sampel dibuang.
 
 \istilah{Likelihood weighting} tidak membuang apa pun. Variabel yang diamati dipaksa bernilai sesuai
-pengamatan, dan setiap sampel diberi bobot sebesar peluang pengamatan itu terjadi. Ini adalah
+pengamatan, dan setiap sampel diberi bobot sebesar peluang pengamatan itu terjadi. Itulah
 contoh \istilah{importance sampling}: sampel ditarik dari distribusi yang mudah, lalu dikoreksi dengan
 bobot. Kelemahannya muncul ketika pengamatan berada di bagian bawah graf. Variabel di atasnya
 ditarik tanpa memperhatikan pengamatan, sehingga banyak sampel mendapat bobot yang hampir nol.
@@ -161,7 +207,9 @@ peluang emisi $b_j(o)=p(o_t=o\mid s_t=j)$, dan distribusi awal. Filtering dihitu
 yang bergantian antara memprediksi (penjumlahan atas keadaan sebelumnya) dan memperbarui dengan
 pengamatan baru (perkalian dengan peluang emisi). Algoritme backward menghitung pesan yang sama dari
 arah sebaliknya, dan gabungan keduanya memberi smoothing. Algoritme Viterbi mengganti penjumlahan
-dengan maksimum untuk mencari urutan keadaan terbaik, dan Baum--Welch adalah EM untuk mempelajari
+dengan maksimum, $\delta_t(j)=b_j(o_t)\max_i\delta_{t-1}(i)\,a_{ij}$, sambil mencatat $i$ mana yang memberi maksimum,
+lalu menelusuri catatan itu mundur dari akhir untuk mendapatkan urutan keadaan terbaik. Biayanya sebanding dengan
+panjang deret kali kuadrat jumlah keadaan, bukan eksponensial terhadap panjang deret seperti kalau semua urutan dicoba, dan Baum--Welch adalah EM untuk mempelajari
 parameter HMM dari pengamatan saja.
 
 Contoh klasik dari \citet{russell2021} adalah penjaga yang tidak pernah keluar gedung dan hanya bisa
@@ -214,6 +262,15 @@ saat ini (\istilah{extended Kalman filter}), atau diganti dengan \istilah{partic
 distribusi dengan sekumpulan sampel berbobot. Keduanya dipakai di kendaraan otonom untuk melacak
 posisi dari GPS, odometri, dan lidar.
 
+Particle filter adalah filter Bayes yang sama dengan Kalman filter, hanya distribusinya diwakili sampel, bukan Gauss. Setiap langkah
+punya tiga bagian. Setiap partikel digerakkan menurut model dinamika, termasuk noise-nya. Setiap partikel diberi bobot sebanding dengan
+likelihood pengukuran di posisinya. Lalu partikel ditarik ulang sesuai bobotnya, sehingga partikel di tempat yang tidak mungkin mati dan
+partikel di tempat yang mungkin berlipat. Contoh kecil: tiga partikel di posisi 1, 2, dan 3 bergerak satu satuan ke 2, 3, dan 4. Sensor
+mengukur $3{,}2$ dengan noise Gauss bersimpangan baku satu. Likelihood-nya sebanding dengan $e^{-(x-3{,}2)^2/2}$, yaitu $0{,}49$, $0{,}98$, dan
+$0{,}73$, dan setelah dinormalisasi menjadi bobot $0{,}22$, $0{,}45$, dan $0{,}33$. Taksiran posisinya rata-rata berbobot, sekitar $3{,}11$.
+Dalam praktik dipakai ratusan sampai ribuan partikel, dan karena tidak ada asumsi Gauss, distribusinya boleh bercabang, misalnya ketika
+robot belum tahu di lorong mana ia berada, persis lokalisasi Markov di \cref{ch:robot}.
+
 \section{Di luar kelas}
 
 Model-model di bab ini bekerja di belakang banyak sistem yang kita temui di bagian-bagian berikutnya.
@@ -243,6 +300,17 @@ Cara berpikir probabilistik juga membuka pintu ke masalah invers. Kalau kita ing
 parameter fisika, misalnya konduktivitas atau syarat batas, dari pengukuran yang berisik, jawaban
 yang jujur bukan satu angka, melainkan sebuah distribusi posterior. MCMC, inferensi variasional, dan
 model generatif dari \cref{ch:mlat} adalah alat untuk menghitungnya.
+
+\section{Perkembangan riset}
+
+Banyak ilmu punya simulator yang teliti tetapi tidak punya likelihood yang bisa dituliskan: simulator tabrakan
+partikel, model epidemi berbasis agen, atau model iklim. Bayes membutuhkan $p(\text{data}\mid\theta)$, sedangkan
+simulator hanya bisa menghasilkan data untuk $\theta$ tertentu. \istilah{Simulation-based inference} \citep{cranmer2020sbi}
+menjembatani keduanya. Jalankan simulator untuk banyak $\theta$ yang ditarik dari prior, lalu latih jaringan saraf untuk
+mendekati posterior $p(\theta\mid\text{data})$ secara langsung, misalnya dengan normalizing flow dari \cref{ch:arsitektur}.
+Setelah dilatih, posterior untuk pengamatan baru diperoleh hampir seketika, tanpa menjalankan MCMC lagi. Inferensi
+semacam ini disebut \emph{amortized}: biaya besar dibayar sekali di awal, lalu dipakai berulang kali. Gagasan yang sama
+dipakai di asimilasi data dan dalam mengkalibrasi simulasi fisika terhadap percobaan.
 
 \sumberbab{Bab ini mengikuti kuliah Probabilistic Models (Bayesian network, inferensi eksak dan
 aproksimasi, pembelajaran parameter dan struktur, DBN, HMM, Kalman filter) beserta latihannya. Slide

@@ -47,7 +47,7 @@ class="math inline">\(\boldsymbol{x}\)</span> dan kita mencari
 strukturnya: kelompok, arah utama, atau bentuk distribusinya. Murid
 ketiga mewakili <em>reinforcement learning</em>, tempat sebuah agen
 bertindak, menerima <em>reward</em>, dan harus menebak tindakan mana
-yang pantas dipuji (<a href="ch10_rl.html">Bab 12</a>). Di antara
+yang pantas dipuji (<a href="ch10_rl.html">Bab 16</a>). Di antara
 ketiganya ada bentuk campuran. <em>Self-supervised learning</em>,
 misalnya, membuat target dari data itu sendiri, seperti menebak kata
 yang ditutup dalam sebuah kalimat. Hampir semua model bahasa besar
@@ -201,7 +201,7 @@ satu hasil bisa meleset jauh sekali. Rata-rata akan ikut tertarik oleh
 angka itu, sedangkan median tidak. Noise berekor tebal seperti Laplace
 menghasilkan loss mutlak, yang tidak terlalu peduli pada satu
 pencilan.</p>
-<h2 id="prior-sebagai-regularisasi">Prior sebagai regularisasi</h2>
+<h2 id="sec:prior">Prior sebagai regularisasi</h2>
 <p>Maximum likelihood hanya mendengarkan data. Kalau datanya sedikit,
 model mudah percaya pada kebetulan. Pendekatan Bayesian menambahkan
 <em>prior</em> <span class="math inline">\(p(\boldsymbol{w})\)</span>,
@@ -223,15 +223,120 @@ sebagai lasso <span class="citation"
 data-cites="tibshirani1996">(Tibshirani 1996)</span>. Lasso punya sifat
 yang menarik: ia cenderung membuat banyak bobot bernilai tepat nol.
 Sifat ini nanti menjadi inti metode SINDy untuk menemukan persamaan dari
-data (<a href="ch17_penemuan_reduksi.html">Bab 27</a>).</p>
+data (<a href="ch17_penemuan_reduksi.html">Bab 31</a>).</p>
 <p>Dalam simulasi, kita sering tahu banyak hal sebelum melihat data.
 Aliran harus kekal massa, temperatur dalam kelvin tidak boleh negatif,
 dan solusi harus simetris kalau geometrinya simetris. Semua itu bisa
 dibaca sebagai prior yang kuat. PINN (<a href="ch15_pinn.html">Bab
-25</a>) memasukkan persamaan diferensial ke dalam loss dengan cara yang
+29</a>) memasukkan persamaan diferensial ke dalam loss dengan cara yang
 mirip suku <span class="math inline">\(-\log p(\boldsymbol{w})\)</span>
 di atas, hanya saja “prior”-nya menyangkut fungsi keluaran, bukan
 bobot.</p>
+<h2 id="regresi-linear-sampai-tuntas">Regresi linear sampai tuntas</h2>
+<p>Semua gagasan di atas bisa dilihat bekerja pada model paling
+sederhana. Regresi linear memodelkan <span class="math inline">\(\hat
+y=\boldsymbol{w}^\top\boldsymbol{x}\)</span>, dengan komponen konstan
+disisipkan ke dalam <span class="math inline">\(\boldsymbol{x}\)</span>
+sebagai fitur bernilai satu. Untuk <span
+class="math inline">\(N\)</span> contoh yang disusun sebagai baris
+matriks <span class="math inline">\(\boldsymbol{X}\)</span> dan target
+<span class="math inline">\(\boldsymbol{y}\)</span>, loss kuadrat
+rata-rata adalah <span
+class="math inline">\(\tfrac1N\|\boldsymbol{y}-\boldsymbol{X}\boldsymbol{w}\|^2\)</span>.
+Gradiennya terhadap <span class="math inline">\(\boldsymbol{w}\)</span>
+adalah <span
+class="math inline">\(-\tfrac2N\boldsymbol{X}^\top(\boldsymbol{y}-\boldsymbol{X}\boldsymbol{w})\)</span>,
+dan menyamakannya dengan nol memberi <em>normal equations</em> <span
+class="math display">\[\boldsymbol{X}^\top\boldsymbol{X}\,\boldsymbol{w}=\boldsymbol{X}^\top\boldsymbol{y},\qquad
+\hat{\boldsymbol{w}}=\big(\boldsymbol{X}^\top\boldsymbol{X}\big)^{-1}\boldsymbol{X}^\top\boldsymbol{y}.\]</span>
+Namanya berasal dari tafsiran geometrisnya. Syarat <span
+class="math inline">\(\boldsymbol{X}^\top(\boldsymbol{y}-\boldsymbol{X}\hat{\boldsymbol{w}})=\boldsymbol0\)</span>
+berarti sisa <span
+class="math inline">\(\boldsymbol{y}-\boldsymbol{X}\hat{\boldsymbol{w}}\)</span>
+tegak lurus, <em>normal</em>, terhadap setiap kolom <span
+class="math inline">\(\boldsymbol{X}\)</span>. Prediksi <span
+class="math inline">\(\boldsymbol{X}\hat{\boldsymbol{w}}\)</span> adalah
+proyeksi ortogonal <span class="math inline">\(\boldsymbol{y}\)</span>
+ke ruang yang direntang fitur-fitur, titik terdekat yang bisa dicapai
+model.</p>
+<p>Untuk satu fitur ditambah konstanta, rumusnya menyederhana menjadi
+kemiringan <span class="math inline">\(\hat w_1=S_{xy}/S_{xx}\)</span>
+dan titik potong <span class="math inline">\(\hat w_0=\bar y-\hat
+w_1\bar x\)</span>, dengan <span
+class="math inline">\(S_{xy}=\sum(x_i-\bar x)(y_i-\bar y)\)</span> dan
+<span class="math inline">\(S_{xx}=\sum(x_i-\bar x)^2\)</span>. Ambil
+tiga titik <span class="math inline">\((1,2)\)</span>, <span
+class="math inline">\((2,3)\)</span>, dan <span
+class="math inline">\((3,5)\)</span>. Rata-ratanya <span
+class="math inline">\(\bar x=2\)</span> dan <span
+class="math inline">\(\bar y=10/3\)</span>. Simpangan <span
+class="math inline">\(x\)</span> adalah <span
+class="math inline">\((-1,0,1)\)</span> dan simpangan <span
+class="math inline">\(y\)</span> adalah <span
+class="math inline">\((-4/3,-1/3,5/3)\)</span>, sehingga <span
+class="math inline">\(S_{xy}=4/3+0+5/3=3\)</span> dan <span
+class="math inline">\(S_{xx}=2\)</span>. Kemiringannya <span
+class="math inline">\(1{,}5\)</span> dan titik potongnya <span
+class="math inline">\(10/3-3=1/3\)</span>. Garis <span
+class="math inline">\(\hat y=1/3+1{,}5x\)</span> meramal <span
+class="math inline">\(1{,}83\)</span>, <span
+class="math inline">\(3{,}33\)</span>, dan <span
+class="math inline">\(4{,}83\)</span>, dengan sisa <span
+class="math inline">\(0{,}17\)</span>, <span
+class="math inline">\(-0{,}33\)</span>, dan <span
+class="math inline">\(0{,}17\)</span>. Jumlah sisanya nol, dan jumlah
+sisa dikali <span class="math inline">\(x\)</span> juga nol, persis
+seperti yang diminta normal equations.</p>
+<p>Ridge regression menambahkan <span
+class="math inline">\(\lambda\|\boldsymbol{w}\|^2\)</span>, dan dengan
+langkah yang sama solusinya menjadi <span
+class="math inline">\(\hat{\boldsymbol{w}}=(\boldsymbol{X}^\top\boldsymbol{X}+\lambda\boldsymbol
+I)^{-1}\boldsymbol{X}^\top\boldsymbol{y}\)</span>. Penambahan <span
+class="math inline">\(\lambda\)</span> pada diagonal punya dua efek.
+Secara statistik, ia menarik bobot ke nol, sesuai prior Gauss dari
+Subbab 1.4. Secara numerik, ia membuat matriks yang dibalik selalu bisa
+dibalik dan kondisinya lebih baik. Kalau dua fitur hampir identik, <span
+class="math inline">\(\boldsymbol{X}^\top\boldsymbol{X}\)</span> hampir
+singular, dan regresi biasa bisa memberi bobot <span
+class="math inline">\(+1000\)</span> dan <span
+class="math inline">\(-999\)</span> yang saling menghapus. Ridge memilih
+<span class="math inline">\(0{,}5\)</span> dan <span
+class="math inline">\(0{,}5\)</span>.</p>
+<h2 id="dari-regresi-ke-klasifikasi">Dari regresi ke klasifikasi</h2>
+<p>Untuk label biner, regresi logistik memodelkan peluang kelas positif
+sebagai <span
+class="math inline">\(p=\sigma(\boldsymbol{w}^\top\boldsymbol{x})\)</span>
+dengan <span class="math inline">\(\sigma(a)=1/(1+e^{-a})\)</span>.
+Loss-nya adalah binary cross-entropy yang diturunkan di atas. Gradiennya
+punya bentuk yang sangat rapi. Turunan sigmoid adalah <span
+class="math inline">\(\sigma&#39;(a)=\sigma(a)(1-\sigma(a))\)</span>,
+dan turunan <span class="math inline">\(-y\ln p-(1-y)\ln(1-p)\)</span>
+terhadap <span class="math inline">\(p\)</span> adalah <span
+class="math inline">\(-y/p+(1-y)/(1-p)\)</span>. Mengalikan keduanya
+lewat aturan rantai, <span
+class="math display">\[\frac{\partial\mathcal{L}}{\partial
+a}=\Big(-\frac
+yp+\frac{1-y}{1-p}\Big)p(1-p)=-y(1-p)+(1-y)p=p-y,\]</span> sehingga
+<span
+class="math inline">\(\nabla_{\boldsymbol{w}}\mathcal{L}=(p-y)\boldsymbol{x}\)</span>.
+Gradiennya adalah galat prediksi dikali input, bentuk yang sama dengan
+regresi linear. Kalau model yakin <span
+class="math inline">\(p=0{,}9\)</span> untuk contoh yang ternyata
+negatif, gradiennya <span
+class="math inline">\(0{,}9\boldsymbol{x}\)</span>, dorongan kuat untuk
+memperbaiki. Kalau ia sudah benar dengan <span
+class="math inline">\(p=0{,}99\)</span> untuk contoh positif,
+dorongannya hanya <span
+class="math inline">\(-0{,}01\boldsymbol{x}\)</span>. Berbeda dengan
+regresi linear, tidak ada solusi tertutup, karena <span
+class="math inline">\(p\)</span> bergantung nonlinear pada <span
+class="math inline">\(\boldsymbol{w}\)</span>, sehingga regresi logistik
+dilatih dengan metode iteratif dari <a href="ch02_optimasi.html">Bab
+4</a>. Batas keputusannya, tempat <span
+class="math inline">\(p=0{,}5\)</span>, adalah bidang <span
+class="math inline">\(\boldsymbol{w}^\top\boldsymbol{x}=0\)</span>:
+regresi logistik adalah pengklasifikasi linear dengan keluaran
+peluang.</p>
 <h2 id="mengukur-generalisasi">Mengukur generalisasi</h2>
 <p>Risiko sejati Persamaan (1.1) tidak bisa dihitung, jadi kita
 memperkirakannya. Cara paling sederhana adalah menyisihkan sebagian data
@@ -346,7 +451,7 @@ menjelaskan generalisasi. Yang menentukan adalah solusi mana yang
 dipilih oleh algoritme pelatihan di antara banyak solusi yang sama-sama
 menghafal data. Stochastic gradient descent tampaknya cenderung memilih
 solusi yang halus, sebuah topik yang muncul lagi di <a
-href="ch02_optimasi.html">Bab 2</a>.</p>
+href="ch02_optimasi.html">Bab 4</a>.</p>
 <figure id="fig:doubledescent">
 <p><img src="fig/165e14df05be.svg" alt="image" /> <img
 src="fig/6d5dfe31c10b.svg" alt="image" /></p>
@@ -411,7 +516,7 @@ sedikit ke kiri. Kalau arsitektur dibuat invarian atau ekuivarian
 terhadap simetri seperti ini, ruang hipotesis menyusut drastis tanpa
 membuang solusi yang benar. Itulah gagasan pokok <span class="citation"
 data-cites="bronstein2021">Bronstein dkk. (2021)</span>, yang kita bahas
-di <a href="ch07_geometric.html">Bab 9</a>.</p>
+di <a href="ch07_geometric.html">Bab 13</a>.</p>
 <h2 id="tidak-ada-makan-siang-gratis">Tidak ada makan siang gratis</h2>
 <p>Teorema <em>no free lunch</em> <span class="citation"
 data-cites="wolpert1996">(Wolpert 1996)</span> menyatakan bahwa kalau
@@ -450,22 +555,42 @@ akurasi 99 persen dan recall nol. Kurva ROC memplot recall terhadap
 ambang keputusan. Luas di bawahnya, AUC, sama dengan peluang model
 memberi skor lebih tinggi pada satu contoh positif acak dibanding satu
 contoh negatif acak.</p>
+<p>Tafsiran peluang AUC memberi cara menghitungnya langsung. Misalkan
+model memberi skor <span class="math inline">\(0{,}9\)</span> dan <span
+class="math inline">\(0{,}6\)</span> untuk dua contoh positif, serta
+<span class="math inline">\(0{,}7\)</span>, <span
+class="math inline">\(0{,}4\)</span>, dan <span
+class="math inline">\(0{,}2\)</span> untuk tiga contoh negatif. Ada
+<span class="math inline">\(2\times3=6\)</span> pasangan
+positif–negatif. Skor <span class="math inline">\(0{,}9\)</span> lebih
+tinggi dari ketiga skor negatif. Skor <span
+class="math inline">\(0{,}6\)</span> lebih tinggi dari <span
+class="math inline">\(0{,}4\)</span> dan <span
+class="math inline">\(0{,}2\)</span>, tetapi kalah dari <span
+class="math inline">\(0{,}7\)</span>. Dari enam pasangan, lima diurutkan
+dengan benar, sehingga AUC <span
+class="math inline">\(=5/6\approx0{,}83\)</span>. Nilai <span
+class="math inline">\(0{,}5\)</span> berarti urutan acak, dan nilai satu
+berarti setiap positif diberi skor lebih tinggi dari setiap negatif. AUC
+hanya menilai urutan, bukan kalibrasi: mengalikan semua skor dengan
+setengah tidak mengubah AUC sama sekali, walau peluang yang dikeluarkan
+model menjadi salah semua.</p>
 <h2 id="generalisasi-di-luar-kelas">Generalisasi di luar kelas</h2>
 <p>Pertanyaan-pertanyaan di bab ini akan muncul lagi di setiap bidang
 yang dibahas buku ini, dengan wajah yang berbeda-beda.</p>
 <p>Yang pertama adalah <em>distribution shift</em>: data saat model
 dipakai tidak berasal dari distribusi yang sama dengan data latih. Model
 citra medis yang dilatih di satu rumah sakit bisa gagal di rumah sakit
-lain dengan pemindai berbeda (<a href="ch43_medis.html">Bab 21</a>).
+lain dengan pemindai berbeda (<a href="ch43_medis.html">Bab 25</a>).
 Model pengenal aktivitas yang dilatih pada segelintir orang bisa gagal
 pada orang dengan gaya gerak lain (<a href="ch32_pervasif.html">Bab
-16</a>). Model pengganti simulasi yang dilatih pada bilangan Reynolds
+20</a>). Model pengganti simulasi yang dilatih pada bilangan Reynolds
 antara 100 dan 1000 belum tentu benar pada 5000 (<a
-href="ch16_operator.html">Bab 26</a>).</p>
+href="ch16_operator.html">Bab 30</a>).</p>
 <p>Yang kedua adalah kejujuran pembagian data. Di kimia, molekul dari
 satu seri senyawa hampir identik, sehingga pembagian acak membuat model
 tampak jauh lebih baik dari kenyataannya (<a
-href="ch41_molekul.html">Bab 19</a>). Di sensor yang dikenakan,
+href="ch41_molekul.html">Bab 23</a>). Di sensor yang dikenakan,
 jendela-jendela dari orang yang sama berkorelasi kuat. Di simulasi,
 potret berurutan dari satu kasus hampir sama. Pola umumnya: bagilah data
 menurut satuan yang benar-benar baru saat model dipakai, entah itu
@@ -476,6 +601,43 @@ biaya besar. Di sinilah prior, dalam bentuk simetri, pengetahuan domain,
 atau hukum fisika, menjadi berharga: ia mengurangi data yang dibutuhkan
 dan menjaga model tetap masuk akal di luar daerah yang pernah
 dilihatnya.</p>
+<h2 id="perkembangan-riset">Perkembangan riset</h2>
+<p>Pertanyaan paling dasar di bab ini, mengapa model yang mampu
+menghafal data latih tetap bisa generalisasi, masih menjadi bidang riset
+yang aktif. Kurva double descent <span class="citation"
+data-cites="belkin2019">(Belkin dkk. 2019)</span> memperlihatkan bahwa
+galat uji bisa turun lagi setelah model melewati titik ketika ia tepat
+bisa menghafal data. Fenomena yang lebih mengejutkan disebut
+<em>grokking</em> <span class="citation" data-cites="power2022">(Power
+dkk. 2022)</span>. Pada himpunan data kecil yang dibangkitkan secara
+algoritmik, misalnya tabel penjumlahan modulo sebuah bilangan prima,
+jaringan mula-mula menghafal data latih dengan akurasi uji setara
+tebakan acak, lalu, jauh setelah titik overfitting, tiba-tiba mencapai
+generalisasi sempurna. Pembelajaran ternyata bisa terus berlangsung di
+bawah permukaan walau loss latih sudah nol. Data yang lebih sedikit
+membutuhkan optimasi yang lebih lama sebelum lompatan itu terjadi.</p>
+<p>Arah lain menyangkut ketidakpastian. Model yang mengeluarkan satu
+angka atau satu label tidak memberi tahu seberapa jauh angka itu bisa
+dipercaya. <em>Conformal prediction</em> <span class="citation"
+data-cites="angelopoulos2021">(Angelopoulos dan Bates 2021)</span>
+menawarkan jaminan yang tidak bergantung pada model maupun distribusi
+data. Resepnya sederhana. Sisihkan himpunan kalibrasi berisi <span
+class="math inline">\(n\)</span> contoh, hitung skor ketidaksesuaian
+untuk setiap contoh, misalnya galat mutlak <span
+class="math inline">\(|y_i-\hat y_i|\)</span> untuk regresi, lalu ambil
+kuantil ke-<span
+class="math inline">\(\lceil(n+1)(1-\alpha)\rceil/n\)</span> dari
+skor-skor itu sebagai <span class="math inline">\(\hat q\)</span>. Untuk
+contoh baru, interval <span class="math inline">\([\hat y-\hat q,\ \hat
+y+\hat q]\)</span> memuat jawaban yang benar dengan peluang paling
+sedikit <span class="math inline">\(1-\alpha\)</span>. Dengan seribu
+contoh kalibrasi dan <span class="math inline">\(\alpha=0{,}1\)</span>,
+<span class="math inline">\(\hat q\)</span> adalah skor terbesar ke-901.
+Jaminannya hanya membutuhkan satu asumsi: contoh kalibrasi dan contoh
+baru bisa ditukar urutannya tanpa mengubah distribusi bersamanya. Karena
+itu, conformal prediction bisa dibungkuskan pada model apa pun yang
+sudah dilatih, dari jaringan saraf di citra medis sampai model pengganti
+di simulasi.</p>
 <h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini merangkai materi dari Machine Learning: Basic Techniques,
 Supervised dan Unsupervised Techniques, Statistical Learning Theory,
@@ -487,6 +649,12 @@ dan <span class="citation" data-cites="bach2024">Bach (2024)</span>.</p>
 <h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
+<div id="ref-angelopoulos2021" class="csl-entry" role="listitem">
+Angelopoulos, Anastasios N., dan Stephen Bates. 2021. <span>“A Gentle
+Introduction to Conformal Prediction and Distribution-Free Uncertainty
+Quantification.”</span> arXiv:2107.07511. <a
+href="https://arxiv.org/abs/2107.07511">https://arxiv.org/abs/2107.07511</a>.
+</div>
 <div id="ref-bach2024" class="csl-entry" role="listitem">
 Bach, Francis. 2024. <em>Learning Theory from First Principles</em>. MIT
 Press.
@@ -518,6 +686,12 @@ href="https://doi.org/10.1162/neco.1992.4.1.1">https://doi.org/10.1162/neco.1992
 Hastie, Trevor, Robert Tibshirani, dan Jerome Friedman. 2009. <em>The
 Elements of Statistical Learning</em>. 2 ed. Springer.
 </div>
+<div id="ref-power2022" class="csl-entry" role="listitem">
+Power, Alethea, Yuri Burda, Harri Edwards, Igor Babuschkin, dan Vedant
+Misra. 2022. <span>“Grokking: Generalization Beyond Overfitting on Small
+Algorithmic Datasets.”</span> arXiv:2201.02177. <a
+href="https://arxiv.org/abs/2201.02177">https://arxiv.org/abs/2201.02177</a>.
+</div>
 <div id="ref-tibshirani1996" class="csl-entry" role="listitem">
 Tibshirani, Robert. 1996. <span>“Regression Shrinkage and Selection Via
 the Lasso.”</span> <em>Journal of the Royal Statistical Society Series
@@ -540,7 +714,7 @@ href="https://arxiv.org/abs/1611.03530">https://arxiv.org/abs/1611.03530</a>.
 </main>
 <nav class="pager">
   <a class="prev" href="ch00_peta.html"><span>Sebelumnya</span>Peta Perjalanan</a>
-  <a class="next" href="ch02_optimasi.html"><span>Berikutnya</span>Optimasi: Turun Gunung dalam Kabut</a>
+  <a class="next" href="ch01b_statistik_bayes.html"><span>Berikutnya</span>Memilih Model dengan Statistik dan Bayes</a>
 </nav>
 <footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
 </body>

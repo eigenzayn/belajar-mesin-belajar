@@ -17,7 +17,7 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 22</p>
+<p class="chapnum">Bab 26</p>
 <h1>Fluida yang Ingin Kita Tiru</h1>
 <p><span id="ch:fluida" data-label="ch:fluida"></span></p>
 <p>Kuliah metode numerik dalam mekanika fluida saya ikuti pada musim
@@ -27,13 +27,14 @@ dengan pertanyaan seperti “aliran apa yang terlintas di kepala Anda?”,
 dan beberapa slide meminta ChatGPT menulis puisi tentang neraca massa
 atau pidato perpisahan untuk persamaan Navier–Stokes, sebelum kembali ke
 persamaan yang sesungguhnya. Bab ini dan bab berikutnya merangkum kuliah
-itu. Bagian III secara keseluruhan memakai fluida sebagai contoh utama,
+itu. Bagian tentang simulasi ini memakai fluida sebagai contoh utama,
 karena di sanalah saya paling banyak bekerja, tetapi gagasan-gagasannya
 berlaku untuk banyak sistem fisika lain.</p>
 <p>Sebelum membicarakan bagaimana machine learning bisa membantu
 simulasi, kita perlu tahu apa yang disimulasikan. Bab ini membahas
-persamaan yang mengatur aliran fluida dan panas, serta bilangan tak
-berdimensi yang menentukan wataknya.</p>
+persamaan yang mengatur aliran fluida dan panas, bilangan tak berdimensi
+yang menentukan wataknya, dan turbulensi, alasan utama mengapa simulasi
+aliran begitu mahal.</p>
 <h2 id="wajah-wajah-aliran">Wajah-wajah aliran</h2>
 <p>Aliran fluida punya banyak wajah. Madu yang dituang mengalir pelan
 dan teratur. Asap rokok naik lurus sebentar, lalu tiba-tiba pecah
@@ -55,39 +56,100 @@ menengah, aliran laminar tetapi bisa melepaskan pusaran secara periodik.
 Pada Re tinggi, aliran menjadi turbulen. Air dengan viskositas kinematik
 sekitar <span class="math inline">\(10^{-6}\,\mathrm{m^2/s}\)</span>
 yang mengalir satu meter per detik di pipa berdiameter lima sentimeter
-punya Re sekitar lima puluh ribu, jauh di daerah turbulen.</p>
+punya Re sekitar lima puluh ribu, jauh di daerah turbulen. Madu, yang
+seribu kali lebih kental, dalam pipa dan kecepatan yang sama punya Re
+sekitar lima puluh, dan alirannya tetap teratur.</p>
 <p>Untuk aliran yang digerakkan perbedaan temperatur, bilangan lain
-menjadi penting. Bilangan Prandtl membandingkan difusi momentum dengan
-difusi panas, bilangan Grashof atau Rayleigh mengukur kekuatan gaya
-apung dibanding gesekan, dan bilangan Péclet membandingkan perpindahan
+menjadi penting. Bilangan Prandtl, <span
+class="math inline">\(\mathrm{Pr}=\nu/\alpha\)</span>, membandingkan
+difusi momentum dengan difusi panas <span
+class="math inline">\(\alpha\)</span>. Untuk air sekitar tujuh, untuk
+udara sekitar <span class="math inline">\(0{,}7\)</span>. Bilangan
+Rayleigh, <span class="math display">\[\mathrm{Ra}=\frac{g\beta\Delta T
+L^3}{\nu\alpha},\]</span> mengukur kekuatan gaya apung dibanding gesekan
+dan difusi panas, dengan <span class="math inline">\(\beta\)</span>
+koefisien muai dan <span class="math inline">\(\Delta T\)</span> beda
+temperatur. Lapisan fluida yang dipanaskan dari bawah tetap diam, dan
+panas hanya merambat secara konduksi, sampai Ra melewati sekitar 1700.
+Di atas nilai itu, sel-sel konveksi muncul, seperti yang terlihat di
+panci sup yang mulai bergolak. Bilangan Péclet membandingkan perpindahan
 oleh aliran dengan perpindahan oleh difusi. Dua aliran dengan
 bilangan-bilangan tak berdimensi yang sama berperilaku sama, sekecil
 atau sebesar apa pun ukurannya. Prinsip kesamaan ini memungkinkan
 percobaan dengan model kecil di laboratorium, dan juga menentukan
 seberapa jauh sebuah model pengganti bisa diharapkan berlaku.</p>
+<h2 id="euler-dan-lagrange">Euler dan Lagrange</h2>
+<p>Kuliah membedakan dua cara memandang aliran. Dalam kerangka Lagrange,
+kita mengikuti sebuah paket fluida dan mencatat apa yang terjadi
+padanya, seperti menaruh pelampung di sungai dan mengikutinya dengan
+perahu. Dalam kerangka Euler, kita berdiri di tepi sungai dan mencatat
+apa yang lewat di satu titik tetap. Hukum fisika paling alami ditulis
+untuk paket, karena hukum Newton berlaku untuk benda yang kita ikuti.
+Tetapi simulasi paling mudah dikerjakan pada grid yang diam.</p>
+<p>Jembatan di antara keduanya adalah turunan material. Kalau paket
+berada di <span class="math inline">\(\boldsymbol{x}(t)\)</span> dan
+bergerak dengan kecepatan <span
+class="math inline">\(\boldsymbol{u}\)</span>, laju perubahan suatu
+besaran <span class="math inline">\(\phi\)</span> yang dialami paket,
+menurut aturan rantai, adalah <span
+class="math display">\[\frac{D\phi}{Dt}=\frac{\partial\phi}{\partial
+t}+\frac{\,\mathrm{d}\boldsymbol{x}}{\,\mathrm{d}t}\cdot\nabla\phi=\frac{\partial\phi}{\partial
+t}+\boldsymbol{u}\cdot\nabla\phi .\]</span> Suku pertama adalah
+perubahan di titik tetap, suku kedua perubahan karena paket berpindah ke
+tempat yang nilainya berbeda. Contohnya sehari-hari: di sebuah kota,
+udara bisa mendingin dengan cepat walau tidak ada udara yang kehilangan
+panas sama sekali, hanya karena angin membawa udara dingin dari
+utara.</p>
 <h2 id="hukum-kekekalan">Hukum kekekalan</h2>
 <p>Semua persamaan fluida adalah neraca. Untuk sebuah volume kecil di
 ruang, perubahan jumlah suatu besaran di dalamnya sama dengan apa yang
 mengalir masuk dikurangi apa yang mengalir keluar, ditambah apa yang
-diproduksi di dalamnya. Ungkapan matematisnya adalah persamaan transport
-umum untuk besaran <span class="math inline">\(\phi\)</span> per satuan
-massa, <span class="math display">\[\frac{\partial(\rho\phi)}{\partial
-t}+\nabla\cdot(\rho\boldsymbol{u}\phi)=\nabla\cdot(\Gamma\nabla\phi)+S_\phi,
-\label{eq:transport}\]</span> dengan suku perubahan terhadap waktu, suku
-konveksi oleh aliran, suku difusi, dan suku sumber. Hampir semua
-persamaan di bab ini adalah kasus khusus bentuk ini.</p>
-<p>Kekekalan massa mengambil <span
-class="math inline">\(\phi=1\)</span>, tanpa difusi dan sumber: <span
-class="math display">\[\frac{\partial\rho}{\partial
+diproduksi di dalamnya.</p>
+<p>Penurunannya paling jelas dalam satu dimensi. Ambil potongan pipa
+antara <span class="math inline">\(x\)</span> dan <span
+class="math inline">\(x+\Delta x\)</span> dengan penampang <span
+class="math inline">\(A\)</span>. Massa di dalamnya adalah <span
+class="math inline">\(\rho A\Delta x\)</span>. Laju massa yang masuk di
+kiri adalah <span class="math inline">\((\rho u)(x)A\)</span> dan yang
+keluar di kanan <span class="math inline">\((\rho u)(x+\Delta
+x)A\)</span>. Neracanya <span class="math display">\[\frac{\partial(\rho
+A\Delta x)}{\partial t}=(\rho u)(x)A-(\rho u)(x+\Delta x)A .\]</span>
+Bagi dengan <span class="math inline">\(A\Delta x\)</span> dan biarkan
+<span class="math inline">\(\Delta x\)</span> menuju nol. Ruas kanan
+menjadi turunan negatif, <span
+class="math inline">\(\partial\rho/\partial t+\partial(\rho u)/\partial
+x=0\)</span>. Dalam tiga dimensi, langkah yang sama untuk setiap arah
+memberi <span class="math display">\[\frac{\partial\rho}{\partial
 t}+\nabla\cdot(\rho\boldsymbol{u})=0.\]</span> Untuk fluida tak
 termampatkan dengan massa jenis tetap, persamaan ini menjadi syarat
 <span class="math inline">\(\nabla\cdot\boldsymbol{u}=0\)</span>: apa
 yang masuk ke sebuah volume harus keluar lagi.</p>
+<p>Resep yang sama berlaku untuk besaran apa pun. Untuk besaran <span
+class="math inline">\(\phi\)</span> per satuan massa, yang dibawa
+aliran, menyebar karena difusi, dan diproduksi oleh sumber, kita
+mendapat persamaan transport umum <span
+class="math display">\[\frac{\partial(\rho\phi)}{\partial
+t}+\nabla\cdot(\rho\boldsymbol{u}\phi)=\nabla\cdot(\Gamma\nabla\phi)+S_\phi,
+\label{eq:transport}\]</span> dengan suku perubahan terhadap waktu, suku
+konveksi oleh aliran, suku difusi, dan suku sumber. Fluks difusi <span
+class="math inline">\(-\Gamma\nabla\phi\)</span> mengikuti hukum Fourier
+untuk panas atau hukum Fick untuk zat terlarut: besaran mengalir dari
+tempat yang banyak ke tempat yang sedikit, sebanding dengan gradiennya.
+Hampir semua persamaan di bab ini adalah kasus khusus bentuk ini, dan
+kekekalan massa sendiri adalah kasus <span
+class="math inline">\(\phi=1\)</span> tanpa difusi dan sumber.</p>
 <p>Kekekalan momentum adalah hukum Newton untuk sebuah paket fluida.
-Percepatan paket itu dikalikan massanya sama dengan gaya tekanan, gaya
-gesekan kental, dan gaya badan seperti gravitasi. Untuk fluida Newtonian
-tak termampatkan dengan viskositas tetap, kita mendapat persamaan
-Navier–Stokes, <span
+Percepatan paket itu, yaitu turunan material kecepatannya, dikalikan
+massanya sama dengan gaya tekanan, gaya gesekan kental, dan gaya badan
+seperti gravitasi. Gesekan muncul dari tensor tegangan. Untuk fluida
+Newtonian, tegangan geser sebanding dengan laju deformasi, seperti pada
+aliran di antara dua pelat sejajar, di mana tegangan sama dengan
+viskositas dinamis <span class="math inline">\(\mu\)</span> dikali
+gradien kecepatan <span class="math inline">\(\partial u/\partial
+y\)</span>. Untuk fluida tak termampatkan dengan viskositas tetap,
+divergensi tensor tegangan menyederhana menjadi <span
+class="math inline">\(\mu\nabla^2\boldsymbol{u}\)</span>, dan kita
+mendapat persamaan Navier–Stokes, <span
 class="math display">\[\rho\Big(\frac{\partial\boldsymbol{u}}{\partial
 t}+(\boldsymbol{u}\cdot\nabla)\boldsymbol{u}\Big)=-\nabla
 p+\mu\nabla^2\boldsymbol{u}+\rho\boldsymbol g.
@@ -99,7 +161,22 @@ punya persamaan evolusinya sendiri dalam aliran tak termampatkan. Ia
 muncul sebagai pengali yang menjaga agar <span
 class="math inline">\(\nabla\cdot\boldsymbol{u}=0\)</span> terpenuhi di
 setiap saat, dan kopling inilah yang membuat solver numerik rumit (<a
-href="ch13_numerik_fluida.html">Bab 23</a>).</p>
+href="ch13_numerik_fluida.html">Bab 27</a>).</p>
+<p>Dari mana bilangan Reynolds datang? Tulis setiap besaran sebagai
+kelipatan skala khasnya: <span
+class="math inline">\(\boldsymbol{x}=L\boldsymbol{x}^*\)</span>, <span
+class="math inline">\(\boldsymbol{u}=U\boldsymbol{u}^*\)</span>, <span
+class="math inline">\(t=(L/U)t^*\)</span>, dan <span
+class="math inline">\(p=\rho U^2p^*\)</span>. Masukkan ke Persamaan
+(26.7) tanpa gravitasi, lalu bagi semuanya dengan <span
+class="math inline">\(\rho U^2/L\)</span>. Semua suku menjadi tak
+berdimensi, dan hanya satu koefisien yang tersisa: <span
+class="math display">\[\frac{\partial\boldsymbol{u}^*}{\partial
+t^*}+(\boldsymbol{u}^*\cdot\nabla^*)\boldsymbol{u}^*=-\nabla^*p^*+\frac1{\mathrm{Re}}\nabla^{*2}\boldsymbol{u}^*
+.\]</span> Seluruh perbedaan antara aliran madu dan aliran air di pipa
+yang sama terkumpul dalam satu angka di depan suku gesekan. Kalau Re
+besar, gesekan tampak kecil, tetapi tidak pernah boleh dibuang
+sepenuhnya, karena di dekat dinding ia selalu penting.</p>
 <p>Kekekalan energi untuk aliran dengan perpindahan panas, dalam bentuk
 temperatur, berbunyi <span class="math display">\[\rho
 c_p\Big(\frac{\partial T}{\partial t}+\boldsymbol{u}\cdot\nabla
@@ -116,11 +193,75 @@ laju reaksi sebagai sumber.</p>
 diabaikan di semua tempat kecuali di suku gravitasi. Pendekatan
 Boussinesq menulis <span
 class="math inline">\(\rho=\rho_0\big(1-\beta(T-T_0)\big)\)</span> hanya
-di suku gaya badan, dengan <span class="math inline">\(\beta\)</span>
-koefisien muai. Fluida yang lebih panas menjadi sedikit lebih ringan dan
-naik. Pendekatan ini cukup untuk menjelaskan sel konveksi di panci yang
-dipanaskan, angin laut, dan pancaran air hangat yang naik di dalam
-tangki.</p>
+di suku gaya badan. Fluida yang lebih panas menjadi sedikit lebih ringan
+dan naik. Untuk air di sekitar suhu kamar, <span
+class="math inline">\(\beta\)</span> sekitar <span
+class="math inline">\(2\times10^{-4}\)</span> per kelvin, sehingga beda
+temperatur sepuluh kelvin hanya mengubah massa jenis sekitar <span
+class="math inline">\(0{,}2\)</span> persen. Perubahan sekecil itu tidak
+terasa dalam neraca massa, tetapi dikalikan gravitasi dan dijumlahkan di
+seluruh kolom fluida, cukup untuk menggerakkan seluruh aliran.
+Pendekatan ini menjelaskan sel konveksi di panci yang dipanaskan, angin
+laut, dan pancaran air hangat yang naik di dalam tangki.</p>
+<h2 id="analisis-dimensi">Analisis dimensi</h2>
+<p>Penurunan bilangan Reynolds di atas adalah contoh alat yang lebih
+umum, analisis dimensi. Teorema Buckingham <span
+class="math inline">\(\Pi\)</span> menyatakan bahwa hubungan fisis
+antara <span class="math inline">\(n\)</span> besaran yang melibatkan
+<span class="math inline">\(k\)</span> dimensi dasar, seperti massa,
+panjang, dan waktu, selalu bisa ditulis sebagai hubungan antara <span
+class="math inline">\(n-k\)</span> kelompok tak berdimensi.</p>
+<p>Gaya hambat <span class="math inline">\(F\)</span> pada bola
+berdiameter <span class="math inline">\(D\)</span> yang bergerak dengan
+kecepatan <span class="math inline">\(U\)</span> dalam fluida dengan
+massa jenis <span class="math inline">\(\rho\)</span> dan viskositas
+<span class="math inline">\(\mu\)</span> melibatkan lima besaran dan
+tiga dimensi dasar, sehingga hanya tersisa dua kelompok. Pilihan yang
+lazim adalah koefisien hambat <span
+class="math inline">\(C_D=F/(\tfrac12\rho U^2A)\)</span>, dengan <span
+class="math inline">\(A\)</span> luas penampang, dan bilangan Reynolds.
+Fisika apa pun yang terjadi, hubungannya pasti berbentuk <span
+class="math inline">\(C_D=g(\mathrm{Re})\)</span>. Satu kurva
+menggantikan tabel lima dimensi. Untuk aliran merayap, Stokes menurunkan
+<span class="math inline">\(F=3\pi\mu DU\)</span>, dan memasukkannya
+memberi <span class="math display">\[C_D=\frac{3\pi\mu DU}{\tfrac12\rho
+U^2\cdot\pi D^2/4}=\frac{24\,\mu}{\rho
+UD}=\frac{24}{\mathrm{Re}}.\]</span> Pada Re tinggi, gaya hambat
+didominasi tekanan di belakang bola dan viskositas hampir tidak
+berperan, sehingga <span class="math inline">\(C_D\)</span> mendekati
+konstan, sekitar <span class="math inline">\(0{,}4\)</span> sampai <span
+class="math inline">\(0{,}5\)</span> untuk bola, sampai lapisan batas
+menjadi turbulen dan koefisiennya tiba-tiba turun (Gambar 26.1). Waktu
+respons partikel <span class="math inline">\(\tau_p\)</span> di <a
+href="ch13_numerik_fluida.html">Bab 27</a> turun langsung dari hukum
+Stokes ini.</p>
+<figure id="fig:cd">
+<img src="fig/867a3b0aa1b7.svg" />
+<figcaption>Bentuk kurva koefisien hambat bola terhadap bilangan
+Reynolds (ilustrasi). Pada Re kecil berlaku hukum Stokes, pada Re
+menengah sampai tinggi koefisiennya hampir tetap, lalu turun tajam
+ketika lapisan batas menjadi turbulen.</figcaption>
+</figure>
+<p>Analisis dimensi juga menjelaskan pancaran apung, aliran yang menjadi
+pokok tugas akhir saya. Untuk plume dari sumber titik yang terus memasok
+gaya apung, satu-satunya besaran sumber yang penting jauh dari sumber
+adalah fluks gaya apung <span class="math inline">\(F_0\)</span>, dengan
+satuan m<span class="math inline">\(^4\)</span>/s<span
+class="math inline">\(^3\)</span>. Di ketinggian <span
+class="math inline">\(z\)</span>, kecepatan naik hanya bisa bergantung
+pada <span class="math inline">\(F_0\)</span> dan <span
+class="math inline">\(z\)</span>, dan satu-satunya kombinasi bersatuan
+kecepatan adalah <span
+class="math display">\[w\sim\Big(\frac{F_0}{z}\Big)^{1/3}.\]</span>
+Lebar plume, yang bersatuan panjang, hanya bisa sebanding dengan <span
+class="math inline">\(z\)</span>, sehingga plume melebar seperti kerucut
+dengan sudut tetap. Model klasik <span class="citation"
+data-cites="morton1956">Morton, Taylor, dan Turner (1956)</span>
+mewujudkan skala-skala ini dengan satu asumsi tambahan: laju fluida
+sekitar yang terseret masuk ke plume sebanding dengan kecepatan plume di
+ketinggian itu. Untuk tangki yang terbatas, plume akhirnya menabrak
+tutup dan membentuk lapisan yang terstratifikasi, dan di situlah
+skala-skala sederhana ini berakhir dan simulasi dibutuhkan.</p>
 <h2 id="batas-dan-awal">Batas dan awal</h2>
 <p>Persamaan saja tidak menentukan sebuah aliran. Kita butuh syarat
 batas dan syarat awal. Di dinding padat, fluida menempel dan
@@ -129,28 +270,88 @@ masuk, kecepatan atau laju aliran ditentukan. Di saluran keluar, tekanan
 biasanya ditetapkan. Untuk temperatur, dinding bisa diberi temperatur
 tetap, fluks panas tetap, atau dibuat adiabatik, yaitu tanpa perpindahan
 panas sama sekali. Pilihan syarat batas sering lebih menentukan hasil
-simulasi daripada skema numeriknya, dan seperti akan kita lihat,
-sebagian besar galat dalam membandingkan simulasi dengan percobaan
-berasal dari sini.</p>
+simulasi daripada skema numeriknya, dan sebagian besar galat dalam
+membandingkan simulasi dengan percobaan berasal dari sini.</p>
+<p>Syarat no-slip melahirkan lapisan batas, daerah tipis di dekat
+dinding tempat kecepatan naik dari nol ke kecepatan aliran bebas. Di
+dalam lapisan ini, gesekan dan inersia sama pentingnya. Menyeimbangkan
+keduanya, <span class="math inline">\(U^2/L\sim\nu U/\delta^2\)</span>,
+memberi tebal lapisan batas laminar <span
+class="math inline">\(\delta\sim L/\sqrt{\mathrm{Re}}\)</span>. Untuk
+pelat sepanjang satu meter dalam aliran udara dengan Re sejuta, lapisan
+batasnya hanya sekitar satu milimeter. Semua gesekan dan perpindahan
+panas ke dinding terjadi di lapisan setipis itu, sehingga grid di dekat
+dinding harus jauh lebih halus daripada di tempat lain.</p>
+<h2 id="turbulensi-dan-skalanya">Turbulensi dan skalanya</h2>
+<p>Aliran turbulen tampak acak, tetapi punya struktur statistik yang
+dipahami cukup baik. Kuliah membahas teori Kolmogorov. Pusaran besar,
+seukuran <span class="math inline">\(L\)</span> dengan kecepatan <span
+class="math inline">\(U\)</span>, menerima energi dari aliran rata-rata.
+Mereka tidak stabil dan pecah menjadi pusaran yang lebih kecil, yang
+pecah lagi, dan seterusnya. Energi mengalir menuruni kaskade ini tanpa
+banyak hilang, sampai pusaran cukup kecil untuk diredam viskositas
+menjadi panas. Seperti air terjun bertingkat, air mengalir dari kolam
+besar ke kolam-kolam yang semakin kecil, dan baru menguap di kolam
+terkecil.</p>
+<p>Laju energi yang memasuki kaskade per satuan massa, <span
+class="math inline">\(\varepsilon\)</span>, ditentukan pusaran besar:
+mereka kehilangan energi kinetik sekitar <span
+class="math inline">\(U^2\)</span> dalam waktu putar sekitar <span
+class="math inline">\(L/U\)</span>, sehingga <span
+class="math inline">\(\varepsilon\sim U^3/L\)</span>. Hipotesis
+Kolmogorov menyatakan bahwa pusaran terkecil hanya “tahu” dua hal, yaitu
+<span class="math inline">\(\varepsilon\)</span> dan <span
+class="math inline">\(\nu\)</span>. Analisis dimensi lalu menentukan
+ukurannya. Satuan <span class="math inline">\(\nu\)</span> adalah m<span
+class="math inline">\(^2\)</span>/s dan satuan <span
+class="math inline">\(\varepsilon\)</span> adalah m<span
+class="math inline">\(^2\)</span>/s<span
+class="math inline">\(^3\)</span>. Satu-satunya kombinasi yang
+menghasilkan panjang adalah <span
+class="math display">\[\eta=\Big(\frac{\nu^3}{\varepsilon}\Big)^{1/4}.\]</span>
+Mengganti <span class="math inline">\(\varepsilon\)</span> dengan <span
+class="math inline">\(U^3/L\)</span> memberi <span
+class="math inline">\(\eta/L\sim(\nu/UL)^{3/4}=\mathrm{Re}^{-3/4}\)</span>.
+Untuk menyelesaikan semua pusaran dalam kotak tiga dimensi berukuran
+<span class="math inline">\(L\)</span>, kita butuh sekitar <span
+class="math inline">\((L/\eta)^3\sim\mathrm{Re}^{9/4}\)</span> titik
+grid <span class="citation" data-cites="pope2000">(Pope 2000)</span>.
+Dengan Re sejuta, itu sekitar <span
+class="math inline">\(3\times10^{13}\)</span> titik, dan langkah
+waktunya juga harus ikut mengecil. Di antara skala besar dan skala
+terkecil terdapat rentang inersia, di mana spektrum energi hanya
+bergantung pada <span class="math inline">\(\varepsilon\)</span> dan
+bilangan gelombang <span class="math inline">\(\kappa\)</span>. Analisis
+dimensi yang sama memberi <span
+class="math inline">\(E(\kappa)\sim\varepsilon^{2/3}\kappa^{-5/3}\)</span>,
+hukum lima pertiga yang terkenal (Gambar 26.2), yang sudah dikonfirmasi
+berkali-kali dalam percobaan.</p>
+<figure id="fig:spektrum">
+<img src="fig/3ca8c7af3af1.svg" />
+<figcaption>Bentuk khas spektrum energi turbulen. Energi masuk di skala
+besar, mengalir melalui rentang inersia dengan kemiringan <span
+class="math inline">\(-5/3\)</span>, lalu diredam di skala
+Kolmogorov.</figcaption>
+</figure>
 <h2 id="mengapa-simulasi-aliran-mahal">Mengapa simulasi aliran
 mahal</h2>
-<p>Untuk aliran turbulen, pusaran terkecil yang membuang energi menjadi
-panas berukuran amat kecil dibanding ukuran domain. Menyelesaikan semua
-skala itu secara langsung, yang disebut <em>direct numerical
-simulation</em>, membutuhkan jumlah titik grid yang tumbuh kira-kira
-seperti <span class="math inline">\(\mathrm{Re}^{9/4}\)</span> dalam
-tiga dimensi, dan langkah waktu yang ikut mengecil <span
-class="citation" data-cites="pope2000">(Pope 2000)</span>. Untuk aliran
-industri dengan Re jutaan, itu jauh melampaui komputer mana pun.
-Simulasi praktis karena itu memodelkan efek skala kecil alih-alih
-menyelesaikannya, dan pemodelan itulah yang membuka pintu bagi machine
-learning: sebagai model untuk skala kecil, sebagai pengganti seluruh
-solver, atau sebagai cara mempercepat solver yang ada. Bab-bab
-berikutnya membahas ketiganya.</p>
+<p>Menyelesaikan semua skala secara langsung disebut <em>direct
+numerical simulation</em>. Hitungan di atas menunjukkan mengapa ini
+hanya mungkin untuk Re yang sederhana. Aliran industri dengan Re jutaan
+jauh melampaui komputer mana pun. Simulasi praktis karena itu memodelkan
+efek skala kecil alih-alih menyelesaikannya. Pendekatan RANS hanya
+menyelesaikan aliran rata-rata dan memodelkan seluruh turbulensi. LES
+menyelesaikan pusaran besar dan memodelkan yang lebih kecil dari grid.
+Keduanya dibahas di <a href="ch13_numerik_fluida.html">Bab 27</a>.</p>
+<p>Pemodelan itulah yang membuka pintu bagi machine learning: sebagai
+model untuk skala kecil, sebagai pengganti seluruh solver, atau sebagai
+cara mempercepat solver yang ada. Bab-bab berikutnya membahas
+ketiganya.</p>
 <h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti kuliah Numerical Methods in Fluid Mechanics bagian
-pengantar dan persamaan atur (neraca massa, momentum, energi, spesies).
-Buku rujukan yang baik adalah <span class="citation"
+pengantar, persamaan atur (kerangka Euler dan Lagrange, neraca massa,
+momentum, energi, spesies, pendekatan Boussinesq), dan teori turbulensi
+Kolmogorov. Buku rujukan yang baik adalah <span class="citation"
 data-cites="versteeg2007">Versteeg dan Malalasekera (2007)</span>, <span
 class="citation" data-cites="ferziger2020">Ferziger, Perić, dan Street
 (2020)</span>, dan untuk turbulensi <span class="citation"
@@ -162,6 +363,14 @@ data-entry-spacing="0" role="list">
 Ferziger, Joel H., Milovan Perić, dan Robert L. Street. 2020.
 <em>Computational Methods for Fluid Dynamics</em>. 4 ed. Springer. <a
 href="https://doi.org/10.1007/978-3-319-99693-6">https://doi.org/10.1007/978-3-319-99693-6</a>.
+</div>
+<div id="ref-morton1956" class="csl-entry" role="listitem">
+Morton, B. R., Geoffrey Ingram Taylor, dan John Stewart Turner. 1956.
+<span>“Turbulent gravitational convection from maintained and
+instantaneous sources.”</span> <em>Proceedings of the Royal Society of
+London. Series A. Mathematical and Physical Sciences</em> 234 (1196):
+1–23. <a
+href="https://doi.org/10.1098/rspa.1956.0011">https://doi.org/10.1098/rspa.1956.0011</a>.
 </div>
 <div id="ref-pope2000" class="csl-entry" role="listitem">
 Pope, Stephen B. 2000. <em>Turbulent Flows</em>. Cambridge University

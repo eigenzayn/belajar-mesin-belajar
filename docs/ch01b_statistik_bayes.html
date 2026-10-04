@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memilih Model dengan Statistik dan
+Bayes · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 2</p>
+<h1>Memilih Model dengan Statistik dan Bayes</h1>
+<p><span id="ch:stat" data-label="ch:stat"></span></p>
+<p>Pada musim dingin 2025/26 saya mengikuti kuliah Machine Learning:
+Basic Techniques dari Sepp Hochreiter, kuliah yang namanya “dasar”
+tetapi dalam perjalanan saya datang setelah sebagian besar kuliah
+lanjut. Naskahnya dibuka dengan satu klaim yang terus diulang sampai
+halaman terakhir: inti machine learning adalah <em>model selection</em>.
+Memilih arsitektur, memilih fungsi loss, memilih regularisasi, bahkan
+memilih cara meringkas data sebelum memodelkannya, semuanya adalah
+memilih model, dan setiap pilihan itu menyimpan asumsi tentang dunia.
+Bab ini mengikuti alur naskah itu. Ia melengkapi <a
+href="ch01_belajar_dari_data.html">Bab 1</a> dengan sisi statistik yang
+lebih klasik, yang sering terlewat ketika orang langsung melompat ke
+jaringan saraf.</p>
+<h2 id="deduktif-dan-induktif">Deduktif dan induktif</h2>
+<p>Naskah kuliah membedakan dua cara membangun model. Model deduktif
+diturunkan dari prinsip pertama: hukum Newton, persamaan Navier–Stokes,
+aturan yang ditulis ahli. Model induktif dibangun dari contoh: kita
+memilih sebuah keluarga model, lalu data menentukan anggota keluarga
+mana yang dipakai. Machine learning adalah pembangunan model induktif.
+Bab-bab tentang simulasi di bagian akhir buku ini pada dasarnya adalah
+cerita tentang mempertemukan kedua cara itu.</p>
+<p>Keluarga model sendiri bisa parametrik atau nonparametrik. Model
+parametrik punya jumlah parameter tetap, berapa pun datanya, seperti
+regresi linear atau jaringan saraf berukuran tertentu. Model
+nonparametrik tumbuh bersama data, seperti <span
+class="math inline">\(k\)</span>-nearest neighbour yang menyimpan semua
+contoh atau penaksir kerapatan kernel di bawah. Model parametrik kuat
+ketika asumsinya benar dan berbahaya ketika salah. Model nonparametrik
+lebih lentur, dengan harga butuh data lebih banyak.</p>
+<h2 id="meringkas-data-sebelum-memodelkan">Meringkas data sebelum
+memodelkan</h2>
+<p>Naskah kuliah menghabiskan satu bab penuh untuk hal yang tampak
+sepele: meringkas dan menggambar data. Contohnya data bunga iris milik
+Anderson dan data microarray dari beberapa jaringan tubuh. Alasannya
+sederhana. Ringkasan yang salah memberi gambaran yang salah, dan model
+yang dibangun di atas gambaran yang salah tidak akan menjadi benar
+karena arsitekturnya canggih.</p>
+<h3 id="pusat-dan-sebaran">Pusat dan sebaran</h3>
+<p>Rata-rata, median, dan modus sama-sama mengukur pusat, tetapi
+bereaksi berbeda terhadap pencilan. Lima gaji bulanan, dalam juta
+rupiah, <span class="math inline">\(3\)</span>, <span
+class="math inline">\(4\)</span>, <span
+class="math inline">\(4\)</span>, <span
+class="math inline">\(5\)</span>, dan <span
+class="math inline">\(100\)</span>, punya rata-rata <span
+class="math inline">\(23{,}2\)</span> dan median <span
+class="math inline">\(4\)</span>. Satu angka ekstrem menarik rata-rata
+jauh dari tempat sebagian besar data berada, sedangkan median nyaris
+tidak terganggu. Median disebut <em>robust</em>: setengah data harus
+dirusak sebelum median bisa digeser sembarang jauh, sedangkan untuk
+rata-rata, satu titik saja sudah cukup.</p>
+<p>Untuk sebaran, varians sampel bisa dihitung dengan pembagi <span
+class="math inline">\(N\)</span> atau <span
+class="math inline">\(N-1\)</span>. Pembagi <span
+class="math inline">\(N\)</span> memberi penaksir yang bias. Alasannya,
+simpangan dihitung terhadap rata-rata sampel, bukan rata-rata sejati,
+dan rata-rata sampel selalu terletak tepat di tengah data itu sendiri,
+sehingga jumlah kuadrat simpangannya selalu sedikit lebih kecil dari
+seharusnya. Menghitung nilai harapannya memberi <span
+class="math inline">\(\mathbb{E}\big[\tfrac1N\sum(x_i-\bar
+x)^2\big]=\tfrac{N-1}N\sigma^2\)</span>, dan membagi dengan <span
+class="math inline">\(N-1\)</span> menghapus bias itu. Tetapi naskah
+kuliah menunjukkan sesuatu yang lebih halus. Untuk data Gauss, penaksir
+yang bias justru punya galat kuadrat rata-rata yang lebih kecil, karena
+variansnya sendiri lebih kecil, dan pengurangan varians itu lebih besar
+dari tambahan bias kuadratnya. Tak bias tidak sama dengan terbaik.
+Inilah tawar-menawar bias dan varians dari <a
+href="ch01_belajar_dari_data.html">Bab 1</a>, dalam bentuk yang paling
+kecil.</p>
+<p>Pilihan antara rata-rata dan median juga bergantung pada
+distribusinya. Kalau data berdistribusi Gauss, varians rata-rata sampel
+adalah <span class="math inline">\(\sigma^2/N\)</span>, sedangkan
+varians median sampel kira-kira <span
+class="math inline">\(\tfrac\pi2\,\sigma^2/N\)</span>, sekitar 57 persen
+lebih besar. Untuk data Gauss, rata-rata adalah penaksir pusat yang
+lebih baik. Kalau data berdistribusi Laplace, yang ekornya lebih tebal,
+keadaannya terbalik: varians median sampel hanya <span
+class="math inline">\(\sigma^2/(2N)\)</span>, separuh varians rata-rata.
+Tidak ada penaksir yang terbaik untuk semua keadaan. Yang ada hanya
+penaksir yang cocok untuk asumsi tertentu.</p>
+<h3 id="menggambar-data">Menggambar data</h3>
+<p><em>Boxplot</em> meringkas satu variabel dengan lima angka. Kotaknya
+membentang dari kuartil pertama ke kuartil ketiga, garis di dalamnya
+adalah median, dan kumis memanjang sampai titik data terjauh yang masih
+berada dalam <span class="math inline">\(1{,}5\)</span> kali jarak
+antarkuartil dari kotak. Titik di luar itu digambar sendiri sebagai
+calon pencilan. Boxplot per kelas pada data iris langsung memperlihatkan
+bahwa panjang mahkota bunga memisahkan spesies jauh lebih baik dari
+panjang kelopaknya, sebelum satu model pun dilatih.</p>
+<p>Histogram bergantung pada lebar dan letak kotak-kotaknya, sehingga
+bentuknya bisa berubah hanya karena kotaknya digeser. Penaksir kerapatan
+kernel menghaluskannya dengan meletakkan sebuah kernel, biasanya Gauss,
+di setiap titik data dan menjumlahkannya, <span
+class="math display">\[\hat
+p(x)=\frac1{Nh}\sum_{i=1}^NK\Big(\frac{x-x_i}h\Big).\]</span> Lebar pita
+<span class="math inline">\(h\)</span> memainkan peran yang sudah kita
+kenal. Pita yang terlalu sempit membuat setiap titik data menjadi puncak
+sendiri, overfitting. Pita yang terlalu lebar meratakan dua puncak
+menjadi satu, underfitting. Violin plot menggabungkan boxplot dengan
+kerapatan kernel yang dicerminkan, sehingga bentuk distribusi dan
+ringkasan lima angkanya terlihat sekaligus.</p>
+<h3 id="korelasi-dan-bahaya-angka-tunggal">Korelasi dan bahaya angka
+tunggal</h3>
+<p>Koefisien korelasi Pearson mengukur seberapa linear hubungan dua
+variabel. Untuk menguji apakah korelasi sampel <span
+class="math inline">\(r\)</span> dari <span
+class="math inline">\(N\)</span> pasangan berbeda nyata dari nol, dengan
+asumsi kedua variabel berdistribusi normal, dipakai statistik <span
+class="math display">\[t=r\sqrt{\frac{N-2}{1-r^2}},\]</span> yang
+mengikuti distribusi Student-<span class="math inline">\(t\)</span>
+dengan <span class="math inline">\(N-2\)</span> derajat kebebasan.
+Naskah kuliah memakai kuartet Anscombe <span class="citation"
+data-cites="anscombe1973">(Anscombe 1973)</span>, empat himpunan data
+berisi sebelas titik yang punya rata-rata, varians, korelasi, dan garis
+regresi yang hampir sama persis. Untuk himpunan pertama, <span
+class="math inline">\(r\approx0{,}816\)</span> dan <span
+class="math inline">\(t=0{,}816\sqrt{9/0{,}334}\approx4{,}24\)</span>,
+dengan nilai <span class="math inline">\(p\)</span> satu sisi sekitar
+<span class="math inline">\(0{,}001\)</span>. Tetapi ketika digambar,
+keempatnya sama sekali berbeda: satu awan titik yang wajar, satu kurva
+lengkung yang sempurna, satu garis lurus dengan satu pencilan, dan satu
+kolom titik dengan satu titik jauh yang sendirian menciptakan seluruh
+korelasinya. Angka ringkasan yang sama bisa berasal dari dunia yang jauh
+berbeda. Gambarlah data sebelum mempercayai angkanya.</p>
+<h2 id="loss-sebagai-asumsi-noise">Loss sebagai asumsi noise</h2>
+<p>Di <a href="ch01_belajar_dari_data.html">Bab 1</a> kita menurunkan
+galat kuadrat dari asumsi noise Gauss. Naskah kuliah melanjutkannya ke
+noise lain. Kalau noise berdistribusi Laplace, <span
+class="math inline">\(p(\epsilon)\propto e^{-\beta|\epsilon|}\)</span>,
+log likelihood negatifnya sebanding dengan <span
+class="math inline">\(\sum|y_i-\hat y_i|\)</span>, galat mutlak. Secara
+umum, noise dengan kerapatan <span class="math inline">\(\propto
+e^{-\beta|\epsilon|^r}\)</span> menghasilkan galat Minkowski <span
+class="math inline">\(\sum|y_i-\hat y_i|^r\)</span>. Pilihan <span
+class="math inline">\(r\)</span> adalah pilihan seberapa tebal ekor
+noise yang kita percayai.</p>
+<p>Hubungan antara loss dan penaksir pusat bisa diturunkan dalam
+beberapa baris. Cari satu konstanta <span
+class="math inline">\(c\)</span> yang mewakili data <span
+class="math inline">\(y_1,\dots,y_N\)</span>. Untuk galat kuadrat,
+turunan <span class="math inline">\(\sum(y_i-c)^2\)</span> terhadap
+<span class="math inline">\(c\)</span> adalah <span
+class="math inline">\(-2\sum(y_i-c)\)</span>, yang nol tepat ketika
+<span class="math inline">\(c\)</span> adalah rata-rata. Untuk galat
+mutlak, turunan <span class="math inline">\(\sum|y_i-c|\)</span> adalah
+banyaknya titik di bawah <span class="math inline">\(c\)</span>
+dikurangi banyaknya titik di atas <span
+class="math inline">\(c\)</span>, karena setiap titik menyumbang <span
+class="math inline">\(+1\)</span> atau <span
+class="math inline">\(-1\)</span>. Turunan itu nol ketika titik di bawah
+dan di atas sama banyak, yaitu ketika <span
+class="math inline">\(c\)</span> adalah median. Galat kuadrat
+menghasilkan rata-rata, galat mutlak menghasilkan median, dan kita sudah
+melihat bahwa median tahan terhadap pencilan. Jadi memilih loss L1 untuk
+regresi berarti memilih model yang tidak mudah ditarik oleh beberapa
+pengukuran yang rusak. Untuk data gaji di atas, model L2 akan meramal
+<span class="math inline">\(23{,}2\)</span>, model L1 meramal <span
+class="math inline">\(4\)</span>.</p>
+<h2 id="batas-bawah-galat-klasifikasi-bayes">Batas bawah galat:
+klasifikasi Bayes</h2>
+<p>Seberapa baik sebuah pengklasifikasi bisa bekerja? Kalau distribusi
+data diketahui, jawabannya bisa dihitung. Pengklasifikasi yang memilih
+kelas dengan peluang posterior tertinggi, <span
+class="math inline">\(\operatorname*{arg\,max}_yp(y\mid\boldsymbol{x})\)</span>,
+mencapai risiko serendah mungkin, dan risiko itu disebut galat Bayes.
+Tidak ada model, berapa pun besarnya, yang bisa lebih baik dari ini,
+karena di daerah tempat kedua kelas tumpang tindih, informasi untuk
+membedakannya memang tidak ada.</p>
+<p>Naskah kuliah menghitungnya untuk dua kelas yang masing-masing
+berdistribusi Gauss. Log rasio kedua posterior adalah <span
+class="math display">\[\ln\frac{p(y=1\mid\boldsymbol{x})}{p(y=-1\mid\boldsymbol{x})}=
+-\tfrac12(\boldsymbol{x}-\boldsymbol\mu_1)^\top\boldsymbol\Sigma_1^{-1}(\boldsymbol{x}-\boldsymbol\mu_1)+\tfrac12(\boldsymbol{x}-\boldsymbol\mu_{-1})^\top\boldsymbol\Sigma_{-1}^{-1}(\boldsymbol{x}-\boldsymbol\mu_{-1})
++\text{konstanta}.\]</span> Kalau kedua kovarians sama, suku kuadrat
+<span
+class="math inline">\(\boldsymbol{x}^\top\boldsymbol\Sigma^{-1}\boldsymbol{x}\)</span>
+dari kedua kelas saling menghapus, dan yang tersisa linear dalam <span
+class="math inline">\(\boldsymbol{x}\)</span>, dengan arah <span
+class="math inline">\(\boldsymbol\Sigma^{-1}(\boldsymbol\mu_1-\boldsymbol\mu_{-1})\)</span>,
+arah yang sama dengan analisis diskriminan Fisher di <a
+href="ch02c_unsupervised.html">Bab 6</a>. Batas keputusannya adalah
+bidang datar. Kalau kovariansnya berbeda, suku kuadrat tidak terhapus,
+dan batasnya menjadi permukaan kuadrat, misalnya hiperbola atau elips,
+seperti yang digambarkan naskah kuliah. Model yang dipilih untuk batas
+keputusan, linear atau kuadrat, adalah asumsi tentang kovarians
+kelas.</p>
+<p>Dalam satu dimensi, galat Bayes bisa dihitung dengan tangan (Gambar
+2.1). Dua kelas dengan peluang sama, <span
+class="math inline">\(\mathcal{N}(0,1)\)</span> dan <span
+class="math inline">\(\mathcal{N}(2,1)\)</span>, punya batas keputusan
+di tengah, <span class="math inline">\(x=1\)</span>. Kesalahan terjadi
+ketika contoh dari kelas pertama jatuh di atas 1 atau contoh dari kelas
+kedua jatuh di bawah 1. Masing-masing berpeluang <span
+class="math inline">\(\Phi(-1)\approx0{,}159\)</span>, dengan <span
+class="math inline">\(\Phi\)</span> fungsi distribusi kumulatif normal
+baku, sehingga galat Bayes sekitar 16 persen. Kalau jarak kedua
+rata-rata dua kali lipat, galatnya turun menjadi <span
+class="math inline">\(\Phi(-2)\approx2{,}3\)</span> persen.
+Pengklasifikasi yang dilaporkan mencapai akurasi 95 persen pada data
+dengan galat Bayes 16 persen pasti sedang mengukur sesuatu yang salah,
+misalnya data uji yang bocor.</p>
+<figure id="fig:bayeserror">
+<img src="fig/887ad63801a0.svg" />
+<figcaption>Galat Bayes untuk dua kelas Gauss dengan rata-rata 0 dan 2.
+Daerah yang diarsir adalah contoh yang pasti salah diklasifikasikan oleh
+pengklasifikasi terbaik sekalipun.</figcaption>
+</figure>
+<h2 id="memilih-model-dengan-cara-bayes">Memilih model dengan cara
+Bayes</h2>
+<p>Bab terakhir naskah kuliah membawa pemilihan model ke kerangka Bayes
+sepenuhnya. Parameter <span
+class="math inline">\(\boldsymbol{w}\)</span> diberi prior, data memberi
+likelihood, dan teorema Bayes memberi posterior, <span
+class="math display">\[p(\boldsymbol{w}\mid\mathcal D)=\frac{p(\mathcal
+D\mid\boldsymbol{w})\,p(\boldsymbol{w})}{p(\mathcal D)},\qquad
+p(\mathcal D)=\int p(\mathcal
+D\mid\boldsymbol{w})\,p(\boldsymbol{w})\,\mathrm{d}\boldsymbol{w}.\]</span>
+Penyebutnya, peluang data setelah semua parameter yang mungkin
+dirata-ratakan, disebut <em>evidence</em>. Ia tidak berperan dalam
+mencari <span class="math inline">\(\boldsymbol{w}\)</span>, tetapi
+menjadi tokoh utama ketika yang dipilih adalah modelnya sendiri.</p>
+<h3 id="map-dan-error-bar">MAP dan error bar</h3>
+<p>Memaksimalkan posterior memberi penaksir MAP, yang untuk noise Gauss
+dan prior Gauss tidak lain adalah galat kuadrat ditambah weight decay
+(<a href="ch01_belajar_dari_data.html">Bab 1</a>). Tetapi posterior
+memberi lebih dari satu titik. Ia juga memberi ketidakpastian, dan
+ketidakpastian itu bisa diteruskan ke prediksi. Kalau keluaran model
+dilinearkan di sekitar <span
+class="math inline">\(\boldsymbol{w}_{\mathrm{map}}\)</span> dan
+posterior didekati dengan Gauss yang kovariansnya kebalikan Hessian
+<span class="math inline">\(\boldsymbol H\)</span>, naskah kuliah
+menurunkan varians prediksi <span
+class="math display">\[\sigma^2(\boldsymbol{x})=\frac1\beta+\boldsymbol
+g^\top\boldsymbol H^{-1}\boldsymbol g,\]</span> dengan <span
+class="math inline">\(1/\beta\)</span> varians noise dan <span
+class="math inline">\(\boldsymbol g\)</span> gradien keluaran terhadap
+parameter di <span class="math inline">\(\boldsymbol{x}\)</span>. Suku
+pertama adalah noise yang tidak bisa dihindari. Suku kedua adalah
+ketidakpastian tentang parameter, dan ia membesar di tempat model peka
+terhadap parameter yang kurang ditentukan data.</p>
+<p>Contoh dengan satu parameter membuatnya jelas. Model <span
+class="math inline">\(y=wx\)</span> dengan prior <span
+class="math inline">\(w\sim\mathcal{N}(0,1/\alpha)\)</span>, <span
+class="math inline">\(\alpha=1\)</span>, noise dengan <span
+class="math inline">\(\beta=4\)</span> (simpangan baku <span
+class="math inline">\(0{,}5\)</span>), dan dua titik data di <span
+class="math inline">\(x=1\)</span> dan <span
+class="math inline">\(x=2\)</span>. Posterior <span
+class="math inline">\(w\)</span> adalah Gauss dengan presisi <span
+class="math inline">\(\alpha+\beta\sum x_i^2=1+4\cdot5=21\)</span>,
+sehingga variansnya <span
+class="math inline">\(1/21\approx0{,}048\)</span>. Di sini <span
+class="math inline">\(g=x\)</span>, sehingga varians prediksi <span
+class="math inline">\(\sigma^2(x)=0{,}25+x^2/21\)</span>. Di <span
+class="math inline">\(x=1\)</span>, simpangan baku prediksi <span
+class="math inline">\(\sqrt{0{,}298}\approx0{,}55\)</span>, hampir hanya
+noise. Di <span class="math inline">\(x=3\)</span>, di luar data,
+nilainya <span
+class="math inline">\(\sqrt{0{,}679}\approx0{,}82\)</span>. Pita
+ketidakpastian melebar ketika model diminta berbicara jauh dari tempat
+ia pernah melihat data (Gambar 2.2), sifat yang persis kita inginkan
+dari model mana pun yang dipakai untuk mengambil keputusan.</p>
+<figure id="fig:errorbar">
+<img src="fig/c20a33e83c98.svg" />
+<figcaption>Prediksi model <span class="math inline">\(y=wx\)</span>
+dengan pita dua simpangan baku dari kerangka Bayes. Pita tersempit di
+sekitar data dan melebar ke arah yang jauh dari data, karena
+ketidakpastian parameter dikalikan <span
+class="math inline">\(x\)</span>.</figcaption>
+</figure>
+<h3 id="evidence-dan-pisau-occam">Evidence dan pisau Occam</h3>
+<p>Hyperparameter seperti <span class="math inline">\(\alpha\)</span>
+dan <span class="math inline">\(\beta\)</span> juga bisa dipilih dengan
+Bayes: pilih nilai yang memaksimalkan evidence <span
+class="math inline">\(p(\mathcal D\mid\alpha,\beta)\)</span>. Kerangka
+ini, yang dikembangkan <span class="citation"
+data-cites="mackay1992">MacKay (1992)</span> dan dibahas rinci di naskah
+kuliah, disebut <em>evidence framework</em>. Untuk model linear dengan
+noise dan prior Gauss, log evidence punya bentuk tertutup yang berisi
+galat latih, suku regularisasi, dan <span
+class="math inline">\(-\tfrac12\ln|\boldsymbol H|\)</span>, sehingga
+tidak perlu data validasi terpisah.</p>
+<p>Evidence juga membandingkan model yang berbeda, dan cara kerjanya
+mengandung pisau Occam yang otomatis. Kalau posterior memuncak tajam,
+evidence kira-kira sama dengan likelihood terbaik dikali rasio lebar
+posterior terhadap lebar prior: <span class="math display">\[p(\mathcal
+D\mid\mathcal M)\approx p(\mathcal
+D\mid\boldsymbol{w}_{\mathrm{map}},\mathcal M)\cdot\frac{\Delta
+w_{\mathrm{posterior}}}{\Delta w_{\mathrm{prior}}}.\]</span> Faktor
+kedua, faktor Occam, selalu lebih kecil dari satu, dan semakin kecil
+kalau model punya banyak parameter yang harus disempitkan dari prior
+yang lebar. Misalkan satu parameter punya prior selebar 10 dan posterior
+selebar <span class="math inline">\(0{,}1\)</span>. Faktor Occam-nya
+<span class="math inline">\(0{,}01\)</span>, setara dengan menghukum log
+evidence sebesar <span class="math inline">\(4{,}6\)</span>. Model yang
+lebih rumit harus memperbaiki log likelihood terbaiknya lebih dari <span
+class="math inline">\(4{,}6\)</span> untuk setiap parameter seperti itu
+sebelum ia dipilih. Model yang terlalu sederhana kalah karena
+likelihood-nya buruk, model yang terlalu rumit kalah karena faktor
+Occam-nya, dan evidence memilih di tengah-tengah tanpa pernah menyentuh
+data uji.</p>
+<p>Kalau posterior tidak berbentuk Gauss, integralnya didekati dengan
+sampling, misalnya dengan MCMC dari <a
+href="ch08_probabilistik.html">Bab 14</a>. Naskah kuliah juga mencatat
+satu jebakan untuk jaringan saraf: posteriornya punya banyak puncak yang
+setara, karena menukar dua neuron tersembunyi beserta bobotnya tidak
+mengubah fungsi jaringan, sehingga perkiraan evidence perlu dikoreksi
+dengan faktor jumlah permutasi.</p>
+<h2 id="di-luar-kelas">Di luar kelas</h2>
+<p>Gagasan-gagasan klasik di bab ini muncul kembali di banyak tempat
+dalam buku. Loss yang tahan pencilan, seperti galat mutlak, berguna
+setiap kali sebagian pengukuran bisa rusak, dari sensor yang dikenakan
+sampai citra medis. Ringkasan robust seperti median dan normalisasi
+kuantil dipakai pada data microarray (<a href="ch40_genomik.html">Bab
+22</a>). Error bar dari posterior adalah dasar Gaussian process (<a
+href="ch09_ml_advanced.html">Bab 15</a>), dan pita yang melebar jauh
+dari data adalah sifat yang kita harapkan dari model pengganti simulasi,
+yang justru paling berbahaya ketika diam-diam berekstrapolasi. Dan
+kuartet Anscombe adalah pengingat yang pantas ditempel di dinding setiap
+laboratorium: gambarlah datanya.</p>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
+<p>Bab ini mengikuti naskah kuliah Machine Learning: Basic Techniques
+(pemilihan model, ringkasan dan visualisasi data, teori peluang, risiko
+minimum untuk klasifikasi Gauss, loss dan asumsi noise, teknik Bayes
+untuk prior, error bar, evidence, dan perbandingan model, serta lampiran
+tentang rata-rata dan median distribusi simetris). Bacaan pendamping:
+<span class="citation" data-cites="bishop2006">Bishop (2006)</span> dan
+<span class="citation" data-cites="mackay1992">MacKay (1992)</span>.</p>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-anscombe1973" class="csl-entry" role="listitem">
+Anscombe, F. J. 1973. <span>“Graphs in Statistical Analysis.”</span>
+<em>The American Statistician</em> 27 (1): 17–21. <a
+href="https://doi.org/10.1080/00031305.1973.10478966">https://doi.org/10.1080/00031305.1973.10478966</a>.
+</div>
+<div id="ref-bishop2006" class="csl-entry" role="listitem">
+Bishop, Christopher M. 2006. <em>Pattern Recognition and Machine
+Learning</em>. Springer.
+</div>
+<div id="ref-mackay1992" class="csl-entry" role="listitem">
+MacKay, David J. C. 1992. <span>“Bayesian Interpolation.”</span>
+<em>Neural Computation</em> 4 (3): 415–47. <a
+href="https://doi.org/10.1162/neco.1992.4.3.415">https://doi.org/10.1162/neco.1992.4.3.415</a>.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch01_belajar_dari_data.html"><span>Sebelumnya</span>Belajar dari Data</a>
+  <a class="next" href="ch01c_teori_belajar.html"><span>Berikutnya</span>Teori Belajar Statistik</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

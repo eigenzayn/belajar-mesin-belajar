@@ -17,7 +17,7 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 30</p>
+<p class="chapnum">Bab 34</p>
 <h1>Belajar dari Jejak Pengguna</h1>
 <p><span id="ch:rekomendasi" data-label="ch:rekomendasi"></span></p>
 <p>Kuliah learning from user-generated data saya ikuti pada musim panas
@@ -48,9 +48,31 @@ kemiripan kosinusnya <span
 class="math display">\[\frac{5\cdot4+3\cdot2+4\cdot5}{\sqrt{5^2+3^2+4^2}\sqrt{4^2+2^2+5^2}}=\frac{46}{\sqrt{50}\sqrt{45}}\approx0{,}97.\]</span>
 Korelasi Pearson mengurangkan rata-rata rating setiap pengguna lebih
 dulu, sehingga pengguna yang selalu memberi rating tinggi dan pengguna
-yang pelit rating tetap bisa dikenali sebagai bersepakat. Prediksi
-rating lalu dihitung sebagai rata-rata berbobot dari rating
-tetangga-tetangga terdekat.</p>
+yang pelit rating tetap bisa dikenali sebagai bersepakat. Contohnya,
+pengguna dengan rating <span class="math inline">\((5,4,5)\)</span> dan
+pengguna dengan rating <span class="math inline">\((3,2,3)\)</span>
+punya selera yang sama persis, hanya skalanya yang berbeda. Setelah
+rata-ratanya dikurangkan, keduanya menjadi <span
+class="math inline">\((\tfrac13,-\tfrac23,\tfrac13)\)</span>, dan
+korelasinya tepat satu.</p>
+<p>Prediksi rating lalu dihitung sebagai rata-rata berbobot dari rating
+tetangga-tetangga terdekat, juga relatif terhadap rata-rata
+masing-masing: <span class="math display">\[\hat r_{ui}=\bar
+r_u+\frac{\sum_{v\in N(u)}s_{uv}\,(r_{vi}-\bar r_v)}{\sum_{v\in
+N(u)}|s_{uv}|},\]</span> dengan <span
+class="math inline">\(N(u)\)</span> tetangga-tetangga <span
+class="math inline">\(u\)</span> yang pernah menilai item <span
+class="math inline">\(i\)</span> dan <span
+class="math inline">\(s_{uv}\)</span> kemiripannya. Misalkan rata-rata
+rating Ani <span class="math inline">\(3{,}5\)</span>, dan dua
+tetangganya menilai sebuah film dengan <span
+class="math inline">\(+1\)</span> dan <span
+class="math inline">\(+0{,}5\)</span> di atas rata-rata mereka sendiri,
+dengan kemiripan <span class="math inline">\(0{,}9\)</span> dan <span
+class="math inline">\(0{,}6\)</span>. Prediksinya <span
+class="math inline">\(3{,}5+(0{,}9+0{,}3)/1{,}5=4{,}3\)</span>.
+Rekomendasi ini mudah dijelaskan kepada pengguna: “orang-orang dengan
+selera serupa denganmu menyukai film ini”.</p>
 <p>Versi berbasis item <span class="citation"
 data-cites="sarwar2001">(Sarwar dkk. 2001)</span> membalik sudut
 pandangnya: item yang sering disukai oleh orang yang sama dianggap
@@ -82,18 +104,36 @@ class="math inline">\(\boldsymbol p_u\)</span> untuk satu rating, dengan
 galat <span class="math inline">\(e_{ui}=r_{ui}-\hat r_{ui}\)</span>,
 adalah <span class="math inline">\(-2e_{ui}\boldsymbol
 q_i+2\lambda\boldsymbol p_u\)</span>. Langkah SGD (<a
-href="ch02_optimasi.html">Bab 2</a>) dengan laju <span
+href="ch02_optimasi.html">Bab 4</a>) dengan laju <span
 class="math inline">\(\eta\)</span>, faktor dua diserap ke dalam <span
 class="math inline">\(\eta\)</span>, menjadi <span
 class="math display">\[\boldsymbol p_u\leftarrow\boldsymbol
 p_u+\eta\big(e_{ui}\boldsymbol q_i-\lambda\boldsymbol p_u\big),\qquad
 \boldsymbol q_i\leftarrow\boldsymbol q_i+\eta\big(e_{ui}\boldsymbol
-p_u-\lambda\boldsymbol q_i\big).\]</span> Dimensi-dimensi laten tidak
-diberi nama, tetapi sering bisa ditafsirkan: untuk film, satu dimensi
-mungkin memisahkan film serius dari komedi, dimensi lain film untuk
-penonton dewasa dari film keluarga. Ini analisis faktor dari <a
-href="ch02c_unsupervised.html">Bab 4</a>, diterapkan pada matriks yang
-sebagian besar kosong.</p>
+p_u-\lambda\boldsymbol q_i\big).\]</span> Alternatif yang dibahas di
+kuliah adalah <em>alternating least squares</em> (ALS). Kalau semua
+vektor item <span class="math inline">\(\boldsymbol q_i\)</span>
+dibekukan, loss di atas menjadi masalah kuadrat terkecil biasa untuk
+setiap <span class="math inline">\(\boldsymbol p_u\)</span>, dengan
+regresi ridge yang punya solusi tertutup. Menyamakan gradien dengan nol
+memberi <span class="math display">\[\boldsymbol p_u=\big(\boldsymbol
+Q_u^\top\boldsymbol Q_u+\lambda\boldsymbol I\big)^{-1}\boldsymbol
+Q_u^\top\boldsymbol r_u,\]</span> dengan <span
+class="math inline">\(\boldsymbol Q_u\)</span> matriks berisi vektor
+item yang dinilai <span class="math inline">\(u\)</span> dan <span
+class="math inline">\(\boldsymbol r_u\)</span> rating-ratingnya (setelah
+bias dikurangkan). Lalu peran ditukar: bekukan semua <span
+class="math inline">\(\boldsymbol p_u\)</span> dan selesaikan setiap
+<span class="math inline">\(\boldsymbol q_i\)</span> dengan cara yang
+sama. Setiap langkah tidak pernah menaikkan loss, dan setiap pengguna
+bisa diselesaikan secara paralel. Untuk data implisit, ALS punya
+keuntungan tambahan: semua sel kosong bisa diperlakukan sebagai nol
+dengan bobot kecil tanpa harus diiterasi satu per satu.</p>
+<p>Dimensi-dimensi laten tidak diberi nama, tetapi sering bisa
+ditafsirkan: untuk film, satu dimensi mungkin memisahkan film serius
+dari komedi, dimensi lain film untuk penonton dewasa dari film keluarga.
+Ini analisis faktor dari <a href="ch02c_unsupervised.html">Bab 6</a>,
+diterapkan pada matriks yang sebagian besar kosong.</p>
 <p>Dalam praktik, kebanyakan data bukan rating, melainkan umpan balik
 implisit: klik, putaran, pembelian. Data ini tidak punya sinyal negatif
 yang jelas, karena tidak mengklik bisa berarti tidak suka atau sekadar
@@ -110,7 +150,46 @@ hasil kali titik dengan jaringan saraf, dan pendekatan berbasis graf
 seperti LightGCN <span class="citation" data-cites="he2020">(He dkk.
 2020)</span> memandang pengguna dan item sebagai simpul graf bipartit
 dan menyebarkan embedding lewat message passing (<a
-href="ch07_geometric.html">Bab 9</a>).</p>
+href="ch07_geometric.html">Bab 13</a>).</p>
+<p>Faktorisasi matriks paling kecil bisa diikuti dengan tangan. Dua
+pengguna dan dua film, dengan satu dimensi laten dan tanpa bias: Ani
+memberi film pertama rating 4, Budi memberi film pertama 2 dan film
+kedua 1, dan rating Ani untuk film kedua belum diketahui. Model <span
+class="math inline">\(\hat r_{ui}=p_uq_i\)</span> dengan <span
+class="math inline">\(p_{\mathrm{Ani}}=2\)</span>, <span
+class="math inline">\(p_{\mathrm{Budi}}=1\)</span>, <span
+class="math inline">\(q_1=2\)</span>, dan <span
+class="math inline">\(q_2=1\)</span> menjelaskan ketiga rating yang
+diketahui dengan tepat. Prediksinya untuk sel yang kosong adalah <span
+class="math inline">\(2\cdot1=2\)</span>. Dimensi laten tunggal ini bisa
+dibaca sebagai “seberapa suka menonton film” untuk pengguna dan
+“seberapa disukai” untuk film. Ani menyukai segala sesuatu dua kali
+lebih dari Budi, dan film kedua kurang disukai, sehingga Ani diramal
+memberi film kedua rating yang sama dengan rating Budi untuk film
+pertama. Solusinya tidak unik: mengalikan semua <span
+class="math inline">\(p\)</span> dengan dua dan membagi semua <span
+class="math inline">\(q\)</span> dengan dua memberi prediksi yang sama,
+dan regularisasi L2 di loss memilih skala yang menyeimbangkan
+keduanya.</p>
+<p>Untuk umpan balik implisit, <span class="citation"
+data-cites="hu2008">Hu, Koren, dan Volinsky (2008)</span> memisahkan dua
+hal yang di data rating menyatu: <em>preferensi</em> dan
+<em>keyakinan</em>. Preferensi <span
+class="math inline">\(p_{ui}\)</span> bernilai satu kalau pengguna
+pernah memakai item dan nol kalau tidak. Keyakinan <span
+class="math inline">\(c_{ui}=1+\alpha r_{ui}\)</span> naik dengan jumlah
+interaksi <span class="math inline">\(r_{ui}\)</span>, misalnya berapa
+kali sebuah lagu diputar. Loss-nya adalah kuadrat terkecil berbobot atas
+<em>semua</em> sel, <span
+class="math inline">\(\sum_{u,i}c_{ui}(p_{ui}-\boldsymbol
+x_u^\top\boldsymbol y_i)^2\)</span> ditambah regularisasi. Lagu yang
+diputar lima puluh kali dengan <span
+class="math inline">\(\alpha=40\)</span> diberi bobot 2001, sedangkan
+lagu yang tidak pernah diputar tetap ikut dihitung dengan bobot satu,
+sebagai bukti lemah bahwa pengguna tidak tertarik. Karena semua sel
+ikut, SGD menjadi terlalu mahal, dan ALS di atas dipakai dengan trik
+aljabar yang membuat sel-sel kosong tidak perlu diiterasi satu per
+satu.</p>
 <h2 id="mengukur-rekomendasi-yang-baik">Mengukur rekomendasi yang
 baik</h2>
 <p>Galat rating seperti RMSE kurang relevan kalau yang ditampilkan
@@ -130,6 +209,17 @@ Urutan idealnya <span class="math inline">\((3,2,1,0)\)</span> dengan
 DCG <span class="math inline">\(3+1{,}262+0{,}5+0=4{,}762\)</span>. Maka
 nDCG <span class="math inline">\(\approx0{,}985\)</span>: hampir
 sempurna, hanya item relevan terakhir yang sedikit terlambat.</p>
+<p>Untuk relevansi biner, dua ukuran lain sering dipakai. <em>Average
+precision</em> merata-ratakan presisi di setiap posisi tempat item
+relevan muncul. Kalau item relevan ada di posisi 1 dan 3 dari daftar,
+presisi di kedua posisi itu <span class="math inline">\(1/1\)</span> dan
+<span class="math inline">\(2/3\)</span>, sehingga AP <span
+class="math inline">\(=(1+0{,}667)/2\approx0{,}83\)</span>. Rata-ratanya
+atas semua pengguna disebut MAP. <em>Reciprocal rank</em> hanya melihat
+item relevan pertama: satu per posisinya. Kuliah menekankan bahwa
+ukuran-ukuran ini harus dirata-ratakan atas banyak pengguna, karena
+sistem yang baik untuk pengguna aktif bisa buruk untuk pengguna yang
+jarang datang.</p>
 <p>Kuliah menekankan bahwa akurasi bukan segalanya. Daftar yang akurat
 tetapi hanya berisi item yang sudah populer tidak membantu siapa pun
 menemukan sesuatu yang baru. Ukuran di luar akurasi menilai keragaman
@@ -138,6 +228,29 @@ kejutan yang menyenangkan. Evaluasi offline pada data historis juga
 berbeda dari evaluasi online dengan pengguna sungguhan, dan studi dengan
 pengguna sering memperlihatkan bahwa yang dirasakan pengguna tidak
 selalu sejalan dengan angka offline.</p>
+<p>Cara membagi data juga menentukan apa yang sebenarnya diukur.
+Pembagian acak atas interaksi membiarkan model melihat masa depan
+seorang pengguna saat ditanya tentang masa lalunya. Protokol
+<em>leave-one-out</em> menyisihkan interaksi terakhir setiap pengguna
+sebagai data uji, dan pembagian temporal memotong seluruh data pada satu
+titik waktu, sehingga semua yang terjadi setelahnya menjadi data uji.
+Pembagian temporal paling dekat dengan penerapan sungguhan, dan skornya
+biasanya paling rendah. Popularity bias juga bisa diukur langsung. Salah
+satu ukurannya adalah rata-rata popularitas item dalam daftar
+rekomendasi, dibanding rata-rata popularitas item dalam riwayat pengguna
+itu sendiri. Kalau seorang pendengar lagu-lagu langka mendapat daftar
+yang rata-rata popularitasnya sepuluh kali lebih tinggi dari riwayatnya,
+sistemnya sedang menarik dia ke arus utama.</p>
+<p>Urutan interaksi juga membawa informasi. Rekomendasi berurutan
+memandang riwayat pengguna sebagai kalimat dan item berikutnya sebagai
+kata berikutnya. SASRec <span class="citation"
+data-cites="kang2018">(Kang dan McAuley 2018)</span> memakai
+self-attention dengan causal mask dari <a
+href="ch04_lstm_transformer.html">Bab 9</a>: pada data yang jarang,
+model cenderung bertumpu pada beberapa item terakhir, mirip rantai
+Markov, dan pada data yang padat ia bisa memakai riwayat yang lebih
+panjang, mirip RNN, karena attention sendiri yang memutuskan item mana
+yang relevan.</p>
 <h2 id="konten-konteks-dan-hibrida">Konten, konteks, dan hibrida</h2>
 <p>Collaborative filtering gagal untuk item baru yang belum pernah
 dipakai siapa pun dan pengguna baru yang belum punya riwayat, masalah
@@ -145,10 +258,21 @@ yang disebut <em>cold start</em>. Rekomendasi berbasis konten mengisi
 celah ini dengan memakai sifat item itu sendiri: teks deskripsi, tag,
 atau sinyal audio sebuah lagu. Untuk teks, bobot TF-IDF memberi nilai
 tinggi pada kata yang sering muncul di sebuah dokumen tetapi jarang di
-dokumen lain, dan model yang lebih maju memakai embedding kata dan model
-topik. Sistem hibrida menggabungkan kedua sumber, misalnya dengan
-merata-ratakan skor, beralih di antara keduanya tergantung situasi, atau
-memasukkan fitur konten ke dalam model faktor.</p>
+dokumen lain, <span
+class="math display">\[\mathrm{tfidf}(w,d)=\mathrm{tf}(w,d)\cdot\log\frac{N}{\mathrm{df}(w)},\]</span>
+dengan <span class="math inline">\(N\)</span> jumlah dokumen dan <span
+class="math inline">\(\mathrm{df}(w)\)</span> jumlah dokumen yang memuat
+kata <span class="math inline">\(w\)</span>. Dalam seribu deskripsi
+lagu, kata “dan” muncul di hampir semua, sehingga faktor logaritmanya
+mendekati nol. Kata “gamelan” muncul di sepuluh deskripsi saja, sehingga
+faktornya <span class="math inline">\(\ln100\approx4{,}6\)</span>, dan
+dua lagu yang sama-sama memuatnya dianggap mirip. Model yang lebih maju
+memakai embedding kata dan model topik seperti LDA, yang menguraikan
+setiap dokumen menjadi campuran beberapa topik dan setiap topik menjadi
+distribusi atas kata. Sistem hibrida menggabungkan kedua sumber,
+misalnya dengan merata-ratakan skor, beralih di antara keduanya
+tergantung situasi, atau memasukkan fitur konten ke dalam model
+faktor.</p>
 <p>Konteks juga mengubah apa yang pantas direkomendasikan. Lagu yang
 cocok untuk berolahraga pagi berbeda dari lagu untuk menjelang tidur.
 Kuliah memberi contoh dari riset kelompoknya sendiri tentang rekomendasi
@@ -156,6 +280,27 @@ musik yang memperhitungkan lokasi dan aktivitas, dengan memetakan tempat
 dan lagu ke tag yang sama. Rekomendasi berbasis graf pengetahuan
 menyebarkan preferensi pengguna lewat relasi antar item, seperti
 penyanyi, genre, dan label rekaman.</p>
+<p>Graf juga memberi cara yang intuitif untuk rekomendasi. Pengguna dan
+item menjadi simpul graf bipartit, dan setiap interaksi menjadi sisi
+(Gambar 34.1). Sebuah langkah acak dari pengguna ke item yang ia dengar,
+lalu ke pengguna lain yang mendengar item itu, lalu ke item lain yang
+didengar pengguna kedua, adalah collaborative filtering dalam bentuk
+jalan kaki. Item yang paling sering dicapai jalan acak tiga langkah dari
+seorang pengguna adalah kandidat rekomendasinya. Dalam bentuk matriks,
+kalau <span class="math inline">\(\boldsymbol A\)</span> adalah matriks
+interaksi, skor itu sebanding dengan <span
+class="math inline">\(\boldsymbol A\boldsymbol A^\top\boldsymbol
+A\)</span>. Graf yang sama bisa diperkaya dengan simpul genre, penyanyi,
+atau negara, sehingga jalan acak juga bisa melewati pengetahuan tentang
+item.</p>
+<figure id="fig:bipartit">
+<img src="fig/7f83a3a46b8a.svg" />
+<figcaption>Graf bipartit pengguna dan lagu. Jalan acak Ani <span
+class="math inline">\(\to\)</span> lagu B <span
+class="math inline">\(\to\)</span> Budi <span
+class="math inline">\(\to\)</span> lagu C menghasilkan kandidat
+rekomendasi lagu C untuk Ani.</figcaption>
+</figure>
 <h2 id="bias-keadilan-dan-psikologi">Bias, keadilan, dan psikologi</h2>
 <p>Sistem rekomendasi tidak hanya mencerminkan selera, tetapi juga
 membentuknya. <em>Popularity bias</em> membuat item yang sudah populer
@@ -172,21 +317,55 @@ menyusun ulang daftar.</p>
 Ingatan manusia memudar menurut kurva lupa Ebbinghaus, dan lagu yang
 terakhir didengar beberapa waktu lalu lebih mudah diingat kembali kalau
 sering diulang. Model memori dari arsitektur kognitif seperti ACT-R
-dipakai untuk meramalkan lagu mana yang ingin didengar lagi seseorang,
-dengan menimbang seberapa sering dan seberapa baru ia mendengarkannya.
-Sistem rekomendasi yang diilhami psikologi ini juga lebih mudah
-dijelaskan, karena alasannya bisa diungkapkan dengan bahasa yang
-dipahami manusia.</p>
+<span class="citation" data-cites="anderson2004">(Anderson dkk.
+2004)</span> dipakai untuk meramalkan lagu mana yang ingin didengar lagi
+seseorang, dengan menimbang seberapa sering dan seberapa baru ia
+mendengarkannya. Persamaan aktivasi dasarnya <span
+class="math display">\[B_i=\ln\sum_{j=1}^{n}t_j^{-d},\]</span> dengan
+<span class="math inline">\(t_j\)</span> waktu sejak pemutaran ke-<span
+class="math inline">\(j\)</span> dan <span
+class="math inline">\(d\)</span> laju peluruhan, sering <span
+class="math inline">\(0{,}5\)</span>. Setiap pemutaran menyumbang, dan
+sumbangannya memudar seperti pangkat waktu. Lagu yang diputar sekali
+satu jam lalu menyumbang <span
+class="math inline">\(1^{-0{,}5}=1\)</span>. Lagu yang diputar empat
+kali, masing-masing sekitar seratus jam lalu, menyumbang <span
+class="math inline">\(4\times100^{-0{,}5}=0{,}4\)</span>. Jadi satu
+pemutaran baru lebih “hidup” di ingatan daripada empat pemutaran lama,
+dan model memakai aktivasi ini untuk mengurutkan lagu yang kemungkinan
+besar ingin diulang. Kuliah juga membahas kepribadian, misalnya lima
+dimensi Big Five yang diukur dengan kuesioner atau ditaksir dari jejak
+digital, sebagai sinyal tambahan untuk menyesuaikan seberapa beragam
+atau seberapa akrab rekomendasi bagi seseorang. Sistem rekomendasi yang
+diilhami psikologi ini juga lebih mudah dijelaskan, karena alasannya
+bisa diungkapkan dengan bahasa yang dipahami manusia.</p>
 <h2 id="di-luar-layar">Di luar layar</h2>
 <p>Rekomendasi adalah masalah keputusan berurutan, sehingga
-reinforcement learning (<a href="ch10_rl.html">Bab 12</a>) mulai dipakai
+reinforcement learning (<a href="ch10_rl.html">Bab 16</a>) mulai dipakai
 untuk mengoptimalkan kepuasan jangka panjang, bukan klik berikutnya.
 Gagasan faktorisasi matriks juga muncul di bidang lain: matriks senyawa
 terhadap target di penemuan obat (<a href="ch41_molekul.html">Bab
-19</a>) sama jarangnya dengan matriks pengguna terhadap film, dan model
+23</a>) sama jarangnya dengan matriks pengguna terhadap film, dan model
 yang belajar dari banyak target sekaligus memakai logika yang sama
 dengan collaborative filtering. Dan pertanyaan tentang bias serta dampak
 sosial rekomendasi membawa kita ke bab berikutnya.</p>
+<h2 id="perkembangan-riset">Perkembangan riset</h2>
+<p>Sistem rekomendasi skala besar mulai meniru resep model bahasa. TIGER
+<span class="citation" data-cites="rajput2023">(Rajput dkk. 2023)</span>
+memberi setiap item sebuah <em>semantic ID</em>, deretan kode diskret
+yang dibangun dari embedding konten item, sehingga item yang mirip punya
+awalan kode yang sama. Transformer lalu dilatih membangkitkan semantic
+ID item berikutnya dari deret item yang baru dipakai pengguna, alih-alih
+mencari tetangga terdekat di ruang embedding. Karena kode dibangun dari
+konten, item baru tanpa riwayat interaksi tetap bisa direkomendasikan,
+sebagian jawaban atas masalah cold start. HSTU <span class="citation"
+data-cites="zhai2024">(Zhai dkk. 2024)</span> merumuskan rekomendasi
+sebagai transduksi deret dalam kerangka generatif, dengan arsitektur
+yang dirancang untuk aliran data yang besar dan terus berubah. Model
+dengan 1,5 triliun parameter dilaporkan menaikkan metrik dalam uji A/B
+daring sebesar 12,4 persen, dan kualitasnya mengikuti hukum pangkat
+terhadap komputasi pelatihan selama tiga orde besaran, seperti hukum
+penskalaan model bahasa di <a href="ch52_terbaru.html">Bab 38</a>.</p>
 <h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti kuliah dan latihan Learning from User-generated
 Data: collaborative filtering, faktor laten, evaluasi, data konten dan
@@ -195,6 +374,12 @@ keadilan, serta sistem rekomendasi yang diilhami psikologi.</p>
 <h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
+<div id="ref-anderson2004" class="csl-entry" role="listitem">
+Anderson, John R., Daniel Bothell, Michael D. Byrne, Scott Douglass,
+Christian Lebiere, dan Yulin Qin. 2004. <span>“An Integrated Theory of
+the Mind.”</span> <em>Psychological Review</em> 111 (4): 1036–60. <a
+href="https://doi.org/10.1037/0033-295X.111.4.1036">https://doi.org/10.1037/0033-295X.111.4.1036</a>.
+</div>
 <div id="ref-he2020" class="csl-entry" role="listitem">
 He, Xiangnan, Kuan Deng, Xiang Wang, Yan Li, Yongdong Zhang, dan Meng
 Wang. 2020. <span>“LightGCN: Simplifying and Powering Graph Convolution
@@ -207,17 +392,34 @@ Tat-Seng Chua. 2017. <span>“Neural Collaborative Filtering.”</span>
 arXiv:1708.05031. <a
 href="https://arxiv.org/abs/1708.05031">https://arxiv.org/abs/1708.05031</a>.
 </div>
+<div id="ref-hu2008" class="csl-entry" role="listitem">
+Hu, Yifan, Yehuda Koren, dan Chris Volinsky. 2008. <span>“Collaborative
+Filtering for Implicit Feedback Datasets.”</span> Dalam <em>2008 Eighth
+IEEE International Conference on Data Mining</em>, 263–72. <a
+href="https://doi.org/10.1109/ICDM.2008.22">https://doi.org/10.1109/ICDM.2008.22</a>.
+</div>
 <div id="ref-jarvelin2002" class="csl-entry" role="listitem">
 Järvelin, Kalervo, dan Jaana Kekäläinen. 2002. <span>“Cumulated
 gain-based evaluation of IR techniques.”</span> <em>ACM Transactions on
 Information Systems</em> 20 (4): 422–46. <a
 href="https://doi.org/10.1145/582415.582418">https://doi.org/10.1145/582415.582418</a>.
 </div>
+<div id="ref-kang2018" class="csl-entry" role="listitem">
+Kang, Wang-Cheng, dan Julian McAuley. 2018. <span>“Self-Attentive
+Sequential Recommendation.”</span> arXiv:1808.09781. <a
+href="https://arxiv.org/abs/1808.09781">https://arxiv.org/abs/1808.09781</a>.
+</div>
 <div id="ref-koren2009" class="csl-entry" role="listitem">
 Koren, Yehuda, Robert Bell, dan Chris Volinsky. 2009. <span>“Matrix
 Factorization Techniques for Recommender Systems.”</span>
 <em>Computer</em> 42 (8): 30–37. <a
 href="https://doi.org/10.1109/MC.2009.263">https://doi.org/10.1109/MC.2009.263</a>.
+</div>
+<div id="ref-rajput2023" class="csl-entry" role="listitem">
+Rajput, Shashank, Nikhil Mehta, Anima Singh, Raghunandan H. Keshavan,
+Trung Vu, Lukasz Heldt, Lichan Hong, dkk. 2023. <span>“Recommender
+Systems with Generative Retrieval.”</span> arXiv:2305.05065. <a
+href="https://arxiv.org/abs/2305.05065">https://arxiv.org/abs/2305.05065</a>.
 </div>
 <div id="ref-rendle2009" class="csl-entry" role="listitem">
 Rendle, Steffen, Christoph Freudenthaler, Zeno Gantner, dan Lars
@@ -231,6 +433,13 @@ Sarwar, Badrul, George Karypis, Joseph Konstan, dan John Riedl. 2001.
 algorithms.”</span> Dalam <em>Proceedings of the 10th international
 conference on World Wide Web</em>, 285–95. <a
 href="https://doi.org/10.1145/371920.372071">https://doi.org/10.1145/371920.372071</a>.
+</div>
+<div id="ref-zhai2024" class="csl-entry" role="listitem">
+Zhai, Jiaqi, Lucy Liao, Xing Liu, Yueming Wang, Rui Li, Xuan Cao, Leon
+Gao, dkk. 2024. <span>“Actions Speak Louder than Words:
+Trillion-Parameter Sequential Transducers for Generative
+Recommendations.”</span> arXiv:2402.17152. <a
+href="https://arxiv.org/abs/2402.17152">https://arxiv.org/abs/2402.17152</a>.
 </div>
 </div>
 </main>

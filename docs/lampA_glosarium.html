@@ -17,7 +17,7 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Lampiran A</p>
+<p class="chapnum"></p>
 <h1>Glosarium</h1>
 <p><span id="lamp:glosarium" data-label="lamp:glosarium"></span></p>
 <p>Buku ini membiarkan banyak istilah dalam bahasa Inggris, karena
@@ -27,53 +27,71 @@ memberi penjelasan singkat dan bab tempat istilah itu dibahas.</p>
 <dt>activation function</dt>
 <dd>
 <p>Fungsi nonlinear yang diterapkan pada keluaran setiap neuron, seperti
-ReLU atau sigmoid (<a href="ch03_dl_basic.html">Bab 5</a>).</p>
+ReLU atau sigmoid (<a href="ch03_dl_basic.html">Bab 7</a>).</p>
 </dd>
 <dt>active learning</dt>
 <dd>
 <p>Memilih data berikutnya yang paling informatif untuk diberi label (<a
-href="ch41_molekul.html">Bab 19</a>).</p>
+href="ch41_molekul.html">Bab 23</a>).</p>
 </dd>
 <dt>actor-critic</dt>
 <dd>
 <p>Metode RL dengan satu jaringan yang memilih aksi dan satu yang
-menilai (<a href="ch10_rl.html">Bab 12</a>).</p>
+menilai (<a href="ch10_rl.html">Bab 16</a>).</p>
 </dd>
 <dt>adjoint method</dt>
 <dd>
 <p>Cara menghitung gradien sistem dinamis dengan menyelesaikan persamaan
-mundur dalam waktu (<a href="ch09_ml_advanced.html">Bab 11</a>).</p>
+mundur dalam waktu (<a href="ch09_ml_advanced.html">Bab 15</a>).</p>
 </dd>
 <dt>advantage</dt>
 <dd>
 <p>Selisih nilai sebuah aksi dengan nilai rata-rata keadaan (<a
-href="ch10_rl.html">Bab 12</a>).</p>
+href="ch10_rl.html">Bab 16</a>).</p>
+</dd>
+<dt>AGI (artificial general intelligence)</dt>
+<dd>
+<p>Sistem yang mampu mengerjakan beragam tugas kognitif setara manusia;
+definisinya masih diperdebatkan (<a href="ch51c_keselamatan.html">Bab
+36</a>).</p>
+</dd>
+<dt>alignment</dt>
+<dd>
+<p>Upaya membuat sistem AI mengejar apa yang sebenarnya dimaksud
+manusia, bukan sekadar tujuan yang tertulis (<a
+href="ch51c_keselamatan.html">Bab 36</a> dan <a
+href="ch52_terbaru.html">Bab 38</a>).</p>
 </dd>
 <dt>attention</dt>
 <dd>
 <p>Mekanisme membaca ingatan dengan query, key, dan value (<a
-href="ch04_lstm_transformer.html">Bab 6</a>).</p>
+href="ch04_lstm_transformer.html">Bab 9</a>).</p>
 </dd>
 <dt>autodiff (automatic differentiation)</dt>
 <dd>
 <p>Menghitung turunan program secara eksak dengan aturan rantai (<a
-href="ch03_dl_basic.html">Bab 5</a>).</p>
+href="ch03_dl_basic.html">Bab 7</a>).</p>
 </dd>
 <dt>autoencoder</dt>
 <dd>
 <p>Jaringan yang memampatkan input menjadi kode kecil lalu
 merekonstruksinya (<a href="ch06_arsitektur_generatif.html">Bab
-8</a>).</p>
+12</a>).</p>
 </dd>
 <dt>backpropagation</dt>
 <dd>
 <p>Aturan rantai yang dihitung dari keluaran ke input untuk mendapat
-gradien (<a href="ch03_dl_basic.html">Bab 5</a>).</p>
+gradien (<a href="ch03_dl_basic.html">Bab 7</a>).</p>
+</dd>
+<dt>bag of words</dt>
+<dd>
+<p>Representasi dokumen sebagai hitungan kata tanpa urutan (<a
+href="ch04b_nlp.html">Bab 10</a>).</p>
 </dd>
 <dt>batch normalization</dt>
 <dd>
 <p>Normalisasi pre-activation dengan statistik mini-batch (<a
-href="ch03_dl_basic.html">Bab 5</a>).</p>
+href="ch03_dl_basic.html">Bab 7</a>).</p>
 </dd>
 <dt>Bayes risk</dt>
 <dd>
@@ -83,7 +101,23 @@ href="ch01_belajar_dari_data.html">Bab 1</a>).</p>
 <dt>Bayesian network</dt>
 <dd>
 <p>Graf berarah yang menyandikan independensi bersyarat antar variabel
-acak (<a href="ch08_probabilistik.html">Bab 10</a>).</p>
+acak (<a href="ch08_probabilistik.html">Bab 14</a>).</p>
+</dd>
+<dt>Bayesian optimization</dt>
+<dd>
+<p>Memilih percobaan berikutnya dengan model pengganti yang memberi
+ketidakpastian, misalnya untuk hyperparameter (<a
+href="ch03b_praktik.html">Bab 8</a>).</p>
+</dd>
+<dt>Bell inequality (CHSH)</dt>
+<dd>
+<p>Batas korelasi untuk teori lokal-realis yang dilanggar keadaan
+kuantum yang terkait (<a href="ch51b_kuantum.html">Bab 37</a>).</p>
+</dd>
+<dt>BERT</dt>
+<dd>
+<p>Model encoder yang dilatih menebak token yang ditutup dari konteks di
+kedua sisinya (<a href="ch04b_nlp.html">Bab 10</a>).</p>
 </dd>
 <dt>bias–variance trade-off</dt>
 <dd>
@@ -94,69 +128,85 @@ href="ch01_belajar_dari_data.html">Bab 1</a>).</p>
 <dt>biclustering</dt>
 <dd>
 <p>Pengelompokan baris dan kolom matriks sekaligus (<a
-href="ch02c_unsupervised.html">Bab 4</a>).</p>
+href="ch02c_unsupervised.html">Bab 6</a>).</p>
 </dd>
 <dt>binding pocket</dt>
 <dd>
 <p>Kantong di permukaan protein tempat molekul kecil menempel (<a
-href="ch42_protein.html">Bab 20</a>).</p>
+href="ch42_protein.html">Bab 24</a>).</p>
 </dd>
 <dt>bootstrapping (RL)</dt>
 <dd>
 <p>Memperbarui perkiraan dengan perkiraan lain, seperti pada TD (<a
-href="ch10_rl.html">Bab 12</a>).</p>
+href="ch10_rl.html">Bab 16</a>).</p>
+</dd>
+<dt>byte-pair encoding</dt>
+<dd>
+<p>Tokenisasi yang berulang kali menggabungkan pasangan simbol paling
+sering (<a href="ch52_terbaru.html">Bab 38</a> dan <a
+href="ch04b_nlp.html">Bab 10</a>).</p>
 </dd>
 <dt>CFAR (constant false alarm rate)</dt>
 <dd>
 <p>Detektor radar dengan ambang yang menyesuaikan diri dengan noise
-lokal (<a href="ch30_sinyal.html">Bab 14</a>).</p>
+lokal (<a href="ch30_sinyal.html">Bab 18</a>).</p>
 </dd>
 <dt>closure problem</dt>
 <dd>
 <p>Persamaan rata-rata turbulensi mengandung suku yang tidak diketahui
-(<a href="ch13_numerik_fluida.html">Bab 23</a>).</p>
+(<a href="ch13_numerik_fluida.html">Bab 27</a>).</p>
 </dd>
 <dt>collaborative filtering</dt>
 <dd>
 <p>Rekomendasi dari kemiripan selera antar pengguna atau antar item (<a
-href="ch50_rekomendasi.html">Bab 30</a>).</p>
+href="ch50_rekomendasi.html">Bab 34</a>).</p>
 </dd>
 <dt>collocation points</dt>
 <dd>
 <p>Titik-titik tempat residual PDE dievaluasi pada PINN (<a
-href="ch15_pinn.html">Bab 25</a>).</p>
+href="ch15_pinn.html">Bab 29</a>).</p>
 </dd>
 <dt>condition number</dt>
 <dd>
 <p>Rasio kelengkungan terbesar dan terkecil, penentu kecepatan gradient
-descent (<a href="ch02_optimasi.html">Bab 2</a>).</p>
+descent (<a href="ch02_optimasi.html">Bab 4</a>).</p>
+</dd>
+<dt>conformal prediction</dt>
+<dd>
+<p>Interval prediksi dengan jaminan cakupan tanpa asumsi distribusi (<a
+href="ch01_belajar_dari_data.html">Bab 1</a>).</p>
 </dd>
 <dt>constant error carousel</dt>
 <dd>
 <p>Jalur aditif pada sel LSTM yang membuat gradien tidak hilang (<a
-href="ch04_lstm_transformer.html">Bab 6</a>).</p>
+href="ch04_lstm_transformer.html">Bab 9</a>).</p>
 </dd>
 <dt>contrastive learning</dt>
 <dd>
 <p>Belajar representasi dengan mendekatkan pasangan yang cocok dan
-menjauhkan yang tidak (<a href="ch41_molekul.html">Bab 19</a>).</p>
+menjauhkan yang tidak (<a href="ch41_molekul.html">Bab 23</a>).</p>
 </dd>
 <dt>convolution</dt>
 <dd>
 <p>Operasi linear dengan kernel lokal yang dipakai di semua posisi,
-ekuivarian terhadap pergeseran (<a href="ch03_dl_basic.html">Bab 5</a>
-dan <a href="ch07_geometric.html">Bab 9</a>).</p>
+ekuivarian terhadap pergeseran (<a href="ch03_dl_basic.html">Bab 7</a>
+dan <a href="ch07_geometric.html">Bab 13</a>).</p>
+</dd>
+<dt>counterfactual explanation</dt>
+<dd>
+<p>Perubahan terkecil pada input yang mengubah keputusan model (<a
+href="ch11_xai.html">Bab 17</a>).</p>
 </dd>
 <dt>covariate shift</dt>
 <dd>
 <p>Distribusi input saat dipakai berbeda dari saat dilatih (<a
-href="ch10_rl.html">Bab 12</a> dan <a href="ch16_operator.html">Bab
-26</a>).</p>
+href="ch10_rl.html">Bab 16</a> dan <a href="ch16_operator.html">Bab
+30</a>).</p>
 </dd>
 <dt>credit assignment</dt>
 <dd>
 <p>Menentukan tindakan mana yang bertanggung jawab atas ganjaran yang
-datang terlambat (<a href="ch10_rl.html">Bab 12</a>).</p>
+datang terlambat (<a href="ch10_rl.html">Bab 16</a>).</p>
 </dd>
 <dt>cross-validation</dt>
 <dd>
@@ -172,93 +222,139 @@ href="ch01_belajar_dari_data.html">Bab 1</a>).</p>
 <dt>data assimilation</dt>
 <dd>
 <p>Menggabungkan model dan pengukuran dengan bobot sesuai ketidakpastian
-(<a href="ch08_probabilistik.html">Bab 10</a>).</p>
+(<a href="ch08_probabilistik.html">Bab 14</a>).</p>
+</dd>
+<dt>decoherence</dt>
+<dd>
+<p>Hilangnya superposisi kuantum karena keterkaitan dengan lingkungan
+(<a href="ch51b_kuantum.html">Bab 37</a>).</p>
 </dd>
 <dt>DeepONet</dt>
 <dd>
 <p>Neural operator dengan jaringan branch dan trunk (<a
-href="ch16_operator.html">Bab 26</a>).</p>
+href="ch16_operator.html">Bab 30</a>).</p>
+</dd>
+<dt>degrees of freedom (ridge)</dt>
+<dd>
+<p>Jumlah parameter efektif setelah regularisasi, <span
+class="math inline">\(\sum_i\lambda_i^2/(\lambda_i+\lambda)^2\)</span>
+(<a href="ch01c_teori_belajar.html">Bab 3</a>).</p>
+</dd>
+<dt>differential privacy</dt>
+<dd>
+<p>Jaminan bahwa hasil analisis hampir tidak berubah karena data satu
+orang (<a href="ch51_ai_manusia.html">Bab 35</a>).</p>
 </dd>
 <dt>diffusion model</dt>
 <dd>
 <p>Model generatif yang belajar membalik proses penambahan noise (<a
-href="ch09_ml_advanced.html">Bab 11</a>).</p>
+href="ch09_ml_advanced.html">Bab 15</a>).</p>
 </dd>
 <dt>DMD (dynamic mode decomposition)</dt>
 <dd>
 <p>Mode dinamika dari operator linear yang dipasang pada potret
-berurutan (<a href="ch17_penemuan_reduksi.html">Bab 27</a>).</p>
+berurutan (<a href="ch17_penemuan_reduksi.html">Bab 31</a>).</p>
 </dd>
 <dt>double descent</dt>
 <dd>
 <p>Galat uji turun lagi setelah model mampu menghafal data latih (<a
 href="ch01_belajar_dari_data.html">Bab 1</a>).</p>
 </dd>
+<dt>DPO (direct preference optimization)</dt>
+<dd>
+<p>Melatih model bahasa langsung dari pasangan preferensi tanpa model
+ganjaran terpisah (<a href="ch52_terbaru.html">Bab 38</a>).</p>
+</dd>
 <dt>dropout</dt>
 <dd>
 <p>Mematikan neuron acak selama pelatihan sebagai regularisasi (<a
-href="ch03_dl_basic.html">Bab 5</a>).</p>
+href="ch03_dl_basic.html">Bab 7</a>).</p>
 </dd>
 <dt>ELBO (evidence lower bound)</dt>
 <dd>
 <p>Batas bawah log-likelihood yang dimaksimalkan VAE dan model difusi
-(<a href="ch06_arsitektur_generatif.html">Bab 8</a> dan <a
-href="ch09_ml_advanced.html">Bab 11</a>).</p>
+(<a href="ch06_arsitektur_generatif.html">Bab 12</a> dan <a
+href="ch09_ml_advanced.html">Bab 15</a>).</p>
 </dd>
 <dt>embedding</dt>
 <dd>
 <p>Representasi vektor padat untuk kata, molekul, pengguna, atau item
-(<a href="ch04_lstm_transformer.html">Bab 6</a>).</p>
+(<a href="ch04_lstm_transformer.html">Bab 9</a>).</p>
+</dd>
+<dt>entanglement</dt>
+<dd>
+<p>Keadaan banyak qubit yang tidak bisa ditulis sebagai hasil kali
+keadaan masing-masing (<a href="ch51b_kuantum.html">Bab 37</a>).</p>
 </dd>
 <dt>equivariance</dt>
 <dd>
 <p>Kalau input ditransformasi, keluaran ikut tertransformasi dengan cara
-yang sama (<a href="ch07_geometric.html">Bab 9</a>).</p>
+yang sama (<a href="ch07_geometric.html">Bab 13</a>).</p>
+</dd>
+<dt>evidence (marginal likelihood)</dt>
+<dd>
+<p>Peluang data setelah parameter dirata-ratakan, dipakai untuk memilih
+model (<a href="ch01b_statistik_bayes.html">Bab 2</a>).</p>
+</dd>
+<dt>excess risk</dt>
+<dd>
+<p>Selisih risiko sebuah model dengan risiko terkecil yang mungkin (<a
+href="ch01c_teori_belajar.html">Bab 3</a>).</p>
+</dd>
+<dt>expected improvement</dt>
+<dd>
+<p>Fungsi akuisisi yang menimbang perbaikan harapan atas hasil terbaik
+sejauh ini (<a href="ch03b_praktik.html">Bab 8</a>).</p>
 </dd>
 <dt>exploration–exploitation</dt>
 <dd>
 <p>Dilema antara mencoba hal baru dan memakai yang sudah terbukti baik
-(<a href="ch10_rl.html">Bab 12</a>).</p>
+(<a href="ch10_rl.html">Bab 16</a>).</p>
 </dd>
 <dt>few-shot / zero-shot learning</dt>
 <dd>
 <p>Belajar tugas baru dari sedikit atau tanpa contoh berlabel (<a
-href="ch41_molekul.html">Bab 19</a>).</p>
+href="ch41_molekul.html">Bab 23</a>).</p>
 </dd>
 <dt>filtered backprojection</dt>
 <dd>
 <p>Algoritme rekonstruksi CT dengan filter ramp sebelum backprojection
-(<a href="ch43_medis.html">Bab 21</a>).</p>
+(<a href="ch43_medis.html">Bab 25</a>).</p>
 </dd>
 <dt>fingerprint (molecular)</dt>
 <dd>
 <p>Vektor biner penanda substruktur molekul (<a
-href="ch41_molekul.html">Bab 19</a>).</p>
+href="ch41_molekul.html">Bab 23</a>).</p>
 </dd>
 <dt>Fisher information</dt>
 <dd>
 <p>Ukuran informasi yang dibawa data tentang parameter, dasar batas
-Cramér–Rao (<a href="ch09_ml_advanced.html">Bab 11</a>).</p>
+Cramér–Rao (<a href="ch09_ml_advanced.html">Bab 15</a>).</p>
 </dd>
 <dt>flow matching</dt>
 <dd>
 <p>Melatih medan kecepatan ODE yang membawa noise ke data (<a
-href="ch09_ml_advanced.html">Bab 11</a>).</p>
+href="ch09_ml_advanced.html">Bab 15</a>).</p>
 </dd>
 <dt>FNO (Fourier neural operator)</dt>
 <dd>
 <p>Neural operator yang memakai konvolusi di domain Fourier (<a
-href="ch16_operator.html">Bab 26</a>).</p>
+href="ch16_operator.html">Bab 30</a>).</p>
 </dd>
 <dt>foundation model</dt>
 <dd>
 <p>Model besar yang dilatih luas lalu disesuaikan ke banyak tugas (<a
-href="ch52_terbaru.html">Bab 32</a>).</p>
+href="ch52_terbaru.html">Bab 38</a>).</p>
 </dd>
 <dt>GAN</dt>
 <dd>
 <p>Generator dan diskriminator yang dipertandingkan (<a
-href="ch06_arsitektur_generatif.html">Bab 8</a>).</p>
+href="ch06_arsitektur_generatif.html">Bab 12</a>).</p>
+</dd>
+<dt>Gaussian process</dt>
+<dd>
+<p>Prior atas fungsi yang ditentukan oleh sebuah kernel, dengan
+posterior tertutup (<a href="ch09_ml_advanced.html">Bab 15</a>).</p>
 </dd>
 <dt>generalization error</dt>
 <dd>
@@ -268,22 +364,50 @@ href="ch01_belajar_dari_data.html">Bab 1</a>).</p>
 <dt>Gibbs sampling</dt>
 <dd>
 <p>MCMC yang memperbarui satu variabel pada satu waktu (<a
-href="ch08_probabilistik.html">Bab 10</a>).</p>
+href="ch08_probabilistik.html">Bab 14</a>).</p>
+</dd>
+<dt>GloVe</dt>
+<dd>
+<p>Embedding kata dari regresi pada logaritma hitungan kemunculan
+bersama (<a href="ch04b_nlp.html">Bab 10</a>).</p>
+</dd>
+<dt>gradient accumulation</dt>
+<dd>
+<p>Menjumlahkan gradien beberapa mini-batch kecil sebelum satu pembaruan
+(<a href="ch03b_praktik.html">Bab 8</a>).</p>
+</dd>
+<dt>gradient clipping</dt>
+<dd>
+<p>Membatasi norma gradien agar satu langkah tidak terlalu besar (<a
+href="ch02_optimasi.html">Bab 4</a>).</p>
 </dd>
 <dt>gradient descent</dt>
 <dd>
 <p>Melangkah berlawanan arah gradien untuk meminimalkan fungsi (<a
-href="ch02_optimasi.html">Bab 2</a>).</p>
+href="ch02_optimasi.html">Bab 4</a>).</p>
 </dd>
 <dt>graph neural network</dt>
 <dd>
 <p>Jaringan yang bekerja pada graf lewat message passing (<a
-href="ch07_geometric.html">Bab 9</a>).</p>
+href="ch07_geometric.html">Bab 13</a>).</p>
 </dd>
 <dt>hidden Markov model</dt>
 <dd>
 <p>Model deret dengan keadaan diskret tersembunyi (<a
-href="ch08_probabilistik.html">Bab 10</a>).</p>
+href="ch08_probabilistik.html">Bab 14</a>).</p>
+</dd>
+<dt>h-index</dt>
+<dd>
+<p>Nilai <span class="math inline">\(h\)</span> terbesar sehingga
+seorang peneliti punya <span class="math inline">\(h\)</span> makalah
+yang masing-masing dikutip paling sedikit <span
+class="math inline">\(h\)</span> kali (Lampiran C).</p>
+</dd>
+<dt>homography</dt>
+<dd>
+<p>Matriks <span class="math inline">\(3\times3\)</span> yang
+menghubungkan dua gambar dari bidang datar atau kamera yang berputar (<a
+href="ch05_computer_vision.html">Bab 11</a>).</p>
 </dd>
 <dt>hyperparameter</dt>
 <dd>
@@ -293,59 +417,75 @@ belajar (<a href="ch01_belajar_dari_data.html">Bab 1</a>).</p>
 <dt>ICA (independent component analysis)</dt>
 <dd>
 <p>Memisahkan sumber independen dari campurannya (<a
-href="ch02c_unsupervised.html">Bab 4</a>).</p>
+href="ch02c_unsupervised.html">Bab 6</a>).</p>
 </dd>
 <dt>imitation learning</dt>
 <dd>
 <p>Belajar policy dari demonstrasi ahli (<a href="ch10_rl.html">Bab
-12</a>).</p>
+16</a>).</p>
 </dd>
 <dt>inductive bias</dt>
 <dd>
 <p>Asumsi yang dibangun ke dalam arsitektur model (<a
 href="ch00_peta.html">Bab 0</a> dan <a href="ch07_geometric.html">Bab
-9</a>).</p>
+13</a>).</p>
 </dd>
 <dt>invariance</dt>
 <dd>
 <p>Keluaran tidak berubah kalau input ditransformasi (<a
-href="ch07_geometric.html">Bab 9</a>).</p>
+href="ch07_geometric.html">Bab 13</a>).</p>
 </dd>
 <dt>Kalman filter</dt>
 <dd>
 <p>Estimator optimal berurutan untuk sistem linear Gauss (<a
-href="ch08_probabilistik.html">Bab 10</a> dan <a
-href="ch31_kendali.html">Bab 15</a>).</p>
+href="ch08_probabilistik.html">Bab 14</a> dan <a
+href="ch31_kendali.html">Bab 19</a>).</p>
 </dd>
 <dt>kernel (CNN)</dt>
 <dd>
 <p>Matriks bobot kecil yang digeser pada konvolusi (<a
-href="ch03_dl_basic.html">Bab 5</a>).</p>
+href="ch03_dl_basic.html">Bab 7</a>).</p>
+</dd>
+<dt>kernel trick</dt>
+<dd>
+<p>Bekerja hanya dengan hasil kali dalam antar fitur tanpa menghitung
+fiturnya (<a href="ch01c_teori_belajar.html">Bab 3</a>).</p>
+</dd>
+<dt>knowledge distillation</dt>
+<dd>
+<p>Melatih model kecil untuk meniru distribusi keluaran model besar (<a
+href="ch52_terbaru.html">Bab 38</a>).</p>
 </dd>
 <dt>Koopman operator</dt>
 <dd>
 <p>Operator linear yang memajukan fungsi pengamatan sistem dinamis (<a
-href="ch17_penemuan_reduksi.html">Bab 27</a>).</p>
+href="ch17_penemuan_reduksi.html">Bab 31</a>).</p>
 </dd>
 <dt>latent variable</dt>
 <dd>
 <p>Variabel tersembunyi yang tidak diamati tetapi menjelaskan data (<a
-href="ch09_ml_advanced.html">Bab 11</a>).</p>
+href="ch09_ml_advanced.html">Bab 15</a>).</p>
 </dd>
 <dt>learning rate</dt>
 <dd>
 <p>Panjang langkah pada gradient descent (<a
-href="ch02_optimasi.html">Bab 2</a>).</p>
+href="ch02_optimasi.html">Bab 4</a>).</p>
+</dd>
+<dt>light field</dt>
+<dd>
+<p>Rekaman intensitas cahaya menurut posisi dan arah, yang memungkinkan
+fokus dipilih setelah pemotretan (<a
+href="ch05_computer_vision.html">Bab 11</a>).</p>
 </dd>
 <dt>LMS</dt>
 <dd>
 <p>Filter adaptif dengan update gradien stokastik (<a
-href="ch30_sinyal.html">Bab 14</a>).</p>
+href="ch30_sinyal.html">Bab 18</a>).</p>
 </dd>
 <dt>LSTM</dt>
 <dd>
 <p>Jaringan rekuren dengan sel ingatan dan gerbang (<a
-href="ch04_lstm_transformer.html">Bab 6</a>).</p>
+href="ch04_lstm_transformer.html">Bab 9</a>).</p>
 </dd>
 <dt>MAP (maximum a posteriori)</dt>
 <dd>
@@ -360,63 +500,119 @@ href="ch01_belajar_dari_data.html">Bab 1</a>).</p>
 <dt>MCMC</dt>
 <dd>
 <p>Menarik sampel dengan rantai Markov yang distribusi stasionernya
-adalah target (<a href="ch08_probabilistik.html">Bab 10</a> dan <a
-href="ch14_fisika_komputasi.html">Bab 24</a>).</p>
+adalah target (<a href="ch08_probabilistik.html">Bab 14</a> dan <a
+href="ch14_fisika_komputasi.html">Bab 28</a>).</p>
 </dd>
 <dt>MDP (Markov decision process)</dt>
 <dd>
 <p>Kerangka formal reinforcement learning (<a href="ch10_rl.html">Bab
-12</a>).</p>
+16</a>).</p>
 </dd>
 <dt>message passing</dt>
 <dd>
 <p>Simpul mengumpulkan pesan dari tetangga lalu memperbarui keadaannya
-(<a href="ch07_geometric.html">Bab 9</a>).</p>
+(<a href="ch07_geometric.html">Bab 13</a>).</p>
+</dd>
+<dt>meta-learning</dt>
+<dd>
+<p>Belajar titik awal atau cara belajar yang cepat beradaptasi ke tugas
+baru (<a href="ch10_rl.html">Bab 16</a>).</p>
 </dd>
 <dt>mini-batch</dt>
 <dd>
 <p>Sebagian kecil data yang dipakai untuk satu langkah SGD (<a
-href="ch02_optimasi.html">Bab 2</a>).</p>
+href="ch02_optimasi.html">Bab 4</a>).</p>
+</dd>
+<dt>mixed precision</dt>
+<dd>
+<p>Melatih dengan bilangan 16 bit sambil menjaga salinan bobot 32 bit
+dan menskalakan loss (<a href="ch03b_praktik.html">Bab 8</a>).</p>
+</dd>
+<dt>mixture of experts</dt>
+<dd>
+<p>Arsitektur yang hanya mengaktifkan sebagian subjaringan untuk setiap
+token (<a href="ch52_terbaru.html">Bab 38</a>).</p>
 </dd>
 <dt>mode collapse</dt>
 <dd>
 <p>Model generatif hanya menghasilkan sebagian kecil variasi data (<a
-href="ch06_arsitektur_generatif.html">Bab 8</a>).</p>
+href="ch06_arsitektur_generatif.html">Bab 12</a>).</p>
 </dd>
 <dt>momentum</dt>
 <dd>
 <p>Menambahkan ingatan arah sebelumnya pada gradient descent (<a
-href="ch02_optimasi.html">Bab 2</a>).</p>
+href="ch02_optimasi.html">Bab 4</a>).</p>
+</dd>
+<dt>multigrid</dt>
+<dd>
+<p>Solver sistem linear yang meredam galat di berbagai tingkat kehalusan
+grid (<a href="ch13_numerik_fluida.html">Bab 27</a>).</p>
+</dd>
+<dt>multi-label classification</dt>
+<dd>
+<p>Klasifikasi di mana satu contoh boleh punya beberapa label sekaligus
+(<a href="ch04b_nlp.html">Bab 10</a>).</p>
+</dd>
+<dt>Nash equilibrium</dt>
+<dd>
+<p>Strategi di mana tidak ada pemain yang untung mengubah strateginya
+sendiri (<a href="ch10_rl.html">Bab 16</a>).</p>
+</dd>
+<dt>negative sampling</dt>
+<dd>
+<p>Mengganti softmax atas seluruh kosakata dengan klasifikasi biner
+pasangan asli dan acak (<a href="ch04b_nlp.html">Bab 10</a>).</p>
 </dd>
 <dt>neural field</dt>
 <dd>
 <p>Jaringan yang mewakili medan kontinu sebagai fungsi koordinat (<a
-href="ch09_ml_advanced.html">Bab 11</a>).</p>
+href="ch09_ml_advanced.html">Bab 15</a>).</p>
 </dd>
 <dt>neural ODE</dt>
 <dd>
 <p>Persamaan diferensial biasa dengan ruas kanan berupa jaringan saraf
-(<a href="ch09_ml_advanced.html">Bab 11</a>).</p>
+(<a href="ch09_ml_advanced.html">Bab 15</a>).</p>
 </dd>
 <dt>neural operator</dt>
 <dd>
 <p>Model yang belajar pemetaan antar ruang fungsi (<a
-href="ch16_operator.html">Bab 26</a>).</p>
+href="ch16_operator.html">Bab 30</a>).</p>
+</dd>
+<dt>n-gram</dt>
+<dd>
+<p>Model bahasa yang menebak kata dari <span
+class="math inline">\(n-1\)</span> kata sebelumnya dengan hitungan (<a
+href="ch04b_nlp.html">Bab 10</a>).</p>
+</dd>
+<dt>no free lunch theorem</dt>
+<dd>
+<p>Tidak ada algoritme belajar yang baik untuk semua distribusi data
+tanpa asumsi (<a href="ch01c_teori_belajar.html">Bab 3</a>).</p>
+</dd>
+<dt>normalized cut</dt>
+<dd>
+<p>Kriteria segmentasi graf yang menghukum potongan yang menghasilkan
+bagian kecil (<a href="ch05_computer_vision.html">Bab 11</a>).</p>
 </dd>
 <dt>normalizing flow</dt>
 <dd>
 <p>Model generatif dari transformasi bijektif dengan likelihood eksak
-(<a href="ch06_arsitektur_generatif.html">Bab 8</a>).</p>
+(<a href="ch06_arsitektur_generatif.html">Bab 12</a>).</p>
+</dd>
+<dt>nudging</dt>
+<dd>
+<p>Menarik keadaan model ke arah pengamatan dengan suku relaksasi (<a
+href="ch18_hibrida.html">Bab 32</a>).</p>
 </dd>
 <dt>numerical diffusion</dt>
 <dd>
 <p>Difusi palsu akibat galat diskretisasi (<a
-href="ch13_numerik_fluida.html">Bab 23</a>).</p>
+href="ch13_numerik_fluida.html">Bab 27</a>).</p>
 </dd>
 <dt>optical flow</dt>
 <dd>
 <p>Medan gerak piksel antar bingkai video (<a
-href="ch05_computer_vision.html">Bab 7</a>).</p>
+href="ch05_computer_vision.html">Bab 11</a>).</p>
 </dd>
 <dt>overfitting</dt>
 <dd>
@@ -426,32 +622,56 @@ href="ch01_belajar_dari_data.html">Bab 1</a>).</p>
 <dt>oversquashing</dt>
 <dd>
 <p>Informasi dari banyak simpul jauh terjepit di vektor berukuran tetap
-(<a href="ch07_geometric.html">Bab 9</a>).</p>
+(<a href="ch07_geometric.html">Bab 13</a>).</p>
+</dd>
+<dt>parameter-shift rule</dt>
+<dd>
+<p>Cara menghitung gradien rangkaian kuantum secara eksak dari dua
+evaluasi (<a href="ch51b_kuantum.html">Bab 37</a>).</p>
+</dd>
+<dt>Pareto front</dt>
+<dd>
+<p>Kumpulan kandidat yang tidak didominasi kandidat lain dalam optimasi
+banyak tujuan (<a href="ch41_molekul.html">Bab 23</a>).</p>
+</dd>
+<dt>patent claim</dt>
+<dd>
+<p>Bagian paten yang menentukan apa yang dilindungi (Lampiran C).</p>
 </dd>
 <dt>PCA / POD</dt>
 <dd>
 <p>Arah-arah dengan varians atau energi terbesar dari data (<a
-href="ch02c_unsupervised.html">Bab 4</a> dan <a
-href="ch17_penemuan_reduksi.html">Bab 27</a>).</p>
+href="ch02c_unsupervised.html">Bab 6</a> dan <a
+href="ch17_penemuan_reduksi.html">Bab 31</a>).</p>
+</dd>
+<dt>perplexity</dt>
+<dd>
+<p>Kebalikan rata-rata geometris peluang per kata, ukuran kinerja model
+bahasa (<a href="ch04b_nlp.html">Bab 10</a>).</p>
 </dd>
 <dt>PINN</dt>
 <dd>
 <p>Jaringan yang dilatih agar memenuhi persamaan diferensial lewat loss
-(<a href="ch15_pinn.html">Bab 25</a>).</p>
+(<a href="ch15_pinn.html">Bab 29</a>).</p>
+</dd>
+<dt>PMI (pointwise mutual information)</dt>
+<dd>
+<p>Seberapa sering dua kata muncul bersama dibanding kalau independen
+(<a href="ch04b_nlp.html">Bab 10</a>).</p>
 </dd>
 <dt>policy</dt>
 <dd>
-<p>Aturan pemilihan aksi agen (<a href="ch10_rl.html">Bab 12</a>).</p>
+<p>Aturan pemilihan aksi agen (<a href="ch10_rl.html">Bab 16</a>).</p>
 </dd>
 <dt>policy gradient</dt>
 <dd>
 <p>Mengoptimalkan policy langsung dengan gradien return harapan (<a
-href="ch10_rl.html">Bab 12</a>).</p>
+href="ch10_rl.html">Bab 16</a>).</p>
 </dd>
 <dt>positional encoding</dt>
 <dd>
 <p>Informasi posisi yang ditambahkan ke token transformer (<a
-href="ch04_lstm_transformer.html">Bab 6</a>).</p>
+href="ch04_lstm_transformer.html">Bab 9</a>).</p>
 </dd>
 <dt>posterior / prior</dt>
 <dd>
@@ -461,7 +681,7 @@ href="ch01_belajar_dari_data.html">Bab 1</a>).</p>
 <dt>PPO</dt>
 <dd>
 <p>Policy gradient dengan rasio peluang yang dipotong (<a
-href="ch10_rl.html">Bab 12</a>).</p>
+href="ch10_rl.html">Bab 16</a>).</p>
 </dd>
 <dt>precision / recall</dt>
 <dd>
@@ -471,76 +691,104 @@ yang tertangkap (<a href="ch01_belajar_dari_data.html">Bab 1</a>).</p>
 <dt>QSAR</dt>
 <dd>
 <p>Model aktivitas biologis dari struktur molekul (<a
-href="ch41_molekul.html">Bab 19</a>).</p>
+href="ch41_molekul.html">Bab 23</a>).</p>
+</dd>
+<dt>qubit</dt>
+<dd>
+<p>Satuan informasi kuantum yang bisa berada dalam superposisi <span
+class="math inline">\(\lvert 0\rangle\)</span> dan <span
+class="math inline">\(\lvert 1\rangle\)</span> (<a
+href="ch51b_kuantum.html">Bab 37</a>).</p>
 </dd>
 <dt>RANS / LES / DNS</dt>
 <dd>
 <p>Tiga tingkat pemodelan turbulensi, dari rata-rata sampai penyelesaian
-penuh (<a href="ch13_numerik_fluida.html">Bab 23</a>).</p>
+penuh (<a href="ch13_numerik_fluida.html">Bab 27</a>).</p>
+</dd>
+<dt>RANSAC</dt>
+<dd>
+<p>Penaksiran model yang tahan pencilan dengan sampel minimal acak yang
+diulang (<a href="ch05_computer_vision.html">Bab 11</a>).</p>
 </dd>
 <dt>receptive field</dt>
 <dd>
 <p>Daerah input yang memengaruhi sebuah neuron (<a
-href="ch03_dl_basic.html">Bab 5</a>).</p>
+href="ch03_dl_basic.html">Bab 7</a>).</p>
 </dd>
 <dt>recurrence matrix</dt>
 <dd>
 <p>Matriks jarak antar bingkai aliran dalam rCFD (<a
-href="ch19_rcfd.html">Bab 29</a>).</p>
+href="ch19_rcfd.html">Bab 33</a>).</p>
 </dd>
 <dt>regularization</dt>
 <dd>
 <p>Pengekangan model agar tidak menghafal (<a
-href="ch03_dl_basic.html">Bab 5</a>).</p>
+href="ch03_dl_basic.html">Bab 7</a>).</p>
 </dd>
 <dt>reparameterization trick</dt>
 <dd>
 <p>Menulis sampel acak sebagai fungsi diferensiabel parameter (<a
-href="ch06_arsitektur_generatif.html">Bab 8</a>).</p>
+href="ch06_arsitektur_generatif.html">Bab 12</a>).</p>
 </dd>
-<dt>residual (PDE)</dt>
+<dt>representer theorem</dt>
 <dd>
-<p>Seberapa jauh sebuah fungsi gagal memenuhi persamaan diferensial (<a
-href="ch15_pinn.html">Bab 25</a>).</p>
+<p>Solusi regularisasi di ruang Hilbert selalu kombinasi fitur
+titik-titik data (<a href="ch01c_teori_belajar.html">Bab 3</a>).</p>
 </dd>
 <dt>residual connection</dt>
 <dd>
 <p>Jalur pintas <span
 class="math inline">\(\boldsymbol{y}=\boldsymbol{x}+F(\boldsymbol{x})\)</span>
-pada ResNet (<a href="ch06_arsitektur_generatif.html">Bab 8</a>).</p>
+pada ResNet (<a href="ch06_arsitektur_generatif.html">Bab 12</a>).</p>
+</dd>
+<dt>residual (PDE)</dt>
+<dd>
+<p>Seberapa jauh sebuah fungsi gagal memenuhi persamaan diferensial (<a
+href="ch15_pinn.html">Bab 29</a>).</p>
+</dd>
+<dt>reward hacking</dt>
+<dd>
+<p>Agen memaksimalkan ganjaran lewat celah yang tidak dimaksudkan
+perancangnya (<a href="ch51c_keselamatan.html">Bab 36</a> dan <a
+href="ch10_rl.html">Bab 16</a>).</p>
+</dd>
+<dt>risk minimizer</dt>
+<dd>
+<p>Prediktor terbaik yang mungkin, misalnya rata-rata bersyarat untuk
+loss kuadrat (<a href="ch01c_teori_belajar.html">Bab 3</a>).</p>
 </dd>
 <dt>RLHF</dt>
 <dd>
 <p>Menyetel model bahasa dengan ganjaran dari preferensi manusia (<a
-href="ch10_rl.html">Bab 12</a> dan <a href="ch52_terbaru.html">Bab
-32</a>).</p>
+href="ch10_rl.html">Bab 16</a> dan <a href="ch52_terbaru.html">Bab
+38</a>).</p>
 </dd>
 <dt>rollout</dt>
 <dd>
 <p>Menjalankan model berulang kali dari tebakannya sendiri (<a
-href="ch16_operator.html">Bab 26</a>).</p>
+href="ch16_operator.html">Bab 30</a>).</p>
 </dd>
 <dt>saliency map</dt>
 <dd>
 <p>Peta kepekaan keluaran terhadap setiap piksel input (<a
-href="ch11_xai.html">Bab 13</a>).</p>
+href="ch11_xai.html">Bab 17</a>).</p>
 </dd>
 <dt>scaling laws</dt>
 <dd>
 <p>Hubungan hukum pangkat antara ukuran model, data, komputasi, dan loss
-(<a href="ch52_terbaru.html">Bab 32</a>).</p>
+(<a href="ch52_terbaru.html">Bab 38</a>).</p>
 </dd>
 <dt>score</dt>
 <dd>
 <p>Gradien log kerapatan, <span
 class="math inline">\(\nabla_{\boldsymbol{x}}\log
 p(\boldsymbol{x})\)</span> (<a href="ch09_ml_advanced.html">Bab
-11</a>).</p>
+15</a>).</p>
 </dd>
 <dt>segmentation</dt>
 <dd>
 <p>Memberi label pada setiap piksel (<a
-href="ch05_computer_vision.html">Bab 7</a>).</p>
+href="ch05_computer_vision.html">Bab 11</a>).</p>
 </dd>
 <dt>self-supervised learning</dt>
 <dd>
@@ -550,74 +798,95 @@ href="ch01_belajar_dari_data.html">Bab 1</a>).</p>
 <dt>SGD</dt>
 <dd>
 <p>Gradient descent dengan gradien dari mini-batch acak (<a
-href="ch02_optimasi.html">Bab 2</a>).</p>
+href="ch02_optimasi.html">Bab 4</a>).</p>
 </dd>
 <dt>Shapley value</dt>
 <dd>
 <p>Pembagian kontribusi yang adil antar fitur dari teori permainan (<a
-href="ch11_xai.html">Bab 13</a>).</p>
+href="ch11_xai.html">Bab 17</a>).</p>
 </dd>
 <dt>SINDy</dt>
 <dd>
 <p>Menemukan persamaan dinamika dengan regresi jarang (<a
-href="ch17_penemuan_reduksi.html">Bab 27</a>).</p>
+href="ch17_penemuan_reduksi.html">Bab 31</a>).</p>
 </dd>
 <dt>spectral bias</dt>
 <dd>
 <p>Kecenderungan jaringan mempelajari frekuensi rendah lebih dulu (<a
-href="ch09_ml_advanced.html">Bab 11</a>).</p>
+href="ch09_ml_advanced.html">Bab 15</a>).</p>
 </dd>
 <dt>state space model</dt>
 <dd>
 <p>Model dengan keadaan internal yang berevolusi linear, dasar Mamba dan
-teori kendali (<a href="ch04_lstm_transformer.html">Bab 6</a> dan <a
-href="ch31_kendali.html">Bab 15</a>).</p>
+teori kendali (<a href="ch04_lstm_transformer.html">Bab 9</a> dan <a
+href="ch31_kendali.html">Bab 19</a>).</p>
+</dd>
+<dt>Stokes number</dt>
+<dd>
+<p>Perbandingan waktu respons partikel dengan waktu khas aliran (<a
+href="ch13_numerik_fluida.html">Bab 27</a>).</p>
+</dd>
+<dt>superintelligence</dt>
+<dd>
+<p>Kecerdasan yang jauh melampaui manusia di hampir semua bidang (<a
+href="ch51c_keselamatan.html">Bab 36</a>).</p>
 </dd>
 <dt>surrogate model</dt>
 <dd>
 <p>Model murah yang meniru simulasi mahal (<a
 href="ch01_belajar_dari_data.html">Bab 1</a> dan <a
-href="ch16_operator.html">Bab 26</a>).</p>
+href="ch16_operator.html">Bab 30</a>).</p>
+</dd>
+<dt>synthetic aperture</dt>
+<dd>
+<p>Menggabungkan banyak sudut pandang menjadi satu lensa raksasa dengan
+fokus yang bisa dipilih (<a href="ch05_computer_vision.html">Bab
+11</a>).</p>
 </dd>
 <dt>TD (temporal difference)</dt>
 <dd>
 <p>Belajar nilai dari selisih ramalan berurutan (<a
-href="ch10_rl.html">Bab 12</a>).</p>
+href="ch10_rl.html">Bab 16</a>).</p>
 </dd>
 <dt>transfer learning</dt>
 <dd>
 <p>Memakai model yang dilatih pada satu tugas untuk tugas lain (<a
-href="ch06_arsitektur_generatif.html">Bab 8</a>).</p>
+href="ch06_arsitektur_generatif.html">Bab 12</a>).</p>
 </dd>
 <dt>transformer</dt>
 <dd>
 <p>Arsitektur berbasis attention tanpa rekurensi (<a
-href="ch04_lstm_transformer.html">Bab 6</a>).</p>
-</dd>
-<dt>U-Net</dt>
-<dd>
-<p>Encoder–decoder dengan skip connection antar tingkat (<a
-href="ch05_computer_vision.html">Bab 7</a>).</p>
+href="ch04_lstm_transformer.html">Bab 9</a>).</p>
 </dd>
 <dt>uncanny valley</dt>
 <dd>
 <p>Rasa ganjil terhadap mesin yang hampir mirip manusia (<a
-href="ch51_ai_manusia.html">Bab 31</a>).</p>
+href="ch51_ai_manusia.html">Bab 35</a>).</p>
+</dd>
+<dt>U-Net</dt>
+<dd>
+<p>Encoder–decoder dengan skip connection antar tingkat (<a
+href="ch05_computer_vision.html">Bab 11</a>).</p>
 </dd>
 <dt>VAE</dt>
 <dd>
 <p>Autoencoder probabilistik yang dilatih dengan ELBO (<a
-href="ch06_arsitektur_generatif.html">Bab 8</a>).</p>
+href="ch06_arsitektur_generatif.html">Bab 12</a>).</p>
 </dd>
 <dt>value function</dt>
 <dd>
 <p>Return harapan dari sebuah keadaan atau pasangan keadaan–aksi (<a
-href="ch10_rl.html">Bab 12</a>).</p>
+href="ch10_rl.html">Bab 16</a>).</p>
 </dd>
 <dt>vanishing gradient</dt>
 <dd>
 <p>Gradien menyusut eksponensial melewati banyak lapisan atau langkah
-waktu (<a href="ch04_lstm_transformer.html">Bab 6</a>).</p>
+waktu (<a href="ch04_lstm_transformer.html">Bab 9</a>).</p>
+</dd>
+<dt>watermark (teks)</dt>
+<dd>
+<p>Sinyal statistik tersembunyi di keluaran model bahasa yang bisa
+dideteksi (<a href="ch51_ai_manusia.html">Bab 35</a>).</p>
 </dd>
 <dt>weight decay</dt>
 <dd>
@@ -627,13 +896,23 @@ href="ch01_belajar_dari_data.html">Bab 1</a>).</p>
 <dt>Weisfeiler–Leman test</dt>
 <dd>
 <p>Uji pewarnaan graf yang membatasi kekuatan message passing (<a
-href="ch07_geometric.html">Bab 9</a>).</p>
+href="ch07_geometric.html">Bab 13</a>).</p>
+</dd>
+<dt>word2vec</dt>
+<dd>
+<p>Embedding kata dari tugas menebak kata konteks (<a
+href="ch04b_nlp.html">Bab 10</a>).</p>
+</dd>
+<dt>xLSTM</dt>
+<dd>
+<p>LSTM modern dengan exponential gating dan ingatan matriks (<a
+href="ch04_lstm_transformer.html">Bab 9</a>).</p>
 </dd>
 </dl>
 </main>
 <nav class="pager">
   <a class="prev" href="ch52_terbaru.html"><span>Sebelumnya</span>Ke Mana Arah AI</a>
-  
+  <a class="next" href="lampB_matematika.html"><span>Berikutnya</span>Bekal Matematika</a>
 </nav>
 <footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
 </body>

@@ -17,7 +17,7 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 9</p>
+<p class="chapnum">Bab 13</p>
 <h1>Geometri dan Simetri</h1>
 <p><span id="ch:gdl" data-label="ch:gdl"></span></p>
 <p>Kuliah geometric deep learning datang di semester terakhir, pada
@@ -75,7 +75,7 @@ komposisinya. Dari aksi pada domain, kita mendapat aksi pada sinyal,
 <span class="math display">\[\big(\rho(g)x\big)(u)=x\big(g^{-1}.u\big).
 \label{eq:representasi}\]</span> Pemetaan <span
 class="math inline">\(g\mapsto\rho(g)\)</span> ke operator linear pada
-ruang sinyal disebut <em>representasi</em>. Invers pada Persamaan (9.1)
+ruang sinyal disebut <em>representasi</em>. Invers pada Persamaan (13.1)
 bukan hiasan. Untuk menggeser sebuah gambar ke kanan, nilai piksel di
 posisi baru diambil dari posisi lama di sebelah kirinya. Tanpa invers,
 komposisi dua pergeseran akan keluar dengan urutan terbalik, dan <span
@@ -112,6 +112,54 @@ Galat estimasi justru bisa turun, karena setiap contoh data kini
 “mewakili” seluruh orbitnya. Hanya saja, kalau grupnya kecil dibanding
 dimensi masalah, galat estimasi tetap bisa terkena kutukan dimensi.
 Simetri membantu, tetapi tidak membebaskan sepenuhnya.</p>
+<h2 id="simetri-sebagai-penghemat-data">Simetri sebagai penghemat
+data</h2>
+<p>Tugas pertama kuliah ini membuat kutukan dimensi dari <a
+href="ch01_belajar_dari_data.html">Bab 1</a> terasa dengan angka. Untuk
+dua titik acak di hiperkubus satuan <span
+class="math inline">\([0,1]^n\)</span>, setiap koordinat menyumbang
+selisih kuadrat dengan rata-rata <span
+class="math inline">\(1/6\)</span>, sehingga rata-rata kuadrat jaraknya
+<span class="math inline">\(n/6\)</span>. Jarak tumbuh seperti <span
+class="math inline">\(\sqrt n\)</span>, sementara sebarannya relatif
+terhadap rata-rata justru menyempit, sehingga semua pasangan titik
+tampak sama jauhnya.</p>
+<p>Tugas itu juga memperlihatkan apa yang dilakukan fitur yang tidak
+berguna. Dua kelas yang terpisah dengan baik dalam dua fitur, misalnya
+dengan kuadrat jarak antarkelas sekitar 4 dan dalam kelas sekitar 1,
+menjadi sulit dipisahkan begitu ditambahi fitur derau. Setiap fitur
+derau dengan simpangan baku <span class="math inline">\(\sigma\)</span>
+menambah rata-rata <span class="math inline">\(2\sigma^2\)</span> pada
+kuadrat jarak <em>setiap</em> pasangan, sama untuk pasangan sekelas
+maupun beda kelas. Seratus fitur derau dengan <span
+class="math inline">\(\sigma=0{,}5\)</span> menambah 50 pada keduanya,
+sehingga rasio jarak beda kelas terhadap jarak sekelas turun dari 4
+menjadi <span class="math inline">\(54/51\approx1{,}06\)</span>.
+Tetangga terdekat praktis menjadi acak. Inilah sebabnya <span
+class="math inline">\(k\)</span>-nearest neighbour dan pengelompokan
+peka sekali terhadap pemilihan fitur (<a
+href="ch02c_unsupervised.html">Bab 6</a>).</p>
+<p>Bagian kedua tugas memakai integrasi Monte Carlo (<a
+href="ch14_fisika_komputasi.html">Bab 28</a>) untuk fungsi berupa
+gumpalan Gauss yang tersusun simetris di dalam hiperkubus, dan meminta
+kami memanfaatkan simetrinya. Kalau fungsi tidak berubah ketika setiap
+koordinat dicerminkan dan ketika koordinat-koordinat ditukar urutannya,
+integralnya atas seluruh kubus sama dengan integral atas satu “potongan
+dasar” dikali jumlah transformasi itu. Dalam <span
+class="math inline">\(d\)</span> dimensi ada <span
+class="math inline">\(2^d\)</span> pencerminan dan <span
+class="math inline">\(d!\)</span> permutasi. Untuk <span
+class="math inline">\(d=8\)</span>, itu <span
+class="math inline">\(2^8\cdot8!\approx10^7\)</span> potongan yang
+identik. Sampel cukup ditarik dari satu potongan, yang volumenya
+sepersepuluh juta volume kubus, tanpa kehilangan informasi apa pun.</p>
+<p>Pelajaran yang sama berlaku untuk belajar, bukan hanya untuk
+integrasi. Model yang invarian terhadap sebuah grup tidak perlu melihat
+setiap versi yang ditransformasi dari setiap contoh, karena satu contoh
+sudah mewakili seluruh orbitnya. Augmentasi data mencoba mencapai hal
+yang sama dengan memperlihatkan versi-versi itu secara eksplisit.
+Arsitektur yang ekuivarian mencapainya dengan konstruksi, dan untuk grup
+yang besar, selisihnya bisa berorde jutaan, seperti contoh di atas.</p>
 <h2 id="skala-dan-cetak-biru">Skala dan cetak biru</h2>
 <p>Simetri saja belum cukup. Prior kedua adalah <em>scale
 separation</em>: banyak sinyal bisa dipahami secara bertingkat. Detail
@@ -446,14 +494,14 @@ ternyata adalah satu keluarga.</p>
 Molekul adalah graf atom, dan sifatnya tidak berubah kalau molekul
 diputar atau atom-atomnya dinomori ulang, sehingga jaringan graf dan
 jaringan ekuivarian menjadi standar dalam kimia komputasi (<a
-href="ch41_molekul.html">Bab 19</a>). AlphaFold menempatkan residu
+href="ch41_molekul.html">Bab 23</a>). AlphaFold menempatkan residu
 protein sebagai benda kaku di ruang dengan attention yang tidak peduli
-rotasi global (<a href="ch42_protein.html">Bab 20</a>). Awan titik lidar
+rotasi global (<a href="ch42_protein.html">Bab 24</a>). Awan titik lidar
 pada kendaraan otonom adalah himpunan tanpa urutan, dan PointNet adalah
-DeepSets untuk awan titik (<a href="ch33_robot.html">Bab 17</a>).
+DeepSets untuk awan titik (<a href="ch33_robot.html">Bab 21</a>).
 Pengguna dan item dalam sistem rekomendasi membentuk graf bipartit, dan
 message passing di atasnya menyebarkan selera (<a
-href="ch50_rekomendasi.html">Bab 30</a>).</p>
+href="ch50_rekomendasi.html">Bab 34</a>).</p>
 <p>Bagi simulasi, bab ini barangkali yang paling penting di Bagian II.
 Hukum fisika punya simetri: persamaan Navier–Stokes tidak berubah kalau
 sistem digeser atau diputar, dan gaya antar partikel tidak bergantung
@@ -464,7 +512,7 @@ translasi tiga dimensi, seperti EGNN <span class="citation"
 data-cites="satorras2021">(Satorras, Hoogeboom, dan Welling
 2021)</span>, membangunnya langsung ke dalam arsitektur.</p>
 <p>Mesh simulasi pada dasarnya adalah graf. Metode volume hingga, yang
-akan kita bahas di <a href="ch13_numerik_fluida.html">Bab 23</a>,
+akan kita bahas di <a href="ch13_numerik_fluida.html">Bab 27</a>,
 menghitung perubahan di setiap sel dari fluks yang melewati sisi-sisinya
 ke sel tetangga. Bentuknya persis message passing: setiap sel
 mengumpulkan “pesan” fluks dari tetangganya, lalu memperbarui
@@ -481,7 +529,7 @@ data-cites="brandstetter2022">(Brandstetter, Worrall, dan Welling
 <span class="citation" data-cites="lam2023">(Lam dkk. 2023)</span>
 membawa gagasan yang sama ke prakiraan cuaca global, dengan graf di atas
 mesh ikosahedral yang membungkus bumi. Semuanya dibahas lebih dalam di
-<a href="ch16_operator.html">Bab 26</a>.</p>
+<a href="ch16_operator.html">Bab 30</a>.</p>
 <p>Laplacian graf juga punya makna fisik yang langsung. Persamaan difusi
 panas pada graf, <span
 class="math inline">\(\dot{\boldsymbol{x}}=-\kappa\boldsymbol
@@ -493,6 +541,34 @@ adalah satu lapisan message passing dengan bobot yang sudah ditentukan.
 Pandangan ini juga menjelaskan gejala <em>oversmoothing</em> pada
 jaringan graf yang terlalu dalam: seperti panas yang lama-lama merata,
 fitur semua simpul menjadi semakin mirip.</p>
+<h2 id="perkembangan-riset">Perkembangan riset</h2>
+<p>Di dunia atom dan molekul, jaringan ekuivarian kini menjadi alat
+standar. MACE <span class="citation" data-cites="batatia2022">(Batatia
+dkk. 2022)</span> memakai pesan dengan orde badan yang lebih tinggi:
+alih-alih hanya pasangan atom, setiap pesan sudah memuat interaksi
+sampai empat atom sekaligus. Dengan begitu, dua langkah message passing
+sudah cukup, sehingga model lebih cepat dan lebih mudah diparalelkan,
+dengan akurasi medan gaya yang setara atau lebih baik dari model
+sebelumnya. Equiformer <span class="citation"
+data-cites="liao2023equiformer">(Liao dan Smidt 2022)</span> membawa
+transformer ke graf atom tiga dimensi dengan mengganti operasi
+transformer dengan versi ekuivarian berbasis representasi tak tereduksi
+dan hasil kali tensor, sesuai teori grup di awal bab ini.</p>
+<p>Untuk graf umum, GraphGPS <span class="citation"
+data-cites="rampasek2022">(Rampášek dkk. 2022)</span> memisahkan dua
+mekanisme: message passing lokal di sepanjang sisi graf, dan attention
+global antar semua simpul, ditambah encoding posisi dan struktur.
+Pemisahan ini membuat biayanya linear terhadap jumlah simpul dan sisi,
+sekaligus menjadi salah satu jawaban atas masalah oversquashing, karena
+informasi bisa melompat lewat attention global. Geometric Algebra
+Transformer <span class="citation" data-cites="brehmer2023">(Brehmer
+dkk. 2023)</span> mewakili titik, arah, translasi, dan rotasi sebagai
+elemen aljabar Clifford proyektif berdimensi 16, sehingga satu
+arsitektur ekuivarian terhadap E(3) bisa menangani banyak jenis objek
+geometris. Contoh penerapannya mencakup simulasi banyak benda,
+perencanaan gerak robot, dan estimasi tegangan geser dinding pada mesh
+arteri, sebuah masalah aliran darah yang menyambung langsung ke <a
+href="ch16_operator.html">Bab 30</a>.</p>
 <h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti kuliah Deep Learning: Geometric Techniques, yang
 memakai materi kursus Geometric Deep Learning dari Oxford dan daftar
@@ -510,6 +586,13 @@ Neural Networks and its Practical Implications.”</span>
 arXiv:2006.05205. <a
 href="https://arxiv.org/abs/2006.05205">https://arxiv.org/abs/2006.05205</a>.
 </div>
+<div id="ref-batatia2022" class="csl-entry" role="listitem">
+Batatia, Ilyes, Dávid Péter Kovács, Gregor N. C. Simm, Christoph Ortner,
+dan Gábor Csányi. 2022. <span>“MACE: Higher Order Equivariant Message
+Passing Neural Networks for Fast and Accurate Force Fields.”</span>
+arXiv:2206.07697. <a
+href="https://arxiv.org/abs/2206.07697">https://arxiv.org/abs/2206.07697</a>.
+</div>
 <div id="ref-battaglia2018" class="csl-entry" role="listitem">
 Battaglia, Peter W., Jessica B. Hamrick, Victor Bapst, Alvaro
 Sanchez-Gonzalez, Vinicius Zambaldi, Mateusz Malinowski, Andrea
@@ -521,6 +604,11 @@ href="https://arxiv.org/abs/1806.01261">https://arxiv.org/abs/1806.01261</a>.
 Brandstetter, Johannes, Daniel Worrall, dan Max Welling. 2022.
 <span>“Message Passing Neural PDE Solvers.”</span> arXiv:2202.03376. <a
 href="https://arxiv.org/abs/2202.03376">https://arxiv.org/abs/2202.03376</a>.
+</div>
+<div id="ref-brehmer2023" class="csl-entry" role="listitem">
+Brehmer, Johann, Pim de Haan, Sönke Behrends, dan Taco Cohen. 2023.
+<span>“Geometric Algebra Transformer.”</span> arXiv:2305.18415. <a
+href="https://arxiv.org/abs/2305.18415">https://arxiv.org/abs/2305.18415</a>.
 </div>
 <div id="ref-bronstein2021" class="csl-entry" role="listitem">
 Bronstein, Michael M., Joan Bruna, Taco Cohen, dan Petar Veličković.
@@ -577,6 +665,12 @@ skillful medium-range global weather forecasting.”</span>
 <em>Science</em> 382 (6677): 1416–21. <a
 href="https://doi.org/10.1126/science.adi2336">https://doi.org/10.1126/science.adi2336</a>.
 </div>
+<div id="ref-liao2023equiformer" class="csl-entry" role="listitem">
+Liao, Yi-Lun, dan Tess Smidt. 2022. <span>“Equiformer: Equivariant Graph
+Attention Transformer for 3D Atomistic Graphs.”</span> arXiv:2206.11990.
+<a
+href="https://arxiv.org/abs/2206.11990">https://arxiv.org/abs/2206.11990</a>.
+</div>
 <div id="ref-mallat2012" class="csl-entry" role="listitem">
 Mallat, Stéphane. 2012. <span>“Group Invariant Scattering.”</span>
 <em>Communications on Pure and Applied Mathematics</em> 65 (10):
@@ -595,6 +689,12 @@ Pfaff, Tobias, Meire Fortunato, Alvaro Sanchez-Gonzalez, dan Peter W.
 Battaglia. 2020. <span>“Learning Mesh-Based Simulation with Graph
 Networks.”</span> arXiv:2010.03409. <a
 href="https://arxiv.org/abs/2010.03409">https://arxiv.org/abs/2010.03409</a>.
+</div>
+<div id="ref-rampasek2022" class="csl-entry" role="listitem">
+Rampášek, Ladislav, Mikhail Galkin, Vijay Prakash Dwivedi, Anh Tuan Luu,
+Guy Wolf, dan Dominique Beaini. 2022. <span>“Recipe for a General,
+Powerful, Scalable Graph Transformer.”</span> arXiv:2205.12454. <a
+href="https://arxiv.org/abs/2205.12454">https://arxiv.org/abs/2205.12454</a>.
 </div>
 <div id="ref-sanchez2020" class="csl-entry" role="listitem">
 Sanchez-Gonzalez, Alvaro, Jonathan Godwin, Tobias Pfaff, Rex Ying, Jure

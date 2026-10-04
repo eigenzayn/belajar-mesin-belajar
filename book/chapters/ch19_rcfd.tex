@@ -28,7 +28,25 @@ dengan dirinya sendiri. Kalau aliran periodik sempurna, garis-garis gelap sejaja
 jarak satu periode. Pada aliran turbulen, polanya lebih kabur, tetapi tetap ada daerah-daerah di luar
 diagonal dengan nilai kecil: pasangan bingkai yang berjauhan dalam waktu tetapi mirip satu sama lain.
 Dalam bahasa machine learning, $\bm R$ adalah matriks jarak antar sampel, dan pasangan dengan jarak kecil
-adalah tetangga terdekat di ruang keadaan aliran.
+adalah tetangga terdekat di ruang keadaan aliran. \Cref{fig:recurrence} memperlihatkan bentuk khas matriks ini
+untuk aliran yang hampir periodik.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=0.5\linewidth,height=0.5\linewidth,view={0}{90},axis on top,xmin=0,xmax=60,ymin=0,ymax=60,
+  xlabel={\small bingkai $i$},ylabel={\small bingkai $j$},xtick={0,20,40,60},ytick={0,20,40,60},
+  colormap={abu}{color=(biru!85!black) color=(biru!25) color=(pasir!40)},y dir=reverse,
+  colorbar,colorbar style={width=2.5mm,ytick={0,1},ylabel={\small $R_{ij}$}}]
+  \addplot3[surf,shader=interp,samples=61,domain=0:60,y domain=0:60]
+    {min(1,abs(sin(deg(pi*(x-y)/20)))*(1+0.004*abs(x-y)))};
+\end{axis}
+\end{tikzpicture}
+\caption{Bentuk recurrence matrix untuk aliran yang hampir periodik dengan periode sekitar dua puluh bingkai (ilustrasi).
+Garis gelap di diagonal dan sejajar diagonal menandai pasangan bingkai yang mirip, kandidat tempat melompat saat
+menjahit aliran.}
+\label{fig:recurrence}
+\end{figure}
 
 \section{rCFD berbasis aliran}
 
@@ -68,13 +86,47 @@ langkah, maka
 c_j^{\mathrm{baru}}=\sum_iP_{ji}\,c_i.
 \end{equation}
 Massa total kekal tepat ketika setiap kolom $\bm P$ berjumlah satu, $\sum_jP_{ji}=1$: semua isi sel $i$
-pergi ke suatu tempat, tidak ada yang hilang dan tidak ada yang muncul. Pembaca yang ingat \cref{ch:penemuan}
+pergi ke suatu tempat, tidak ada yang hilang dan tidak ada yang muncul. Buktinya satu baris: jumlah semua $c_j^{\mathrm{baru}}$
+adalah $\sum_i c_i\sum_jP_{ji}=\sum_ic_i$.
+
+Contoh tiga sel di sebuah saluran tertutup membuatnya konkret. Aliran membawa isi dari sel pertama ke sel kedua dan
+dari sel kedua ke sel ketiga, dan sel ketiga adalah ujung buntu:
+\begin{equation}
+\bm P=\begin{pmatrix}0{,}7&0&0\\0{,}3&0{,}6&0\\0&0{,}4&1\end{pmatrix}.
+\end{equation}
+Setiap kolom berjumlah satu. Mulai dengan seluruh zat di sel pertama, $\bm c=(1,0,0)$. Setelah satu langkah
+$\bm c=(0{,}7;\ 0{,}3;\ 0)$, setelah dua langkah $(0{,}49;\ 0{,}39;\ 0{,}12)$, dan jumlahnya tetap satu. Sekarang bayangkan
+kolom pertama hanya berjumlah $0{,}98$ karena dua bingkai yang dijahit tidak cocok sempurna. Zat yang melewati sel itu
+kehilangan dua persen setiap kali, dan setelah seratus langkah, $0{,}98^{100}\approx0{,}13$. Galat yang tampak kecil
+dalam satu langkah menghabiskan hampir seluruh zat dalam simulasi panjang. Inilah bentuk kegagalan pertama di bawah,
+dan juga alasan mengapa kekekalan harus dijaga secara struktural, bukan diharapkan muncul sendiri. Pembaca yang ingat \cref{ch:penemuan}
 akan mengenali bahwa matriks seperti ini adalah versi diskret dari operator transfer, saudara operator
 Koopman, yang memajukan distribusi alih-alih memajukan pengamatan.
 
-Hasilnya mencengangkan. Untuk simulasi pencampuran di sebuah ladle baja, slide kuliah membandingkan CFD
+Selisih kecepatannya besar sekali. Untuk simulasi pencampuran di sebuah ladle baja, slide kuliah membandingkan CFD
 penuh yang membutuhkan 26 jam dengan rCFD berbasis transport yang selesai dalam 1,6 detik pada perangkat
 keras yang sama, dengan histogram konsentrasi yang cocok di beberapa titik waktu.
+
+\section{Memilih lompatan dan menilai hasil}
+
+Penjahitan aliran membutuhkan dua keputusan praktis. Pertama, kapan melompat. Kalau lompatan dilakukan terlalu sering,
+aliran yang dijahit kehilangan kontinuitas waktu, dan struktur yang seharusnya terbawa beberapa langkah terputus di
+tengah jalan. Kalau terlalu jarang, basis data dimainkan ulang hampir apa adanya, dan statistik jangka panjangnya hanya
+sebaik panjang rekaman. Biasanya rekaman dimainkan selama beberapa bingkai berturut-turut, lalu lompatan dilakukan ke salah
+satu dari beberapa kandidat terdekat menurut recurrence matrix, dipilih secara acak agar urutan yang dijahit tidak berputar
+di lingkaran yang sama.
+
+Kedua, berapa jauh boleh melompat. Ambang kemiripan yang ketat menjamin sambungan yang mulus tetapi mempersempit pilihan,
+sedangkan ambang longgar memberi banyak pilihan dengan sambungan yang lebih kasar. Masalah ini mirip dengan pemilihan $k$
+pada $k$-nearest neighbour di \cref{ch:unsup}, dan jawabannya juga mirip: tidak ada angka yang benar untuk semua kasus,
+sehingga pengaruhnya harus diuji.
+
+Menilai hasil rCFD juga butuh hati-hati. Karena aliran yang dijahit tidak pernah identik dengan aliran asli bingkai demi
+bingkai, membandingkan medan sesaat tidak adil, alasan yang sama dengan evaluasi rollout di \cref{ch:operator}. Yang
+dibandingkan adalah besaran yang dipedulikan: kurva konsentrasi atau temperatur di titik-titik pemantauan, waktu yang
+dibutuhkan untuk mencapai keadaan tercampur, dan distribusi besaran di seluruh domain. Neraca global, seperti total massa
+atau energi, menjadi pemeriksaan pertama yang murah, karena galat neraca yang tumbuh adalah tanda paling awal bahwa
+sesuatu di dalam matriks pemindahan tidak beres.
 
 \section{Tiga kegagalan berani dan koreksinya}
 
@@ -145,6 +197,17 @@ dirinya, itu justru jaminan: hasilnya tidak akan berhalusinasi. Untuk aliran yan
 operasinya, dibutuhkan basis data dengan banyak keadaan dan cara memilih di antaranya, persis pertanyaan
 yang diangkat kuliah tentang proses nyata yang punya lebih dari satu keadaan operasi. Di sinilah rCFD dan model pengganti berbasis jaringan saraf,
 seperti yang disinggung di slide terakhir kuliah, mungkin akan saling melengkapi.
+
+\section{Perkembangan riset}
+
+Riset rCFD terus berjalan setelah kuliah. Beberapa publikasi terbaru memperlihatkan arah-arahnya. \citet{hoorijani2024}
+mengusulkan rCFD daring, yang menjalankan analisis pengulangan sambil simulasi berjalan, untuk aliran multifase.
+\citet{pirker2025seg} menerapkan CFD-DEM dan rCFD pada segregasi ukuran partikel di unggun terfluidisasi gas--padat dengan
+dua dan lima ukuran partikel. \citet{lumetzberger2025} mengusulkan aproksimasi momen-propagator untuk transport spesies dalam
+aliran turbulen, sebuah cara lain merumuskan langkah transport rCFD. \citet{shariatifar2026} menilai akurasi rCFD untuk
+sistem aliran kontinu, dan \citet{shaik2026} membandingkan simulasi CFD-DEM sebuah unggun terfluidisasi bergelembung dengan
+pengukuran MRI sebelum memakai rCFD untuk ekstrapolasi waktu. Arah-arah ini sejalan dengan tiga kegagalan di bab ini:
+menjaga neraca, memperhalus difusi, dan memperluas rCFD ke aliran yang tidak periodik sempurna.
 
 \sumberbab{Bab ini mengikuti pertemuan tentang recurrence CFD dalam kuliah Numerical Methods in Fluid
 Mechanics dan pengalaman selama tugas akhir. Makalah utamanya: \citet{lichtenegger2016} untuk rCFD

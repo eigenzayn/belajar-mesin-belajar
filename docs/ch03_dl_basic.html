@@ -17,7 +17,7 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 5</p>
+<p class="chapnum">Bab 7</p>
 <h1>Deep Learning: Teknik Dasar</h1>
 <p><span id="ch:dlbasic" data-label="ch:dlbasic"></span></p>
 <p>Ini kuliah deep learning pertama saya di Linz, pada semester musim
@@ -79,6 +79,32 @@ Padahal <span class="math inline">\((1,1)\)</span> berlabel nol,
 sehingga seharusnya <span class="math inline">\(w_1+w_2+b&lt;0\)</span>.
 Kontradiksi. Satu lapisan tersembunyi dengan dua neuron sudah cukup
 untuk menyelesaikannya.</p>
+<p>Untuk data yang memang bisa dipisahkan garis, aturan belajar
+perceptron <span class="citation"
+data-cites="rosenblatt1958">(Rosenblatt 1958)</span> sederhana: setiap
+kali sebuah contoh <span
+class="math inline">\((\boldsymbol{x},y)\)</span> dengan <span
+class="math inline">\(y\in\{-1,+1\}\)</span> salah diklasifikasikan,
+tambahkan <span class="math inline">\(y\boldsymbol{x}\)</span> ke vektor
+bobot. Teorema konvergensi perceptron, yang dibuktikan di naskah kuliah,
+menjamin bahwa aturan ini berhenti setelah jumlah kesalahan yang
+terbatas. Kalau semua input punya norma paling besar <span
+class="math inline">\(R\)</span> dan ada pemisah dengan margin <span
+class="math inline">\(\gamma\)</span>, jumlah koreksinya paling banyak
+<span class="math inline">\((R/\gamma)^2\)</span>. Ide pembuktiannya:
+setiap koreksi menaikkan hasil kali dalam bobot dengan pemisah ideal
+paling sedikit <span class="math inline">\(\gamma\)</span>, sedangkan
+kuadrat norma bobot hanya naik paling banyak <span
+class="math inline">\(R^2\)</span>, sehingga setelah <span
+class="math inline">\(k\)</span> koreksi, <span
+class="math inline">\(k\gamma\le\|\boldsymbol{w}\|\le R\sqrt k\)</span>,
+yang hanya mungkin kalau <span
+class="math inline">\(k\le(R/\gamma)^2\)</span>. Dengan <span
+class="math inline">\(R=2\)</span> dan <span
+class="math inline">\(\gamma=0{,}5\)</span>, paling banyak 16 koreksi.
+Margin yang tipis berarti belajar yang lama, gagasan margin yang juga
+menjadi inti support vector machine di <a
+href="ch02c_unsupervised.html">Bab 6</a>.</p>
 <p>Jaringan <em>feed-forward</em> dengan <span
 class="math inline">\(L\)</span> lapisan menumpuk transformasi yang sama
 berkali-kali. Dengan notasi kuliah, <span
@@ -180,7 +206,7 @@ eksak, tanpa grid dan tanpa beda hingga. Kemampuan sederhana inilah yang
 membuat PINN mungkin: residu persamaan panas <span
 class="math inline">\(\partial_tu-\kappa\,\partial_{xx}u\)</span> bisa
 dihitung langsung di titik mana pun (<a href="ch15_pinn.html">Bab
-25</a>).</p>
+29</a>).</p>
 <p>Kuliah juga memperkenalkan dua objek turunan yang lebih umum.
 Jacobian <span class="math inline">\(\boldsymbol
 J=\partial\hat{\boldsymbol{y}}/\partial\boldsymbol{x}\)</span> mengukur
@@ -189,9 +215,43 @@ dasarnya mengalikan Jacobian lapisan-lapisan dari kanan ke kiri dengan
 sebuah vektor. Hessian <span class="math inline">\(\boldsymbol
 H=\partial^2\mathcal{L}/\partial\boldsymbol{w}\partial\boldsymbol{w}^\top\)</span>
 mengukur kelengkungan loss dan menentukan condition number masalah
-optimasi (<a href="ch02_optimasi.html">Bab 2</a>). Hasil kali Hessian
+optimasi (<a href="ch02_optimasi.html">Bab 4</a>). Hasil kali Hessian
 dengan sebuah vektor bisa dihitung tanpa pernah membentuk Hessian, cukup
 dengan dua lintasan autodiff.</p>
+<h3 id="backpropagation-dengan-angka">Backpropagation dengan angka</h3>
+<p>Satu lintasan maju dan mundur pada jaringan sekecil mungkin membuat
+rumus-rumus di atas terasa nyata. Ambil satu input <span
+class="math inline">\(x=1\)</span>, satu neuron tersembunyi dengan bobot
+<span class="math inline">\(w_1=0{,}5\)</span> dan aktivasi ReLU, satu
+keluaran linear dengan bobot <span class="math inline">\(w_2=2\)</span>,
+target <span class="math inline">\(y=2\)</span>, dan loss <span
+class="math inline">\(\tfrac12(\hat y-y)^2\)</span>. Lintasan maju:
+<span class="math inline">\(s_1=w_1x=0{,}5\)</span>, <span
+class="math inline">\(h=\mathrm{ReLU}(0{,}5)=0{,}5\)</span>, <span
+class="math inline">\(\hat y=w_2h=1\)</span>, dan loss <span
+class="math inline">\(\tfrac12(1-2)^2=0{,}5\)</span>.</p>
+<p>Lintasan mundur dimulai dari keluaran. Turunan loss terhadap <span
+class="math inline">\(\hat y\)</span> adalah <span
+class="math inline">\(\hat y-y=-1\)</span>. Karena <span
+class="math inline">\(\hat y=w_2h\)</span>, gradien untuk <span
+class="math inline">\(w_2\)</span> adalah <span
+class="math inline">\(-1\cdot h=-0{,}5\)</span>, dan delta yang dikirim
+ke neuron tersembunyi adalah <span class="math inline">\(-1\cdot
+w_2=-2\)</span>. ReLU meneruskan delta tanpa perubahan karena <span
+class="math inline">\(s_1&gt;0\)</span>, sehingga gradien untuk <span
+class="math inline">\(w_1\)</span> adalah <span
+class="math inline">\(-2\cdot x=-2\)</span>. Dengan laju belajar <span
+class="math inline">\(0{,}1\)</span>, bobot baru menjadi <span
+class="math inline">\(w_2=2{,}05\)</span> dan <span
+class="math inline">\(w_1=0{,}7\)</span>. Lintasan maju berikutnya
+memberi <span class="math inline">\(\hat
+y=2{,}05\cdot0{,}7\approx1{,}44\)</span>, lebih dekat ke target.
+Perhatikan bahwa <span class="math inline">\(w_1\)</span> mendapat
+gradien empat kali lebih besar dari <span
+class="math inline">\(w_2\)</span>, karena ia dikalikan bobot keluaran
+yang besar. Ketidakseimbangan skala seperti ini, yang menumpuk di
+jaringan dalam, adalah alasan inisialisasi dan normalisasi di bagian
+berikut begitu penting.</p>
 <h2 id="fungsi-aktivasi">Fungsi aktivasi</h2>
 <p>Sigmoid dan tanh adalah fungsi aktivasi klasik, tetapi keduanya jenuh
 di kedua sisi: untuk input yang besar, turunannya hampir nol, dan
@@ -325,6 +385,28 @@ yang kurang penting (<em>pruning</em>), serta pencarian eksplisit akan
 minimum yang datar <span class="citation"
 data-cites="hochreiter1997flat">(Hochreiter dan Schmidhuber
 1997)</span>.</p>
+<p>Bobot mana yang aman dibuang? Jawaban naif adalah bobot yang paling
+kecil. Naskah kuliah membahas jawaban yang lebih teliti dari metode
+<em>Optimal Brain Damage</em>. Di sekitar minimum, gradien nol, sehingga
+ekspansi Taylor orde dua (Lampiran B) menyatakan bahwa menghapus bobot
+<span class="math inline">\(w_i\)</span>, yaitu mengubahnya sebesar
+<span class="math inline">\(-w_i\)</span>, menaikkan loss kira-kira
+sebesar <span
+class="math display">\[s_i=\tfrac12\,h_{ii}\,w_i^2,\]</span> dengan
+<span class="math inline">\(h_{ii}\)</span> elemen diagonal Hessian.
+Bobot <span class="math inline">\(w=0{,}1\)</span> di arah yang
+melengkung, <span class="math inline">\(h=50\)</span>, punya saliency
+<span class="math inline">\(0{,}25\)</span>. Bobot <span
+class="math inline">\(w=1\)</span> di arah yang hampir datar, <span
+class="math inline">\(h=0{,}1\)</span>, hanya <span
+class="math inline">\(0{,}05\)</span>. Bobot yang <em>lebih besar</em>
+justru lebih aman dibuang, karena loss hampir tidak peduli pada arah
+itu. <em>Optimal Brain Surgeon</em> memakai Hessian penuh dan sekaligus
+menghitung bagaimana bobot-bobot lain harus digeser untuk menutupi bobot
+yang dibuang. Gagasan kelengkungan yang sama menghubungkan pruning
+dengan minimum datar: bobot di arah yang datar bisa diubah tanpa
+merugikan, sehingga bisa disimpan dengan presisi rendah atau dibuang
+sama sekali.</p>
 <p>Dua kesalahan praktis sering terjadi di sini. Yang pertama adalah
 lupa mematikan dropout dan lupa memakai statistik batch norm hasil
 pelatihan saat evaluasi. Di PyTorch, inilah beda antara
@@ -333,6 +415,55 @@ adalah augmentasi yang diam-diam mengubah label. Membalik angka 6 bisa
 menjadikannya 9. Pada data fisika, memutar medan kecepatan tanpa ikut
 memutar arah vektor-vektor kecepatannya juga menghasilkan data yang
 salah.</p>
+<p>Ada detail kecil dalam dropout yang sering membingungkan. Kalau
+setiap neuron dimatikan dengan peluang <span
+class="math inline">\(p\)</span>, nilai harapan keluarannya selama
+pelatihan hanya <span class="math inline">\((1-p)\)</span> kali nilai
+aslinya. Saat inferensi semua neuron aktif, sehingga lapisan berikutnya
+akan menerima input yang lebih besar dari yang biasa ia lihat.
+Implementasi modern memakai <em>inverted dropout</em>: selama pelatihan,
+neuron yang selamat dikalikan <span
+class="math inline">\(1/(1-p)\)</span>. Dengan <span
+class="math inline">\(p=0{,}5\)</span>, neuron yang tidak dimatikan
+dikali dua, sehingga nilai harapannya tetap sama dengan aslinya, dan
+saat inferensi tidak perlu ada penskalaan sama sekali.</p>
+<h2 id="normalisasi-dan-sambungan-residual">Normalisasi dan sambungan
+residual</h2>
+<p>Batch normalization <span class="citation"
+data-cites="ioffe2015">(Ioffe dan Szegedy 2015)</span> menstandarkan
+setiap fitur dengan statistik mini-batch, lalu mengembalikan skala dan
+geser yang dipelajari: <span class="math display">\[\hat
+x=\frac{x-\mu_{\mathcal B}}{\sqrt{\sigma^2_{\mathcal
+B}+\epsilon}},\qquad y=\gamma\hat x+\beta .\]</span> Untuk mini-batch
+dengan nilai <span class="math inline">\((1,2,3,6)\)</span>,
+rata-ratanya <span class="math inline">\(3\)</span>, variansnya <span
+class="math inline">\(3{,}5\)</span>, dan nilai yang distandarkan
+sekitar <span class="math inline">\((-1{,}07;-0{,}53;0;1{,}60)\)</span>.
+Parameter <span class="math inline">\(\gamma\)</span> dan <span
+class="math inline">\(\beta\)</span> memastikan jaringan tetap bisa
+mewakili fungsi yang sama seperti tanpa normalisasi kalau itu memang
+yang terbaik. Saat inferensi, statistik batch diganti rata-rata bergerak
+dari pelatihan, sumber kesalahan <code>model.eval()</code> yang disebut
+di atas. Layer normalization menghitung statistik yang sama di sepanjang
+fitur untuk setiap contoh, bukan di sepanjang batch, sehingga tidak
+bergantung pada ukuran batch dan menjadi pilihan standar di
+transformer.</p>
+<p>Sambungan residual <span class="citation" data-cites="he2016">(He
+dkk. 2016)</span> menulis keluaran sebuah blok sebagai <span
+class="math inline">\(\boldsymbol{h}_{l+1}=\boldsymbol{h}_l+F(\boldsymbol{h}_l)\)</span>.
+Turunannya terhadap input blok adalah <span
+class="math inline">\(\boldsymbol I+\partial
+F/\partial\boldsymbol{h}_l\)</span>. Melewati <span
+class="math inline">\(L\)</span> blok, delta dikalikan dengan hasil kali
+faktor-faktor seperti ini, dan suku identitas memastikan selalu ada
+jalur yang dilewati gradien tanpa diperkecil. Itulah gagasan constant
+error carousel dari LSTM (<a href="ch04_lstm_transformer.html">Bab
+9</a>), kali ini di sepanjang kedalaman, bukan di sepanjang waktu. Blok
+residual juga bisa dibaca sebagai satu langkah Euler dari persamaan
+diferensial <span
+class="math inline">\(\dot{\boldsymbol{h}}=F(\boldsymbol{h})\)</span>,
+sudut pandang yang melahirkan neural ODE di <a
+href="ch09_ml_advanced.html">Bab 15</a>.</p>
 <h2 id="jaringan-konvolusi">Jaringan konvolusi</h2>
 <p>Gambar berukuran <span class="math inline">\(256\times256\)</span>
 dengan tiga kanal punya hampir dua ratus ribu input. Lapisan
@@ -399,7 +530,7 @@ terhadap kernel adalah korelasi antara input dan delta yang dijumlahkan
 atas semua posisi, karena kernel yang sama dipakai di mana-mana.
 Transposed convolution juga dipakai sebagai lapisan untuk memperbesar
 resolusi, misalnya di bagian decoder U-Net (<a
-href="ch06_arsitektur_generatif.html">Bab 8</a>).</p>
+href="ch06_arsitektur_generatif.html">Bab 12</a>).</p>
 <p>Sifat terpenting konvolusi adalah ini: kalau input digeser,
 keluarannya ikut bergeser dengan cara yang sama. Untuk operator geser
 <span class="math inline">\(T\)</span>, berlaku <span
@@ -407,7 +538,7 @@ class="math inline">\((T\boldsymbol a)\ast\boldsymbol k=T(\boldsymbol
 a\ast\boldsymbol k)\)</span>. Sifat ini disebut <em>translation
 equivariance</em>. Pooling global di ujung jaringan mengubahnya menjadi
 <em>invariance</em>: label tidak berubah kalau objeknya digeser. <a
-href="ch07_geometric.html">Bab 9</a> akan menunjukkan bahwa konvolusi
+href="ch07_geometric.html">Bab 13</a> akan menunjukkan bahwa konvolusi
 adalah satu-satunya operator linear yang punya sifat ini, lalu
 menggeneralisasikannya ke rotasi, permutasi, dan graf.</p>
 <h2 id="konvolusi-di-mana-mana">Konvolusi di mana-mana</h2>
@@ -415,14 +546,14 @@ menggeneralisasikannya ke rotasi, permutasi, dan graf.</p>
 bidang di buku ini punya versinya sendiri. Dalam pemrosesan sinyal,
 filter FIR yang meratakan atau menajamkan sinyal adalah konvolusi satu
 dimensi dengan kernel yang dirancang insinyur (<a
-href="ch30_sinyal.html">Bab 14</a>). Dalam pengolahan citra klasik,
+href="ch30_sinyal.html">Bab 18</a>). Dalam pengolahan citra klasik,
 filter Gauss dan Sobel adalah kernel yang dirancang dengan tangan (<a
-href="ch05_computer_vision.html">Bab 7</a>). Dalam genomik, jaringan
+href="ch05_computer_vision.html">Bab 11</a>). Dalam genomik, jaringan
 konvolusi satu dimensi yang digeser sepanjang urutan DNA mempelajari
 motif pendek tempat protein menempel, persis seperti kaca pembesar yang
-mencari tanda tangan (<a href="ch40_genomik.html">Bab 18</a>). Dalam
+mencari tanda tangan (<a href="ch40_genomik.html">Bab 22</a>). Dalam
 sensor yang dikenakan, konvolusi pada sinyal akselerometer mempelajari
-pola gerak (<a href="ch32_pervasif.html">Bab 16</a>).</p>
+pola gerak (<a href="ch32_pervasif.html">Bab 20</a>).</p>
 <p>Dalam simulasi, hubungannya langsung terasa bagi siapa pun yang
 pernah menulis solver numerik. Kernel <span
 class="math display">\[\boldsymbol
@@ -437,8 +568,33 @@ konvolusi yang dilatih pada data simulasi bisa dipandang sebagai solver
 yang mempelajari stensilnya sendiri. Pandangan ini menjelaskan mengapa
 CNN dan U-Net menjadi pilihan pertama untuk model pengganti pada grid
 teratur, dan mengapa mesh yang tidak teratur membutuhkan jaringan graf
-(<a href="ch07_geometric.html">Bab 9</a> dan <a
-href="ch16_operator.html">Bab 26</a>).</p>
+(<a href="ch07_geometric.html">Bab 13</a> dan <a
+href="ch16_operator.html">Bab 30</a>).</p>
+<h2 id="perkembangan-riset">Perkembangan riset</h2>
+<p>Bahkan blok paling dasar di bab ini masih dipertanyakan.
+Kolmogorov–Arnold Networks <span class="citation"
+data-cites="liu2024kan">(Liu dkk. 2024)</span> terinspirasi oleh teorema
+representasi Kolmogorov–Arnold, yang menyatakan bahwa fungsi kontinu
+banyak variabel bisa ditulis sebagai jumlah dan komposisi fungsi satu
+variabel. Alih-alih bobot linear di sisi dan aktivasi tetap di simpul,
+KAN memasang fungsi aktivasi yang dipelajari, berupa spline, di setiap
+sisi, dan tidak punya bobot linear sama sekali. Pada masalah fitting
+data dan PDE yang kecil, KAN yang jauh lebih kecil dilaporkan setara
+atau lebih akurat dari MLP yang lebih besar, dan fungsi-fungsi di
+sisinya bisa divisualisasikan, bahkan diganti rumus simbolik. Apakah
+keunggulan ini bertahan pada skala besar masih diperdebatkan.</p>
+<p>Masalah praktis lain adalah inisialisasi dan laju belajar ketika
+lebar jaringan berubah. Analisis varians di bab ini menjaga sinyal maju
+dan mundur tetap hidup. <span class="citation"
+data-cites="yang2022mup">Yang dkk. (2022)</span> melangkah lebih jauh
+dengan Maximal Update Parametrization: skala inisialisasi dan laju
+belajar setiap lapisan diatur sedemikian rupa sehingga besarnya
+pembaruan fitur tidak bergantung pada lebar. Akibatnya, hyperparameter
+terbaik dari model kecil bisa dipindahkan langsung ke model besar tanpa
+penyetelan ulang. Mereka melaporkan bahwa hyperparameter dari model 40
+juta parameter, dipindahkan ke model 6,7 miliar parameter, mengungguli
+angka yang dipublikasikan untuk GPT-3 berukuran sama, dengan biaya
+penyetelan hanya sekitar tujuh persen dari biaya pretraining.</p>
 <h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti naskah kuliah Deep Learning and Neural Nets I, yang
 kini bernama Deep Learning: Basic Techniques: sejarah, notasi,
@@ -473,6 +629,12 @@ He, Kaiming, Xiangyu Zhang, Shaoqing Ren, dan Jian Sun. 2015.
 <span>“Delving Deep into Rectifiers: Surpassing Human-Level Performance
 on ImageNet Classification.”</span> arXiv:1502.01852. <a
 href="https://arxiv.org/abs/1502.01852">https://arxiv.org/abs/1502.01852</a>.
+</div>
+<div id="ref-he2016" class="csl-entry" role="listitem">
+———. 2016. <span>“Deep Residual Learning for Image Recognition.”</span>
+Dalam <em>2016 IEEE Conference on Computer Vision and Pattern
+Recognition (CVPR)</em>, 770–78. <a
+href="https://doi.org/10.1109/CVPR.2016.90">https://doi.org/10.1109/CVPR.2016.90</a>.
 </div>
 <div id="ref-hinton2012" class="csl-entry" role="listitem">
 Hinton, Geoffrey E., Nitish Srivastava, Alex Krizhevsky, Ilya Sutskever,
@@ -521,6 +683,12 @@ Lecun, Y., L. Bottou, Y. Bengio, dan P. Haffner. 1998.
 <em>Proceedings of the IEEE</em> 86 (11): 2278–2324. <a
 href="https://doi.org/10.1109/5.726791">https://doi.org/10.1109/5.726791</a>.
 </div>
+<div id="ref-liu2024kan" class="csl-entry" role="listitem">
+Liu, Ziming, Yixuan Wang, Sachin Vaidya, Fabian Ruehle, James Halverson,
+Marin Soljačić, Thomas Y. Hou, dan Max Tegmark. 2024. <span>“KAN:
+Kolmogorov-Arnold Networks.”</span> arXiv:2404.19756. <a
+href="https://arxiv.org/abs/2404.19756">https://arxiv.org/abs/2404.19756</a>.
+</div>
 <div id="ref-mcculloch1943" class="csl-entry" role="listitem">
 McCulloch, Warren S., dan Walter Pitts. 1943. <span>“A logical calculus
 of the ideas immanent in nervous activity.”</span> <em>The Bulletin of
@@ -548,11 +716,18 @@ Schmidhuber, Jürgen. 2015. <span>“Deep learning in neural networks: An
 overview.”</span> <em>Neural Networks</em> 61: 85–117. <a
 href="https://doi.org/10.1016/j.neunet.2014.09.003">https://doi.org/10.1016/j.neunet.2014.09.003</a>.
 </div>
+<div id="ref-yang2022mup" class="csl-entry" role="listitem">
+Yang, Greg, Edward J. Hu, Igor Babuschkin, Szymon Sidor, Xiaodong Liu,
+David Farhi, Nick Ryder, Jakub Pachocki, Weizhu Chen, dan Jianfeng Gao.
+2022. <span>“Tensor Programs V: Tuning Large Neural Networks via
+Zero-Shot Hyperparameter Transfer.”</span> arXiv:2203.03466. <a
+href="https://arxiv.org/abs/2203.03466">https://arxiv.org/abs/2203.03466</a>.
+</div>
 </div>
 </main>
 <nav class="pager">
   <a class="prev" href="ch02c_unsupervised.html"><span>Sebelumnya</span>Belajar Tanpa Label</a>
-  <a class="next" href="ch04_lstm_transformer.html"><span>Berikutnya</span>Mengingat: dari RNN ke LSTM dan Transformer</a>
+  <a class="next" href="ch03b_praktik.html"><span>Berikutnya</span>Deep Learning dalam Praktik</a>
 </nav>
 <footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
 </body>

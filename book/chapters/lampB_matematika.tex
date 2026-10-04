@@ -1,0 +1,136 @@
+\chapter{Bekal Matematika}
+\label[appendix]{lamp:matematika}
+
+Lampiran ini mengumpulkan alat matematika yang dipakai berulang kali di buku ini. Ia bukan pengganti buku teks, tetapi
+cukup untuk mengikuti penurunan di bab-bab sebelumnya. Bab teori peluang dan lampiran notasi dalam naskah kuliah Machine
+Learning: Basic Techniques mengikuti susunan yang mirip, dan buku \citet{deisenroth2020} adalah bacaan lanjutan yang sangat
+cocok untuk tujuan yang sama.
+
+\section{Aljabar linear}
+
+\subsection{Vektor, matriks, dan hasil kali}
+
+Vektor ditulis tebal huruf kecil, $\vx\in\R^n$, dan dianggap kolom. Matriks ditulis tebal huruf besar, $\mA\in\R^{m\times n}$.
+Hasil kali matriks dan vektor, $\mA\vx$, bisa dibaca dengan dua cara. Sebagai baris: setiap komponen hasilnya adalah hasil kali
+dalam satu baris $\mA$ dengan $\vx$. Sebagai kolom: hasilnya adalah kombinasi linear kolom-kolom $\mA$ dengan bobot komponen
+$\vx$. Cara kedua lebih berguna untuk memahami regresi linear (\cref{ch:data}): prediksi selalu berada di ruang yang
+direntang kolom-kolom matriks fitur.
+
+Hasil kali dalam $\vx^\top\vy=\sum_ix_iy_i$ mengukur seberapa searah dua vektor, dan
+$\vx^\top\vy=\|\vx\|\,\|\vy\|\cos\theta$. Norma Euclides $\|\vx\|_2=\sqrt{\vx^\top\vx}$ adalah panjang biasa. Norma
+$\|\vx\|_1=\sum_i|x_i|$ menjumlahkan nilai mutlak, dan penalti dengan norma ini mendorong solusi yang jarang, seperti pada lasso.
+Untuk $\vx=(3,4)$, $\|\vx\|_2=5$ dan $\|\vx\|_1=7$.
+
+Hasil kali luar $\vx\vy^\top$ adalah matriks berpangkat satu. Kovarians sampel adalah rata-rata hasil kali luar dari
+simpangan-simpangan, $\tfrac1N\sum_i(\vx_i-\bar\vx)(\vx_i-\bar\vx)^\top$, dan ingatan matriks mLSTM di \cref{ch:lstm} adalah jumlah
+hasil kali luar value dan key.
+
+\subsection{Nilai eigen dan dekomposisi}
+
+Vektor eigen sebuah matriks persegi adalah arah yang tidak dibelokkan matriks itu, hanya diregangkan:
+$\mA\bm v=\lambda\bm v$. Nilai eigen dicari dari $\det(\mA-\lambda\bm I)=0$. Untuk $\mA=\begin{pmatrix}2&1\\1&2\end{pmatrix}$,
+persamaan karakteristiknya $(2-\lambda)^2-1=0$, sehingga $\lambda=3$ dan $\lambda=1$, dengan vektor eigen $(1,1)$ dan $(1,-1)$.
+Matriks simetris selalu punya nilai eigen real dan vektor eigen yang saling tegak lurus, sehingga bisa diuraikan sebagai
+$\mA=\bm Q\bm\Lambda\bm Q^\top$ dengan $\bm Q$ ortogonal. Dalam basis vektor eigen, matriks simetris hanya meregangkan setiap
+sumbu.
+
+Matriks simetris disebut definit positif kalau $\vx^\top\mA\vx>0$ untuk setiap $\vx\ne\bm0$, yang setara dengan semua nilai
+eigennya positif. Hessian yang definit positif menandai minimum (\cref{ch:optimasi}), dan matriks kovarians selalu
+semidefinit positif, karena $\vx^\top\bm\Sigma\vx$ adalah varians proyeksi data ke arah $\vx$, yang tidak mungkin negatif.
+
+Matriks sembarang, tidak harus persegi, punya dekomposisi nilai singular $\mA=\bm U\bm\Sigma\bm V^\top$. Kolom-kolom $\bm V$ adalah
+arah di ruang input, kolom-kolom $\bm U$ arah di ruang output, dan nilai singular di diagonal $\bm\Sigma$ adalah faktor regangan
+dari satu ke yang lain. Setiap matriks memetakan bola menjadi elips, dan SVD memberi sumbu-sumbu elips itu. Nilai singular
+adalah akar nilai eigen $\mA^\top\mA$. Dekomposisi ini muncul di PCA dan POD (\cref{ch:unsup,ch:penemuan}), algoritme Kabsch
+(\cref{ch:protein}), dan LoRA (\cref{ch:terbaru}). Rasio nilai singular terbesar terhadap terkecil adalah condition number, yang
+mengukur seberapa besar galat kecil di input bisa diperbesar ketika sistem $\mA\vx=\bm b$ diselesaikan.
+
+\section{Kalkulus banyak variabel}
+
+\subsection{Gradien dan Jacobian}
+
+Untuk fungsi skalar $f:\R^n\to\R$, gradien $\nabla f$ adalah vektor turunan parsial. Ia menunjuk ke arah kenaikan paling cepat,
+dan besarnya adalah laju kenaikan di arah itu. Untuk $f(x,y)=x^2+3xy$, $\nabla f=(2x+3y,\ 3x)$, yang di titik $(1,2)$ bernilai
+$(8,3)$. Untuk fungsi vektor $\bm f:\R^n\to\R^m$, Jacobian adalah matriks $m\times n$ berisi semua turunan parsial
+$\partial f_i/\partial x_j$. Jacobian lengan robot di \cref{ch:robot} adalah contohnya.
+
+Beberapa gradien muncul berkali-kali dan layak dihafal: $\nabla_{\vx}(\bm a^\top\vx)=\bm a$,
+$\nabla_{\vx}(\vx^\top\mA\vx)=(\mA+\mA^\top)\vx$, yang menjadi $2\mA\vx$ untuk $\mA$ simetris, dan
+$\nabla_{\vx}\|\mA\vx-\bm b\|^2=2\mA^\top(\mA\vx-\bm b)$. Yang terakhir langsung memberi normal equations regresi linear.
+
+\subsection{Aturan rantai}
+
+Kalau $\vy=\bm g(\vx)$ dan $z=f(\vy)$, maka $\nabla_{\vx}z=\bm J_{\bm g}^\top\nabla_{\vy}z$, dengan $\bm J_{\bm g}$ Jacobian $\bm g$.
+Untuk rantai yang panjang, $\vx\to\vy_1\to\vy_2\to\cdots\to z$, gradien diperoleh dengan mengalikan Jacobian-Jacobian berturut-turut.
+Urutan perkaliannya menentukan biaya. Mulai dari ujung $z$ yang skalar dan bergerak mundur berarti setiap langkah adalah
+perkalian matriks dengan vektor, murah. Itulah reverse-mode autodiff dan backpropagation (\cref{ch:dlbasic}). Mulai dari
+$\vx$ berarti membawa matriks Jacobian penuh sepanjang rantai, yang hanya efisien kalau inputnya sedikit, seperti RTRL di
+\cref{ch:lstm}.
+
+\subsection{Ekspansi Taylor}
+
+Di sekitar sebuah titik, fungsi yang mulus didekati dengan polinomial,
+\begin{equation}
+f(\vx+\bm h)\approx f(\vx)+\nabla f(\vx)^\top\bm h+\tfrac12\bm h^\top\nabla^2f(\vx)\,\bm h .
+\end{equation}
+Aproksimasi orde satu melahirkan gradient descent, aproksimasi orde dua melahirkan metode Newton (\cref{ch:optimasi}). Untuk
+$f(x)=e^x$ di sekitar nol, $e^{0{,}1}\approx1+0{,}1+0{,}005=1{,}105$, sedangkan nilai sebenarnya $1{,}10517$. Taylor juga ada di
+balik analisis galat skema numerik (\cref{ch:numerik}), linearisasi sistem nonlinear (\cref{ch:kendali}), dan extended Kalman
+filter (\cref{ch:robot}).
+
+\section{Peluang}
+
+\subsection{Aturan dasar dan Bayes}
+
+Dua aturan menghasilkan hampir semua yang lain. Aturan jumlah, $p(x)=\sum_yp(x,y)$, dan aturan hasil kali,
+$p(x,y)=p(y\mid x)\,p(x)$. Menuliskan aturan hasil kali dalam dua urutan dan menyamakannya memberi teorema Bayes,
+\begin{equation}
+p(y\mid x)=\frac{p(x\mid y)\,p(y)}{p(x)}=\frac{p(x\mid y)\,p(y)}{\sum_{y'}p(x\mid y')\,p(y')}.
+\end{equation}
+Contoh tes penyakit di \cref{ch:xai} adalah penerapan langsungnya: sensitivitas $0{,}9$, laju positif palsu $0{,}09$, dan
+prevalensi $0{,}01$ memberi $p(\text{sakit}\mid+)=0{,}009/(0{,}009+0{,}0891)\approx0{,}09$.
+
+\subsection{Ekspektasi dan varians}
+
+Ekspektasi adalah rata-rata berbobot peluang, $\E[x]=\sum_xx\,p(x)$ atau integral untuk variabel kontinu. Ia linear:
+$\E[ax+by]=a\E[x]+b\E[y]$, selalu, bahkan kalau $x$ dan $y$ bergantung. Varians adalah ekspektasi kuadrat simpangan,
+$\mathrm{Var}[x]=\E[(x-\E x)^2]=\E[x^2]-(\E x)^2$. Untuk variabel independen, varians jumlah adalah jumlah varians, sehingga
+varians rata-rata $N$ sampel independen adalah $\sigma^2/N$. Fakta sederhana ini ada di balik galat Monte Carlo yang turun
+seperti $1/\sqrt N$ (\cref{ch:fiskom}), noise mini-batch (\cref{ch:optimasi}), dan skala $\sqrt{d_k}$ pada attention
+(\cref{ch:lstm}).
+
+\subsection{Distribusi Gauss}
+
+Gauss multivariat $\N(\bm\mu,\bm\Sigma)$ punya kerapatan
+\begin{equation}
+p(\vx)=\frac1{(2\pi)^{d/2}|\bm\Sigma|^{1/2}}\exp\Big(-\tfrac12(\vx-\bm\mu)^\top\bm\Sigma^{-1}(\vx-\bm\mu)\Big).
+\end{equation}
+Ia muncul di mana-mana karena beberapa sifatnya yang tertutup. Transformasi linear dari Gauss tetap Gauss:
+$\mA\vx+\bm b\sim\N(\mA\bm\mu+\bm b,\ \mA\bm\Sigma\mA^\top)$. Marginal dan kondisional dari Gauss bersama tetap Gauss. Hasil kali dua
+kerapatan Gauss, setelah dinormalisasi, tetap Gauss, dengan presisi yang dijumlahkan, sifat yang menghasilkan Kalman filter
+(\cref{ch:prob}). Dan jumlah banyak variabel independen cenderung Gauss menurut teorema limit pusat, alasan mengapa noise
+pengukuran sering dimodelkan Gauss, dan dasar argumen ICA di \cref{ch:unsup}.
+
+Sampel dari $\N(\bm\mu,\bm\Sigma)$ bisa dibuat dari sampel normal baku $\bm\epsilon$ dengan $\vx=\bm\mu+\bm L\bm\epsilon$, dengan
+$\bm L$ faktor Cholesky, $\bm L\bm L^\top=\bm\Sigma$. Kovarians hasilnya adalah $\bm L\,\bm I\,\bm L^\top=\bm\Sigma$ sesuai sifat
+transformasi linear di atas. Inilah reparameterization trick pada VAE (\cref{ch:arsitektur}) dalam bentuk umumnya.
+
+\section{Teori informasi}
+
+Entropi mengukur ketidakpastian rata-rata sebuah distribusi, $H(p)=-\sum_xp(x)\log_2p(x)$, dalam bit. Lemparan koin jujur punya
+entropi satu bit. Koin yang muncul gambar dengan peluang $0{,}9$ punya entropi
+$-0{,}9\log_20{,}9-0{,}1\log_20{,}1\approx0{,}47$ bit: hasilnya lebih mudah ditebak, sehingga rata-rata informasi per lemparan lebih
+sedikit. Entropi dipakai untuk memilih pertanyaan di pohon keputusan (\cref{ch:unsup}).
+
+Cross-entropy $H(p,q)=-\sum_xp(x)\log q(x)$ mengukur biaya rata-rata kalau data dari $p$ dikodekan dengan kode yang dirancang untuk
+$q$. Ia selalu paling sedikit sebesar $H(p)$, dan selisihnya adalah divergensi Kullback--Leibler,
+\begin{equation}
+\KL(p\|q)=H(p,q)-H(p)=\sum_xp(x)\log\frac{p(x)}{q(x)}\ \ge\ 0 .
+\end{equation}
+Untuk distribusi target $p=(1,0)$, cross-entropy terhadap prediksi $q=(0{,}8;\ 0{,}2)$ adalah $-\ln0{,}8\approx0{,}22$ nat, dan karena
+entropi target nol, KL-nya sama. Meminimalkan cross-entropy terhadap label sama dengan meminimalkan KL dari distribusi data ke
+model, satu-satunya alasan mengapa loss klasifikasi berbentuk seperti itu (\cref{ch:data}). KL tidak simetris. $\KL(p\|q)$ menghukum
+keras tempat $p$ besar tetapi $q$ kecil, sehingga meminimalkannya terhadap $q$ membuat $q$ menutupi semua puncak $p$.
+$\KL(q\|p)$ menghukum tempat $q$ besar tetapi $p$ kecil, sehingga $q$ cenderung memilih satu puncak saja. Perbedaan ini
+menjelaskan mengapa inferensi variasional, yang meminimalkan $\KL(q\|p)$, cenderung meremehkan ketidakpastian
+(\cref{ch:mlat}), dan mengapa t-SNE lebih menjaga tetangga dekat daripada jarak jauh (\cref{ch:xai}).

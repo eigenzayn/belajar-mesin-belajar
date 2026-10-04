@@ -24,6 +24,8 @@
 % ---------------------------------------------------------------- citations, links
 \usepackage[round,authoryear,sort]{natbib}
 \setlength{\bibsep}{3pt}
+\usepackage[noautomatic]{imakeidx}
+\makeindex[title=Indeks,columns=2,intoc]
 \usepackage[hidelinks,unicode]{hyperref}
 \usepackage{xurl}
 \usepackage[nameinlink,noabbrev]{cleveref}
@@ -33,6 +35,12 @@
 \crefname{table}{Tabel}{Tabel}
 \crefname{equation}{Persamaan}{Persamaan}
 \crefname{part}{Bagian}{Bagian}
+\crefname{appendix}{Lampiran}{Lampiran}
+\Crefname{appendix}{Lampiran}{Lampiran}
+\newcommand{\crefpairconjunction}{ dan }
+\newcommand{\crefmiddleconjunction}{, }
+\newcommand{\creflastconjunction}{, dan }
+\newcommand{\crefrangeconjunction}{ sampai }
 \creflabelformat{equation}{#2(#1)#3}
 
 % ---------------------------------------------------------------- headings (KOMA), classic serif
@@ -75,6 +83,8 @@
 \newcommand{\mA}{\bm{A}}
 \newcommand{\mX}{\bm{X}}
 \newcommand{\KL}{\mathrm{KL}}
+\newcommand{\ket}[1]{\lvert #1\rangle}
+\newcommand{\braket}[2]{\langle #1\vert #2\rangle}
 \DeclareMathOperator*{\argmin}{arg\,min}
 \DeclareMathOperator*{\argmax}{arg\,max}
-\newcommand{\istilah}[1]{\emph{#1}}
+\newcommand{\istilah}[1]{\emph{#1}\index{#1}}

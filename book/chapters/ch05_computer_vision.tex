@@ -26,6 +26,37 @@ Hanya benda pada satu jarak yang tepat fokus. Benda lain membentuk lingkaran kab
 \istilah{f-number} $N=f/D$, dengan $D$ diameter bukaan, menentukan seberapa cepat kekaburan itu
 tumbuh. Bukaan kecil memberi \istilah{depth of field} yang lebar, dengan harga gambar yang lebih gelap.
 
+Persamaan lensa tipis langsung memberi angka yang bisa dirasakan. Untuk lensa $f=50$ mm dan benda sejauh dua meter,
+$1/z_i=1/50-1/2000=39/2000$, sehingga sensor harus berada $51{,}3$ mm di belakang lensa. Untuk benda sejauh sepuluh meter,
+jaraknya $50{,}25$ mm. Memindahkan fokus dari sepuluh meter ke dua meter berarti menggeser lensa sekitar satu milimeter, dan
+benda di tak hingga difokuskan tepat pada jarak $f$. Lensa $f/2$ dengan panjang fokus 50 mm punya bukaan selebar 25 mm.
+Menutup bukaan ke $f/4$ membuat diameter bukaan setengahnya, sehingga lingkaran kabur untuk setiap benda yang tidak fokus juga
+setengahnya, dan rentang jarak yang tampak tajam melebar. Harganya, cahaya yang masuk tinggal seperempat, karena luas bukaan
+sebanding dengan kuadrat diameternya.
+
+\subsection{Medan cahaya dan bukaan sintetis}
+
+Kuliah ini diberikan oleh kelompok Oliver Bimber, yang banyak meneliti \istilah{light field}. Kamera biasa merekam berapa banyak
+cahaya yang jatuh di setiap piksel, tetapi tidak dari arah mana cahaya itu datang. Medan cahaya merekam keduanya: intensitas
+setiap berkas sebagai fungsi empat koordinat, dua untuk posisi di bidang lensa $(u,v)$ dan dua untuk posisi di bidang sensor
+$(s,t)$ \citep{levoy1996}. Medan cahaya bisa direkam dengan larik banyak kamera, dengan susunan lensa mikro di depan sensor,
+atau dengan satu kamera yang dipindah-pindahkan.
+
+Dengan medan cahaya, fokus bisa dipilih setelah pemotretan. Gambar dari setiap sudut pandang digeser sebanding dengan
+disparitas yang sesuai untuk kedalaman tertentu, lalu semuanya dirata-ratakan. Benda pada kedalaman itu jatuh di tempat yang
+sama di semua gambar dan tampak tajam. Benda pada kedalaman lain jatuh di tempat yang berbeda-beda dan menjadi kabur. Hasilnya
+setara dengan foto dari lensa raksasa seukuran seluruh larik kamera, yang disebut \istilah{synthetic aperture}. Sifat ini punya
+akibat yang tidak terduga: penghalang di depan bidang fokus, seperti dedaunan, ikut dirata-ratakan dan memudar, sedangkan benda di
+belakangnya, yang di setiap gambar hanya terlihat sebagian lewat celah yang berbeda, muncul kembali.
+
+\istilah{Airborne optical sectioning} \citep{kurmi2018}, dari kelompok yang sama di Linz, membawa gagasan ini ke drone. Drone terbang
+sambil memotret hutan dari banyak posisi, dan gambar-gambar itu digabung menjadi satu bukaan sintetis selebar puluhan meter
+yang difokuskan ke permukaan tanah, sehingga daun-daun di atasnya memudar. Makalahnya menempatkan pendekatan ini sebagai
+alternatif yang lebih murah dari lidar dan yang tidak bergantung pada pencocokan titik seperti fotogrametri. Penerapan
+lanjutannya mencakup pencarian dan penyelamatan orang di bawah kanopi hutan \citep{schedl2020}. Kuliah juga menunjukkan
+penerapan lain dari tumpukan fokus, misalnya memperkirakan kedalaman dari seberapa kabur setiap bagian gambar
+(\emph{depth from defocus}) dengan fitur dari jaringan saraf.
+
 Untuk komputasi, kita kembali ke model lubang jarum. Titik $(X,Y,Z)$ dalam koordinat kamera
 jatuh di bidang gambar pada $x=fX/Z$ dan $y=fY/Z$. Pembagian dengan $Z$ membuat proyeksi ini
 tidak linear, dan trik \istilah{homogeneous coordinates} mengembalikannya ke bentuk perkalian matriks
@@ -73,6 +104,22 @@ noise ikut terbagi oleh bilangan yang hampir nol di frekuensi tempat kernel lema
 hasilnya meledak. Solusinya adalah regularisasi, misalnya filter Wiener. Tema yang sama akan
 muncul lagi pada masalah invers dalam simulasi.
 
+Kernel Sobel untuk arah horizontal adalah
+\begin{equation}
+k_x=\begin{pmatrix}-1&0&1\\-2&0&2\\-1&0&1\end{pmatrix},
+\end{equation}
+sebuah beda pusat di arah $x$ yang dihaluskan dengan bobot $(1,2,1)$ di arah $y$. Terapkan pada potongan $3\times3$ yang
+kolom kirinya bernilai 10 dan dua kolom kanannya bernilai 50, tepi tegak antara gelap dan terang. Hasilnya
+$(-10+50)+2(-10+50)+(-10+50)=160$. Pada daerah yang rata, hasilnya nol. Kernel transposnya, $k_y$, menangkap tepi mendatar,
+dan dari kedua hasil diperoleh besar gradien $\sqrt{g_x^2+g_y^2}$ dan arahnya $\operatorname{atan2}(g_y,g_x)$.
+
+Detektor tepi Canny \citep{canny1986} membangun di atas gradien ini dengan empat langkah. Gambar dihaluskan dengan Gauss
+supaya noise tidak dianggap tepi. Besar dan arah gradien dihitung. Tepi ditipiskan dengan hanya mempertahankan piksel yang
+gradiennya maksimum lokal sepanjang arah gradien, sehingga tepi setebal satu piksel. Terakhir, dua ambang dipakai: piksel
+di atas ambang tinggi pasti tepi, piksel di bawah ambang rendah pasti bukan, dan piksel di antaranya diterima hanya kalau
+tersambung dengan tepi yang pasti. Ambang ganda ini, yang disebut histeresis, menjaga garis tepi tetap utuh walau di beberapa
+tempat kontrasnya melemah.
+
 Objek bisa tampak besar atau kecil. \istilah{Gaussian pyramid} membuat salinan gambar yang berulang
 kali dihaluskan lalu diperkecil setengahnya, sehingga algoritme yang bekerja pada satu ukuran
 bisa dijalankan di setiap tingkat piramida untuk menangkap semua skala. Piramida akan muncul lagi
@@ -116,10 +163,23 @@ jalan, mobil, atau pohon, sedangkan \istilah{instance segmentation} juga membeda
 dari mobil yang lain.
 
 Cara klasik memandang segmentasi sebagai pengelompokan. $k$-means \citep{lloyd1982}
-mengelompokkan piksel berdasarkan warna dan posisi. Pendekatan graf menganggap piksel sebagai
+mengelompokkan piksel berdasarkan warna dan posisi. \istilah{Mean shift} \citep{comaniciu2002} tidak perlu jumlah kelompok
+di awal. Ia memandang piksel sebagai sampel dari sebuah kerapatan, ditaksir dengan kernel seperti di \cref{ch:stat}, lalu
+menggeser setiap titik berulang-ulang ke rata-rata berbobot tetangganya. Setiap langkah naik ke arah gradien kerapatan, sehingga
+titik-titik berkumpul di puncak-puncak kerapatan, dan semua piksel yang berakhir di puncak yang sama membentuk satu segmen. Lebar
+kernel kembali menjadi kenop yang menentukan berapa banyak segmen yang muncul. Pendekatan graf menganggap piksel sebagai
 simpul dengan bobot kemiripan, lalu memotong graf di tempat ikatannya paling lemah, dan
 pemotongan ini bisa didekati dengan vektor eigen Laplacian graf, konsep yang muncul lagi di
-\cref{ch:gdl}. \istilah{Hough transform} mendeteksi bentuk parametrik seperti garis: setiap titik
+\cref{ch:gdl}. Pemotongan paling murah, yang hanya menjumlahkan bobot sisi yang diputus, cenderung memisahkan
+satu piksel yang terisolasi, karena memotong sedikit sisi selalu murah. \citet{shi2000} mengusulkan \istilah{normalized cut},
+yang membagi biaya potongan dengan total ikatan setiap bagian ke seluruh graf,
+\begin{equation}
+\mathrm{Ncut}(A,B)=\frac{\mathrm{cut}(A,B)}{\mathrm{assoc}(A,V)}+\frac{\mathrm{cut}(A,B)}{\mathrm{assoc}(B,V)},
+\end{equation}
+sehingga potongan yang menghasilkan bagian yang amat kecil mendapat hukuman besar. Mencari Ncut minimum secara eksak sulit,
+tetapi versi yang dilonggarkan menjadi masalah nilai eigen umum $(\bm D-\bm W)\vy=\lambda\bm D\vy$, dengan $\bm W$ matriks bobot dan
+$\bm D$ matriks diagonal derajat. Vektor eigen dengan nilai eigen terkecil kedua memberi partisinya: piksel dengan nilai positif di
+satu sisi, negatif di sisi lain. \istilah{Hough transform} mendeteksi bentuk parametrik seperti garis: setiap titik
 tepi ``memilih'' semua garis $\rho=x\cos\theta+y\sin\theta$ yang melewatinya, dan garis yang nyata
 mengumpulkan suara terbanyak.
 
@@ -231,6 +291,12 @@ segmentation. Pendekatan satu tahap seperti YOLO \citep{redmon2016} membagi gamb
 membiarkan setiap sel langsung memprediksi kotak dan kelas dalam satu lintasan. Jauh lebih cepat,
 cocok untuk waktu nyata.
 
+Contoh dengan angka: kotak tebakan dari $(0,0)$ sampai $(4,4)$ dan kotak benar dari $(2,2)$ sampai $(6,6)$ masing-masing
+berluas 16, dan irisannya kotak $2\times2$ berluas 4. Gabungannya $16+16-4=28$, sehingga IoU $=4/28\approx0{,}14$. Walau
+kedua kotak tampak bersinggungan cukup banyak, deteksi ini akan dianggap salah dengan ambang yang lazim $0{,}5$. Untuk
+mencapai IoU $0{,}5$, dua kotak berukuran sama yang bergeser sepanjang diagonal hanya boleh bergeser sekitar seperlima
+sisinya di setiap arah.
+
 Banyak kotak yang tumpang tindih untuk objek yang sama dibersihkan dengan \istilah{non-maximum
 suppression}: simpan kotak dengan skor tertinggi, buang kotak lain yang tumpang tindihnya dengan
 kotak itu melewati ambang. Kinerja diukur dengan kurva presisi terhadap recall, dan luas di
@@ -266,6 +332,28 @@ kedalamannya.
 cocokkan fitur antar foto, perkirakan pose kamera, triangulasi titik-titik tiga dimensi, lalu
 perhalus semuanya bersama-sama.
 
+\subsection{Homografi dan RANSAC}
+
+Kalau kamera memotret bidang datar, atau berputar di tempat tanpa bergeser, dua gambar dihubungkan oleh
+\istilah{homography}, sebuah matriks $3\times3$ $\bm H$ dalam koordinat homogen, $\tilde\vx'\sim\bm H\tilde\vx$. Matriks ini
+punya delapan derajat kebebasan, karena skalanya tidak penting, dan setiap pasangan titik yang bersesuaian memberi dua
+persamaan, sehingga empat pasangan sudah cukup untuk menentukannya. Homografi dipakai untuk menjahit foto panorama,
+meluruskan dokumen yang difoto miring, dan mengkalibrasi kamera dengan papan catur.
+
+Masalahnya, pasangan titik yang ditemukan dengan pencocokan fitur seperti SIFT selalu mengandung pasangan yang salah.
+Kuadrat terkecil biasa akan ditarik jauh oleh satu pasangan yang salah saja. RANSAC \citep{fischler1981} membalik caranya:
+ambil sampel minimal secara acak, empat pasangan untuk homografi, hitung model dari sampel itu, lalu hitung berapa banyak
+pasangan lain yang setuju dengan model itu dalam toleransi tertentu. Ulangi, dan simpan model dengan pendukung terbanyak.
+Berapa kali harus diulang? Kalau fraksi pasangan yang benar adalah $w$, peluang satu sampel berisi $s$ pasangan benar
+semua adalah $w^s$, dan peluang $N$ sampel semuanya gagal adalah $(1-w^s)^N$. Supaya peluang berhasil paling sedikit $p$,
+\begin{equation}
+N\ge\frac{\log(1-p)}{\log(1-w^s)}.
+\end{equation}
+Dengan separuh pasangan benar, $s=4$, dan $p=0{,}99$, peluang satu sampel bersih $1/16$, dan dibutuhkan sekitar 72 percobaan.
+Kalau hanya sepertiga pasangan yang benar, angka itu naik menjadi sekitar 370. Ukuran sampel minimal menentukan:
+untuk model dengan delapan pasangan, seperti matriks fundamental dengan algoritme delapan titik, separuh pasangan benar
+sudah menuntut sekitar 1200 percobaan.
+
 \section{Visi tiga dimensi}
 
 Dunia tiga dimensi bisa direpresentasikan dengan banyak cara. Peta kedalaman memberi satu angka
@@ -296,6 +384,24 @@ algoritme bersama-sama. Kuliah juga menekankan batasnya. Model besar tidak selal
 stiker kecil yang dirancang khusus bisa membuat detektor gagal mengenali rambu berhenti
 \citep{eykholt2018}. Alat seperti Grad-CAM \citep{selvaraju2017} membantu melihat bagian gambar
 mana yang dipakai model untuk memutuskan, topik yang kembali di \cref{ch:xai}.
+
+\section{Perkembangan riset}
+
+Visi komputer bergerak ke model fondasi yang bisa dipakai tanpa pelatihan ulang. SAM 2 \citep{ravi2024} memperluas
+Segment Anything dari gambar ke video, dengan transformer yang membawa ingatan aliran (streaming memory) dari bingkai ke
+bingkai. Dataset video segmentasinya dikumpulkan dengan mesin data yang melibatkan pengguna: model menyarankan topeng,
+manusia mengoreksi, dan model dilatih ulang dengan koreksi itu. Pada segmentasi gambar, SAM 2 dilaporkan lebih akurat
+dan enam kali lebih cepat dari SAM. Depth Anything \citep{yang2024depth} melakukan hal serupa untuk estimasi kedalaman
+dari satu gambar, dengan sekitar 62 juta gambar tanpa label yang dianotasi otomatis. Kedalaman dari satu kamera, yang
+secara geometris tidak bisa ditentukan seperti dibahas di bagian stereo, ditebak dari pengetahuan tentang bentuk dunia
+yang dipelajari dari data.
+
+Di grafika dan rekonstruksi tiga dimensi, 3D Gaussian splatting \citep{kerbl2023} mengganti neural field dengan jutaan
+Gaussian tiga dimensi yang posisi, kovarians anisotropik, warna, dan opasitasnya dioptimalkan langsung dari foto-foto
+kalibrasi. Rendering dilakukan dengan memproyeksikan Gaussian ke bidang gambar dan menumpuknya, bukan dengan menembakkan
+sinar melewati jaringan saraf. Hasilnya adalah sintesis sudut pandang baru secara waktu nyata pada resolusi 1080p.
+Gagasan dasarnya, mewakili adegan sebagai sekumpulan fungsi Gauss, menyambung dengan model campuran Gauss di
+\cref{ch:unsup} dan NDT di \cref{ch:robot}.
 
 \sumberbab{Bab ini mengikuti sebelas kuliah Computer Vision beserta praktikumnya: pembentukan
 citra, pengolahan citra, machine learning untuk visi, ekstraksi fitur, segmentasi, optical flow,

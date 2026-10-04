@@ -1,0 +1,151 @@
+\chapter{Kecerdasan Umum, Superintelligence, dan Keselamatan AI}
+\label{ch:keselamatan}
+
+Tidak ada satu mata kuliah pun yang saya ikuti bernama keselamatan AI. Tetapi pertanyaan-pertanyaannya muncul di banyak kuliah:
+di AI and law ketika membahas model dengan risiko sistemik, di robopsychology ketika membahas kepercayaan, di reinforcement
+learning ketika agen menemukan cara curang untuk mendapat ganjaran, dan di explainable AI ketika kita sadar betapa sedikit yang kita
+ketahui tentang isi model besar. Di luar ruang kuliah, perdebatannya jauh lebih ramai. Istilah seperti AGI dan superintelligence
+kini muncul di berita, di laporan pemerintah, dan di pernyataan para pendiri laboratorium AI. Bab ini mencoba memetakan perdebatan
+itu dengan jujur: apa yang dimaksud dengan istilah-istilahnya, mengapa sebagian orang khawatir, mengapa sebagian lain
+skeptis, apa yang sedang dikerjakan secara konkret, dan bagaimana dunia mencoba mengaturnya. Isinya bersandar pada bacaan, bukan
+pada satu kuliah, dan bagian yang masih diperdebatkan ditulis sebagai perdebatan.
+
+\section{Istilah-istilah}
+
+Hampir semua sistem di buku ini adalah AI \emph{sempit}: baik pada satu jenis tugas, seperti mengenali tumor, memainkan Go,
+atau meramal cuaca, dan tidak berguna di luar tugas itu. \istilah{Artificial general intelligence} (AGI) merujuk pada sistem yang
+mampu mengerjakan berbagai tugas kognitif setara manusia. Definisinya sendiri diperdebatkan. \citet{morris2023} menganalisis
+definisi-definisi yang ada dan mengusulkan tingkatan AGI menurut dua sumbu: seberapa \emph{baik} sebuah sistem dibanding manusia
+pada tugas tertentu, dan seberapa \emph{luas} rentang tugas yang dikuasainya, ditambah sumbu ketiga tentang seberapa otonom ia
+dibiarkan bertindak. Kerangka seperti ini membantu, karena pertanyaan ``apakah ini sudah AGI?'' berubah menjadi pertanyaan yang lebih
+bisa diukur: seberapa baik, pada tugas apa saja, dengan otonomi seberapa besar.
+
+\istilah{Superintelligence}, dalam rumusan \citet{bostrom2014}, adalah kecerdasan yang jauh melampaui kemampuan kognitif manusia di
+hampir semua bidang. Bostrom membahas beberapa jalan menuju ke sana dan mengapa transisinya mungkin terjadi cepat: sistem yang cukup
+pintar untuk memperbaiki dirinya sendiri bisa mempercepat kemajuannya sendiri. Apakah dan kapan ini terjadi tidak diketahui siapa
+pun, dan ramalan para ahli tersebar lebar.
+
+\section{Mengapa sebagian orang khawatir}
+
+Inti kekhawatiran bisa dirumuskan tanpa fiksi ilmiah. Sebuah sistem yang mengoptimalkan tujuan akan mengejar tujuan itu, bukan
+tujuan yang \emph{dimaksudkan} perancangnya. Di \cref{ch:rl} dan di bagian evaluasi \cref{ch:hayati} kita sudah melihat versi kecilnya:
+agen yang menemukan celah dalam fungsi ganjaran, dan model generatif yang menemukan celah dalam model penilai. Gejala ini disebut
+\istilah{reward hacking} atau \emph{specification gaming}, dan ia adalah hukum Goodhart dalam bentuk algoritmik: ukuran yang dijadikan
+target berhenti menjadi ukuran yang baik. \citet{amodei2016} merumuskan lima masalah praktis yang muncul dari sini. Menghindari efek
+samping yang tidak diinginkan, menghindari reward hacking, pengawasan yang tetap bisa dilakukan ketika tujuan terlalu mahal untuk
+dinilai setiap saat, eksplorasi yang aman, dan tetap berperilaku baik ketika distribusi data bergeser.
+
+\citet{bostrom2014} menambahkan dua tesis. Tesis ortogonalitas menyatakan bahwa tingkat kecerdasan dan isi tujuan bisa bebas satu
+sama lain: sistem yang cerdas tidak otomatis punya tujuan yang baik. Tesis konvergensi instrumental menyatakan bahwa untuk
+hampir tujuan apa pun, beberapa subtujuan selalu berguna, seperti mempertahankan diri, mengumpulkan sumber daya, dan menolak tujuannya
+diubah, karena semuanya membantu mencapai tujuan utama. Gabungan keduanya mengarah pada \emph{masalah kendali}: bagaimana memastikan
+sistem yang jauh lebih cerdas tetap bisa dikoreksi.
+
+\citet{russell2019} menawarkan arah jalan keluar. Alih-alih memberi mesin tujuan yang tetap dan dianggap benar, mesin dirancang untuk
+memaksimalkan terwujudnya preferensi manusia, sambil tetap \emph{tidak yakin} apa preferensi itu, dan mempelajarinya dari perilaku
+manusia. Mesin yang tidak yakin tentang tujuannya punya alasan untuk mengizinkan dirinya dimatikan, karena manusia yang mematikannya
+mungkin tahu sesuatu yang belum ia ketahui. Pelatihan model bahasa dengan preferensi manusia di \cref{ch:terbaru} adalah langkah
+kecil, dan masih tidak sempurna, ke arah itu.
+
+Kekhawatiran ini tidak hanya datang dari filsuf. Pada 30 Mei 2023, Center for AI Safety menerbitkan pernyataan satu kalimat yang
+ditandatangani ratusan peneliti AI dan pimpinan laboratorium besar: mengurangi risiko kepunahan akibat AI harus menjadi prioritas
+global, sejajar dengan risiko berskala masyarakat lain seperti pandemi dan perang nuklir. \citet{hendrycks2023} menyusun sumber risiko
+katastrofik ke dalam empat kelompok: penyalahgunaan yang disengaja, perlombaan antar pengembang atau negara yang mendorong peluncuran
+sistem yang belum aman, risiko organisasi seperti kecelakaan dan budaya keselamatan yang lemah, dan sistem yang lepas kendali.
+
+\section{Mengapa sebagian lain skeptis}
+
+Kritik terhadap narasi ini sama seriusnya. \citet{mitchell2021} mengingatkan bahwa sejarah AI penuh siklus antara ramalan yang terlalu
+optimistis dan kekecewaan. Ia menunjuk beberapa kekeliruan yang berulang: menganggap kemajuan pada tugas sempit sebagai langkah
+pasti menuju kecerdasan umum, mengira bahwa yang sulit bagi manusia juga sulit bagi mesin dan sebaliknya, terkecoh oleh nama-nama
+yang memberi kesan pemahaman, seperti ``memahami'' atau ``bernalar'', dan melupakan bahwa kecerdasan manusia tertanam dalam tubuh,
+emosi, dan budaya, bukan hanya di otak. Mobil swakemudi dan robot rumah tangga yang dijanjikan sejak lama ternyata jauh lebih sulit
+dari yang dibayangkan, dan pelajaran itu, menurutnya, berlaku juga untuk ramalan tentang AGI.
+
+Kritik lain menyoroti bahwa perhatian pada risiko jangka jauh bisa mengalihkan perhatian dari kerugian yang sudah nyata hari ini:
+bias terhadap kelompok yang kurang terwakili, pengawasan, pekerja yang memberi label data dengan upah rendah, dan biaya lingkungan
+model besar \citep{bender2021}. Ada juga yang menunjuk bahwa sebagian narasi risiko ekstrem kebetulan menguntungkan perusahaan besar,
+karena menggambarkan produk mereka sebagai kuat dan membenarkan regulasi yang menyulitkan pesaing kecil.
+
+Buku ini tidak bisa memutuskan perdebatan itu, dan memang tidak perlu. Yang bisa dikatakan dengan cukup yakin adalah tiga hal. Pertama,
+masalah-masalah teknis di balik kekhawatiran itu, seperti reward hacking, pergeseran distribusi, dan sulitnya memahami isi model, adalah
+masalah nyata yang sudah terlihat pada sistem sekarang, dan dibahas di banyak bab buku ini. Kedua, ketidakpastian tentang masa depan
+justru alasan untuk berhati-hati, bukan alasan untuk tenang. Ketiga, risiko masa kini dan risiko masa depan tidak harus bersaing:
+banyak alat yang sama, seperti evaluasi yang ketat, transparansi, dan pengawasan manusia yang bermakna, membantu keduanya.
+
+\section{Riset keselamatan yang konkret}
+
+Di balik istilah-istilah besar, sebagian besar riset keselamatan AI berupa pekerjaan teknis yang biasa. Pemodelan preferensi dan
+penyelarasan mencoba menangkap apa yang sebenarnya diinginkan manusia (\cref{ch:terbaru}). Interpretabilitas, termasuk sparse
+autoencoder di \cref{ch:xai}, mencoba membaca apa yang terjadi di dalam model, sehingga perilaku berbahaya bisa dideteksi sebelum
+muncul. Pengawasan yang bisa diskalakan bertanya bagaimana manusia bisa menilai jawaban yang terlalu panjang atau terlalu teknis untuk
+diperiksa langsung, misalnya dengan bantuan model lain. Evaluasi kemampuan berbahaya menguji apakah sebuah model bisa, misalnya,
+membantu membuat senjata biologis atau meretas sistem, sebelum model itu dirilis. \emph{Red-teaming} melibatkan orang yang sengaja
+mencoba membuat model berperilaku buruk. Beberapa pengembang besar menerbitkan kerangka keselamatan yang menetapkan ambang kemampuan
+dan tindakan pengaman yang harus dipenuhi sebelum model yang lebih kuat dilatih atau dirilis, dan AI Act mewajibkan evaluasi semacam
+ini bagi model serbaguna dengan risiko sistemik (\cref{ch:manusia}).
+
+Banyak dari pekerjaan ini memakai alat yang sudah kita kenal. Evaluasi yang jujur menuntut pembagian data tanpa kebocoran
+(\cref{ch:data}). Pengukuran ketidakpastian membantu model tahu kapan ia tidak tahu (\cref{ch:stat}). Dan pelajaran dari keselamatan
+sistem teknik lama, seperti sistem kendali pesawat atau reaktor, berlaku juga: sistem yang aman dirancang berlapis, dengan pengaman
+yang tidak bergantung pada satu komponen yang sempurna.
+
+\section{Tata kelola global}
+
+Upaya internasional untuk mengatur AI tingkat lanjut bergerak cepat. Pada November 2023, Inggris menyelenggarakan AI Safety Summit
+pertama di Bletchley Park, dihadiri wakil dari 28 negara serta Uni Eropa, termasuk Amerika Serikat dan Tiongkok. Pertemuan berikutnya
+diadakan di Seoul pada Mei 2024, lalu di Paris pada Februari 2025 dengan nama AI Action Summit, dan di New Delhi pada Februari 2026
+dengan nama AI Impact Summit, yang menghasilkan deklarasi yang didukung lebih dari 80 negara dan organisasi internasional. Pergantian
+nama dari \emph{safety} ke \emph{action} lalu \emph{impact} mencerminkan pergeseran penekanan, dari risiko ke pemanfaatan dan
+pemerataan, yang tidak semua pihak sambut dengan gembira.
+
+Pertemuan di Bletchley juga mengamanatkan sebuah laporan ilmiah bersama. International AI Safety Report pertama, yang dipimpin Yoshua
+Bengio dan disusun seratus ahli dengan wakil dari tiga puluh negara, PBB, OECD, dan Uni Eropa, terbit pada Januari 2025
+\citep{bengio2025iasr}, dan edisi keduanya pada Februari 2026 \citep{iasr2026}. Laporan seperti ini meniru peran laporan IPCC untuk
+iklim: bukan merekomendasikan kebijakan tertentu, tetapi merangkum apa yang diketahui dan apa yang belum, sebagai pijakan bersama bagi
+pembuat kebijakan.
+
+Satu perdebatan tata kelola yang terus berlanjut adalah model terbuka melawan model tertutup. Bobot model yang dirilis terbuka
+memungkinkan riset, pemeriksaan independen, dan penggunaan di negara atau lembaga yang tidak mampu membayar layanan komersial, tetapi
+juga tidak bisa ditarik kembali kalau ternyata disalahgunakan. Model tertutup lebih mudah dikendalikan, tetapi memusatkan kekuatan
+pada segelintir perusahaan.
+
+\section{Dampak yang sudah terasa}
+
+Di luar perdebatan tentang masa depan, beberapa dampak sudah bisa diukur.
+
+\emph{Pekerjaan.} \citet{eloundou2023} menilai pekerjaan di Amerika Serikat menurut seberapa cocok tugas-tugasnya dengan kemampuan model
+bahasa besar. Mereka memperkirakan sekitar 80 persen pekerja punya setidaknya sepuluh persen tugas yang bisa terdampak, dan sekitar 19
+persen punya setidaknya separuh tugas yang terdampak, dengan paparan yang justru lebih besar pada pekerjaan berpenghasilan tinggi.
+Penulisnya menekankan bahwa ini ukuran paparan, bukan ramalan berapa pekerjaan yang hilang. Terdampak bisa berarti dibantu, diubah,
+atau digantikan, dan sejarah teknologi sebelumnya memperlihatkan ketiganya terjadi bersamaan.
+
+\emph{Energi.} Melatih dan menjalankan model besar membutuhkan listrik. \citet{strubell2019} termasuk yang pertama menghitung biaya
+finansial dan jejak karbon pelatihan model NLP. Menurut perkiraan Badan Energi Internasional \citep{iea2025}, pusat data dunia memakai
+sekitar 415 terawatt-jam listrik pada 2024, sekitar satu setengah persen konsumsi listrik global, dan dalam skenario dasarnya angka itu
+naik menjadi sekitar 945 terawatt-jam pada 2030, dengan AI sebagai pendorong utama pertumbuhannya. Efisiensi model, seperti kuantisasi
+dan distilasi di \cref{ch:terbaru} serta arsitektur dengan ingatan berukuran tetap di \cref{ch:lstm}, karenanya juga persoalan lingkungan.
+
+\emph{Hak cipta dan data.} Model besar dilatih pada teks, gambar, dan kode yang sebagian besar punya pemilik. Sengketa hukum sudah
+berjalan, misalnya gugatan The New York Times terhadap OpenAI dan Microsoft sejak akhir 2023, dan AI Act mewajibkan penyedia model
+serbaguna punya kebijakan untuk menghormati hak cipta serta menerbitkan ringkasan data latihnya (\cref{ch:manusia}).
+
+\emph{Informasi.} Model generatif membuat gambar, suara, dan video palsu yang meyakinkan menjadi murah. Watermark (\cref{ch:manusia}),
+pelabelan konten sintetis yang diwajibkan regulasi, dan literasi AI adalah tiga lapis pertahanan yang saling melengkapi, dan tidak satu
+pun cukup sendirian.
+
+\emph{Pendidikan.} Siswa dan mahasiswa kini punya asisten yang bisa menulis esai dan menyelesaikan soal. Pertanyaan yang muncul bukan
+lagi apakah alat ini dipakai, melainkan bagaimana belajar tetap terjadi ketika jawabannya tersedia seketika. Buku ini, dengan penurunan
+rumus langkah demi langkah dan contoh hitungan, berangkat dari keyakinan sederhana bahwa memahami mengapa sebuah jawaban benar tetap
+sesuatu yang harus dikerjakan sendiri.
+
+\section{Penutup bab}
+
+Perdebatan tentang AGI dan superintelligence sering terasa jauh dari pekerjaan sehari-hari menyetel jaringan atau membersihkan data.
+Tetapi pertanyaan intinya sama dengan yang muncul di setiap bab buku ini: apakah model benar-benar mengerjakan apa yang kita maksud,
+bagaimana kita tahu, dan apa yang terjadi di luar data yang pernah ia lihat. Semakin kuat sistemnya, semakin mahal jawaban yang salah.
+
+\sumberbab{Bab ini disusun dari bacaan di luar kuliah, dengan sambungan ke kuliah AI and Law, Robopsychology, Reinforcement Learning, dan
+AI and Visualization. Rujukan utama: \citet{bostrom2014}, \citet{russell2019}, \citet{amodei2016}, \citet{hendrycks2023},
+\citet{mitchell2021}, \citet{morris2023}, laporan International AI Safety Report \citep{bengio2025iasr,iasr2026}, \citet{eloundou2023},
+dan \citet{iea2025}. Tanggal dan angka peristiwa diperiksa dengan sumber resminya pada saat penulisan, Oktober 2026.}

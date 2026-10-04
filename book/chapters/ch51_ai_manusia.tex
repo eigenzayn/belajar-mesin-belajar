@@ -39,8 +39,38 @@ tinggi, misalnya AI dalam rekrutmen, penilaian kredit, pendidikan, infrastruktur
 kesehatan. Sistem ini boleh dipakai, tetapi penyedianya wajib menjalankan manajemen risiko, menjaga
 kualitas data, membuat dokumentasi teknis, mencatat log, memastikan pengawasan manusia, serta memenuhi
 syarat akurasi dan ketahanan. Lebih ke bawah, sistem dengan risiko terbatas seperti chatbot terutama
-dikenai kewajiban transparansi: pengguna harus tahu bahwa mereka berbicara dengan mesin. Sistem lainnya
-praktis bebas.
+dikenai kewajiban transparansi: pengguna harus tahu bahwa mereka berbicara dengan mesin. Sistem lainnya,
+seperti filter spam atau AI dalam permainan video, praktis bebas (\cref{fig:piramida}).
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[x=0.75cm,y=0.9cm]
+  \fill[merah!35] (-1.2,3) -- (1.2,3) -- (0,4) -- cycle;
+  \fill[oranye!35] (-2.4,2) -- (2.4,2) -- (1.2,3) -- (-1.2,3) -- cycle;
+  \fill[pasir] (-3.6,1) -- (3.6,1) -- (2.4,2) -- (-2.4,2) -- cycle;
+  \fill[hijau!25] (-4.8,0) -- (4.8,0) -- (3.6,1) -- (-3.6,1) -- cycle;
+  \draw[abu] (-4.8,0) -- (0,4) -- (4.8,0) -- cycle;
+  \foreach \y in {1,2,3} \draw[abu] (-4.8+1.2*\y,\y) -- (4.8-1.2*\y,\y);
+  \node[label] at (0,3.35) {dilarang};
+  \node[label] at (0,2.5) {risiko tinggi};
+  \node[label] at (0,1.5) {risiko terbatas};
+  \node[label] at (0,0.5) {risiko minimal};
+  \node[label,anchor=west,align=left] at (5.4,3.5) {social scoring, manipulasi,\\pengenalan emosi di kerja/sekolah};
+  \node[label,anchor=west,align=left] at (5.4,2.5) {rekrutmen, kredit, pendidikan,\\alat kesehatan};
+  \node[label,anchor=west] at (5.4,1.5) {chatbot, konten sintetis};
+  \node[label,anchor=west] at (5.4,0.5) {filter spam, gim};
+\end{tikzpicture}
+\caption{Piramida risiko AI Act. Semakin tinggi tingkat risikonya, semakin berat kewajibannya, sampai larangan penuh di
+puncak.}
+\label{fig:piramida}
+\end{figure}
+
+AI Act tidak hanya mengatur pembuat sistem. Pihak yang memakai sistem berisiko tinggi dalam kegiatan profesionalnya,
+disebut \emph{deployer}, wajib memakainya sesuai petunjuk, menugaskan orang yang kompeten untuk mengawasinya, memantau
+operasinya, dan menyimpan log. Lembaga publik dan beberapa penyedia layanan penting juga harus menilai dampak sistem itu
+terhadap hak-hak dasar sebelum memakainya. Sejak Februari 2025, penyedia maupun pengguna sistem AI juga wajib berupaya
+memastikan bahwa staf yang menangani sistem itu punya literasi AI yang memadai, kewajiban yang menyambung langsung dengan
+kuliah communicating AI di bawah.
 
 Model AI serbaguna, seperti model bahasa besar, ditambahkan menjelang akhir perundingan. Penyedianya
 wajib menyiapkan dokumentasi teknis dan informasi bagi pihak yang membangun aplikasi di atasnya. Model
@@ -59,6 +89,15 @@ dinyatakan; data yang dikumpulkan sesedikit mungkin; data harus akurat; data tid
 dari perlu; dan integritas serta kerahasiaannya dijaga. Pengendali data bertanggung jawab membuktikan
 kepatuhan pada semua prinsip itu.
 
+Pemrosesan data pribadi hanya sah kalau punya salah satu dari enam dasar hukum: persetujuan orang yang bersangkutan,
+pelaksanaan kontrak, kewajiban hukum, perlindungan kepentingan vital seseorang, pelaksanaan tugas untuk kepentingan umum,
+atau kepentingan sah pengendali yang tidak dikalahkan oleh hak orang yang datanya diproses. Persetujuan, yang paling sering
+dibayangkan orang, justru sering bukan pilihan terbaik untuk melatih model, karena ia harus bebas, spesifik, dan bisa
+ditarik kapan saja, dan menghapus pengaruh satu orang dari model yang sudah dilatih bukan perkara mudah. Orang yang datanya
+diproses juga punya hak: mengetahui data apa yang disimpan, membetulkannya, menghapusnya, membawanya ke penyedia lain, dan
+menolak pemrosesan tertentu. Data kesehatan, data genetik, dan data biometrik termasuk kategori khusus yang pemrosesannya
+pada dasarnya dilarang kecuali ada pengecualian yang jelas, aturan yang relevan bagi bab-bab ilmu hayati di buku ini.
+
 Satu ketentuan berbicara langsung tentang AI. Seseorang berhak untuk tidak tunduk pada keputusan yang
 semata-mata didasarkan pada pemrosesan otomatis, termasuk profiling, kalau keputusan itu berakibat
 hukum atau berdampak signifikan baginya. Ada pengecualian, misalnya kalau diperlukan untuk kontrak,
@@ -71,6 +110,33 @@ Kuliah juga membahas pertanggungjawaban. Arahan tanggung jawab produk Uni Eropa 
 definisi produk sehingga mencakup perangkat lunak, termasuk sistem AI, dan meringankan beban pembuktian
 bagi korban dalam kasus yang secara teknis rumit. Usulan arahan tanggung jawab AI membahas pengungkapan
 bukti dan anggapan hubungan sebab-akibat yang bisa dibantah ketika sistem AI terlibat dalam kerugian.
+
+Bagi orang teknik, prinsip meminimalkan data punya padanan matematis yang menarik. \istilah{Differential privacy}
+\citep{dwork2006} menjamin bahwa hasil sebuah analisis hampir tidak berubah, apakah data satu orang tertentu ikut atau
+tidak. Caranya dengan menambahkan noise yang terukur. Untuk menghitung berapa pasien di sebuah rumah sakit yang
+mengidap penyakit tertentu, satu orang paling banyak mengubah hitungan sebesar satu. Menambahkan noise Laplace dengan
+skala $1/\varepsilon$ membuat peluang setiap hasil berubah paling banyak dengan faktor $e^\varepsilon$ ketika satu
+orang ditambahkan atau dihapus. Dengan $\varepsilon=1$, noise-nya punya simpangan baku sekitar $1{,}4$: tidak berarti
+untuk hitungan ribuan, tetapi cukup untuk menyamarkan apakah satu orang tertentu ada di dalam data. Parameter
+$\varepsilon$ adalah anggaran privasi. Semakin kecil, semakin terlindung, dan semakin berisik hasilnya.
+
+\section{Keadilan bisa diukur, tetapi tidak sekaligus}
+
+Kalau sebuah model memutuskan sesuatu tentang manusia, kita bisa bertanya apakah ia adil terhadap kelompok yang
+berbeda. Pertanyaan ini ternyata punya beberapa jawaban matematis yang saling bertentangan. Misalkan sebuah model
+menyetujui kredit untuk 50 dari 100 pemohon di kelompok A dan 30 dari 100 di kelompok B. \istilah{Demographic parity}
+menuntut tingkat persetujuan yang sama. Di sini selisihnya $0{,}2$, dan rasionya $0{,}6$, di bawah ambang empat perlima
+yang dipakai sebagai pedoman praktis di beberapa yurisdiksi. Tetapi mungkin kelompok B memang lebih sering gagal
+bayar dalam data. Ukuran lain, \istilah{equal opportunity} \citep{hardt2016}, hanya menuntut bahwa di antara orang yang
+benar-benar mampu membayar, tingkat persetujuannya sama di kedua kelompok, yaitu true positive rate yang setara.
+Ukuran ketiga, kalibrasi, menuntut bahwa skor risiko $0{,}7$ berarti peluang gagal bayar $0{,}7$ di kelompok mana pun.
+
+\citet{chouldechova2017} memperlihatkan bahwa kalau tingkat dasar kedua kelompok berbeda, sebuah skor yang terkalibrasi
+tidak mungkin sekaligus menyamakan tingkat positif palsu dan tingkat negatif palsu antar kelompok, kecuali prediksinya
+sempurna. Jadi memilih ukuran keadilan bukan keputusan teknis semata, melainkan keputusan nilai: kesalahan mana yang
+paling merugikan, dan bagi siapa. Inilah titik di mana kuliah hukum dan sosiologi bertemu dengan kuliah teknis. Model
+bisa dirancang untuk memenuhi ukuran mana pun yang dipilih, tetapi pilihannya harus dibuat dan dipertanggungjawabkan oleh
+manusia.
 
 \section{Teknologi dan masyarakat}
 
@@ -134,6 +200,17 @@ kinerja model untuk setiap kelompok, bukan hanya rata-ratanya. Kumpulkan data se
 apa yang dilakukan model dan di mana batasnya, karena regulasi semakin mewajibkannya dan karena itu
 adalah praktik teknik yang baik. Dan jelaskan sistem dengan jujur, tanpa melebih-lebihkan kecerdasannya
 dan tanpa meremehkan risikonya.
+
+\section{Perkembangan riset}
+
+Kewajiban transparansi untuk konten sintetis menimbulkan pertanyaan teknis: bagaimana mengenali teks yang dibuat mesin?
+\citet{kirchenbauer2023} mengusulkan watermark untuk keluaran model bahasa. Sebelum setiap token dibangkitkan, sebagian
+kosakata dipilih secara acak sebagai daftar ``hijau'' berdasarkan token sebelumnya, dan peluang token hijau sedikit
+dinaikkan. Manusia tidak melihat perbedaannya, tetapi pemeriksa yang tahu cara memilih daftar hijau bisa menghitung berapa
+banyak token hijau dalam sebuah teks. Tanpa watermark, sekitar separuh token jatuh di daftar hijau secara kebetulan. Dengan
+watermark, jauh lebih banyak. Uji statistik $z$ sederhana memberi nilai $p$ yang bisa ditafsirkan, dan beberapa puluh token
+sudah cukup untuk deteksi yang meyakinkan. Watermark seperti ini bisa dilemahkan dengan memparafrasa teks, sehingga ia
+melengkapi, bukan menggantikan, kewajiban hukum dan literasi AI yang dibahas di bab ini.
 
 \sumberbab{Bab ini mengikuti kuliah AI and Law I dan II (definisi AI, AI Act, GDPR, kontrak, tanggung
 jawab produk), AI in Society dan Technology and Society (imajinasi sosiologis, pembentukan sosial

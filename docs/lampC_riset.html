@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meneliti, Menerbitkan, dan
+Mematenkan · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum"></p>
+<h1>Meneliti, Menerbitkan, dan Mematenkan</h1>
+<p><span id="lamp:riset" data-label="lamp:riset"></span></p>
+<p>Lampiran ini untuk pembaca yang ingin melangkah dari membaca ke
+meneliti. Isinya bersandar pada kuliah Patent and Literature Searching
+yang saya ikuti pada musim dingin 2024/25, di semester pertama.
+Kuliahnya membahas dua jalan yang dipakai ilmu dan teknologi untuk
+membagikan temuan: publikasi ilmiah dan paten. Keduanya punya aturan
+main yang berbeda, dan peneliti AI hampir pasti bersentuhan dengan
+keduanya.</p>
+<h2 id="publikasi-ilmiah">Publikasi ilmiah</h2>
+<p>Kuliah membuka dengan kalimat yang jujur: publikasi adalah mata uang
+komunitas akademik. Peneliti dinilai dari makalah yang ia terbitkan di
+jurnal bereputasi, dan dari seberapa sering makalah itu dikutip.
+Publikasi juga punya fungsi yang lebih mulia: melaporkan hasil, memicu
+riset lanjutan, menghemat sumber daya karena percobaan yang sama tidak
+perlu diulang di tempat lain, dan memberi pegangan bagi pembuat
+kebijakan dan industri.</p>
+<p>Makalah ilmiah, apa pun bidangnya, mencoba menjawab serangkaian
+pertanyaan yang sama. Apa yang saya kerjakan, secara ringkas? Apa
+masalahnya? Bagaimana saya mempelajari atau menyelesaikannya? Apa yang
+saya temukan? Apa artinya? Apa yang saya pelajari dan apa yang sebaiknya
+dikerjakan berikutnya? Siapa yang membantu dan siapa yang membiayai?
+Karya siapa yang saya rujuk? Susunan abstrak, pendahuluan, metode,
+hasil, diskusi, dan kesimpulan adalah cara baku untuk menjawabnya, dan
+setiap jurnal menetapkan detailnya dalam pedoman penulis.</p>
+<p>Sebelum terbit, makalah melewati <em>peer review</em>: editor
+mengirimkannya ke beberapa ahli di bidang yang sama, yang menilai apakah
+metodenya benar, hasilnya didukung bukti, dan sumbangannya cukup baru.
+Di bidang machine learning, konferensi seperti NeurIPS, ICML, dan ICLR
+memainkan peran yang di bidang lain dipegang jurnal, dan banyak makalah
+beredar lebih dulu sebagai pracetak di arXiv sebelum atau tanpa melewati
+review. Pracetak mempercepat pertukaran gagasan, tetapi pembaca harus
+ingat bahwa belum ada orang lain yang memeriksanya.</p>
+<p>Kuliah juga mencatat apa yang <em>tidak</em> biasanya diterbitkan:
+hasil negatif, percobaan yang gagal mereproduksi hasil yang sudah
+terbit, dan temuan yang tampak bertentangan dengan konsep yang mapan.
+Akibatnya, literatur yang terbit cenderung lebih optimistis dari
+kenyataan, sebuah bias publikasi. Pelajarannya bagi peneliti machine
+learning: satu makalah yang melaporkan metode baru mengungguli
+pembanding belum berarti metode itu selalu lebih baik, dan reproduksi
+independen berharga.</p>
+<h3 id="mengukur-dampak">Mengukur dampak</h3>
+<p>Ukuran dampak yang paling dikenal adalah <em>h-index</em>: nilai
+<span class="math inline">\(h\)</span> terbesar sehingga seorang
+peneliti punya <span class="math inline">\(h\)</span> makalah yang
+masing-masing dikutip paling sedikit <span
+class="math inline">\(h\)</span> kali. Contoh di kuliah adalah daftar
+makalah dengan jumlah kutipan 25, 20, 10, 8, 7, 6, lalu makalah-makalah
+yang dikutip lebih sedikit. Enam makalah teratas masing-masing dikutip
+paling sedikit enam kali, tetapi tidak ada tujuh makalah yang
+masing-masing dikutip paling sedikit tujuh kali, sehingga <span
+class="math inline">\(h=6\)</span>. Ukuran ini menggabungkan
+produktivitas dan dampak, tetapi buta terhadap urutan penulis,
+bergantung pada bidang, dan bisa dinaikkan dengan saling mengutip.
+<em>Impact factor</em> sebuah jurnal, rata-rata kutipan yang diterima
+makalah-makalahnya dalam dua tahun sebelumnya, punya masalah serupa.
+Angka-angka ini berguna sebagai petunjuk kasar, dan menyesatkan kalau
+dijadikan tujuan, hukum Goodhart yang sama dengan reward hacking di <a
+href="ch51c_keselamatan.html">Bab 36</a>.</p>
+<h3 id="menemukan-dan-mengakses-literatur">Menemukan dan mengakses
+literatur</h3>
+<p>Basis data seperti Web of Science, Scopus, SciFinder untuk kimia, dan
+Google Scholar membantu menemukan makalah yang relevan, melacak siapa
+yang mengutip siapa, dan menemukan makalah-makalah baru dari satu
+makalah lama yang penting. Banyak makalah dilindungi hak cipta dan
+berbayar. Kuliah membahas jalan-jalan yang sah untuk mendapatkannya:
+langganan perpustakaan universitas, meminta salinan langsung kepada
+penulis, yang hampir selalu senang mengirimkannya, dan versi <em>open
+access</em>. Pada <em>gold open access</em>, penerbit membuat makalah
+gratis dibaca dan biaya ditanggung penulis atau lembaganya. Pada
+<em>green open access</em>, penulis mengarsipkan sendiri salinannya,
+misalnya di repositori universitas atau arXiv. Pada <em>diamond open
+access</em>, baik penulis maupun pembaca tidak membayar, karena biaya
+ditanggung lembaga atau komunitas.</p>
+<p>Daftar pustaka buku ini dibangun dengan alat-alat yang sama. Setiap
+artikel diambil metadatanya langsung dari Crossref berdasarkan DOI-nya
+atau dari arXiv berdasarkan nomornya, lalu dicocokkan dengan kata kunci
+judul yang diharapkan, sehingga judul, penulis, dan tahun yang tercetak
+memang berasal dari catatan resmi, bukan dari ingatan. Buku diperiksa
+terhadap katalog perpustakaan terbuka atau halaman hak ciptanya.
+Kebiasaan sederhana ini mencegah kesalahan yang umum, yaitu mengutip
+sesuatu yang tidak pernah ada atau mengutip dengan detail yang salah,
+kesalahan yang semakin sering terjadi sejak orang meminta model bahasa
+menuliskan daftar pustaka.</p>
+<h2 id="paten">Paten</h2>
+<h3 id="apa-itu-paten">Apa itu paten</h3>
+<p>Paten adalah salah satu hak kekayaan intelektual, bersama merek,
+desain industri, hak cipta, dan model utilitas. Menurut definisi yang
+dipakai kuliah, paten adalah hak yang diberikan negara kepada penemu
+untuk melarang orang lain membuat, memakai, menjual, atau mengimpor
+penemuannya di negara itu selama waktu terbatas, <em>sebagai ganti</em>
+pengungkapan penemuan itu kepada publik. Pertukaran inilah intinya.
+Penemu mendapat monopoli sementara, masyarakat mendapat pengetahuan yang
+lengkap, yang bebas dipakai siapa pun setelah patennya berakhir.</p>
+<p>Gagasannya tua. Kuliah menyebut kota Yunani Sybaris sekitar 500
+sebelum Masehi, yang konon melindungi resep masakan baru selama setahun,
+monopoli sepuluh tahun bagi penemu cara menenun sutra di Venesia abad
+ke-12, undang-undang paten Venesia tahun 1474 yang sudah memuat
+prinsip-prinsip modern, yaitu baru, berguna, eksklusif, dan terbatas
+waktunya, Statute of Monopolies di Inggris tahun 1623, dan Konvensi
+Paris tahun 1883 yang menjadikan sistem paten internasional.</p>
+<h3 id="syarat-dan-siklus-hidup">Syarat dan siklus hidup</h3>
+<p>Penemuan hanya bisa dipatenkan kalau memenuhi tiga syarat. Pertama,
+<em>baru secara mutlak</em>: belum menjadi bagian dari keadaan teknik
+sebelumnya di mana pun di dunia, dalam bentuk apa pun, termasuk makalah,
+presentasi konferensi, tesis, atau unggahan di internet. Penemuan yang
+pernah diterbitkan di Jepang tidak lagi baru di Eropa, walau hampir
+tidak ada orang Eropa yang membacanya. Kedua, <em>langkah inventif</em>:
+tidak boleh jelas bagi seorang ahli di bidangnya. Ketiga, <em>dapat
+diterapkan di industri</em>. Selain itu, penemuan harus diungkapkan
+cukup jelas sehingga ahli di bidangnya bisa melaksanakannya.</p>
+<p>Syarat kebaruan punya akibat yang sering mengejutkan peneliti. Di
+Eropa, publikasi oleh penemunya sendiri juga merusak kebaruan. Peneliti
+yang mempresentasikan temuannya di konferensi minggu ini, lalu
+mengajukan paten bulan depan, sudah kehilangan haknya. Urutannya harus
+dibalik: ajukan dulu, terbitkan kemudian. Kuliah menyebut jalan pintas
+yang murah untuk itu: kantor paten Austria, dan beberapa kantor lain,
+menerima permohonan paten sementara dengan biaya resmi sekitar 50 euro.
+Permohonan ini tidak diperiksa dan tidak diterbitkan, tetapi mengamankan
+tanggal prioritas, dan dalam setahun bisa ditingkatkan menjadi
+permohonan yang lengkap.</p>
+<p>Setelah diajukan, permohonan diterbitkan sekitar 18 bulan setelah
+tanggal prioritas, diperiksa oleh kantor paten, dan kalau diberikan,
+berlaku paling lama 20 tahun sejak tanggal pengajuan, asalkan biaya
+tahunan dibayar. Dalam tahun prioritas, permohonan yang sama bisa
+diajukan di negara-negara lain dengan tetap memakai tanggal prioritas
+yang pertama.</p>
+<h3 id="membaca-paten">Membaca paten</h3>
+<p>Bagian terpenting sebuah paten adalah daftar klaim bernomor, karena
+klaimlah, bukan gambar atau uraian, yang menentukan apa yang dilindungi.
+Klaim independen berdiri sendiri, klaim dependen merujuk ke klaim lain
+dan menambahkan pembatasan. Satu kata kecil menentukan luasnya. Klaim
+yang memakai “comprising” bersifat terbuka: produk yang punya semua
+unsur yang disebut, ditambah unsur lain, tetap termasuk. Klaim yang
+memakai “consisting of” bersifat tertutup: hanya unsur yang disebut,
+tidak lebih. Kuliah menyarankan urutan membaca: halaman pertama untuk
+jenis dokumen, tanggal prioritas, dan abstrak, lalu gambar dan contoh
+kalau bidangnya belum dikenal, baru kemudian klaim.</p>
+<p>Paten juga diklasifikasikan menurut bidang teknik, misalnya dengan
+Cooperative Patent Classification dan International Patent
+Classification, sehingga pencarian keadaan teknik sebelumnya bisa
+menyisir satu kelas sekaligus. Tugas kuliah meminta kami menulis ulasan
+sebuah paten: data bibliografisnya, kelasnya, mengapa tanggal
+prioritasnya lebih awal dari tanggal pengajuannya, apa penemuannya, dan
+apa yang sebenarnya dilindungi klaimnya. Latihan ini mengajarkan bahwa
+uraian yang panjang di sebuah paten sering jauh lebih luas dari
+perlindungan yang diberikan klaim-klaimnya.</p>
+<p>Ketika paten dilanggar, pemiliknya bisa menggugat. Kuliah membahas
+tiga cara menghitung ganti rugi: royalti yang wajar, yaitu nilai pasar
+sebuah lisensi; keuntungan yang hilang, yang harus dibuktikan sebagai
+akibat langsung pelanggaran; dan keuntungan yang diperoleh pelanggar.
+Ancaman gugatan inilah yang memberi paten “gigi”-nya.</p>
+<h3 id="paten-dan-ai">Paten dan AI</h3>
+<p>AI menimbulkan dua pertanyaan baru bagi sistem paten. Yang pertama
+adalah apakah penemuan berbasis perangkat lunak dan machine learning
+bisa dipatenkan. Di Eropa, program komputer “sebagai program”
+dikecualikan, tetapi penemuan yang diimplementasikan dengan komputer
+bisa dipatenkan kalau ia memberi sumbangan teknis, misalnya metode
+machine learning yang dipakai untuk mengendalikan proses industri atau
+mengolah sinyal fisis dengan cara baru. Batasnya tidak selalu jelas, dan
+banyak keputusan bergantung pada rumusan klaim. Yang kedua adalah apakah
+AI bisa menjadi penemu. Dalam kasus DABUS, seorang pemohon mencantumkan
+sistem AI sebagai penemu satu-satunya. Kantor Paten Eropa menolaknya
+pada 2020, dewan bandingnya menguatkan penolakan itu pada 2021, dan
+Mahkamah Agung Inggris pada 20 Desember 2023 memutuskan dengan suara
+bulat bahwa penemu harus manusia. Pertanyaan tentang siapa pemilik
+penemuan yang sebagian besar dihasilkan AI, dan bagaimana menilai
+langkah inventif ketika “ahli di bidangnya” sudah dibantu AI, masih
+terbuka.</p>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
+<p>Lampiran ini mengikuti kuliah Patent and Literature Searching (hak
+kekayaan intelektual dan sejarah paten, syarat paten, siklus hidup
+paten, membaca dan mencari paten, strategi klaim, sengketa paten,
+publikasi ilmiah dan evaluasinya, mencari literatur ilmiah) beserta
+tugas ulasan paten. Fakta tentang kasus DABUS diperiksa dengan laporan
+putusan resminya.</p>
+</main>
+<nav class="pager">
+  <a class="prev" href="lampB_matematika.html"><span>Sebelumnya</span>Bekal Matematika</a>
+  
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

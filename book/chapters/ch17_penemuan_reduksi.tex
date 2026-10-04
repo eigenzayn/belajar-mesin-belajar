@@ -34,10 +34,48 @@ melewati silinder pada bilangan Reynolds rendah, beberapa mode pertama datang be
 menangkap hampir seluruh energi fluktuasi, karena pelepasan pusaran adalah gelombang yang berjalan,
 dan gelombang berjalan butuh dua mode yang bergeser seperempat periode.
 
+Klaim terakhir bisa diperiksa dengan satu identitas trigonometri. Gelombang yang berjalan ke kanan,
+$u(x,t)=\sin(x-t)$, bisa ditulis sebagai
+\begin{equation}
+\sin(x-t)=\sin x\,\cos t-\cos x\,\sin t .
+\end{equation}
+Medannya adalah jumlah dua suku, masing-masing berupa pola ruang tetap dikali fungsi waktu. Jadi matriks potretnya
+tepat berpangkat dua, dengan mode ruang $\sin x$ dan $\cos x$, dan nilai singular ketiga dan seterusnya nol. Satu mode
+saja tidak cukup, karena satu pola tetap yang dikalikan amplitudo hanya bisa berdenyut di tempat, tidak bisa
+berjalan. Sebaliknya, gelombang yang bentuknya berubah sambil berjalan, atau gelombang kejut yang tajam,
+membutuhkan banyak sekali mode, dan nilai singularnya meluruh pelan (\cref{fig:svdecay}). Inilah batas mendasar
+semua metode reduksi linear: mereka bekerja baik ketika aliran ``berdenyut'' di tempat, dan buruk ketika struktur
+tajam berpindah tempat.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=0.64\linewidth,height=4.6cm,axis lines=left,xmin=0,xmax=20.5,ymin=0,ymax=1.05,
+  xlabel={\small jumlah mode $r$},ylabel={\small fraksi energi},ytick={0,0.5,0.9,1},xtick={0,2,5,10,20}]
+  \addplot[biru,thick,mark=*,mark size=1.2pt,domain=1:20,samples=20] {1-0.02*exp(-0.5*(x-2))*(x>=2)-0.85*(x<2)};
+  \addplot[oranye,thick,mark=*,mark size=1.2pt,domain=1:20,samples=20] {1-exp(-0.12*x)};
+  \draw[dashed,abu] (axis cs:0,0.9) -- (axis cs:20.5,0.9);
+  \node[label,biru] at (axis cs:6,0.83) {pelepasan pusaran};
+  \node[label,oranye] at (axis cs:14,0.62) {struktur tajam yang berpindah};
+\end{axis}
+\end{tikzpicture}
+\caption{Gambaran fraksi energi yang ditangkap $r$ mode POD pertama. Aliran periodik seperti pelepasan pusaran di
+belakang silinder sudah tertangkap oleh beberapa pasang mode. Struktur tajam yang berpindah tempat membutuhkan
+banyak sekali mode. Kurva ini ilustrasi bentuk, bukan data dari satu simulasi tertentu.}
+\label{fig:svdecay}
+\end{figure}
+
 Mode POD bisa dipakai untuk membangun \istilah{reduced-order model}. Tuliskan
 $\vu(\vx,t)\approx\bar\vu(\vx)+\sum_{k=1}^ra_k(t)\bm\varphi_k(\vx)$, masukkan ke persamaan Navier--Stokes,
-lalu proyeksikan ke setiap mode. Proyeksi Galerkin ini menghasilkan sistem ODE kecil untuk koefisien
-$a_k(t)$, dengan suku linear dari viskositas dan suku kuadratik dari konveksi. Model seperti ini bisa
+lalu proyeksikan ke setiap mode dengan mengambil hasil kali dalam dengan $\bm\varphi_k$. Karena mode-mode saling
+ortonormal, ruas kiri tinggal $\dot a_k$. Suku viskositas linear dalam $\vu$, sehingga menyumbang suku linear dalam
+koefisien. Suku konveksi $(\vu\cdot\nabla)\vu$ kuadratik dalam $\vu$, sehingga menyumbang hasil kali dua koefisien.
+Hasilnya sistem ODE kecil
+\begin{equation}
+\dot a_k=c_k+\sum_jL_{kj}a_j+\sum_{i,j}Q_{kij}a_ia_j,\qquad k=1,\dots,r,
+\end{equation}
+dengan koefisien $c$, $L$, dan $Q$ yang dihitung sekali dari mode dan medan rata-rata. Tekanan sering lenyap dari
+proyeksi karena mode yang bebas divergensi tegak lurus terhadap gradien tekanan di domain tertutup. Model seperti ini bisa
 ribuan kali lebih cepat, tetapi sering tidak stabil untuk waktu panjang, karena mode-mode kecil yang
 dibuang adalah tempat energi seharusnya dibuang, sama seperti pusaran kecil dalam kaskade turbulensi
 (\cref{ch:numerik}). Model penutup untuk mode yang hilang, atau model deret seperti LSTM pada koefisien
@@ -58,12 +96,38 @@ $\mX\approx\bm U_r\bm\Sigma_r\bm V_r^\top$, diperoleh
 matriks kecil $r\times r$ yang nilai eigennya sama dengan nilai eigen utama $\mA$. Setiap nilai eigen
 $\lambda_k$ membawa satu mode yang berkembang seperti $\lambda_k^t$ per langkah. Dalam waktu kontinu,
 $\omega_k=\ln\lambda_k/\Delta t$, dengan bagian real sebagai laju tumbuh atau luruh dan bagian imajiner
-sebagai frekuensi. Sebagai contoh, $\lambda=0{,}99\,e^{0{,}1i}$ dengan $\Delta t=0{,}01$ detik memberi
+sebagai frekuensi. Kasus paling sederhana memperlihatkan logikanya. Kalau setiap potret tepat $0{,}9$ kali potret sebelumnya,
+$\mX'=0{,}9\,\mX$, maka $\mA=0{,}9\,\bm I$ pada ruang yang direntang data, dan DMD menemukan satu nilai eigen $0{,}9$:
+medan yang meluruh sepuluh persen per langkah. Sebagai contoh yang berosilasi, $\lambda=0{,}99\,e^{0{,}1i}$ dengan $\Delta t=0{,}01$ detik memberi
 laju luruh $\ln0{,}99/0{,}01\approx-1{,}0$ per detik dan frekuensi sudut 10 radian per detik.
 
 DMD seperti mendengarkan sebuah orkestra lalu menuliskan partitur: nada mana yang dimainkan, seberapa
 keras, dan apakah ia menguat atau memudar. POD, sebaliknya, hanya mencatat alat musik mana yang paling
 banyak bersuara.
+
+Contoh dua dimensi memperlihatkan bahwa DMD memulihkan dinamika linear secara eksak. Misalkan sistem berputar sebesar sudut
+$\theta$ dan meredam sepuluh persen di setiap langkah, $\vx_{k+1}=0{,}9\,\bm R(\theta)\vx_k$, dimulai dari $\vx_0=(1,0)$. Dua
+potret pertama $\vx_0$ dan $\vx_1=0{,}9(\cos\theta,\sin\theta)$ membentuk matriks $\mX$ yang bisa dibalik, sehingga
+$\mA=\mX'\mX^{-1}$ tepat sama dengan $0{,}9\,\bm R(\theta)$. Nilai eigennya $0{,}9\,e^{\pm i\theta}$: modulus $0{,}9$ memberi laju
+luruh, sudut $\theta$ memberi frekuensi. Dari dua potret saja, DMD menemukan ``nada'' sistem dan seberapa cepat ia memudar.
+Kalau datanya berisik, matriks yang diperoleh juga berisik, dan nilai eigen cenderung bergeser ke dalam lingkaran satuan,
+seolah sistemnya lebih teredam dari kenyataan. Varian DMD yang lebih tahan noise memperlakukan galat di $\mX$ dan $\mX'$ secara
+simetris.
+
+\section{Model tereduksi untuk banyak parameter}
+
+Dalam desain dan kendali, kita jarang hanya butuh satu simulasi. Kita butuh banyak, untuk bilangan Reynolds, laju aliran,
+atau temperatur masuk yang berbeda. Model tereduksi \istilah{parametrik} membangun basis POD dari potret-potret yang
+dikumpulkan di beberapa titik parameter. Pertanyaannya, di titik mana simulasi penuh dijalankan. Strategi \istilah{greedy}
+menjawabnya secara berurutan: mulai dari satu titik, bangun model tereduksi, perkirakan galatnya di banyak titik kandidat
+dengan penaksir galat yang murah, lalu jalankan simulasi penuh di titik dengan perkiraan galat terbesar dan tambahkan
+potretnya ke basis. Mirip active learning di \cref{ch:hayati}: setiap simulasi mahal dipakai di tempat yang paling
+mengurangi ketidaktahuan.
+
+Kalau parameter mengubah karakter aliran, misalnya pusaran yang muncul hanya di atas bilangan Reynolds tertentu, satu
+basis untuk semua parameter menjadi tidak efisien. Solusinya adalah beberapa basis lokal, masing-masing untuk satu daerah
+parameter, dengan aturan untuk memilih basis yang tepat. Gagasan ini sejalan dengan rCFD yang menyimpan basis data per
+rezim aliran (\cref{ch:rcfd}).
 
 \section{Koopman: linear di ruang yang lebih besar}
 
@@ -102,7 +166,12 @@ terkecil memberi koefisien $(0,-2,0)$ dan pengambangan tidak mengubah apa pun. D
 terkecil biasa memberi koefisien kecil pada $1$ dan $x^2$ yang mencoba menjelaskan noise. Pengambangan
 membuangnya, dan regresi ulang hanya dengan $x$ memulihkan $-2$ dengan baik. Hasilnya bukan jaringan
 dengan ribuan bobot, melainkan persamaan yang bisa dibaca, diperiksa, dan diekstrapolasi. Pada data
-sistem Lorenz yang chaos, SINDy memulihkan ketiga persamaannya hanya dari lintasan yang diukur.
+sistem Lorenz yang chaos,
+\begin{equation}
+\dot x=\sigma(y-x),\qquad \dot y=x(\rho-z)-y,\qquad \dot z=xy-\beta z,
+\end{equation}
+SINDy memulihkan ketiga persamaannya hanya dari lintasan yang diukur. Dari puluhan kandidat suku polinomial sampai
+derajat tiga, yang tersisa hanya tujuh suku, dengan koefisien yang dekat ke nilai sebenarnya.
 
 SINDy punya tiga syarat yang sering menjadi titik lemah. Turunan waktu harus diperkirakan dari data,
 dan diferensiasi numerik memperbesar noise. Pustakanya harus memuat suku yang benar. Dan koordinatnya
@@ -119,6 +188,19 @@ yang hampir periodik atau berosilasi, dan untuk kendali. SINDy cocok ketika pers
 dan datanya cukup bersih. Semuanya menghasilkan model yang jauh lebih kecil dan lebih mudah ditafsirkan
 daripada jaringan dalam, dan karena itulah mereka masih dipakai berdampingan dengan neural operator di
 \cref{ch:operator}, sering sebagai lapisan di dalamnya.
+
+\section{Perkembangan riset}
+
+Dua perkembangan memperkuat model tereduksi dan penemuan persamaan. \istilah{Operator inference} \citep{kramer2024}
+mengambil bentuk polinomial model Galerkin di atas, $\dot a=c+La+Q(a\otimes a)$, tetapi tidak menghitung $c$, $L$, dan $Q$
+dari proyeksi persamaan. Koefisien-koefisien itu dipelajari langsung dari data simulasi dengan kuadrat terkecil. Cara ini
+non-intrusif, karena tidak perlu membuka kode solver, dan tetap mewarisi teori reduksi berbasis proyeksi, sehingga
+perkiraan galat bisa diturunkan. Versi yang menjaga struktur Hamilton menjamin energi kekal di luar rentang pelatihan.
+
+Weak SINDy \citep{messenger2021} mengatasi kelemahan terbesar SINDy, yaitu turunan numerik yang memperbesar noise. Alih-alih
+mencocokkan turunan, persamaan dikalikan dengan fungsi uji yang mulus lalu diintegrasikan, sehingga turunan berpindah dari
+data ke fungsi uji lewat integrasi parsial, trik yang sama dengan bentuk lemah pada Deep Ritz di \cref{ch:pinn}. Data
+berisik tidak lagi perlu didiferensiasi sama sekali.
 
 \sumberbab{Bab ini dirangkai dari kuliah Machine Learning: Unsupervised Techniques (PCA), Control Systems
 (sistem linear dan nilai eigen), Computational Physics I (SVD dan masalah nilai eigen), dan bacaan selama

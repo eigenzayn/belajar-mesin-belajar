@@ -1,0 +1,184 @@
+\chapter{Bahasa: dari Kantong Kata ke Model Bahasa Besar}
+\label{ch:nlp}
+
+Kuliah natural language processing saya ikuti pada musim dingin 2025/26 di Institute of Computational Perception. Sepuluh
+pertemuannya bergerak dari pra-pemrosesan teks dan representasi dokumen, representasi kata dan embedding, jaringan saraf,
+model bahasa $n$-gram, embedding kata dan kalimat yang dipelajari, attention dan transformer, NLP multimodal, sampai model bahasa
+besar. Tiga tugas kelompoknya mengikuti alur yang sama: mengklasifikasikan dokumen dengan metode machine learning standar,
+menjelajahi word embedding, lalu mengklasifikasikan cerita pendek ke banyak label sekaligus dengan PyTorch dan BERT.
+
+Transformer dan model bahasa besar sudah muncul di \cref{ch:lstm} dan \cref{ch:terbaru}. Bab ini mengisi jalan panjang di
+antaranya: bagaimana teks diubah menjadi angka, dan bagaimana gagasan-gagasan sederhana tentang menghitung kata perlahan tumbuh
+menjadi model yang kini dipakai jutaan orang.
+
+\section{Membersihkan teks}
+
+Sebelum apa pun, teks harus diseragamkan. Huruf besar dikecilkan, sehingga ``Linz'' dan ``linz'' menjadi satu kata, walau
+kadang dengan harga ambiguitas, seperti \emph{General Motors} dan \emph{general motors}. Angka dan tanggal sering diganti token
+khusus, karena kalau setiap angka menjadi kata tersendiri, kosakata meledak. Kata majemuk dalam bahasa seperti Jerman perlu
+dipecah, \emph{Halsschlagader} menjadi leher, pukulan, dan pembuluh. Kata-kata yang umum, \istilah{stop words} seperti
+``yang'', ``dan'', ``di'', sering dibuang untuk pendekatan kantong kata, walau dalam frasa seperti ``to be or not to be'' justru
+merekalah isinya.
+
+Variasi bentuk kata dikurangi dengan dua cara. \istilah{Stemming} memotong imbuhan dengan aturan kasar. Algoritme Porter
+\citep{porter1980}, yang paling umum untuk bahasa Inggris, memakai aturan seperti \emph{sses} menjadi \emph{ss}, \emph{ies}
+menjadi \emph{i}, dan \emph{ational} menjadi \emph{ate}, sehingga \emph{caresses} menjadi \emph{caress}, \emph{ponies} menjadi
+\emph{poni}, dan \emph{relational} menjadi \emph{relate}. Hasilnya tidak harus kata yang sungguhan. \istilah{Lemmatization} memakai
+kamus untuk mengembalikan bentuk dasar yang benar, misalnya \emph{am}, \emph{are}, dan \emph{is} menjadi \emph{be}. Lebih teliti,
+tetapi lebih lambat, dan tidak berdaya untuk kata yang tidak ada di kamus. Bahasa Indonesia, dengan imbuhan seperti
+\emph{me-}, \emph{-kan}, dan \emph{per-an}, menghadapi masalah yang sama dalam bentuk yang lebih kaya.
+
+\section{Kantong kata}
+
+Representasi paling sederhana untuk sebuah dokumen adalah \istilah{bag of words}: vektor sepanjang kosakata yang berisi berapa
+kali setiap kata muncul, dengan urutan dibuang sama sekali. ``Anjing menggigit orang'' dan ``orang menggigit anjing'' menjadi
+vektor yang sama. Meski kasar, representasi ini, ditambah pembobotan TF-IDF dari \cref{ch:rekomendasi}, sudah cukup untuk banyak
+tugas klasifikasi dokumen. Tugas pertama kuliah membangun pengklasifikasi sentimen seperti ini dengan regresi logistik dan
+pengklasifikasi standar dari \cref{ch:unsup}.
+
+Masalah utamanya adalah \emph{sparsity}. Kosakata berisi puluhan ribu kata, sedangkan satu kalimat hanya memakai belasan, sehingga
+vektornya hampir seluruhnya nol. Lebih parah lagi, setiap kata adalah dimensi yang berdiri sendiri. ``Bagus'' dan ``baik''
+sama jauhnya dengan ``bagus'' dan ``buruk''. Model tidak bisa memindahkan apa yang ia pelajari tentang satu kata ke kata yang
+bermakna serupa.
+
+\section{Makna dari tetangga}
+
+Jalan keluarnya datang dari linguistik. Firth menulis pada 1957 bahwa kita mengenal sebuah kata dari teman-temannya. Kuliah
+memakai contoh kata yang hampir tidak dikenal, \emph{tesgüino}. Dari kalimat-kalimat di sekitarnya, bahwa ia diminum, difermentasi
+dari jagung, dan dibuat untuk upacara, kita menyimpulkan bahwa ia sejenis minuman beralkohol, tanpa pernah melihat definisinya.
+Dua kata bermakna mirip kalau mereka sering muncul di tengah kata-kata yang sama. Inilah \istilah{distributional semantics}.
+
+Gagasan ini dihitung dengan matriks kata--konteks: baris untuk setiap kata, kolom untuk setiap kata konteks, dan isinya berapa
+kali keduanya muncul berdekatan, misalnya dalam jendela beberapa kata. Hitungan mentah didominasi kata-kata umum, sehingga
+diganti dengan \istilah{pointwise mutual information},
+\begin{equation}
+\mathrm{PMI}(w,c)=\log_2\frac{p(w,c)}{p(w)\,p(c)},
+\end{equation}
+yang bertanya seberapa sering dua kata muncul bersama dibanding yang diharapkan kalau keduanya independen. Misalkan dalam seribu
+pasangan kata--konteks, pasangan ``kopi''--``seduh'' muncul 10 kali, ``kopi'' muncul 50 kali sebagai kata, dan ``seduh'' 40 kali
+sebagai konteks. Peluang bersamanya $0{,}01$, sedangkan hasil kali peluang terpisahnya $0{,}05\times0{,}04=0{,}002$. PMI-nya
+$\log_25\approx2{,}3$: kedua kata muncul bersama lima kali lebih sering dari kebetulan. Nilai negatif sulit ditaksir dengan andal
+dari data terbatas, sehingga biasanya dipotong ke nol, \istilah{positive PMI}. Kuliah juga mencatat kelemahan PMI: ia terlalu
+menghargai kata yang jarang, karena satu kebetulan saja bisa memberi rasio yang besar.
+
+Matriks PPMI lebar sekali dan jarang. Memampatkannya dengan SVD (\cref{lamp:matematika}) dan mengambil beberapa ratus dimensi
+pertama memberi vektor padat untuk setiap kata, sebuah \istilah{word embedding}. GloVe \citep{pennington2014} merumuskan hal serupa
+sebagai masalah regresi: cari vektor kata $\bm w_i$ dan vektor konteks $\tilde{\bm w}_j$ beserta bias sehingga
+\begin{equation}
+\bm w_i^\top\tilde{\bm w}_j+b_i+\tilde b_j\approx\log X_{ij},
+\end{equation}
+dengan $X_{ij}$ hitungan kemunculan bersama, diminimalkan dengan galat kuadrat berbobot. Bobotnya meredam pasangan yang sangat
+sering dan mengabaikan pasangan yang tidak pernah muncul. Hasil kali dalam yang mendekati logaritma hitungan bersama, setelah bias
+memperhitungkan frekuensi masing-masing kata, pada dasarnya adalah PMI. Dari sinilah sifat analogi yang terkenal muncul: vektor
+dari ``pria'' ke ``wanita'' kira-kira sejajar dengan vektor dari ``raja'' ke ``ratu''. Tugas kedua kuliah menjelajahi sifat-sifat ini:
+kemiripan kosinus, tetangga terdekat, dan analogi.
+
+\section{Model bahasa}
+
+Model bahasa memberi peluang pada deret kata. Dengan aturan rantai, peluang sebuah kalimat adalah hasil kali peluang setiap kata
+diberikan kata-kata sebelumnya. Model $n$-gram menyederhanakannya dengan asumsi Markov: setiap kata hanya bergantung pada $n-1$ kata
+sebelumnya, dan peluangnya ditaksir dari hitungan. Di \cref{ch:lstm} kita melihat contoh bigram ``nasi goreng'': kalau ``nasi''
+muncul 200 kali dan ``nasi goreng'' 50 kali, peluangnya $0{,}25$.
+
+Masalahnya adalah pasangan yang tidak pernah muncul di korpus, yang mendapat peluang nol, sehingga seluruh kalimat yang memuatnya
+juga berpeluang nol. \istilah{Laplace smoothing} menambahkan satu ke setiap hitungan,
+\begin{equation}
+P_{\mathrm{Lap}}(w_t\mid w_{t-1})=\frac{\mathrm{hitung}(w_{t-1},w_t)+1}{\mathrm{hitung}(w_{t-1})+V},
+\end{equation}
+dengan $V$ ukuran kosakata. Untuk kosakata sepuluh ribu kata, peluang ``goreng'' setelah ``nasi'' turun dari $0{,}25$ menjadi
+$51/10\,200=0{,}005$. Penghalusan ini terlalu kasar: hampir seluruh massa peluang dipindahkan ke sembilan ribu lebih kelanjutan
+yang tidak pernah terlihat. Cara yang lebih baik adalah \istilah{backoff}, yang turun ke $n$-gram yang lebih pendek kalau hitungan
+$n$-gram panjang tidak ada, atau \istilah{interpolation}, yang mencampur taksiran bigram dan unigram dengan bobot $\lambda$.
+
+Kinerja model bahasa diukur dengan \istilah{perplexity}, kebalikan rata-rata geometris peluang per kata pada data uji,
+$\mathrm{PP}=P(w_1,\dots,w_N)^{-1/N}$. Kalau model memberi peluang $0{,}1$, $0{,}2$, dan $0{,}05$ pada tiga kata sebuah kalimat, hasil
+kalinya $0{,}001$, rata-rata geometrisnya $0{,}1$, dan perplexity-nya 10: model sama bingungnya dengan memilih seragam di antara sepuluh
+kata. Model yang menebak seragam dari seluruh kosakata punya perplexity $V$. Perplexity adalah eksponen dari cross-entropy rata-rata,
+sehingga menurunkannya sama dengan menurunkan loss pelatihan di \cref{ch:data}.
+
+Model bahasa neural \citep{bengio2003} mengganti tabel hitungan dengan jaringan. Setiap kata konteks dipetakan ke embedding,
+embedding-embedding itu digabung, dilewatkan ke lapisan tersembunyi, lalu ke softmax atas seluruh kosakata. Dengan kosakata sepuluh
+ribu, embedding berdimensi 100, tiga kata konteks, dan 200 neuron tersembunyi, tabel embedding berisi satu juta parameter, lapisan
+tersembunyi $300\times200=60\,000$, dan lapisan keluaran $200\times10\,000=2$ juta. Lapisan keluaran yang paling mahal, dan masalah
+yang sama muncul lagi pada model besar. Keuntungannya, kata-kata yang mirip mendapat embedding yang mirip, sehingga apa yang
+dipelajari dari ``kopi panas'' ikut membantu ``teh panas'', sesuatu yang tidak bisa dilakukan tabel hitungan.
+
+Loss-nya adalah negative log likelihood setelah softmax, dan kuliah menurunkan gradiennya terhadap logit: $\bm p-\bm y$, peluang
+yang diramalkan dikurangi label one-hot, bentuk yang sama dengan regresi logistik di \cref{ch:data}. Softmax menciptakan
+persaingan di antara semua kata. Menaikkan logit satu kata otomatis menurunkan peluang semua kata lain.
+
+\section{word2vec dan embedding kalimat}
+
+word2vec \citep{mikolov2013} menyederhanakan model bahasa neural menjadi tugas yang hanya bertujuan menghasilkan embedding. Skip-gram
+menebak kata-kata konteks dari satu kata pusat. Softmax atas seluruh kosakata terlalu mahal, sehingga dipakai
+\istilah{negative sampling}: tugas klasifikasi banyak kelas diubah menjadi klasifikasi biner. Untuk pasangan sungguhan antara kata
+pusat $c$ dan kata konteks $o$, serta $k$ kata acak $n_1,\dots,n_k$ yang ditarik dari distribusi derau,
+\begin{equation}
+\Loss=-\log\sigma\big(\bm u_o^\top\bm v_c\big)-\sum_{i=1}^k\log\sigma\big(-\bm u_{n_i}^\top\bm v_c\big).
+\end{equation}
+Suku pertama menaikkan skor pasangan sungguhan, suku kedua menurunkan skor pasangan palsu. Kalau skor pasangan sungguhan $2$, suku
+pertamanya $-\ln\sigma(2)\approx0{,}13$. Kalau satu kata derau punya skor $1$, sumbangannya $-\ln\sigma(-1)\approx1{,}31$, hukuman besar
+yang mendorong skor itu turun. Kata-kata derau biasanya ditarik dengan peluang sebanding dengan frekuensinya dipangkatkan $3/4$, agar
+kata yang umum tidak terlalu mendominasi dan kata langka sesekali ikut terpilih.
+
+Embedding kata belum tentu menjadi embedding kalimat yang baik. Merata-ratakan vektor kata dalam kalimat, cara paling sederhana,
+membuang urutan dan memberi bobot yang sama pada kata ``yang'' dan kata ``gempa''. Pembobotan dengan TF-IDF memperbaikinya sedikit.
+Kuliah membahas cara yang lebih baik, yaitu melatih model langsung dengan tujuan tingkat kalimat, misalnya meramalkan kata yang
+dihilangkan dari kalimat memakai representasi seluruh kalimat lainnya, sehingga embedding yang dihasilkan memang dirancang untuk
+mewakili kalimat utuh.
+
+\section{Model bahasa besar}
+
+Kuliah membagi model bahasa besar yang dilatih sebelumnya ke dalam tiga keluarga. Model encoder seperti BERT \citep{devlin2019}
+melihat seluruh kalimat sekaligus dan menghasilkan embedding kontekstual: kata ``bank'' di ``bank sungai'' dan di ``bank sentral''
+mendapat vektor yang berbeda. Model decoder seperti GPT \citep{brown2020} menulis dari kiri ke kanan. Model encoder--decoder
+menggabungkan keduanya untuk tugas seperti terjemahan.
+
+BERT dilatih dengan \istilah{masked language model}: sebagian token dalam kalimat ditutup, dan model menebak token yang ditutup dari
+konteks di kedua sisinya. Contoh di kuliah: ``Jim made [MASK] for his girlfriend and [MASK] was very proud'', dengan jawaban
+\emph{spaghetti} dan \emph{he}. Kosakatanya sekitar 30 ribu token, karena kata dipotong menjadi potongan-potongan dengan WordPiece,
+saudara dekat byte-pair encoding di \cref{ch:terbaru}. BERT-Base punya 12 lapisan, dimensi tersembunyi 768, dan sekitar 110 juta
+parameter. Slide kuliah memberi pembanding yang menarik: tabel embedding statis seperti word2vec dengan kosakata 200 ribu kata dan
+vektor berdimensi 768 sudah berisi sekitar 153 juta parameter, lebih banyak dari seluruh BERT-Base. Tokenisasi subkata bukan hanya
+mengatasi kata yang tidak dikenal, tetapi juga jauh lebih hemat.
+
+Untuk menyetel BERT ke tugas klasifikasi, embedding keluaran dari token khusus \texttt{[CLS]} di awal kalimat dilewatkan ke lapisan
+klasifikasi kecil, dan seluruh jaringan disetel ulang dengan laju belajar kecil. Untuk tugas pasangan kalimat, seperti menilai
+apakah dua kalimat bermakna sama, keduanya digabung dengan token pemisah \texttt{[SEP]}. Tugas ketiga kuliah memakai resep ini untuk
+mengklasifikasikan cerita pendek. Di situ muncul perbedaan antara \emph{multi-class} dan \emph{multi-label}. Kalau setiap cerita
+punya tepat satu genre, keluaran memakai softmax dan cross-entropy, sehingga peluang semua kelas berjumlah satu. Kalau sebuah cerita
+bisa sekaligus lucu, sedih, dan misterius, setiap label mendapat sigmoid sendiri dengan binary cross-entropy, dan setiap label
+diputuskan dengan ambangnya sendiri. Memakai softmax untuk masalah multi-label memaksa label-label bersaing, padahal mereka tidak
+saling meniadakan.
+
+\section{Bahasa bersama modalitas lain}
+
+NLP multimodal menggabungkan teks dengan gambar, suara, video, atau data sensor. Pada \istilah{visual question answering}
+\citep{antol2015}, model menerima sebuah gambar dan pertanyaan tentangnya, misalnya ``berapa banyak orang di foto ini?'', dan harus
+menjawab dalam bahasa. Pembuatan keterangan gambar berjalan ke arah sebaliknya. Kuncinya adalah ruang embedding bersama, tempat teks
+dan gambar yang bermakna sama berdekatan, gagasan yang sama dengan CLIP di \cref{ch:hayati}. Kuliah juga menyebut penerapan seperti
+kendaraan otonom yang memadukan bahasa dengan lidar dan kamera, dan komputasi afektif yang membaca emosi dari wajah, suara, dan kata.
+
+\section{Biaya dan bias}
+
+Kuliah tidak berhenti pada kemampuan. Model besar membutuhkan energi yang besar untuk dilatih, dan kefasihannya bisa menutupi
+kenyataan bahwa ia tidak selalu memahami apa yang ditulisnya, argumen yang diangkat \citet{bender2021}. Bias sosial juga terbawa
+dari data. Contoh dari kuliah adalah terjemahan mesin dari bahasa dengan kata ganti netral gender, seperti bahasa Turki atau bahasa
+Indonesia, ke bahasa Inggris: ``dia seorang dokter'' dan ``dia seorang perawat'' bisa diterjemahkan menjadi \emph{he} dan \emph{she}
+menurut stereotip, padahal kalimat aslinya tidak menyebut gender sama sekali. Mesin pencari gambar untuk kata ``CEO'' dan
+``perawat'' memperlihatkan pola yang sama. Bias embedding kata yang dibahas \citet{bolukbasi2016} adalah akar dari masalah ini,
+dan persoalan yang lebih luas dibahas di \cref{ch:manusia}.
+
+\section{Perkembangan riset}
+
+Banyak perkembangan model bahasa besar sudah dibahas di \cref{ch:terbaru}: hukum penskalaan, penyelarasan dengan preferensi manusia,
+model yang bernalar, dan agen. Untuk NLP sebagai bidang, satu pergeseran besar adalah bahwa banyak tugas yang dulu punya model
+khusus, seperti klasifikasi sentimen, ekstraksi entitas, atau terjemahan, kini dikerjakan oleh satu model umum yang diberi instruksi
+dalam bahasa biasa. Tugas-tugas kuliah ini, dari kantong kata sampai BERT yang disetel, menjadi cara terbaik untuk memahami apa yang
+sebenarnya terjadi di dalam model umum itu, dan untuk menilai kapan model kecil yang khusus masih lebih tepat, lebih murah, dan lebih
+mudah diperiksa.
+
+\sumberbab{Bab ini mengikuti kuliah dan latihan Natural Language Processing (pra-pemrosesan dan kantong kata, representasi kata,
+PMI dan GloVe, jaringan saraf dan softmax, model bahasa $n$-gram, embedding kata dan kalimat yang dipelajari, attention dan
+transformer, NLP multimodal, model bahasa besar). Buku rujukan yang disebut kuliah antara lain buku Jurafsky dan Martin tentang
+pemrosesan ucapan dan bahasa.}

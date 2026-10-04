@@ -100,6 +100,11 @@ Sampel ditulis sebagai $\vz=\bm\mu+\bm\sigma\odot\bm\epsilon$ dengan $\bm\epsilo
 Keacakan dipindahkan ke $\bm\epsilon$, sehingga $\vz$ menjadi fungsi yang bisa diturunkan terhadap
 $\bm\mu$ dan $\bm\sigma$.
 
+Contoh dengan angka: kalau encoder mengeluarkan $\mu=1{,}2$ dan $\sigma=0{,}5$ untuk sebuah gambar, dan noise yang ditarik
+adalah $\epsilon=-0{,}4$, maka $z=1{,}2+0{,}5\cdot(-0{,}4)=1{,}0$. Turunan $z$ terhadap $\mu$ adalah satu dan terhadap $\sigma$
+adalah $\epsilon=-0{,}4$. Gradien loss rekonstruksi yang mengalir ke $z$ bisa diteruskan ke encoder lewat dua turunan
+sederhana ini, padahal tanpa trik ini, ``menarik sampel'' bukan operasi yang punya turunan.
+
 Saya membayangkan encoder sebagai orang yang melihat foto lalu menulis deskripsi singkat yang
 sengaja agak samar, misalnya ``wajah bulat, rambut pendek, kira-kira tersenyum''. Decoder adalah
 pelukis yang menggambar dari deskripsi itu. Suku KL memaksa semua deskripsi memakai kosakata yang
@@ -191,6 +196,37 @@ Energi & beragam, sering MCMC & fleksibel & normalisasi sulit \\
 \end{tabularx}
 \end{table}
 
+\subsection{Melatih GAN dengan jarak yang lebih baik}
+
+Kesulitan klasik GAN punya penjelasan geometris. Kalau distribusi data dan distribusi generator terletak di permukaan
+berdimensi rendah yang tidak beririsan, seperti dua garis di bidang, diskriminator yang sempurna selalu bisa memisahkan
+keduanya, dan gradien yang ia berikan ke generator hampir nol di mana-mana. Wasserstein GAN \citep{arjovsky2017} mengganti
+tujuan pertandingan dengan jarak Wasserstein, atau jarak \emph{earth mover}: biaya minimum untuk memindahkan massa satu
+distribusi agar menjadi distribusi lain, seperti memindahkan tumpukan pasir. Untuk dua titik massa di posisi $0$ dan
+$\theta$, jarak Wasserstein-nya $|\theta|$, yang mengecil mulus ketika generator mendekat, sementara divergensi
+Jensen--Shannon yang dioptimalkan GAN asli bernilai tetap $\log2$ selama keduanya tidak berimpit, sehingga tidak memberi
+arah sama sekali. Dalam praktik, jarak Wasserstein ditaksir oleh sebuah \emph{critic} yang dibatasi Lipschitz, mula-mula
+dengan memotong bobotnya, lalu dengan penalti pada norma gradiennya.
+
+Kualitas model generatif gambar biasanya diukur dengan Fréchet Inception Distance \citep{heusel2017}. Gambar asli dan gambar
+yang dibangkitkan sama-sama dilewatkan ke jaringan klasifikasi yang sudah dilatih, aktivasi lapisan dalamnya dianggap
+berdistribusi Gauss, dan jarak Fréchet antara dua Gauss itu dihitung dengan rumus yang sama dengan FCD di \cref{ch:hayati}.
+Angka yang lebih kecil berarti statistik gambar yang dibangkitkan lebih mirip gambar asli.
+
+\subsection{Mengarahkan model difusi}
+
+Model difusi bersyarat, misalnya yang dibimbing teks, sering menghasilkan gambar yang kurang patuh pada syaratnya.
+\istilah{Classifier-free guidance} \citep{ho2022cfg} melatih satu jaringan untuk dua tugas sekaligus: memprediksi noise dengan
+syarat $c$, dan tanpa syarat, dengan sesekali membuang syaratnya selama pelatihan. Saat membangkitkan, kedua prediksi
+digabung,
+\begin{equation}
+\tilde{\bm\epsilon}=(1+w)\,\bm\epsilon_\theta(\vx_t,c)-w\,\bm\epsilon_\theta(\vx_t),
+\end{equation}
+dengan $w$ kekuatan bimbingan. Arah $\bm\epsilon_\theta(\vx_t,c)-\bm\epsilon_\theta(\vx_t)$ adalah apa yang ``ditambahkan''
+syarat itu, dan rumus di atas melangkah lebih jauh ke arah tersebut. Dalam bahasa score dari \cref{ch:mlat}, ini setara
+dengan mengambil sampel dari distribusi yang dipertajam, sebanding dengan $p(\vx\mid c)\,p(c\mid\vx)^{w}$. Nilai $w$ yang lebih
+besar membuat gambar lebih patuh pada teks tetapi kurang beragam, tawar-menawar yang sama dengan suhu pada softmax.
+
 \section{Contoh adversarial}
 
 Jaringan yang akurat bisa dibohongi dengan perubahan yang tidak terlihat oleh mata.
@@ -246,6 +282,22 @@ satu keadaan tunggal. Model difusi kini dipakai untuk prakiraan cuaca probabilis
 \citep{price2025} dan untuk simulasi aliran turbulen \citep{kohl2023}. Model pengganti yang dipakai
 untuk keputusan teknik juga harus bisa mengatakan bahwa ia tidak yakin, dan ensemble serta model
 generatif memberi kemampuan itu.
+
+\section{Perkembangan riset}
+
+Model difusi mahal karena membangkitkan sampel butuh puluhan sampai ratusan langkah. Dua arah riset mencoba memotongnya.
+Rectified flow \citep{liu2023} melatih medan kecepatan agar mengikuti garis lurus antara titik noise $\vx_0$ dan titik
+data $\vx_1$: untuk $\vx_t=(1-t)\vx_0+t\vx_1$, jaringan $v_\theta$ dilatih meminimalkan
+$\E\|v_\theta(\vx_t,t)-(\vx_1-\vx_0)\|^2$. Jalur yang lurus bisa diintegrasikan dengan sedikit langkah, dan proses
+``meluruskan'' bisa diulang untuk membuat jalurnya makin lurus. Stable Diffusion 3 \citep{esser2024} memakai formulasi ini
+pada skala besar dengan transformer yang memproses token teks dan token gambar dengan bobot terpisah tetapi saling
+memperhatikan, dan melaporkan bahwa model ini mengikuti hukum penskalaan yang dapat diramalkan.
+
+Consistency models \citep{song2023consistency} mengambil jalan lebih radikal. Untuk lintasan ODE yang sama, setiap titik
+di sepanjang lintasan harus dipetakan ke titik akhir yang sama. Jaringan dilatih menegakkan sifat konsistensi ini, sehingga
+satu evaluasi jaringan sudah memetakan noise langsung ke data, sementara beberapa langkah tambahan bisa memperbaiki
+kualitas. Model ini bisa dilatih dengan menyuling model difusi yang sudah ada, atau dari nol. Ketiga pendekatan
+memperlihatkan bahwa bahasa persamaan diferensial dari \cref{ch:mlat} menjadi bahasa bersama model generatif modern.
 
 \sumberbab{Bab ini mengikuti bagian kedua naskah kuliah Deep Learning and Neural Nets II, yang kini
 bernama Deep Learning: Architectures and Generative Techniques (arsitektur lanjut, model generatif,

@@ -1,0 +1,175 @@
+\chapter{Deep Learning dalam Praktik}
+\label{ch:praktik}
+
+Teori deep learning saya dapat di semester pertama. Cara melatih jaringan dengan benar, dan cara mencari tahu mengapa
+sebuah jaringan tidak mau belajar, lebih banyak datang dari latihan-latihan kuliah Deep Learning and Neural Networks II.
+Enam tugasnya bergerak dari dasar PyTorch, jaringan visi dan transfer learning, pemantauan
+eksperimen dan CNN lanjutan, autoencoder dan VAE, contoh adversarial dan GAN, sampai normalizing flows. Arsitektur-arsitekturnya
+sudah dibahas di \cref{ch:arsitektur}. Bab ini mengumpulkan sisi lainnya: apa yang terjadi di dalam kerangka kerja ketika kita
+menulis satu baris \texttt{loss.backward()}, dan kebiasaan kecil yang memisahkan eksperimen yang berhasil dari yang membuang
+waktu berhari-hari.
+
+\section{Graf komputasi dan autograd}
+
+Kuliah membuka dengan sejarah singkat kerangka kerja deep learning. Generasi awal seperti Theano dan TensorFlow 1 memakai graf
+statis: seluruh komputasi didefinisikan dulu sebagai graf simbolik, lalu dijalankan berkali-kali. PyTorch \citep{paszke2019}
+memakai graf dinamis, yang dibangun ulang setiap kali kode dijalankan (\emph{define-by-run}), sehingga kontrol alur Python biasa,
+seperti percabangan dan perulangan, bisa dipakai di dalam model. TensorFlow 2 mengambil jalan serupa dengan \emph{gradient tape}
+yang merekam operasi selama lintasan maju.
+
+Di balik layar, setiap tensor yang dihasilkan operasi menyimpan rujukan ke operasi yang menghasilkannya dan ke input-input
+operasi itu. Ketika \texttt{backward()} dipanggil pada loss skalar, kerangka kerja menelusuri graf ini mundur dan menerapkan
+aturan rantai, persis reverse-mode autodiff di \cref{ch:dlbasic}. Tiga perilaku sering membingungkan pemula, dan ketiganya
+langsung masuk akal dari gambaran ini. Gradien \emph{diakumulasikan} ke atribut \texttt{.grad}, tidak ditimpa, sehingga
+\texttt{optimizer.zero\_grad()} harus dipanggil sebelum setiap lintasan mundur. Kalau lupa, langkah kedua memakai jumlah gradien
+langkah pertama dan kedua. Memanggil \texttt{.detach()} memotong graf, sehingga tidak ada gradien yang mengalir melewati tensor
+itu, berguna misalnya untuk target network di DQN (\cref{ch:rl}). Dan blok \texttt{torch.no\_grad()} menghentikan perekaman graf
+sama sekali, sehingga evaluasi tidak memakan memori untuk menyimpan aktivasi yang tidak akan diturunkan.
+
+Satu putaran pelatihan, dengan urutan yang menjadi bahan soal di kuliah, berbentuk seperti ini:
+\begin{verbatim}
+model.train()
+for x, y in loader:
+    x, y = x.to(device), y.to(device)
+    optimizer.zero_grad()      # bersihkan gradien lama
+    loss = loss_fn(model(x), y) # lintasan maju, graf direkam
+    loss.backward()            # lintasan mundur, gradien diisi
+    optimizer.step()           # perbarui parameter
+\end{verbatim}
+Untuk evaluasi, \texttt{model.eval()} mematikan dropout dan membuat batch normalization memakai statistik bergerak, dan
+\texttt{torch.no\_grad()} membungkus lintasan maju. Data dibaca oleh \texttt{Dataset}, yang tahu cara mengambil satu contoh, dan
+\texttt{DataLoader}, yang menyusunnya menjadi mini-batch, mengacak urutannya, dan memuatnya secara paralel dengan beberapa
+proses pekerja agar GPU tidak menunggu.
+
+\section{Resep men-debug jaringan}
+
+Jaringan yang tidak belajar jarang memberi pesan galat. Ia hanya menghasilkan kurva loss yang datar atau angka yang tidak masuk
+akal. Beberapa pemeriksaan murah menangkap sebagian besar masalah.
+
+Pemeriksaan pertama adalah loss awal. Untuk klasifikasi $K$ kelas dengan softmax dan cross-entropy, jaringan yang baru
+diinisialisasi seharusnya memberi peluang hampir seragam, $1/K$ untuk setiap kelas, sehingga loss awalnya mendekati
+$-\ln(1/K)=\ln K$. Untuk sepuluh kelas, itu sekitar $2{,}30$. Kalau loss awal jauh lebih besar, misalnya 30, logit awalnya terlalu
+besar dan jaringan sudah yakin pada jawaban yang salah sebelum belajar apa pun, tanda inisialisasi atau normalisasi input
+yang keliru.
+
+Pemeriksaan kedua adalah \emph{overfit} satu batch kecil. Ambil beberapa contoh saja dan latih berulang-ulang pada contoh yang
+sama. Jaringan dengan kapasitas apa pun seharusnya bisa menghafalnya sampai loss mendekati nol. Kalau tidak bisa, masalahnya
+ada di kode, misalnya label yang tidak sesuai dengan input, gradien yang tidak mengalir karena \texttt{detach} yang salah tempat,
+atau laju belajar yang keliru, bukan di jumlah data atau arsitektur.
+
+Pemeriksaan ketiga adalah laju belajar. Naikkan laju belajar secara eksponensial dari kecil ke amat besar selama
+beberapa ratus langkah, dan catat loss di setiap langkah. Loss mula-mula hampir tidak berubah, lalu turun cepat, lalu meledak.
+Laju belajar yang baik biasanya sedikit di bawah titik loss turun paling curam, jauh sebelum ledakan. Kurva ini menghubungkan
+praktik dengan teori di \cref{ch:optimasi}: titik ledakan adalah tempat langkah melampaui batas $2/L$.
+
+Pemeriksaan terakhir adalah melihat apa yang dilihat jaringan. \citet{zeiler2014} memproyeksikan aktivasi lapisan dalam kembali
+ke ruang piksel dengan jaringan dekonvolusi, memakai indeks lokasi maksimum dari pooling untuk ``membuka'' pooling dan
+transposed convolution untuk membalik konvolusi. Lapisan awal ternyata merespons tepi dan warna, lapisan tengah tekstur, dan
+lapisan akhir bagian objek. Tugas kuliah meminta kami mereplikasi teknik ini dengan hanya mempertahankan beberapa aktivasi
+terbesar di setiap peta fitur. Gambar seperti ini sering langsung memperlihatkan bahwa jaringan memperhatikan latar belakang
+alih-alih objek, sama dengan pelajaran Grad-CAM di \cref{ch:xai}.
+
+\section{Memori dan presisi}
+
+Ketika model atau batch tidak muat di memori GPU, dua teknik sering dipakai. \istilah{Gradient accumulation} memecah satu batch
+besar menjadi beberapa batch kecil, menjalankan lintasan maju dan mundur untuk masing-masing tanpa memanggil
+\texttt{optimizer.step()}, lalu memperbarui parameter sekali di akhir. Karena gradien diakumulasikan, hasilnya sama dengan satu
+batch besar, asal loss setiap batch kecil dibagi dengan jumlah batch kecil. Batch 256 bisa dijalankan sebagai empat batch 64,
+dengan setiap loss dikalikan $1/4$. Pengecualiannya adalah batch normalization, yang tetap melihat statistik batch kecil.
+
+\istilah{Mixed precision} \citep{micikevicius2018} menghitung sebagian besar operasi dalam bilangan floating point 16 bit, yang
+memakan separuh memori dan jauh lebih cepat di GPU modern, sambil menyimpan salinan utama bobot dalam 32 bit. Masalahnya ada
+pada rentang angka. Format setengah presisi standar hanya bisa mewakili bilangan normal dari sekitar $6\times10^{-5}$ sampai
+$65\,504$. Gradien yang lebih kecil dari batas bawah, yang umum di jaringan dalam, menjadi nol. Obatnya adalah \istilah{loss
+scaling}: kalikan loss dengan faktor besar, misalnya 1024, sebelum lintasan mundur, sehingga semua gradien ikut membesar
+1024 kali dan keluar dari daerah yang hilang, lalu bagi kembali sebelum memperbarui bobot. Faktornya bisa disesuaikan otomatis:
+diperkecil kalau muncul angka tak hingga, diperbesar perlahan kalau tidak.
+
+\section{Mencari hyperparameter}
+
+Laju belajar, ukuran batch, weight decay, jumlah lapisan, dan peluang dropout harus dipilih sebelum pelatihan. Kuliah membahas
+beberapa strategi. Pencarian manual mengandalkan intuisi. Pencarian grid mencoba semua kombinasi dari beberapa nilai untuk
+setiap hyperparameter. Pencarian acak menarik kombinasi secara acak.
+
+\citet{bergstra2012} memberi argumen sederhana mengapa pencarian acak biasanya lebih baik dari grid. Misalkan dari dua
+hyperparameter hanya satu yang benar-benar berpengaruh, keadaan yang ternyata umum. Grid $3\times3$ menghabiskan sembilan
+percobaan tetapi hanya mencoba tiga nilai berbeda dari hyperparameter yang penting. Sembilan percobaan acak mencoba sembilan
+nilai berbeda (\cref{fig:gridrandom}). Ada juga argumen peluang yang tidak bergantung pada dimensi. Kalau kita ingin
+setidaknya satu percobaan jatuh di lima persen konfigurasi terbaik, peluang $n$ percobaan acak semuanya gagal adalah
+$0{,}95^n$. Dengan 60 percobaan, peluang berhasil $1-0{,}95^{60}\approx95$ persen, berapa pun jumlah hyperparameter-nya.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \begin{scope}
+    \draw[abu] (0,0) rectangle (3,3);
+    \foreach \i in {0.5,1.5,2.5}{\foreach \j in {0.5,1.5,2.5}{\fill[biru] (\i,\j) circle (2.2pt);}}
+    \foreach \i in {0.5,1.5,2.5}{\draw[oranye,thick] (\i,-0.1) -- (\i,-0.3);}
+    \node[label] at (1.5,3.35) {grid};
+    \node[label] at (1.5,-0.6) {hyperparameter penting};
+  \end{scope}
+  \begin{scope}[xshift=4.5cm]
+    \draw[abu] (0,0) rectangle (3,3);
+    \foreach \i/\j in {0.3/2.1,0.8/0.6,1.1/2.7,1.4/1.3,1.9/0.3,2.2/2.3,2.5/1.0,2.8/1.8,0.55/1.6}{\fill[biru] (\i,\j) circle (2.2pt); \draw[oranye,thick] (\i,-0.1) -- (\i,-0.3);}
+    \node[label] at (1.5,3.35) {acak};
+    \node[label] at (1.5,-0.6) {hyperparameter penting};
+  \end{scope}
+\end{tikzpicture}
+\caption{Sembilan percobaan dengan grid dan dengan pencarian acak. Kalau hanya sumbu mendatar yang berpengaruh, grid hanya
+menguji tiga nilainya, sedangkan pencarian acak menguji sembilan.}
+\label{fig:gridrandom}
+\end{figure}
+
+\istilah{Bayesian optimization} \citep{snoek2012} memakai hasil percobaan sebelumnya untuk memilih percobaan berikutnya. Sebuah
+model pengganti, biasanya Gaussian process dari \cref{ch:mlat}, memodelkan skor validasi sebagai fungsi hyperparameter, lengkap
+dengan ketidakpastiannya. Titik berikutnya dipilih dengan memaksimalkan sebuah fungsi akuisisi. Yang paling umum adalah
+\istilah{expected improvement}: kalau skor terbaik sejauh ini $f^*$ dan model meramal skor di titik $\vx$ berdistribusi
+$\N(\mu,\sigma^2)$, perbaikan harapan atas $f^*$ adalah
+\begin{equation}
+\mathrm{EI}(\vx)=(\mu-f^*)\,\Phi(z)+\sigma\,\varphi(z),\qquad z=\frac{\mu-f^*}{\sigma},
+\end{equation}
+dengan $\Phi$ dan $\varphi$ fungsi distribusi dan kerapatan normal baku. Suku pertama menghargai titik yang diramal bagus,
+suku kedua menghargai titik yang tidak pasti, keseimbangan eksplorasi dan eksploitasi yang sama dengan bandit di
+\cref{ch:klasik}. Dua titik dengan $\mu$ sama dengan $f^*$ punya $z=0$, sehingga $\mathrm{EI}=\sigma\varphi(0)\approx0{,}40\,\sigma$:
+titik yang lebih tidak pasti lebih menarik untuk dicoba. Neural architecture search memperluas gagasan ini ke struktur
+jaringan itu sendiri, dengan harga komputasi yang jauh lebih besar.
+
+Untuk semua strategi, pemantauan eksperimen menjadi kebutuhan, bukan kemewahan. Kuliah memakai alat pencatat eksperimen
+seperti Weights \& Biases: setiap percobaan mencatat hyperparameter, kurva loss latih dan validasi, dan versi kode. Tanpa catatan
+seperti itu, eksperimen terbaik minggu lalu tidak bisa diulang.
+
+\section{Transfer learning lebih dekat}
+
+\Cref{ch:arsitektur} menyebut resep dasar transfer learning: bekukan lapisan yang sudah dilatih, latih ulang kepalanya. Di
+PyTorch, membekukan berarti mematikan \texttt{requires\_grad} pada parameter yang tidak ingin diubah, sehingga autograd tidak
+menghitung gradiennya dan optimizer tidak menyentuhnya. Gambar input juga harus disesuaikan dengan apa yang dilihat jaringan
+saat pretraining, misalnya diperbesar ke $224\times224$ dan dinormalisasi dengan rata-rata dan simpangan baku ImageNet.
+
+Lapisan mana yang sebaiknya dibekukan? \citet{yosinski2014} mengukur seberapa mudah fitur di setiap lapisan dipindahkan dari satu
+tugas ke tugas lain. Fitur lapisan awal bersifat umum dan hampir selalu bisa dipakai ulang. Fitur lapisan akhir semakin
+spesifik pada tugas asal. Mereka juga menemukan bahwa memindahkan fitur lalu menyetel ulang seluruh jaringan memberi
+generalisasi yang lebih baik daripada melatih dari nol, bahkan ketika data tugas baru cukup banyak. Dalam praktik, semakin
+sedikit data dan semakin mirip tugasnya, semakin banyak lapisan yang dibekukan. Semakin banyak data dan semakin berbeda
+tugasnya, semakin banyak lapisan yang disetel ulang, biasanya dengan laju belajar yang lebih kecil untuk lapisan awal.
+
+\section{Mengulang hasil}
+
+Hasil deep learning sulit diulang persis. Bobot awal, urutan data, dropout, dan augmentasi semuanya acak, dan beberapa operasi
+GPU tidak deterministik karena urutan penjumlahan floating point yang berubah-ubah memberi hasil yang sedikit berbeda.
+Menetapkan benih acak untuk semua sumber keacakan membuat satu proses bisa diulang. Tetapi benih yang berbeda tetap memberi hasil
+yang berbeda, kadang cukup jauh. Karena itu kebiasaan yang jujur adalah menjalankan beberapa benih dan melaporkan rata-rata
+beserta sebarannya. Selisih dua metode yang lebih kecil dari sebaran antar-benih belum bisa disebut perbaikan.
+
+\section{Di luar kelas}
+
+Kebiasaan di bab ini berlaku di semua bab penerapan. Pemeriksaan loss awal dan overfit satu batch sama bergunanya untuk PINN
+(\cref{ch:pinn}) dan simulator graf (\cref{ch:operator}) seperti untuk klasifikasi gambar. Mixed precision memungkinkan model
+fondasi cuaca dan protein dilatih dalam waktu yang wajar. Bayesian optimization dipakai bukan hanya untuk hyperparameter jaringan,
+tetapi juga untuk mengkalibrasi parameter simulasi yang mahal, di mana setiap evaluasi berarti satu simulasi penuh. Dan laporan
+dengan beberapa benih dan pita sebaran adalah pengingat yang sama dengan error bar di \cref{ch:stat}: angka tanpa
+ketidakpastian hanya separuh cerita.
+
+\sumberbab{Bab ini mengikuti tugas dan materi kuliah Deep Learning and Neural Networks II (PyTorch dan autograd, jaringan visi
+dan transfer learning, pemantauan eksperimen dan pencarian hyperparameter, CNN lanjutan, transposed convolution dan
+visualisasi, autoencoder dan VAE, contoh adversarial dan GAN, normalizing flows). Makalah pendukung: \citet{paszke2019},
+\citet{bergstra2012}, \citet{snoek2012}, \citet{yosinski2014}, \citet{zeiler2014}, dan \citet{micikevicius2018}.}

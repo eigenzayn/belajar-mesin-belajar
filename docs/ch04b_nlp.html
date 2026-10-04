@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bahasa: dari Kantong Kata ke Model Bahasa
+Besar · Belajar Mesin Belajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script
+src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+type="text/javascript"></script>
+</head>
+<body>
+<header class="top">
+  <a class="book" href="index.html">Belajar Mesin Belajar</a>
+  <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
+</header>
+<main>
+<p class="chapnum">Bab 10</p>
+<h1>Bahasa: dari Kantong Kata ke Model Bahasa Besar</h1>
+<p><span id="ch:nlp" data-label="ch:nlp"></span></p>
+<p>Kuliah natural language processing saya ikuti pada musim dingin
+2025/26 di Institute of Computational Perception. Sepuluh pertemuannya
+bergerak dari pra-pemrosesan teks dan representasi dokumen, representasi
+kata dan embedding, jaringan saraf, model bahasa <span
+class="math inline">\(n\)</span>-gram, embedding kata dan kalimat yang
+dipelajari, attention dan transformer, NLP multimodal, sampai model
+bahasa besar. Tiga tugas kelompoknya mengikuti alur yang sama:
+mengklasifikasikan dokumen dengan metode machine learning standar,
+menjelajahi word embedding, lalu mengklasifikasikan cerita pendek ke
+banyak label sekaligus dengan PyTorch dan BERT.</p>
+<p>Transformer dan model bahasa besar sudah muncul di <a
+href="ch04_lstm_transformer.html">Bab 9</a> dan <a
+href="ch52_terbaru.html">Bab 38</a>. Bab ini mengisi jalan panjang di
+antaranya: bagaimana teks diubah menjadi angka, dan bagaimana
+gagasan-gagasan sederhana tentang menghitung kata perlahan tumbuh
+menjadi model yang kini dipakai jutaan orang.</p>
+<h2 id="membersihkan-teks">Membersihkan teks</h2>
+<p>Sebelum apa pun, teks harus diseragamkan. Huruf besar dikecilkan,
+sehingga “Linz” dan “linz” menjadi satu kata, walau kadang dengan harga
+ambiguitas, seperti <em>General Motors</em> dan <em>general motors</em>.
+Angka dan tanggal sering diganti token khusus, karena kalau setiap angka
+menjadi kata tersendiri, kosakata meledak. Kata majemuk dalam bahasa
+seperti Jerman perlu dipecah, <em>Halsschlagader</em> menjadi leher,
+pukulan, dan pembuluh. Kata-kata yang umum, <em>stop words</em> seperti
+“yang”, “dan”, “di”, sering dibuang untuk pendekatan kantong kata, walau
+dalam frasa seperti “to be or not to be” justru merekalah isinya.</p>
+<p>Variasi bentuk kata dikurangi dengan dua cara. <em>Stemming</em>
+memotong imbuhan dengan aturan kasar. Algoritme Porter <span
+class="citation" data-cites="porter1980">(Porter 1980)</span>, yang
+paling umum untuk bahasa Inggris, memakai aturan seperti <em>sses</em>
+menjadi <em>ss</em>, <em>ies</em> menjadi <em>i</em>, dan
+<em>ational</em> menjadi <em>ate</em>, sehingga <em>caresses</em>
+menjadi <em>caress</em>, <em>ponies</em> menjadi <em>poni</em>, dan
+<em>relational</em> menjadi <em>relate</em>. Hasilnya tidak harus kata
+yang sungguhan. <em>Lemmatization</em> memakai kamus untuk mengembalikan
+bentuk dasar yang benar, misalnya <em>am</em>, <em>are</em>, dan
+<em>is</em> menjadi <em>be</em>. Lebih teliti, tetapi lebih lambat, dan
+tidak berdaya untuk kata yang tidak ada di kamus. Bahasa Indonesia,
+dengan imbuhan seperti <em>me-</em>, <em>-kan</em>, dan <em>per-an</em>,
+menghadapi masalah yang sama dalam bentuk yang lebih kaya.</p>
+<h2 id="kantong-kata">Kantong kata</h2>
+<p>Representasi paling sederhana untuk sebuah dokumen adalah <em>bag of
+words</em>: vektor sepanjang kosakata yang berisi berapa kali setiap
+kata muncul, dengan urutan dibuang sama sekali. “Anjing menggigit orang”
+dan “orang menggigit anjing” menjadi vektor yang sama. Meski kasar,
+representasi ini, ditambah pembobotan TF-IDF dari <a
+href="ch50_rekomendasi.html">Bab 34</a>, sudah cukup untuk banyak tugas
+klasifikasi dokumen. Tugas pertama kuliah membangun pengklasifikasi
+sentimen seperti ini dengan regresi logistik dan pengklasifikasi standar
+dari <a href="ch02c_unsupervised.html">Bab 6</a>.</p>
+<p>Masalah utamanya adalah <em>sparsity</em>. Kosakata berisi puluhan
+ribu kata, sedangkan satu kalimat hanya memakai belasan, sehingga
+vektornya hampir seluruhnya nol. Lebih parah lagi, setiap kata adalah
+dimensi yang berdiri sendiri. “Bagus” dan “baik” sama jauhnya dengan
+“bagus” dan “buruk”. Model tidak bisa memindahkan apa yang ia pelajari
+tentang satu kata ke kata yang bermakna serupa.</p>
+<h2 id="makna-dari-tetangga">Makna dari tetangga</h2>
+<p>Jalan keluarnya datang dari linguistik. Firth menulis pada 1957 bahwa
+kita mengenal sebuah kata dari teman-temannya. Kuliah memakai contoh
+kata yang hampir tidak dikenal, <em>tesgüino</em>. Dari kalimat-kalimat
+di sekitarnya, bahwa ia diminum, difermentasi dari jagung, dan dibuat
+untuk upacara, kita menyimpulkan bahwa ia sejenis minuman beralkohol,
+tanpa pernah melihat definisinya. Dua kata bermakna mirip kalau mereka
+sering muncul di tengah kata-kata yang sama. Inilah <em>distributional
+semantics</em>.</p>
+<p>Gagasan ini dihitung dengan matriks kata–konteks: baris untuk setiap
+kata, kolom untuk setiap kata konteks, dan isinya berapa kali keduanya
+muncul berdekatan, misalnya dalam jendela beberapa kata. Hitungan mentah
+didominasi kata-kata umum, sehingga diganti dengan <em>pointwise mutual
+information</em>, <span
+class="math display">\[\mathrm{PMI}(w,c)=\log_2\frac{p(w,c)}{p(w)\,p(c)},\]</span>
+yang bertanya seberapa sering dua kata muncul bersama dibanding yang
+diharapkan kalau keduanya independen. Misalkan dalam seribu pasangan
+kata–konteks, pasangan “kopi”–“seduh” muncul 10 kali, “kopi” muncul 50
+kali sebagai kata, dan “seduh” 40 kali sebagai konteks. Peluang
+bersamanya <span class="math inline">\(0{,}01\)</span>, sedangkan hasil
+kali peluang terpisahnya <span
+class="math inline">\(0{,}05\times0{,}04=0{,}002\)</span>. PMI-nya <span
+class="math inline">\(\log_25\approx2{,}3\)</span>: kedua kata muncul
+bersama lima kali lebih sering dari kebetulan. Nilai negatif sulit
+ditaksir dengan andal dari data terbatas, sehingga biasanya dipotong ke
+nol, <em>positive PMI</em>. Kuliah juga mencatat kelemahan PMI: ia
+terlalu menghargai kata yang jarang, karena satu kebetulan saja bisa
+memberi rasio yang besar.</p>
+<p>Matriks PPMI lebar sekali dan jarang. Memampatkannya dengan SVD
+(Lampiran B) dan mengambil beberapa ratus dimensi pertama memberi vektor
+padat untuk setiap kata, sebuah <em>word embedding</em>. GloVe <span
+class="citation" data-cites="pennington2014">(Pennington, Socher, dan
+Manning 2014)</span> merumuskan hal serupa sebagai masalah regresi: cari
+vektor kata <span class="math inline">\(\boldsymbol w_i\)</span> dan
+vektor konteks <span class="math inline">\(\tilde{\boldsymbol
+w}_j\)</span> beserta bias sehingga <span
+class="math display">\[\boldsymbol w_i^\top\tilde{\boldsymbol
+w}_j+b_i+\tilde b_j\approx\log X_{ij},\]</span> dengan <span
+class="math inline">\(X_{ij}\)</span> hitungan kemunculan bersama,
+diminimalkan dengan galat kuadrat berbobot. Bobotnya meredam pasangan
+yang sangat sering dan mengabaikan pasangan yang tidak pernah muncul.
+Hasil kali dalam yang mendekati logaritma hitungan bersama, setelah bias
+memperhitungkan frekuensi masing-masing kata, pada dasarnya adalah PMI.
+Dari sinilah sifat analogi yang terkenal muncul: vektor dari “pria” ke
+“wanita” kira-kira sejajar dengan vektor dari “raja” ke “ratu”. Tugas
+kedua kuliah menjelajahi sifat-sifat ini: kemiripan kosinus, tetangga
+terdekat, dan analogi.</p>
+<h2 id="model-bahasa">Model bahasa</h2>
+<p>Model bahasa memberi peluang pada deret kata. Dengan aturan rantai,
+peluang sebuah kalimat adalah hasil kali peluang setiap kata diberikan
+kata-kata sebelumnya. Model <span class="math inline">\(n\)</span>-gram
+menyederhanakannya dengan asumsi Markov: setiap kata hanya bergantung
+pada <span class="math inline">\(n-1\)</span> kata sebelumnya, dan
+peluangnya ditaksir dari hitungan. Di <a
+href="ch04_lstm_transformer.html">Bab 9</a> kita melihat contoh bigram
+“nasi goreng”: kalau “nasi” muncul 200 kali dan “nasi goreng” 50 kali,
+peluangnya <span class="math inline">\(0{,}25\)</span>.</p>
+<p>Masalahnya adalah pasangan yang tidak pernah muncul di korpus, yang
+mendapat peluang nol, sehingga seluruh kalimat yang memuatnya juga
+berpeluang nol. <em>Laplace smoothing</em> menambahkan satu ke setiap
+hitungan, <span class="math display">\[P_{\mathrm{Lap}}(w_t\mid
+w_{t-1})=\frac{\mathrm{hitung}(w_{t-1},w_t)+1}{\mathrm{hitung}(w_{t-1})+V},\]</span>
+dengan <span class="math inline">\(V\)</span> ukuran kosakata. Untuk
+kosakata sepuluh ribu kata, peluang “goreng” setelah “nasi” turun dari
+<span class="math inline">\(0{,}25\)</span> menjadi <span
+class="math inline">\(51/10\,200=0{,}005\)</span>. Penghalusan ini
+terlalu kasar: hampir seluruh massa peluang dipindahkan ke sembilan ribu
+lebih kelanjutan yang tidak pernah terlihat. Cara yang lebih baik adalah
+<em>backoff</em>, yang turun ke <span
+class="math inline">\(n\)</span>-gram yang lebih pendek kalau hitungan
+<span class="math inline">\(n\)</span>-gram panjang tidak ada, atau
+<em>interpolation</em>, yang mencampur taksiran bigram dan unigram
+dengan bobot <span class="math inline">\(\lambda\)</span>.</p>
+<p>Kinerja model bahasa diukur dengan <em>perplexity</em>, kebalikan
+rata-rata geometris peluang per kata pada data uji, <span
+class="math inline">\(\mathrm{PP}=P(w_1,\dots,w_N)^{-1/N}\)</span>.
+Kalau model memberi peluang <span class="math inline">\(0{,}1\)</span>,
+<span class="math inline">\(0{,}2\)</span>, dan <span
+class="math inline">\(0{,}05\)</span> pada tiga kata sebuah kalimat,
+hasil kalinya <span class="math inline">\(0{,}001\)</span>, rata-rata
+geometrisnya <span class="math inline">\(0{,}1\)</span>, dan
+perplexity-nya 10: model sama bingungnya dengan memilih seragam di
+antara sepuluh kata. Model yang menebak seragam dari seluruh kosakata
+punya perplexity <span class="math inline">\(V\)</span>. Perplexity
+adalah eksponen dari cross-entropy rata-rata, sehingga menurunkannya
+sama dengan menurunkan loss pelatihan di <a
+href="ch01_belajar_dari_data.html">Bab 1</a>.</p>
+<p>Model bahasa neural <span class="citation"
+data-cites="bengio2003">(Bengio dkk. 2003)</span> mengganti tabel
+hitungan dengan jaringan. Setiap kata konteks dipetakan ke embedding,
+embedding-embedding itu digabung, dilewatkan ke lapisan tersembunyi,
+lalu ke softmax atas seluruh kosakata. Dengan kosakata sepuluh ribu,
+embedding berdimensi 100, tiga kata konteks, dan 200 neuron tersembunyi,
+tabel embedding berisi satu juta parameter, lapisan tersembunyi <span
+class="math inline">\(300\times200=60\,000\)</span>, dan lapisan
+keluaran <span class="math inline">\(200\times10\,000=2\)</span> juta.
+Lapisan keluaran yang paling mahal, dan masalah yang sama muncul lagi
+pada model besar. Keuntungannya, kata-kata yang mirip mendapat embedding
+yang mirip, sehingga apa yang dipelajari dari “kopi panas” ikut membantu
+“teh panas”, sesuatu yang tidak bisa dilakukan tabel hitungan.</p>
+<p>Loss-nya adalah negative log likelihood setelah softmax, dan kuliah
+menurunkan gradiennya terhadap logit: <span
+class="math inline">\(\boldsymbol p-\boldsymbol y\)</span>, peluang yang
+diramalkan dikurangi label one-hot, bentuk yang sama dengan regresi
+logistik di <a href="ch01_belajar_dari_data.html">Bab 1</a>. Softmax
+menciptakan persaingan di antara semua kata. Menaikkan logit satu kata
+otomatis menurunkan peluang semua kata lain.</p>
+<h2 id="word2vec-dan-embedding-kalimat">word2vec dan embedding
+kalimat</h2>
+<p>word2vec <span class="citation" data-cites="mikolov2013">(Mikolov
+dkk. 2013)</span> menyederhanakan model bahasa neural menjadi tugas yang
+hanya bertujuan menghasilkan embedding. Skip-gram menebak kata-kata
+konteks dari satu kata pusat. Softmax atas seluruh kosakata terlalu
+mahal, sehingga dipakai <em>negative sampling</em>: tugas klasifikasi
+banyak kelas diubah menjadi klasifikasi biner. Untuk pasangan sungguhan
+antara kata pusat <span class="math inline">\(c\)</span> dan kata
+konteks <span class="math inline">\(o\)</span>, serta <span
+class="math inline">\(k\)</span> kata acak <span
+class="math inline">\(n_1,\dots,n_k\)</span> yang ditarik dari
+distribusi derau, <span
+class="math display">\[\mathcal{L}=-\log\sigma\big(\boldsymbol
+u_o^\top\boldsymbol v_c\big)-\sum_{i=1}^k\log\sigma\big(-\boldsymbol
+u_{n_i}^\top\boldsymbol v_c\big).\]</span> Suku pertama menaikkan skor
+pasangan sungguhan, suku kedua menurunkan skor pasangan palsu. Kalau
+skor pasangan sungguhan <span class="math inline">\(2\)</span>, suku
+pertamanya <span
+class="math inline">\(-\ln\sigma(2)\approx0{,}13\)</span>. Kalau satu
+kata derau punya skor <span class="math inline">\(1\)</span>,
+sumbangannya <span
+class="math inline">\(-\ln\sigma(-1)\approx1{,}31\)</span>, hukuman
+besar yang mendorong skor itu turun. Kata-kata derau biasanya ditarik
+dengan peluang sebanding dengan frekuensinya dipangkatkan <span
+class="math inline">\(3/4\)</span>, agar kata yang umum tidak terlalu
+mendominasi dan kata langka sesekali ikut terpilih.</p>
+<p>Embedding kata belum tentu menjadi embedding kalimat yang baik.
+Merata-ratakan vektor kata dalam kalimat, cara paling sederhana,
+membuang urutan dan memberi bobot yang sama pada kata “yang” dan kata
+“gempa”. Pembobotan dengan TF-IDF memperbaikinya sedikit. Kuliah
+membahas cara yang lebih baik, yaitu melatih model langsung dengan
+tujuan tingkat kalimat, misalnya meramalkan kata yang dihilangkan dari
+kalimat memakai representasi seluruh kalimat lainnya, sehingga embedding
+yang dihasilkan memang dirancang untuk mewakili kalimat utuh.</p>
+<h2 id="model-bahasa-besar">Model bahasa besar</h2>
+<p>Kuliah membagi model bahasa besar yang dilatih sebelumnya ke dalam
+tiga keluarga. Model encoder seperti BERT <span class="citation"
+data-cites="devlin2019">(Devlin dkk. 2018)</span> melihat seluruh
+kalimat sekaligus dan menghasilkan embedding kontekstual: kata “bank” di
+“bank sungai” dan di “bank sentral” mendapat vektor yang berbeda. Model
+decoder seperti GPT <span class="citation" data-cites="brown2020">(Brown
+dkk. 2020)</span> menulis dari kiri ke kanan. Model encoder–decoder
+menggabungkan keduanya untuk tugas seperti terjemahan.</p>
+<p>BERT dilatih dengan <em>masked language model</em>: sebagian token
+dalam kalimat ditutup, dan model menebak token yang ditutup dari konteks
+di kedua sisinya. Contoh di kuliah: “Jim made [MASK] for his girlfriend
+and [MASK] was very proud”, dengan jawaban <em>spaghetti</em> dan
+<em>he</em>. Kosakatanya sekitar 30 ribu token, karena kata dipotong
+menjadi potongan-potongan dengan WordPiece, saudara dekat byte-pair
+encoding di <a href="ch52_terbaru.html">Bab 38</a>. BERT-Base punya 12
+lapisan, dimensi tersembunyi 768, dan sekitar 110 juta parameter. Slide
+kuliah memberi pembanding yang menarik: tabel embedding statis seperti
+word2vec dengan kosakata 200 ribu kata dan vektor berdimensi 768 sudah
+berisi sekitar 153 juta parameter, lebih banyak dari seluruh BERT-Base.
+Tokenisasi subkata bukan hanya mengatasi kata yang tidak dikenal, tetapi
+juga jauh lebih hemat.</p>
+<p>Untuk menyetel BERT ke tugas klasifikasi, embedding keluaran dari
+token khusus <code>[CLS]</code> di awal kalimat dilewatkan ke lapisan
+klasifikasi kecil, dan seluruh jaringan disetel ulang dengan laju
+belajar kecil. Untuk tugas pasangan kalimat, seperti menilai apakah dua
+kalimat bermakna sama, keduanya digabung dengan token pemisah
+<code>[SEP]</code>. Tugas ketiga kuliah memakai resep ini untuk
+mengklasifikasikan cerita pendek. Di situ muncul perbedaan antara
+<em>multi-class</em> dan <em>multi-label</em>. Kalau setiap cerita punya
+tepat satu genre, keluaran memakai softmax dan cross-entropy, sehingga
+peluang semua kelas berjumlah satu. Kalau sebuah cerita bisa sekaligus
+lucu, sedih, dan misterius, setiap label mendapat sigmoid sendiri dengan
+binary cross-entropy, dan setiap label diputuskan dengan ambangnya
+sendiri. Memakai softmax untuk masalah multi-label memaksa label-label
+bersaing, padahal mereka tidak saling meniadakan.</p>
+<h2 id="bahasa-bersama-modalitas-lain">Bahasa bersama modalitas
+lain</h2>
+<p>NLP multimodal menggabungkan teks dengan gambar, suara, video, atau
+data sensor. Pada <em>visual question answering</em> <span
+class="citation" data-cites="antol2015">(Agrawal dkk. 2015)</span>,
+model menerima sebuah gambar dan pertanyaan tentangnya, misalnya “berapa
+banyak orang di foto ini?”, dan harus menjawab dalam bahasa. Pembuatan
+keterangan gambar berjalan ke arah sebaliknya. Kuncinya adalah ruang
+embedding bersama, tempat teks dan gambar yang bermakna sama berdekatan,
+gagasan yang sama dengan CLIP di <a href="ch41_molekul.html">Bab 23</a>.
+Kuliah juga menyebut penerapan seperti kendaraan otonom yang memadukan
+bahasa dengan lidar dan kamera, dan komputasi afektif yang membaca emosi
+dari wajah, suara, dan kata.</p>
+<h2 id="biaya-dan-bias">Biaya dan bias</h2>
+<p>Kuliah tidak berhenti pada kemampuan. Model besar membutuhkan energi
+yang besar untuk dilatih, dan kefasihannya bisa menutupi kenyataan bahwa
+ia tidak selalu memahami apa yang ditulisnya, argumen yang diangkat
+<span class="citation" data-cites="bender2021">Bender dkk.
+(2021)</span>. Bias sosial juga terbawa dari data. Contoh dari kuliah
+adalah terjemahan mesin dari bahasa dengan kata ganti netral gender,
+seperti bahasa Turki atau bahasa Indonesia, ke bahasa Inggris: “dia
+seorang dokter” dan “dia seorang perawat” bisa diterjemahkan menjadi
+<em>he</em> dan <em>she</em> menurut stereotip, padahal kalimat aslinya
+tidak menyebut gender sama sekali. Mesin pencari gambar untuk kata “CEO”
+dan “perawat” memperlihatkan pola yang sama. Bias embedding kata yang
+dibahas <span class="citation" data-cites="bolukbasi2016">Bolukbasi dkk.
+(2016)</span> adalah akar dari masalah ini, dan persoalan yang lebih
+luas dibahas di <a href="ch51_ai_manusia.html">Bab 35</a>.</p>
+<h2 id="perkembangan-riset">Perkembangan riset</h2>
+<p>Banyak perkembangan model bahasa besar sudah dibahas di <a
+href="ch52_terbaru.html">Bab 38</a>: hukum penskalaan, penyelarasan
+dengan preferensi manusia, model yang bernalar, dan agen. Untuk NLP
+sebagai bidang, satu pergeseran besar adalah bahwa banyak tugas yang
+dulu punya model khusus, seperti klasifikasi sentimen, ekstraksi
+entitas, atau terjemahan, kini dikerjakan oleh satu model umum yang
+diberi instruksi dalam bahasa biasa. Tugas-tugas kuliah ini, dari
+kantong kata sampai BERT yang disetel, menjadi cara terbaik untuk
+memahami apa yang sebenarnya terjadi di dalam model umum itu, dan untuk
+menilai kapan model kecil yang khusus masih lebih tepat, lebih murah,
+dan lebih mudah diperiksa.</p>
+<h5 id="catatan-sumber.">Catatan sumber.</h5>
+<p>Bab ini mengikuti kuliah dan latihan Natural Language Processing
+(pra-pemrosesan dan kantong kata, representasi kata, PMI dan GloVe,
+jaringan saraf dan softmax, model bahasa <span
+class="math inline">\(n\)</span>-gram, embedding kata dan kalimat yang
+dipelajari, attention dan transformer, NLP multimodal, model bahasa
+besar). Buku rujukan yang disebut kuliah antara lain buku Jurafsky dan
+Martin tentang pemrosesan ucapan dan bahasa.</p>
+<h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-antol2015" class="csl-entry" role="listitem">
+Agrawal, Aishwarya, Jiasen Lu, Stanislaw Antol, Margaret Mitchell, C.
+Lawrence Zitnick, Dhruv Batra, dan Devi Parikh. 2015. <span>“VQA: Visual
+Question Answering.”</span> arXiv:1505.00468. <a
+href="https://arxiv.org/abs/1505.00468">https://arxiv.org/abs/1505.00468</a>.
+</div>
+<div id="ref-bender2021" class="csl-entry" role="listitem">
+Bender, Emily M., Timnit Gebru, Angelina McMillan-Major, dan Shmargaret
+Shmitchell. 2021. <span>“On the Dangers of Stochastic Parrots.”</span>
+Dalam <em>Proceedings of the 2021 ACM Conference on Fairness,
+Accountability, and Transparency</em>, 610–23. <a
+href="https://doi.org/10.1145/3442188.3445922">https://doi.org/10.1145/3442188.3445922</a>.
+</div>
+<div id="ref-bengio2003" class="csl-entry" role="listitem">
+Bengio, Yoshua, Réjean Ducharme, Pascal Vincent, dan Christian Jauvin.
+2003. <span>“A Neural Probabilistic Language Model.”</span> <em>Journal
+of Machine Learning Research</em> 3: 1137–55.
+</div>
+<div id="ref-bolukbasi2016" class="csl-entry" role="listitem">
+Bolukbasi, Tolga, Kai-Wei Chang, James Zou, Venkatesh Saligrama, dan
+Adam Kalai. 2016. <span>“Man is to Computer Programmer as Woman is to
+Homemaker? Debiasing Word Embeddings.”</span> arXiv:1607.06520. <a
+href="https://arxiv.org/abs/1607.06520">https://arxiv.org/abs/1607.06520</a>.
+</div>
+<div id="ref-brown2020" class="csl-entry" role="listitem">
+Brown, Tom B., Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared Kaplan,
+Prafulla Dhariwal, Arvind Neelakantan, dkk. 2020. <span>“Language Models
+are Few-Shot Learners.”</span> arXiv:2005.14165. <a
+href="https://arxiv.org/abs/2005.14165">https://arxiv.org/abs/2005.14165</a>.
+</div>
+<div id="ref-devlin2019" class="csl-entry" role="listitem">
+Devlin, Jacob, Ming-Wei Chang, Kenton Lee, dan Kristina Toutanova. 2018.
+<span>“BERT: Pre-training of Deep Bidirectional Transformers for
+Language Understanding.”</span> arXiv:1810.04805. <a
+href="https://arxiv.org/abs/1810.04805">https://arxiv.org/abs/1810.04805</a>.
+</div>
+<div id="ref-mikolov2013" class="csl-entry" role="listitem">
+Mikolov, Tomas, Kai Chen, Greg Corrado, dan Jeffrey Dean. 2013.
+<span>“Efficient Estimation of Word Representations in Vector
+Space.”</span> arXiv:1301.3781. <a
+href="https://arxiv.org/abs/1301.3781">https://arxiv.org/abs/1301.3781</a>.
+</div>
+<div id="ref-pennington2014" class="csl-entry" role="listitem">
+Pennington, Jeffrey, Richard Socher, dan Christopher Manning. 2014.
+<span>“Glove: Global Vectors for Word Representation.”</span> Dalam
+<em>Proceedings of the 2014 Conference on Empirical Methods in Natural
+Language Processing (EMNLP)</em>, 1532–43. <a
+href="https://doi.org/10.3115/v1/D14-1162">https://doi.org/10.3115/v1/D14-1162</a>.
+</div>
+<div id="ref-porter1980" class="csl-entry" role="listitem">
+Porter, M. F. 1980. <span>“An algorithm for suffix stripping.”</span>
+<em>Program</em> 14 (3): 130–37. <a
+href="https://doi.org/10.1108/eb046814">https://doi.org/10.1108/eb046814</a>.
+</div>
+</div>
+</main>
+<nav class="pager">
+  <a class="prev" href="ch04_lstm_transformer.html"><span>Sebelumnya</span>Mengingat: dari RNN ke LSTM dan Transformer</a>
+  <a class="next" href="ch05_computer_vision.html"><span>Berikutnya</span>Melihat: Computer Vision</a>
+</nav>
+<footer>Eigenzayn · Catatan kuliah Master Artificial Intelligence di Linz</footer>
+</body>
+</html>

@@ -1,5 +1,5 @@
 \chapter{Glosarium}
-\label{lamp:glosarium}
+\label[appendix]{lamp:glosarium}
 
 Buku ini membiarkan banyak istilah dalam bahasa Inggris, karena istilah itulah yang dipakai di kuliah dan
 literatur. Daftar berikut memberi penjelasan singkat dan bab tempat istilah itu dibahas.
@@ -11,38 +11,55 @@ literatur. Daftar berikut memberi penjelasan singkat dan bab tempat istilah itu 
 \item[actor-critic] Metode RL dengan satu jaringan yang memilih aksi dan satu yang menilai (\cref{ch:rl}).
 \item[adjoint method] Cara menghitung gradien sistem dinamis dengan menyelesaikan persamaan mundur dalam waktu (\cref{ch:mlat}).
 \item[advantage] Selisih nilai sebuah aksi dengan nilai rata-rata keadaan (\cref{ch:rl}).
+\item[AGI (artificial general intelligence)] Sistem yang mampu mengerjakan beragam tugas kognitif setara manusia; definisinya masih diperdebatkan (\cref{ch:keselamatan}).
+\item[alignment] Upaya membuat sistem AI mengejar apa yang sebenarnya dimaksud manusia, bukan sekadar tujuan yang tertulis (\cref{ch:keselamatan,ch:terbaru}).
 \item[attention] Mekanisme membaca ingatan dengan query, key, dan value (\cref{ch:lstm}).
 \item[autodiff (automatic differentiation)] Menghitung turunan program secara eksak dengan aturan rantai (\cref{ch:dlbasic}).
 \item[autoencoder] Jaringan yang memampatkan input menjadi kode kecil lalu merekonstruksinya (\cref{ch:arsitektur}).
 \item[backpropagation] Aturan rantai yang dihitung dari keluaran ke input untuk mendapat gradien (\cref{ch:dlbasic}).
+\item[bag of words] Representasi dokumen sebagai hitungan kata tanpa urutan (\cref{ch:nlp}).
 \item[batch normalization] Normalisasi pre-activation dengan statistik mini-batch (\cref{ch:dlbasic}).
 \item[Bayes risk] Risiko terkecil yang mungkin dicapai prediktor apa pun (\cref{ch:data}).
 \item[Bayesian network] Graf berarah yang menyandikan independensi bersyarat antar variabel acak (\cref{ch:prob}).
+\item[Bayesian optimization] Memilih percobaan berikutnya dengan model pengganti yang memberi ketidakpastian, misalnya untuk hyperparameter (\cref{ch:praktik}).
+\item[Bell inequality (CHSH)] Batas korelasi untuk teori lokal-realis yang dilanggar keadaan kuantum yang terkait (\cref{ch:kuantum}).
+\item[BERT] Model encoder yang dilatih menebak token yang ditutup dari konteks di kedua sisinya (\cref{ch:nlp}).
 \item[bias--variance trade-off] Pertukaran antara galat karena model terlalu sederhana dan galat karena model terlalu peka pada data (\cref{ch:data}).
 \item[biclustering] Pengelompokan baris dan kolom matriks sekaligus (\cref{ch:unsup}).
 \item[binding pocket] Kantong di permukaan protein tempat molekul kecil menempel (\cref{ch:protein}).
 \item[bootstrapping (RL)] Memperbarui perkiraan dengan perkiraan lain, seperti pada TD (\cref{ch:rl}).
+\item[byte-pair encoding] Tokenisasi yang berulang kali menggabungkan pasangan simbol paling sering (\cref{ch:terbaru,ch:nlp}).
 \item[CFAR (constant false alarm rate)] Detektor radar dengan ambang yang menyesuaikan diri dengan noise lokal (\cref{ch:sinyal}).
 \item[closure problem] Persamaan rata-rata turbulensi mengandung suku yang tidak diketahui (\cref{ch:numerik}).
 \item[collaborative filtering] Rekomendasi dari kemiripan selera antar pengguna atau antar item (\cref{ch:rekomendasi}).
 \item[collocation points] Titik-titik tempat residual PDE dievaluasi pada PINN (\cref{ch:pinn}).
 \item[condition number] Rasio kelengkungan terbesar dan terkecil, penentu kecepatan gradient descent (\cref{ch:optimasi}).
+\item[conformal prediction] Interval prediksi dengan jaminan cakupan tanpa asumsi distribusi (\cref{ch:data}).
 \item[constant error carousel] Jalur aditif pada sel LSTM yang membuat gradien tidak hilang (\cref{ch:lstm}).
 \item[contrastive learning] Belajar representasi dengan mendekatkan pasangan yang cocok dan menjauhkan yang tidak (\cref{ch:hayati}).
 \item[convolution] Operasi linear dengan kernel lokal yang dipakai di semua posisi, ekuivarian terhadap pergeseran (\cref{ch:dlbasic,ch:gdl}).
+\item[counterfactual explanation] Perubahan terkecil pada input yang mengubah keputusan model (\cref{ch:xai}).
 \item[covariate shift] Distribusi input saat dipakai berbeda dari saat dilatih (\cref{ch:rl,ch:operator}).
 \item[credit assignment] Menentukan tindakan mana yang bertanggung jawab atas ganjaran yang datang terlambat (\cref{ch:rl}).
 \item[cross-validation] Memperkirakan generalisasi dengan melatih dan menguji bergantian pada bagian-bagian data (\cref{ch:data}).
 \item[curse of dimensionality] Kesulitan belajar yang tumbuh eksponensial dengan dimensi (\cref{ch:data}).
 \item[data assimilation] Menggabungkan model dan pengukuran dengan bobot sesuai ketidakpastian (\cref{ch:prob}).
+\item[decoherence] Hilangnya superposisi kuantum karena keterkaitan dengan lingkungan (\cref{ch:kuantum}).
 \item[DeepONet] Neural operator dengan jaringan branch dan trunk (\cref{ch:operator}).
+\item[degrees of freedom (ridge)] Jumlah parameter efektif setelah regularisasi, $\sum_i\lambda_i^2/(\lambda_i+\lambda)^2$ (\cref{ch:teori}).
+\item[differential privacy] Jaminan bahwa hasil analisis hampir tidak berubah karena data satu orang (\cref{ch:manusia}).
 \item[diffusion model] Model generatif yang belajar membalik proses penambahan noise (\cref{ch:mlat}).
 \item[DMD (dynamic mode decomposition)] Mode dinamika dari operator linear yang dipasang pada potret berurutan (\cref{ch:penemuan}).
 \item[double descent] Galat uji turun lagi setelah model mampu menghafal data latih (\cref{ch:data}).
+\item[DPO (direct preference optimization)] Melatih model bahasa langsung dari pasangan preferensi tanpa model ganjaran terpisah (\cref{ch:terbaru}).
 \item[dropout] Mematikan neuron acak selama pelatihan sebagai regularisasi (\cref{ch:dlbasic}).
 \item[ELBO (evidence lower bound)] Batas bawah log-likelihood yang dimaksimalkan VAE dan model difusi (\cref{ch:arsitektur,ch:mlat}).
 \item[embedding] Representasi vektor padat untuk kata, molekul, pengguna, atau item (\cref{ch:lstm}).
+\item[entanglement] Keadaan banyak qubit yang tidak bisa ditulis sebagai hasil kali keadaan masing-masing (\cref{ch:kuantum}).
 \item[equivariance] Kalau input ditransformasi, keluaran ikut tertransformasi dengan cara yang sama (\cref{ch:gdl}).
+\item[evidence (marginal likelihood)] Peluang data setelah parameter dirata-ratakan, dipakai untuk memilih model (\cref{ch:stat}).
+\item[excess risk] Selisih risiko sebuah model dengan risiko terkecil yang mungkin (\cref{ch:teori}).
+\item[expected improvement] Fungsi akuisisi yang menimbang perbaikan harapan atas hasil terbaik sejauh ini (\cref{ch:praktik}).
 \item[exploration--exploitation] Dilema antara mencoba hal baru dan memakai yang sudah terbukti baik (\cref{ch:rl}).
 \item[few-shot / zero-shot learning] Belajar tugas baru dari sedikit atau tanpa contoh berlabel (\cref{ch:hayati}).
 \item[filtered backprojection] Algoritme rekonstruksi CT dengan filter ramp sebelum backprojection (\cref{ch:medis}).
@@ -52,11 +69,17 @@ literatur. Daftar berikut memberi penjelasan singkat dan bab tempat istilah itu 
 \item[FNO (Fourier neural operator)] Neural operator yang memakai konvolusi di domain Fourier (\cref{ch:operator}).
 \item[foundation model] Model besar yang dilatih luas lalu disesuaikan ke banyak tugas (\cref{ch:terbaru}).
 \item[GAN] Generator dan diskriminator yang dipertandingkan (\cref{ch:arsitektur}).
+\item[Gaussian process] Prior atas fungsi yang ditentukan oleh sebuah kernel, dengan posterior tertutup (\cref{ch:mlat}).
 \item[generalization error] Loss harapan pada distribusi data sebenarnya (\cref{ch:data}).
 \item[Gibbs sampling] MCMC yang memperbarui satu variabel pada satu waktu (\cref{ch:prob}).
+\item[GloVe] Embedding kata dari regresi pada logaritma hitungan kemunculan bersama (\cref{ch:nlp}).
+\item[gradient accumulation] Menjumlahkan gradien beberapa mini-batch kecil sebelum satu pembaruan (\cref{ch:praktik}).
+\item[gradient clipping] Membatasi norma gradien agar satu langkah tidak terlalu besar (\cref{ch:optimasi}).
 \item[gradient descent] Melangkah berlawanan arah gradien untuk meminimalkan fungsi (\cref{ch:optimasi}).
 \item[graph neural network] Jaringan yang bekerja pada graf lewat message passing (\cref{ch:gdl}).
 \item[hidden Markov model] Model deret dengan keadaan diskret tersembunyi (\cref{ch:prob}).
+\item[h-index] Nilai $h$ terbesar sehingga seorang peneliti punya $h$ makalah yang masing-masing dikutip paling sedikit $h$ kali (\cref{lamp:riset}).
+\item[homography] Matriks $3\times3$ yang menghubungkan dua gambar dari bidang datar atau kamera yang berputar (\cref{ch:cv}).
 \item[hyperparameter] Pengaturan model yang dipilih di luar pelatihan, misalnya laju belajar (\cref{ch:data}).
 \item[ICA (independent component analysis)] Memisahkan sumber independen dari campurannya (\cref{ch:unsup}).
 \item[imitation learning] Belajar policy dari demonstrasi ahli (\cref{ch:rl}).
@@ -64,9 +87,12 @@ literatur. Daftar berikut memberi penjelasan singkat dan bab tempat istilah itu 
 \item[invariance] Keluaran tidak berubah kalau input ditransformasi (\cref{ch:gdl}).
 \item[Kalman filter] Estimator optimal berurutan untuk sistem linear Gauss (\cref{ch:prob,ch:kendali}).
 \item[kernel (CNN)] Matriks bobot kecil yang digeser pada konvolusi (\cref{ch:dlbasic}).
+\item[kernel trick] Bekerja hanya dengan hasil kali dalam antar fitur tanpa menghitung fiturnya (\cref{ch:teori}).
+\item[knowledge distillation] Melatih model kecil untuk meniru distribusi keluaran model besar (\cref{ch:terbaru}).
 \item[Koopman operator] Operator linear yang memajukan fungsi pengamatan sistem dinamis (\cref{ch:penemuan}).
 \item[latent variable] Variabel tersembunyi yang tidak diamati tetapi menjelaskan data (\cref{ch:mlat}).
 \item[learning rate] Panjang langkah pada gradient descent (\cref{ch:optimasi}).
+\item[light field] Rekaman intensitas cahaya menurut posisi dan arah, yang memungkinkan fokus dipilih setelah pemotretan (\cref{ch:cv}).
 \item[LMS] Filter adaptif dengan update gradien stokastik (\cref{ch:sinyal}).
 \item[LSTM] Jaringan rekuren dengan sel ingatan dan gerbang (\cref{ch:lstm}).
 \item[MAP (maximum a posteriori)] Estimasi yang memaksimalkan posterior (\cref{ch:data}).
@@ -74,19 +100,35 @@ literatur. Daftar berikut memberi penjelasan singkat dan bab tempat istilah itu 
 \item[MCMC] Menarik sampel dengan rantai Markov yang distribusi stasionernya adalah target (\cref{ch:prob,ch:fiskom}).
 \item[MDP (Markov decision process)] Kerangka formal reinforcement learning (\cref{ch:rl}).
 \item[message passing] Simpul mengumpulkan pesan dari tetangga lalu memperbarui keadaannya (\cref{ch:gdl}).
+\item[meta-learning] Belajar titik awal atau cara belajar yang cepat beradaptasi ke tugas baru (\cref{ch:rl}).
 \item[mini-batch] Sebagian kecil data yang dipakai untuk satu langkah SGD (\cref{ch:optimasi}).
+\item[mixed precision] Melatih dengan bilangan 16 bit sambil menjaga salinan bobot 32 bit dan menskalakan loss (\cref{ch:praktik}).
+\item[mixture of experts] Arsitektur yang hanya mengaktifkan sebagian subjaringan untuk setiap token (\cref{ch:terbaru}).
 \item[mode collapse] Model generatif hanya menghasilkan sebagian kecil variasi data (\cref{ch:arsitektur}).
 \item[momentum] Menambahkan ingatan arah sebelumnya pada gradient descent (\cref{ch:optimasi}).
+\item[multigrid] Solver sistem linear yang meredam galat di berbagai tingkat kehalusan grid (\cref{ch:numerik}).
+\item[multi-label classification] Klasifikasi di mana satu contoh boleh punya beberapa label sekaligus (\cref{ch:nlp}).
+\item[Nash equilibrium] Strategi di mana tidak ada pemain yang untung mengubah strateginya sendiri (\cref{ch:rl}).
+\item[negative sampling] Mengganti softmax atas seluruh kosakata dengan klasifikasi biner pasangan asli dan acak (\cref{ch:nlp}).
 \item[neural field] Jaringan yang mewakili medan kontinu sebagai fungsi koordinat (\cref{ch:mlat}).
 \item[neural ODE] Persamaan diferensial biasa dengan ruas kanan berupa jaringan saraf (\cref{ch:mlat}).
 \item[neural operator] Model yang belajar pemetaan antar ruang fungsi (\cref{ch:operator}).
+\item[n-gram] Model bahasa yang menebak kata dari $n-1$ kata sebelumnya dengan hitungan (\cref{ch:nlp}).
+\item[no free lunch theorem] Tidak ada algoritme belajar yang baik untuk semua distribusi data tanpa asumsi (\cref{ch:teori}).
+\item[normalized cut] Kriteria segmentasi graf yang menghukum potongan yang menghasilkan bagian kecil (\cref{ch:cv}).
 \item[normalizing flow] Model generatif dari transformasi bijektif dengan likelihood eksak (\cref{ch:arsitektur}).
+\item[nudging] Menarik keadaan model ke arah pengamatan dengan suku relaksasi (\cref{ch:hibrida}).
 \item[numerical diffusion] Difusi palsu akibat galat diskretisasi (\cref{ch:numerik}).
 \item[optical flow] Medan gerak piksel antar bingkai video (\cref{ch:cv}).
 \item[overfitting] Model menghafal data latih dan gagal pada data baru (\cref{ch:data}).
 \item[oversquashing] Informasi dari banyak simpul jauh terjepit di vektor berukuran tetap (\cref{ch:gdl}).
+\item[parameter-shift rule] Cara menghitung gradien rangkaian kuantum secara eksak dari dua evaluasi (\cref{ch:kuantum}).
+\item[Pareto front] Kumpulan kandidat yang tidak didominasi kandidat lain dalam optimasi banyak tujuan (\cref{ch:hayati}).
+\item[patent claim] Bagian paten yang menentukan apa yang dilindungi (\cref{lamp:riset}).
 \item[PCA / POD] Arah-arah dengan varians atau energi terbesar dari data (\cref{ch:unsup,ch:penemuan}).
+\item[perplexity] Kebalikan rata-rata geometris peluang per kata, ukuran kinerja model bahasa (\cref{ch:nlp}).
 \item[PINN] Jaringan yang dilatih agar memenuhi persamaan diferensial lewat loss (\cref{ch:pinn}).
+\item[PMI (pointwise mutual information)] Seberapa sering dua kata muncul bersama dibanding kalau independen (\cref{ch:nlp}).
 \item[policy] Aturan pemilihan aksi agen (\cref{ch:rl}).
 \item[policy gradient] Mengoptimalkan policy langsung dengan gradien return harapan (\cref{ch:rl}).
 \item[positional encoding] Informasi posisi yang ditambahkan ke token transformer (\cref{ch:lstm}).
@@ -94,13 +136,18 @@ literatur. Daftar berikut memberi penjelasan singkat dan bab tempat istilah itu 
 \item[PPO] Policy gradient dengan rasio peluang yang dipotong (\cref{ch:rl}).
 \item[precision / recall] Proporsi tebakan positif yang benar, dan proporsi positif sebenarnya yang tertangkap (\cref{ch:data}).
 \item[QSAR] Model aktivitas biologis dari struktur molekul (\cref{ch:hayati}).
+\item[qubit] Satuan informasi kuantum yang bisa berada dalam superposisi $\ket0$ dan $\ket1$ (\cref{ch:kuantum}).
 \item[RANS / LES / DNS] Tiga tingkat pemodelan turbulensi, dari rata-rata sampai penyelesaian penuh (\cref{ch:numerik}).
+\item[RANSAC] Penaksiran model yang tahan pencilan dengan sampel minimal acak yang diulang (\cref{ch:cv}).
 \item[receptive field] Daerah input yang memengaruhi sebuah neuron (\cref{ch:dlbasic}).
 \item[recurrence matrix] Matriks jarak antar bingkai aliran dalam rCFD (\cref{ch:rcfd}).
 \item[regularization] Pengekangan model agar tidak menghafal (\cref{ch:dlbasic}).
 \item[reparameterization trick] Menulis sampel acak sebagai fungsi diferensiabel parameter (\cref{ch:arsitektur}).
-\item[residual (PDE)] Seberapa jauh sebuah fungsi gagal memenuhi persamaan diferensial (\cref{ch:pinn}).
+\item[representer theorem] Solusi regularisasi di ruang Hilbert selalu kombinasi fitur titik-titik data (\cref{ch:teori}).
 \item[residual connection] Jalur pintas $\vy=\vx+F(\vx)$ pada ResNet (\cref{ch:arsitektur}).
+\item[residual (PDE)] Seberapa jauh sebuah fungsi gagal memenuhi persamaan diferensial (\cref{ch:pinn}).
+\item[reward hacking] Agen memaksimalkan ganjaran lewat celah yang tidak dimaksudkan perancangnya (\cref{ch:keselamatan,ch:rl}).
+\item[risk minimizer] Prediktor terbaik yang mungkin, misalnya rata-rata bersyarat untuk loss kuadrat (\cref{ch:teori}).
 \item[RLHF] Menyetel model bahasa dengan ganjaran dari preferensi manusia (\cref{ch:rl,ch:terbaru}).
 \item[rollout] Menjalankan model berulang kali dari tebakannya sendiri (\cref{ch:operator}).
 \item[saliency map] Peta kepekaan keluaran terhadap setiap piksel input (\cref{ch:xai}).
@@ -113,15 +160,21 @@ literatur. Daftar berikut memberi penjelasan singkat dan bab tempat istilah itu 
 \item[SINDy] Menemukan persamaan dinamika dengan regresi jarang (\cref{ch:penemuan}).
 \item[spectral bias] Kecenderungan jaringan mempelajari frekuensi rendah lebih dulu (\cref{ch:mlat}).
 \item[state space model] Model dengan keadaan internal yang berevolusi linear, dasar Mamba dan teori kendali (\cref{ch:lstm,ch:kendali}).
+\item[Stokes number] Perbandingan waktu respons partikel dengan waktu khas aliran (\cref{ch:numerik}).
+\item[superintelligence] Kecerdasan yang jauh melampaui manusia di hampir semua bidang (\cref{ch:keselamatan}).
 \item[surrogate model] Model murah yang meniru simulasi mahal (\cref{ch:data,ch:operator}).
+\item[synthetic aperture] Menggabungkan banyak sudut pandang menjadi satu lensa raksasa dengan fokus yang bisa dipilih (\cref{ch:cv}).
 \item[TD (temporal difference)] Belajar nilai dari selisih ramalan berurutan (\cref{ch:rl}).
 \item[transfer learning] Memakai model yang dilatih pada satu tugas untuk tugas lain (\cref{ch:arsitektur}).
 \item[transformer] Arsitektur berbasis attention tanpa rekurensi (\cref{ch:lstm}).
-\item[U-Net] Encoder--decoder dengan skip connection antar tingkat (\cref{ch:cv}).
 \item[uncanny valley] Rasa ganjil terhadap mesin yang hampir mirip manusia (\cref{ch:manusia}).
+\item[U-Net] Encoder--decoder dengan skip connection antar tingkat (\cref{ch:cv}).
 \item[VAE] Autoencoder probabilistik yang dilatih dengan ELBO (\cref{ch:arsitektur}).
 \item[value function] Return harapan dari sebuah keadaan atau pasangan keadaan--aksi (\cref{ch:rl}).
 \item[vanishing gradient] Gradien menyusut eksponensial melewati banyak lapisan atau langkah waktu (\cref{ch:lstm}).
+\item[watermark (teks)] Sinyal statistik tersembunyi di keluaran model bahasa yang bisa dideteksi (\cref{ch:manusia}).
 \item[weight decay] Regularisasi L2 pada bobot, setara prior Gauss (\cref{ch:data}).
 \item[Weisfeiler--Leman test] Uji pewarnaan graf yang membatasi kekuatan message passing (\cref{ch:gdl}).
+\item[word2vec] Embedding kata dari tugas menebak kata konteks (\cref{ch:nlp}).
+\item[xLSTM] LSTM modern dengan exponential gating dan ingatan matriks (\cref{ch:lstm}).
 \end{description}

@@ -17,7 +17,7 @@ type="text/javascript"></script>
   <a class="pdf" href="Belajar_Mesin_Belajar.pdf">PDF</a>
 </header>
 <main>
-<p class="chapnum">Bab 10</p>
+<p class="chapnum">Bab 14</p>
 <h1>Bernalar dalam Ketidakpastian</h1>
 <p><span id="ch:prob" data-label="ch:prob"></span></p>
 <p>Kuliah model probabilistik saya ikuti pada musim dingin 2025/26.
@@ -81,8 +81,31 @@ mahasiswanya cerdas. Kalau kemudian kita tahu mata kuliahnya memang
 sulit, nilai buruk itu sudah “terjelaskan”, dan keyakinan tentang
 kecerdasan mahasiswa naik kembali. Pola ini disebut <em>explaining
 away</em>. Bayesian network menangani semua pola ini dengan satu
-algoritme inferensi yang sama, tanpa aturan khusus untuk
-masing-masing.</p>
+algoritme inferensi yang sama, tanpa aturan khusus untuk masing-masing
+(Gambar 14.1).</p>
+<figure id="fig:mahasiswa">
+<img src="fig/7288c346630a.svg" />
+<figcaption>Jaringan mahasiswa. Distribusi gabungannya <span
+class="math inline">\(p(D,I,G,S,L)=p(D)\,p(I)\,p(G\mid D,I)\,p(S\mid
+I)\,p(L\mid G)\)</span>.</figcaption>
+</figure>
+<p>Explaining away paling mudah dilihat dengan angka pada contoh yang
+lebih kecil. Rumput basah (<span class="math inline">\(W\)</span>) bisa
+disebabkan hujan (<span class="math inline">\(R\)</span>) atau penyiram
+(<span class="math inline">\(S\)</span>), yang saling independen dengan
+<span class="math inline">\(p(R)=0{,}2\)</span> dan <span
+class="math inline">\(p(S)=0{,}1\)</span>, dan rumput basah tepat ketika
+salah satunya terjadi. Peluang rumput basah adalah <span
+class="math inline">\(1-0{,}8\cdot0{,}9=0{,}28\)</span>. Begitu kita
+melihat rumput basah, peluang hujan naik dari <span
+class="math inline">\(0{,}2\)</span> menjadi <span
+class="math inline">\(p(R\mid W)=0{,}2/0{,}28\approx0{,}71\)</span>.
+Lalu kita melihat penyiram sedang menyala. Penyiram sudah cukup
+menjelaskan rumput basah, sehingga rumput basah tidak lagi memberi
+informasi tentang hujan, dan <span class="math inline">\(p(R\mid
+W,S)\)</span> kembali ke <span class="math inline">\(0{,}2\)</span>. Dua
+sebab yang semula independen menjadi saling bergantung begitu akibat
+bersamanya diamati.</p>
 <h3 id="membaca-independensi-dari-graf">Membaca independensi dari
 graf</h3>
 <p>Kapan dua variabel independen bersyarat bisa dibaca langsung dari
@@ -120,6 +143,44 @@ sebesar tabel gabungan. Untuk graf berbentuk pohon, biayanya linear.
 Untuk graf umum, inferensi eksak termasuk masalah NP-hard, dan biayanya
 bergantung secara eksponensial pada ukuran faktor terbesar yang tidak
 bisa dihindari.</p>
+<p>Contoh rantai tiga variabel biner membuat penghematannya terlihat.
+Misalkan <span class="math inline">\(A\to B\to C\)</span> dengan <span
+class="math inline">\(p(A{=}1)=0{,}3\)</span>, <span
+class="math inline">\(p(B{=}1\mid A)\)</span> bernilai <span
+class="math inline">\(0{,}2\)</span> untuk <span
+class="math inline">\(A=0\)</span> dan <span
+class="math inline">\(0{,}9\)</span> untuk <span
+class="math inline">\(A=1\)</span>, serta <span
+class="math inline">\(p(C{=}1\mid B)\)</span> bernilai <span
+class="math inline">\(0{,}1\)</span> untuk <span
+class="math inline">\(B=0\)</span> dan <span
+class="math inline">\(0{,}8\)</span> untuk <span
+class="math inline">\(B=1\)</span>. Untuk menghitung <span
+class="math inline">\(p(C{=}1)=\sum_a\sum_bp(a)\,p(b\mid a)\,p(C{=}1\mid
+b)\)</span>, penjumlahan atas <span class="math inline">\(a\)</span>
+didorong ke dalam karena hanya dua faktor pertama yang menyebut <span
+class="math inline">\(A\)</span>. Hasilnya faktor baru <span
+class="math inline">\(\tau(b)=\sum_ap(a)p(b\mid a)\)</span>, dengan
+<span
+class="math inline">\(\tau(1)=0{,}7\cdot0{,}2+0{,}3\cdot0{,}9=0{,}41\)</span>
+dan <span class="math inline">\(\tau(0)=0{,}59\)</span>. Lalu <span
+class="math inline">\(p(C{=}1)=0{,}59\cdot0{,}1+0{,}41\cdot0{,}8=0{,}387\)</span>.
+Untuk rantai <span class="math inline">\(n\)</span> variabel biner,
+menjumlahkan tabel gabungan membutuhkan <span
+class="math inline">\(2^{n-1}\)</span> suku, sedangkan eliminasi hanya
+beberapa operasi per variabel. Dengan tiga puluh variabel, selisihnya
+antara setengah miliar suku dan seratusan operasi.</p>
+<p>Kalau banyak kueri harus dijawab pada jaringan yang sama, eliminasi
+yang diulang untuk setiap kueri membuang kerja. Kuliah membahas
+<em>clique tree</em>: variabel-variabel dikelompokkan ke dalam klik yang
+disusun sebagai pohon, lalu pesan dikirim sekali ke arah akar dan sekali
+kembali ke daun. Setelah dua sapuan itu, setiap klik menyimpan
+distribusi marginal variabel-variabelnya, sehingga semua kueri tunggal
+bisa dijawab sekaligus. Inilah message passing dari <a
+href="ch07_geometric.html">Bab 13</a> dalam bentuk probabilistik. Pada
+graf yang punya siklus, pesan yang sama kadang tetap dikirim
+berulang-ulang sampai stabil, versi <em>loopy</em> yang tidak dijamin
+benar tetapi sering cukup baik dalam praktik.</p>
 <h2 id="inferensi-dengan-sampel">Inferensi dengan sampel</h2>
 <p>Kalau inferensi eksak terlalu mahal, kita bisa memperkirakan peluang
 dengan menarik sampel. Cara paling sederhana adalah <em>forward
@@ -130,7 +191,7 @@ sekali kalau pengamatannya jarang terjadi, karena hampir semua sampel
 dibuang.</p>
 <p><em>Likelihood weighting</em> tidak membuang apa pun. Variabel yang
 diamati dipaksa bernilai sesuai pengamatan, dan setiap sampel diberi
-bobot sebesar peluang pengamatan itu terjadi. Ini adalah contoh
+bobot sebesar peluang pengamatan itu terjadi. Itulah contoh
 <em>importance sampling</em>: sampel ditarik dari distribusi yang mudah,
 lalu dikoreksi dengan bobot. Kelemahannya muncul ketika pengamatan
 berada di bagian bawah graf. Variabel di atasnya ditarik tanpa
@@ -148,7 +209,7 @@ data-cites="metropolis1953 hastings1970">(Metropolis dkk. 1953; Hastings
 peluang yang dipilih tepat agar rantai menyeimbangkan distribusi target.
 Kedua metode ini lahir dari fisika statistik, untuk menghitung sifat gas
 dan cairan, dan kembali ke fisika di <a
-href="ch14_fisika_komputasi.html">Bab 24</a>.</p>
+href="ch14_fisika_komputasi.html">Bab 28</a>.</p>
 <p>Bayangkan menaksir bentuk sebuah ruangan gelap dengan berjalan acak
 di dalamnya, sambil lebih sering melangkah ke tempat yang lebih
 “terang”. Setelah cukup lama, jejak langkah Anda menggambarkan seberapa
@@ -180,7 +241,7 @@ menghasilkan hitungan yang diharapkan. Langkah M memperbarui parameter
 seolah-olah hitungan yang diharapkan itu adalah data lengkap. Setiap
 putaran tidak menurunkan likelihood. EM akan muncul lagi sebagai
 kerangka di balik VAE dan model campuran Gauss di <a
-href="ch09_ml_advanced.html">Bab 11</a>.</p>
+href="ch09_ml_advanced.html">Bab 15</a>.</p>
 <p>Belajar struktur graf lebih sulit, karena jumlah graf yang mungkin
 tumbuh super-eksponensial terhadap jumlah variabel. Kuliah membahas dua
 keluarga pendekatan. Pendekatan berbasis kendala menjalankan uji
@@ -227,9 +288,14 @@ yang bergantian antara memprediksi (penjumlahan atas keadaan sebelumnya)
 dan memperbarui dengan pengamatan baru (perkalian dengan peluang emisi).
 Algoritme backward menghitung pesan yang sama dari arah sebaliknya, dan
 gabungan keduanya memberi smoothing. Algoritme Viterbi mengganti
-penjumlahan dengan maksimum untuk mencari urutan keadaan terbaik, dan
-Baum–Welch adalah EM untuk mempelajari parameter HMM dari pengamatan
-saja.</p>
+penjumlahan dengan maksimum, <span
+class="math inline">\(\delta_t(j)=b_j(o_t)\max_i\delta_{t-1}(i)\,a_{ij}\)</span>,
+sambil mencatat <span class="math inline">\(i\)</span> mana yang memberi
+maksimum, lalu menelusuri catatan itu mundur dari akhir untuk
+mendapatkan urutan keadaan terbaik. Biayanya sebanding dengan panjang
+deret kali kuadrat jumlah keadaan, bukan eksponensial terhadap panjang
+deret seperti kalau semua urutan dicoba, dan Baum–Welch adalah EM untuk
+mempelajari parameter HMM dari pengamatan saja.</p>
 <p>Contoh klasik dari <span class="citation"
 data-cites="russell2021">Russell dan Norvig (2021)</span> adalah penjaga
 yang tidak pernah keluar gedung dan hanya bisa menebak cuaca dari apakah
@@ -317,19 +383,41 @@ melinearkan model di sekitar perkiraan saat ini (<em>extended Kalman
 filter</em>), atau diganti dengan <em>particle filter</em> yang mewakili
 distribusi dengan sekumpulan sampel berbobot. Keduanya dipakai di
 kendaraan otonom untuk melacak posisi dari GPS, odometri, dan lidar.</p>
+<p>Particle filter adalah filter Bayes yang sama dengan Kalman filter,
+hanya distribusinya diwakili sampel, bukan Gauss. Setiap langkah punya
+tiga bagian. Setiap partikel digerakkan menurut model dinamika, termasuk
+noise-nya. Setiap partikel diberi bobot sebanding dengan likelihood
+pengukuran di posisinya. Lalu partikel ditarik ulang sesuai bobotnya,
+sehingga partikel di tempat yang tidak mungkin mati dan partikel di
+tempat yang mungkin berlipat. Contoh kecil: tiga partikel di posisi 1,
+2, dan 3 bergerak satu satuan ke 2, 3, dan 4. Sensor mengukur <span
+class="math inline">\(3{,}2\)</span> dengan noise Gauss bersimpangan
+baku satu. Likelihood-nya sebanding dengan <span
+class="math inline">\(e^{-(x-3{,}2)^2/2}\)</span>, yaitu <span
+class="math inline">\(0{,}49\)</span>, <span
+class="math inline">\(0{,}98\)</span>, dan <span
+class="math inline">\(0{,}73\)</span>, dan setelah dinormalisasi menjadi
+bobot <span class="math inline">\(0{,}22\)</span>, <span
+class="math inline">\(0{,}45\)</span>, dan <span
+class="math inline">\(0{,}33\)</span>. Taksiran posisinya rata-rata
+berbobot, sekitar <span class="math inline">\(3{,}11\)</span>. Dalam
+praktik dipakai ratusan sampai ribuan partikel, dan karena tidak ada
+asumsi Gauss, distribusinya boleh bercabang, misalnya ketika robot belum
+tahu di lorong mana ia berada, persis lokalisasi Markov di <a
+href="ch33_robot.html">Bab 21</a>.</p>
 <h2 id="di-luar-kelas">Di luar kelas</h2>
 <p>Model-model di bab ini bekerja di belakang banyak sistem yang kita
 temui di bagian-bagian berikutnya. Kendaraan otonom melacak posisinya
 dengan filter Bayes dan melacak mobil di sekitarnya dengan Kalman filter
-(<a href="ch33_robot.html">Bab 17</a>). Pelacak gerak inersia
+(<a href="ch33_robot.html">Bab 21</a>). Pelacak gerak inersia
 menggabungkan giroskop dan akselerometer dengan versi sederhana Kalman
-filter (<a href="ch32_pervasif.html">Bab 16</a>). Filter Wiener dan
+filter (<a href="ch32_pervasif.html">Bab 20</a>). Filter Wiener dan
 estimator MMSE dalam pemrosesan sinyal adalah saudara dekatnya (<a
-href="ch30_sinyal.html">Bab 14</a>). Dalam bioinformatika, hidden Markov
+href="ch30_sinyal.html">Bab 18</a>). Dalam bioinformatika, hidden Markov
 model dipakai untuk mencari gen dan menjajarkan keluarga protein <span
 class="citation" data-cites="durbin1998">(Durbin dkk. 1998)</span>, dan
 algoritme EM menjadi dasar banyak metode analisis ekspresi gen (<a
-href="ch40_genomik.html">Bab 18</a>).</p>
+href="ch40_genomik.html">Bab 22</a>).</p>
 <p>Di dunia simulasi, ide Kalman filter dikenal sebagai <em>data
 assimilation</em>. Prakiraan cuaca modern bekerja dengan cara ini: model
 atmosfer meramalkan keadaan beberapa jam ke depan, lalu ramalan itu
@@ -354,8 +442,28 @@ Kalau kita ingin menyimpulkan parameter fisika, misalnya konduktivitas
 atau syarat batas, dari pengukuran yang berisik, jawaban yang jujur
 bukan satu angka, melainkan sebuah distribusi posterior. MCMC, inferensi
 variasional, dan model generatif dari <a
-href="ch09_ml_advanced.html">Bab 11</a> adalah alat untuk
+href="ch09_ml_advanced.html">Bab 15</a> adalah alat untuk
 menghitungnya.</p>
+<h2 id="perkembangan-riset">Perkembangan riset</h2>
+<p>Banyak ilmu punya simulator yang teliti tetapi tidak punya likelihood
+yang bisa dituliskan: simulator tabrakan partikel, model epidemi
+berbasis agen, atau model iklim. Bayes membutuhkan <span
+class="math inline">\(p(\text{data}\mid\theta)\)</span>, sedangkan
+simulator hanya bisa menghasilkan data untuk <span
+class="math inline">\(\theta\)</span> tertentu. <em>Simulation-based
+inference</em> <span class="citation"
+data-cites="cranmer2020sbi">(Cranmer, Brehmer, dan Louppe 2020)</span>
+menjembatani keduanya. Jalankan simulator untuk banyak <span
+class="math inline">\(\theta\)</span> yang ditarik dari prior, lalu
+latih jaringan saraf untuk mendekati posterior <span
+class="math inline">\(p(\theta\mid\text{data})\)</span> secara langsung,
+misalnya dengan normalizing flow dari <a
+href="ch06_arsitektur_generatif.html">Bab 12</a>. Setelah dilatih,
+posterior untuk pengamatan baru diperoleh hampir seketika, tanpa
+menjalankan MCMC lagi. Inferensi semacam ini disebut <em>amortized</em>:
+biaya besar dibayar sekali di awal, lalu dipakai berulang kali. Gagasan
+yang sama dipakai di asimilasi data dan dalam mengkalibrasi simulasi
+fisika terhadap percobaan.</p>
 <h5 id="catatan-sumber.">Catatan sumber.</h5>
 <p>Bab ini mengikuti kuliah Probabilistic Models (Bayesian network,
 inferensi eksak dan aproksimasi, pembelajaran parameter dan struktur,
@@ -368,6 +476,12 @@ filter juga muncul di kuliah kendaraan otonom.</p>
 <h2 class="unnumbered" id="bibliography">Pustaka bab ini</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
+<div id="ref-cranmer2020sbi" class="csl-entry" role="listitem">
+Cranmer, Kyle, Johann Brehmer, dan Gilles Louppe. 2020. <span>“The
+frontier of simulation-based inference.”</span> <em>Proceedings of the
+National Academy of Sciences</em> 117 (48): 30055–62. <a
+href="https://doi.org/10.1073/pnas.1912789117">https://doi.org/10.1073/pnas.1912789117</a>.
+</div>
 <div id="ref-dempster1977" class="csl-entry" role="listitem">
 Dempster, A. P., N. M. Laird, dan D. B. Rubin. 1977. <span>“Maximum
 Likelihood from Incomplete Data Via the EM Algorithm.”</span>

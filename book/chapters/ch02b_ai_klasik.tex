@@ -43,7 +43,14 @@ Pencarian tanpa informasi tidak tahu apa-apa tentang di mana tujuan berada. \ist
 search} menjelajah lapis demi lapis dan menjamin jalur terpendek dalam jumlah langkah, tetapi
 memorinya tumbuh eksponensial. \istilah{Depth-first search} masuk sedalam mungkin lebih dulu,
 hemat memori, tetapi bisa tersesat di cabang yang tak berujung. \istilah{Uniform-cost search}
-selalu memperluas simpul dengan biaya kumulatif terkecil, sehingga menemukan jalur termurah.
+selalu memperluas simpul dengan biaya kumulatif terkecil, sehingga menemukan jalur termurah. Kalau versi ini
+dijalankan dengan antrean prioritas pada graf dengan biaya positif, ia sama dengan algoritme Dijkstra
+\citep{dijkstra1959}, yang juga dibahas di kuliah operations research untuk mencari rute terpendek di jaringan jalan.
+
+Mengapa memori menjadi masalah? Kalau setiap keadaan punya $b$ penerus dan solusi terdekat ada di kedalaman $d$,
+breadth-first search menyimpan sekitar $b^d$ simpul. Dengan $b=10$ dan $d=6$, itu sejuta simpul. Dengan $d=12$, satu
+triliun. Pertumbuhan eksponensial seperti ini adalah alasan mengapa pencarian buta tidak pernah cukup untuk masalah
+nyata, dan mengapa pengetahuan tentang arah tujuan berharga.
 
 Pencarian dengan informasi memakai \istilah{heuristic} $h(n)$, perkiraan biaya dari simpul $n$ ke
 tujuan. Algoritme A* \citep{hart1968} memperluas simpul dengan nilai
@@ -56,6 +63,41 @@ angka, jumlah ubin yang salah tempat adalah heuristik admissible, dan jumlah jar
 ubin ke posisi seharusnya juga admissible tetapi lebih informatif, karena selalu sama atau lebih
 besar. Heuristik yang lebih informatif memangkas jauh lebih banyak simpul.
 
+Contoh kecil di \cref{fig:astar} memperlihatkan cara kerjanya. Dari $S$, dua simpul bisa dicapai: $A$ dengan
+$f=1+3=4$ dan $B$ dengan $f=4+1=5$. A* memperluas $A$ lebih dulu. Dari $A$, simpul $B$ kini bisa dicapai dengan biaya
+$g=3$, sehingga $f=3+1=4$, lebih baik dari jalur langsung tadi, dan $G$ bisa dicapai dengan $g=6$, $f=6$. Berikutnya
+$B$ diperluas, dan dari sana $G$ dicapai dengan $g=4$, $f=4$. Simpul dengan $f$ terkecil sekarang adalah $G$ sendiri,
+sehingga pencarian berhenti dengan jalur $S\to A\to B\to G$ berbiaya 4. Jalur $S\to A\to G$ yang tampak lebih pendek
+dalam jumlah langkah tidak pernah dipilih.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[x=1.9cm,y=1.2cm]
+  \node[bulat,minimum size=9mm] (S) at (0,0) {$S$};
+  \node[bulat,minimum size=9mm] (A) at (1.5,1) {$A$};
+  \node[bulat,minimum size=9mm] (B) at (1.5,-1) {$B$};
+  \node[bulat,minimum size=9mm,fill=oranye!30] (G) at (3,0) {$G$};
+  \draw[panah] (S) -- node[label,above left]{1} (A);
+  \draw[panah] (S) -- node[label,below left]{4} (B);
+  \draw[panah] (A) -- node[label,right]{2} (B);
+  \draw[panah] (A) -- node[label,above right]{5} (G);
+  \draw[panah] (B) -- node[label,below right]{1} (G);
+  \node[label] at (0,-0.65) {$h=4$};
+  \node[label] at (1.5,1.6) {$h=3$};
+  \node[label] at (1.5,-1.6) {$h=1$};
+  \node[label] at (3,-0.65) {$h=0$};
+\end{tikzpicture}
+\caption{Graf kecil untuk A*. Angka pada panah adalah biaya, $h$ adalah heuristik admissible. Jalur optimal
+$S\to A\to B\to G$ berbiaya 4.}
+\label{fig:astar}
+\end{figure}
+
+Bukti optimalitasnya pendek. Misalkan biaya optimal $C^*$, dan A* hendak mengembalikan tujuan $G_2$ dengan biaya
+$g(G_2)>C^*$. Di jalur optimal pasti masih ada simpul $n$ yang belum diperluas. Karena heuristiknya admissible,
+$f(n)=g(n)+h(n)\le C^*$. Sementara itu, $f(G_2)=g(G_2)>C^*$ karena $h$ bernilai nol di tujuan. Jadi $f(n)<f(G_2)$, dan
+A* pasti memperluas $n$ sebelum $G_2$. Mengulang argumen ini sepanjang jalur optimal memperlihatkan bahwa tujuan yang
+optimal selalu dicapai lebih dulu.
+
 A* mirip pengemudi yang memilih belokan berdasarkan dua hal sekaligus: jarak yang sudah ditempuh
 di odometer, dan jarak garis lurus yang tersisa ke tujuan. Karena garis lurus tidak pernah lebih
 panjang dari jalan sebenarnya, ia tidak akan tertipu untuk mengabaikan rute yang sebenarnya baik.
@@ -65,8 +107,17 @@ paling sedikit bentrok, \istilah{local search} lebih cocok. Hill climbing terus 
 yang lebih baik sampai tidak ada lagi, dan sering terjebak di puncak lokal. Simulated annealing
 \citep{kirkpatrick1983} kadang menerima langkah yang memburuk dengan peluang yang menurun perlahan,
 seperti logam yang didinginkan pelan-pelan agar atomnya menemukan susunan berenergi rendah. Tabu
-search \citep{glover1989} mengingat langkah-langkah terakhir dan melarang kembali ke sana, sehingga
-tidak berputar-putar di sekitar puncak yang sama.
+search \citep{glover1989} mengingat langkah-langkah terakhir dan melarang kembali ke sana, sehingga tidak berputar-putar di sekitar puncak yang sama.
+
+Kuliah operations research membahas contoh paling terkenal untuk local search: \istilah{travelling salesman problem},
+mencari rute terpendek yang mengunjungi setiap kota tepat sekali. Jumlah rute untuk $n$ kota adalah $(n-1)!/2$. Untuk
+sepuluh kota, itu $181\,440$ rute, masih bisa dicoba semua. Untuk dua puluh kota, sekitar $6\times10^{16}$. Heuristik
+konstruksi, seperti selalu pergi ke kota terdekat atau menyisipkan kota di tempat yang paling murah, membuat rute awal
+yang lumayan. Langkah \istilah{2-opt} lalu memperbaikinya: ambil dua sisi rute, putuskan, dan sambung ulang dengan cara
+lain kalau itu memperpendek rute. Setiap rute yang saling bersilangan bisa diperbaiki dengan cara ini, karena dua sisi
+yang bersilangan selalu lebih panjang dari dua sisi yang tidak, menurut ketaksamaan segitiga. Masalah pengiriman barang
+dengan banyak kendaraan berkapasitas terbatas, yang dibahas di kuliah dengan contoh perusahaan selai rumahan, dibangun
+di atas gagasan yang sama.
 
 \section{Bermain melawan lawan}
 
@@ -82,17 +133,35 @@ nilai 3.
 Setelah cabang pertama memberi nilai 3, kita tahu kita bisa mendapat setidaknya 3. Di cabang kedua,
 begitu kita melihat daun bernilai 2, kita tahu lawan akan memberi paling banyak 2 di cabang itu,
 sehingga sisa daunnya tidak perlu diperiksa. Dengan urutan langkah yang baik, alpha-beta bisa
-menggandakan kedalaman pencarian dengan waktu yang sama.
+menggandakan kedalaman pencarian dengan waktu yang sama. Alasannya, dengan urutan terbaik, jumlah daun yang perlu
+diperiksa turun dari $b^m$ menjadi sekitar $b^{m/2}$ untuk pohon berkedalaman $m$, dan $b^{m/2}$ dengan waktu yang sama
+memungkinkan kedalaman $m$ dua kali lipat.
 
 Untuk permainan dengan cabang banyak seperti Go, minimax tidak mungkin dijalankan sampai
 akhir permainan. \istilah{Monte Carlo tree search} membangun pohon pencarian secara bertahap dengan
 memainkan banyak permainan acak sampai selesai, lalu memusatkan pencarian pada langkah yang
 menjanjikan. Aturan UCT \citep{kocsis2006} menyeimbangkan eksploitasi langkah yang sejauh ini
-terbaik dengan eksplorasi langkah yang belum banyak dicoba, mengikuti teori bandit. AlphaGo
+terbaik dengan eksplorasi langkah yang belum banyak dicoba, mengikuti teori bandit. Di setiap simpul, langkah yang dipilih adalah yang memaksimalkan
+\begin{equation}
+\bar X_j+c\sqrt{\frac{\ln N}{n_j}},
+\end{equation}
+dengan $\bar X_j$ rata-rata hasil permainan setelah langkah $j$, $n_j$ berapa kali langkah itu dicoba, dan $N$ total
+kunjungan simpul. Suku kedua adalah bonus keingintahuan. Langkah yang jarang dicoba mendapat bonus besar, dan bonus itu
+mengecil seiring langkah itu dicoba lagi. Misalkan setelah seratus simulasi, langkah pertama dicoba 80 kali dengan
+tingkat menang $0{,}55$ dan langkah kedua 20 kali dengan $0{,}50$. Dengan $c=\sqrt2$, skornya $0{,}55+1{,}41\sqrt{4{,}6/80}\approx0{,}89$
+dan $0{,}50+1{,}41\sqrt{4{,}6/20}\approx1{,}18$. Langkah kedua dicoba lagi, karena ketidakpastiannya masih besar. AlphaGo
 \citep{silver2016} menggabungkan MCTS dengan jaringan saraf yang menilai posisi dan menyarankan
 langkah, lalu AlphaZero \citep{silver2018} mempelajari catur, shogi, dan Go hanya dari bermain
 melawan dirinya sendiri. Kuliah menekankan pelajaran yang lebih umum: pembelajaran memberi
 intuisi, pencarian memberi ketelitian, dan sistem terkuat memakai keduanya.
+
+Kuliah machine learning in games menunjukkan bahwa pembelajaran dalam permainan sudah jauh lebih tua dari AlphaGo.
+MENACE pada 1960-an adalah ``mesin'' dari kotak-kotak korek api berisi manik-manik berwarna yang belajar bermain
+tic-tac-toe: manik untuk langkah yang membawa kemenangan ditambah, manik untuk langkah yang membawa kekalahan diambil.
+TD-Gammon \citep{tesauro1995} melatih jaringan saraf untuk menilai posisi backgammon hanya dari bermain melawan dirinya
+sendiri dengan temporal difference learning (\cref{ch:rl}), dan mencapai tingkat pemain manusia terbaik, sepuluh tahun
+sebelum deep learning populer. Kuliah juga mencatat bahwa teknik yang sama dipakai di luar permainan, misalnya untuk
+mengatur lift dan menjadwalkan pekerjaan di pabrik.
 
 \section{Perencanaan}
 
@@ -110,8 +179,16 @@ Representasi pengetahuan menyimpan fakta tentang dunia dalam bentuk yang bisa di
 bernalar. Logika proposisi bekerja dengan pernyataan benar atau salah, sedangkan logika predikat
 orde pertama menambahkan objek, relasi, dan kuantor, sehingga bisa menyatakan ``setiap manusia
 fana''. Mesin inferensi menurunkan fakta baru dari fakta lama, misalnya dengan resolusi atau
-dengan rantai aturan maju dan mundur. Ontologi dan graf pengetahuan menyusun konsep ke dalam
-hierarki dan relasi, dan bentuk modernnya dipakai mesin pencari untuk menjawab pertanyaan faktual
+dengan rantai aturan maju dan mundur. Contoh kecil memperlihatkan resolusi \citep{robinson1965}. Basis pengetahuan berisi ``kalau hujan, jalan basah'',
+``kalau jalan basah, jalan licin'', dan ``hujan''. Dalam bentuk klausa, aturan pertama menjadi $\neg H\lor B$ dan
+aturan kedua $\neg B\lor L$. Untuk membuktikan $L$, tambahkan negasinya, $\neg L$, lalu cari kontradiksi. Resolusi
+$\neg B\lor L$ dengan $\neg L$ menghasilkan $\neg B$. Resolusi $\neg B$ dengan $\neg H\lor B$ menghasilkan $\neg H$.
+Resolusi $\neg H$ dengan fakta $H$ menghasilkan klausa kosong, yaitu kontradiksi. Jadi $L$ pasti benar. Bahasa
+pemrograman logika seperti Prolog dibangun di atas prosedur ini.
+
+Ontologi dan graf pengetahuan menyusun konsep ke dalam
+hierarki dan relasi. Menurut definisi yang dikutip di kuliah, ontologi adalah spesifikasi eksplisit dari sebuah
+konseptualisasi: kosakata bersama untuk sebuah domain beserta makna istilah-istilahnya, dan bentuk modernnya dipakai mesin pencari untuk menjawab pertanyaan faktual
 secara langsung. Kekuatan pendekatan simbolik adalah ketelitian dan kemampuan menjelaskan
 penalarannya. Kelemahannya adalah kerapuhan di hadapan dunia nyata yang berisik dan tidak lengkap,
 persis di tempat machine learning unggul.
@@ -128,12 +205,40 @@ produk dengan keuntungan 3 dan 5 per unit, dan tiga pabrik pendukung dengan kapa
 Daerah yang memenuhi semua kendala adalah sebuah poligon, dan karena fungsi tujuannya linear,
 optimumnya selalu berada di salah satu titik sudut. Di sini titik terbaiknya $(x,y)=(2,6)$ dengan
 keuntungan 36. Metode simpleks berjalan dari satu titik sudut ke titik sudut tetangga yang lebih
-baik sampai tidak ada lagi perbaikan.
+baik sampai tidak ada lagi perbaikan (\cref{fig:lp}).
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=0.55\linewidth,height=0.48\linewidth,axis lines=left,xmin=0,xmax=7,ymin=0,ymax=9.5,
+  xlabel={\small $x$},ylabel={\small $y$},xtick={0,2,4,6},ytick={0,3,6,9}]
+  \fill[biru!18] (axis cs:0,0) -- (axis cs:4,0) -- (axis cs:4,3) -- (axis cs:2,6) -- (axis cs:0,6) -- cycle;
+  \addplot[abu,domain=0:7] {6};
+  \addplot[abu] coordinates {(4,0) (4,9.5)};
+  \addplot[abu,domain=0:6] {(18-3*x)/2};
+  \addplot[oranye,thick,dashed,domain=0:7] {(36-3*x)/5};
+  \fill[oranye] (axis cs:2,6) circle (2.5pt);
+  \node[label,anchor=south west] at (axis cs:2,6.1) {$(2,6)$, nilai 36};
+  \node[label] at (axis cs:1.5,2.5) {layak};
+\end{axis}
+\end{tikzpicture}
+\caption{Program linear dua variabel. Daerah layak (biru) dibatasi tiga kendala. Garis putus-putus adalah garis
+keuntungan $3x+5y=36$, yang menyentuh daerah layak tepat di titik sudut $(2,6)$.}
+\label{fig:lp}
+\end{figure}
 
 Setiap program linear punya pasangan, yaitu program dual, yang variabelnya bisa dibaca sebagai
 harga bayangan setiap sumber daya: berapa keuntungan bertambah kalau kapasitas satu pabrik
-dinaikkan satu unit. Pada optimum, nilai primal dan dual sama, dan teori dualitas ini menjadi dasar
-banyak algoritme optimasi modern.
+dinaikkan satu unit. Untuk contoh di atas, dualnya adalah
+\begin{equation}
+\min\ 4u_1+12u_2+18u_3\quad\text{dengan}\quad u_1+3u_3\ge3,\quad 2u_2+2u_3\ge5,\quad u_i\ge0,
+\end{equation}
+setiap kendala dual berasal dari satu produk dan setiap variabel dual dari satu pabrik. Solusinya
+$(u_1,u_2,u_3)=(0;\ 1{,}5;\ 1)$ dengan nilai $12\cdot1{,}5+18\cdot1=36$, sama dengan nilai primal. Pabrik pertama punya
+harga bayangan nol: kapasitasnya tidak terpakai penuh di optimum ($x=2<4$), sehingga menambahnya tidak berguna. Satu
+jam tambahan di pabrik kedua bernilai $1{,}5$, dan di pabrik ketiga bernilai satu. Informasi seperti ini sering lebih
+berguna bagi manajer daripada solusinya sendiri. Pada optimum, nilai primal dan dual selalu sama, dan teori dualitas ini
+menjadi dasar banyak algoritme optimasi modern, termasuk support vector machine di \cref{ch:unsup}.
 
 Kalau variabel harus bilangan bulat, misalnya jumlah truk, masalahnya menjadi \istilah{integer
 programming}, yang jauh lebih sulit. \istilah{Branch and bound} memecah masalah menjadi cabang dengan
@@ -146,6 +251,17 @@ bagian itu dimulai. Prinsip yang sama menjadi persamaan Bellman di reinforcement
 search kembali menjadi pilihan, dan analisis keputusan menambahkan ketidakpastian dengan pohon
 keputusan dan nilai harapan.
 
+Contoh analisis keputusan di kuliah, yang diambil dari \citet{hillier2015}, adalah perusahaan yang memiliki tanah yang
+mungkin mengandung minyak, dengan peluang satu banding empat. Mengebor sendiri memberi keuntungan 700 ribu dolar kalau ada
+minyak dan rugi 100 ribu kalau kering. Menjual tanah memberi 90 ribu pasti. Nilai harapan mengebor
+$0{,}25\cdot700-0{,}75\cdot100=100$ ribu, lebih tinggi dari menjual. Berapa nilai informasi sempurna? Kalau kita tahu
+sebelumnya apakah ada minyak, kita akan mengebor kalau ada dan menjual kalau tidak, dengan nilai harapan
+$0{,}25\cdot700+0{,}75\cdot90=242{,}5$ ribu. Selisihnya, $142{,}5$ ribu, adalah batas atas yang masuk akal untuk dibayar
+demi informasi, misalnya survei seismik. Survei yang tidak sempurna bernilai lebih kecil, dan teorema Bayes
+(\cref{ch:prob}) dipakai untuk memperbarui peluang setelah hasil survei diketahui. Pohon keputusannya diselesaikan dari
+belakang, mengambil nilai harapan di simpul peluang dan maksimum di simpul keputusan, persis seperti minimax yang
+lawannya diganti alam.
+
 \section{Mengapa semua ini masih penting}
 
 Sistem AI modern jarang murni simbolik atau murni statistik. AlphaZero adalah pencarian pohon yang
@@ -155,6 +271,27 @@ memakai A* untuk rute dan pembelajaran untuk persepsi. Dalam simulasi teknik, ke
 desain dan jadwal operasi sering diselesaikan dengan program linear atau integer yang dibangun di
 atas prediksi dari model pengganti. Pembelajaran dan penalaran tidak bersaing. Keduanya saling
 melengkapi.
+
+\section{Perkembangan riset}
+
+Gagasan memadukan pembelajaran dengan pencarian terus berkembang. MuZero \citep{schrittwieser2020} melanjutkan AlphaZero
+tanpa diberi aturan permainannya. Ia mempelajari model internal yang meramalkan nilai, policy, dan ganjaran, lalu
+menjalankan MCTS di dalam model itu, dan bekerja untuk Go, catur, shogi, sekaligus permainan Atari. Pencarian tidak lagi
+butuh simulator yang ditulis manusia.
+
+AlphaDev \citep{mankowitz2023} merumuskan penulisan rutin pengurutan sebagai permainan satu pemain: setiap langkah
+menambahkan satu instruksi assembly, dan ganjarannya adalah kebenaran dan kecepatan program. Agen deep RL menemukan rutin
+pengurutan kecil yang lebih cepat dari rutin buatan manusia, dan rutin itu dimasukkan ke pustaka standar C++ LLVM.
+FunSearch \citep{romeraparedes2024} memasangkan model bahasa dengan evaluator otomatis dalam lingkar evolusi. Model bahasa
+mengusulkan program, evaluator menilainya, dan program terbaik dipakai sebagai contoh untuk usulan berikutnya. Cara ini
+menemukan konstruksi baru untuk masalah cap set dalam kombinatorika dan heuristik baru untuk bin packing. Yang dicari
+bukan jawabannya, melainkan program yang menghasilkan jawaban, sehingga hasilnya bisa dibaca dan diperiksa manusia.
+
+Di sisi lain, perencanaan klasik menjadi alat ukur bagi model bahasa. PlanBench \citep{valmeekam2023} memakai domain dari
+kompetisi perencanaan seperti dunia balok di bagian perencanaan di atas untuk menguji apakah model bahasa benar-benar
+merencanakan atau hanya mengingat pola dari pengetahuan umum. Hasilnya, kinerja model bahasa pada pembuatan rencana
+masih jauh dari memadai. Pelajaran dari bab ini kembali relevan: pemeriksa yang eksak, seperti validator rencana atau
+evaluator program, membuat keluaran model bahasa bisa dipercaya.
 
 \sumberbab{Bab ini mengikuti kuliah Introduction to AI (sejarah, search, game playing, planning,
 representasi pengetahuan, machine learning untuk permainan, filsafat AI) dan kuliah KS Operations

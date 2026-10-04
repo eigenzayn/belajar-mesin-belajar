@@ -37,6 +37,15 @@ $b<0$. Titik $(0,1)$ dan $(1,0)$ memberi $w_2+b>0$ dan $w_1+b>0$. Kalau keduanya
 diperoleh $w_1+w_2+b>-b>0$. Padahal $(1,1)$ berlabel nol, sehingga seharusnya $w_1+w_2+b<0$.
 Kontradiksi. Satu lapisan tersembunyi dengan dua neuron sudah cukup untuk menyelesaikannya.
 
+Untuk data yang memang bisa dipisahkan garis, aturan belajar perceptron \citep{rosenblatt1958} sederhana: setiap kali sebuah
+contoh $(\vx,y)$ dengan $y\in\{-1,+1\}$ salah diklasifikasikan, tambahkan $y\vx$ ke vektor bobot. Teorema konvergensi perceptron, yang
+dibuktikan di naskah kuliah, menjamin bahwa aturan ini berhenti setelah jumlah kesalahan yang terbatas. Kalau semua input punya norma
+paling besar $R$ dan ada pemisah dengan margin $\gamma$, jumlah koreksinya paling banyak $(R/\gamma)^2$. Ide pembuktiannya: setiap
+koreksi menaikkan hasil kali dalam bobot dengan pemisah ideal paling sedikit $\gamma$, sedangkan kuadrat norma bobot hanya naik paling
+banyak $R^2$, sehingga setelah $k$ koreksi, $k\gamma\le\|\vw\|\le R\sqrt k$, yang hanya mungkin kalau $k\le(R/\gamma)^2$. Dengan $R=2$ dan
+$\gamma=0{,}5$, paling banyak 16 koreksi. Margin yang tipis berarti belajar yang lama, gagasan margin yang juga menjadi inti support vector
+machine di \cref{ch:unsup}.
+
 Jaringan \istilah{feed-forward} dengan $L$ lapisan menumpuk transformasi yang sama berkali-kali.
 Dengan notasi kuliah,
 \begin{equation}
@@ -109,6 +118,21 @@ backprop pada dasarnya mengalikan Jacobian lapisan-lapisan dari kanan ke kiri de
 vektor. Hessian $\bm H=\partial^2\Loss/\partial\vw\partial\vw^\top$ mengukur kelengkungan loss
 dan menentukan condition number masalah optimasi (\cref{ch:optimasi}). Hasil kali Hessian dengan
 sebuah vektor bisa dihitung tanpa pernah membentuk Hessian, cukup dengan dua lintasan autodiff.
+
+\subsection{Backpropagation dengan angka}
+
+Satu lintasan maju dan mundur pada jaringan sekecil mungkin membuat rumus-rumus di atas terasa nyata. Ambil satu input
+$x=1$, satu neuron tersembunyi dengan bobot $w_1=0{,}5$ dan aktivasi ReLU, satu keluaran linear dengan bobot $w_2=2$, target
+$y=2$, dan loss $\tfrac12(\hat y-y)^2$. Lintasan maju: $s_1=w_1x=0{,}5$, $h=\mathrm{ReLU}(0{,}5)=0{,}5$, $\hat y=w_2h=1$, dan
+loss $\tfrac12(1-2)^2=0{,}5$.
+
+Lintasan mundur dimulai dari keluaran. Turunan loss terhadap $\hat y$ adalah $\hat y-y=-1$. Karena $\hat y=w_2h$, gradien
+untuk $w_2$ adalah $-1\cdot h=-0{,}5$, dan delta yang dikirim ke neuron tersembunyi adalah $-1\cdot w_2=-2$. ReLU meneruskan
+delta tanpa perubahan karena $s_1>0$, sehingga gradien untuk $w_1$ adalah $-2\cdot x=-2$. Dengan laju belajar $0{,}1$, bobot
+baru menjadi $w_2=2{,}05$ dan $w_1=0{,}7$. Lintasan maju berikutnya memberi $\hat y=2{,}05\cdot0{,}7\approx1{,}44$, lebih dekat ke
+target. Perhatikan bahwa $w_1$ mendapat gradien empat kali lebih besar dari $w_2$, karena ia dikalikan bobot keluaran yang
+besar. Ketidakseimbangan skala seperti ini, yang menumpuk di jaringan dalam, adalah alasan inisialisasi dan normalisasi
+di bagian berikut begitu penting.
 
 \section{Fungsi aktivasi}
 
@@ -201,11 +225,50 @@ seperti menggeser, memutar, atau mengubah kecerahan. Ada juga cara yang mengubah
 selama pelatihan, yaitu menambah neuron (\istilah{growing}) atau membuang bobot yang kurang penting
 (\istilah{pruning}), serta pencarian eksplisit akan minimum yang datar \citep{hochreiter1997flat}.
 
+Bobot mana yang aman dibuang? Jawaban naif adalah bobot yang paling kecil. Naskah kuliah membahas jawaban yang lebih teliti dari
+metode \emph{Optimal Brain Damage}. Di sekitar minimum, gradien nol, sehingga ekspansi Taylor orde dua (\cref{lamp:matematika})
+menyatakan bahwa menghapus bobot $w_i$, yaitu mengubahnya sebesar $-w_i$, menaikkan loss kira-kira sebesar
+\begin{equation}
+s_i=\tfrac12\,h_{ii}\,w_i^2,
+\end{equation}
+dengan $h_{ii}$ elemen diagonal Hessian. Bobot $w=0{,}1$ di arah yang melengkung, $h=50$, punya saliency $0{,}25$. Bobot $w=1$ di
+arah yang hampir datar, $h=0{,}1$, hanya $0{,}05$. Bobot yang \emph{lebih besar} justru lebih aman dibuang, karena loss hampir tidak peduli
+pada arah itu. \emph{Optimal Brain Surgeon} memakai Hessian penuh dan sekaligus menghitung bagaimana bobot-bobot lain harus digeser
+untuk menutupi bobot yang dibuang. Gagasan kelengkungan yang sama menghubungkan pruning dengan minimum datar: bobot di arah yang datar
+bisa diubah tanpa merugikan, sehingga bisa disimpan dengan presisi rendah atau dibuang sama sekali.
+
 Dua kesalahan praktis sering terjadi di sini. Yang pertama adalah lupa mematikan dropout dan lupa
 memakai statistik batch norm hasil pelatihan saat evaluasi. Di PyTorch, inilah beda antara
 \texttt{model.train()} dan \texttt{model.eval()}. Yang kedua adalah augmentasi yang diam-diam
 mengubah label. Membalik angka 6 bisa menjadikannya 9. Pada data fisika, memutar medan kecepatan
 tanpa ikut memutar arah vektor-vektor kecepatannya juga menghasilkan data yang salah.
+
+Ada detail kecil dalam dropout yang sering membingungkan. Kalau setiap neuron dimatikan dengan peluang $p$, nilai harapan
+keluarannya selama pelatihan hanya $(1-p)$ kali nilai aslinya. Saat inferensi semua neuron aktif, sehingga lapisan
+berikutnya akan menerima input yang lebih besar dari yang biasa ia lihat. Implementasi modern memakai \emph{inverted
+dropout}: selama pelatihan, neuron yang selamat dikalikan $1/(1-p)$. Dengan $p=0{,}5$, neuron yang tidak dimatikan dikali dua,
+sehingga nilai harapannya tetap sama dengan aslinya, dan saat inferensi tidak perlu ada penskalaan sama sekali.
+
+\section{Normalisasi dan sambungan residual}
+
+Batch normalization \citep{ioffe2015} menstandarkan setiap fitur dengan statistik mini-batch, lalu mengembalikan skala dan
+geser yang dipelajari:
+\begin{equation}
+\hat x=\frac{x-\mu_{\mathcal B}}{\sqrt{\sigma^2_{\mathcal B}+\epsilon}},\qquad y=\gamma\hat x+\beta .
+\end{equation}
+Untuk mini-batch dengan nilai $(1,2,3,6)$, rata-ratanya $3$, variansnya $3{,}5$, dan nilai yang distandarkan sekitar
+$(-1{,}07;-0{,}53;0;1{,}60)$. Parameter $\gamma$ dan $\beta$ memastikan jaringan tetap bisa mewakili fungsi yang sama seperti
+tanpa normalisasi kalau itu memang yang terbaik. Saat inferensi, statistik batch diganti rata-rata bergerak dari pelatihan,
+sumber kesalahan \texttt{model.eval()} yang disebut di atas. Layer normalization menghitung statistik yang sama di sepanjang
+fitur untuk setiap contoh, bukan di sepanjang batch, sehingga tidak bergantung pada ukuran batch dan menjadi pilihan standar
+di transformer.
+
+Sambungan residual \citep{he2016} menulis keluaran sebuah blok sebagai $\vh_{l+1}=\vh_l+F(\vh_l)$. Turunannya terhadap input
+blok adalah $\bm I+\partial F/\partial\vh_l$. Melewati $L$ blok, delta dikalikan dengan hasil kali faktor-faktor seperti ini,
+dan suku identitas memastikan selalu ada jalur yang dilewati gradien tanpa diperkecil. Itulah gagasan constant error
+carousel dari LSTM (\cref{ch:lstm}), kali ini di sepanjang kedalaman, bukan di sepanjang waktu. Blok residual juga bisa dibaca
+sebagai satu langkah Euler dari persamaan diferensial $\dot\vh=F(\vh)$, sudut pandang yang melahirkan neural ODE di
+\cref{ch:mlat}.
 
 \section{Jaringan konvolusi}
 
@@ -283,6 +346,24 @@ yang dilatih pada data simulasi bisa dipandang sebagai solver yang mempelajari s
 Pandangan ini menjelaskan mengapa CNN dan U-Net menjadi pilihan pertama untuk model pengganti
 pada grid teratur, dan mengapa mesh yang tidak teratur membutuhkan jaringan graf
 (\cref{ch:gdl,ch:operator}).
+
+\section{Perkembangan riset}
+
+Bahkan blok paling dasar di bab ini masih dipertanyakan. Kolmogorov--Arnold Networks \citep{liu2024kan} terinspirasi oleh
+teorema representasi Kolmogorov--Arnold, yang menyatakan bahwa fungsi kontinu banyak variabel bisa ditulis sebagai jumlah
+dan komposisi fungsi satu variabel. Alih-alih bobot linear di sisi dan aktivasi tetap di simpul, KAN memasang fungsi
+aktivasi yang dipelajari, berupa spline, di setiap sisi, dan tidak punya bobot linear sama sekali. Pada masalah fitting
+data dan PDE yang kecil, KAN yang jauh lebih kecil dilaporkan setara atau lebih akurat dari MLP yang lebih besar, dan
+fungsi-fungsi di sisinya bisa divisualisasikan, bahkan diganti rumus simbolik. Apakah keunggulan ini bertahan pada skala
+besar masih diperdebatkan.
+
+Masalah praktis lain adalah inisialisasi dan laju belajar ketika lebar jaringan berubah. Analisis varians di bab ini
+menjaga sinyal maju dan mundur tetap hidup. \citet{yang2022mup} melangkah lebih jauh dengan Maximal Update
+Parametrization: skala inisialisasi dan laju belajar setiap lapisan diatur sedemikian rupa sehingga besarnya pembaruan
+fitur tidak bergantung pada lebar. Akibatnya, hyperparameter terbaik dari model kecil bisa dipindahkan langsung ke model
+besar tanpa penyetelan ulang. Mereka melaporkan bahwa hyperparameter dari model 40 juta parameter, dipindahkan ke model
+6,7 miliar parameter, mengungguli angka yang dipublikasikan untuk GPT-3 berukuran sama, dengan biaya penyetelan hanya
+sekitar tujuh persen dari biaya pretraining.
 
 \sumberbab{Bab ini mengikuti naskah kuliah Deep Learning and Neural Nets I, yang kini bernama
 Deep Learning: Basic Techniques: sejarah, notasi, arsitektur dasar, generalisasi, jaringan

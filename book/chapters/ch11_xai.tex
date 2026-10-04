@@ -58,11 +58,20 @@ seratus kotak kecil membuat hasil ini langsung terasa masuk akal.
 \section{Menjelaskan lewat proyeksi}
 
 Data berdimensi tinggi, termasuk aktivasi di dalam jaringan saraf, bisa diproyeksikan ke dua dimensi
-untuk dilihat. PCA (\cref{ch:unsup}) mempertahankan varians global, t-SNE mempertahankan tetangga
+untuk dilihat. PCA (\cref{ch:unsup}) mempertahankan varians global, t-SNE \citep{vandermaaten2008} mempertahankan tetangga
 lokal, dan UMAP \citep{mcinnes2018} berusaha menjaga keduanya. Kuliah meluangkan waktu khusus untuk
 salah baca yang umum pada t-SNE: hyperparameter seperti perplexity amat menentukan, ukuran kelompok
 di peta tidak berarti apa-apa, jarak antar kelompok bisa menipu, noise acak kadang tampak berpola,
 dan untuk melihat topologi kita mungkin butuh beberapa peta dengan setelan berbeda.
+
+Salah baca itu bisa dipahami dari cara t-SNE bekerja. Untuk setiap titik di ruang asal, t-SNE mengubah jarak ke
+titik-titik lain menjadi peluang bertetangga $p_{ij}$ dengan kernel Gauss, yang lebarnya dipilih per titik agar setiap
+titik punya kira-kira sejumlah tetangga efektif yang sama, yaitu perplexity. Di peta dua dimensi, peluang $q_{ij}$
+dihitung dengan distribusi Student-$t$ berekor tebal, lalu posisi titik di peta digeser untuk meminimalkan
+$\KL(P\|Q)=\sum p_{ij}\log(p_{ij}/q_{ij})$. Karena lebar kernel disesuaikan per titik, kelompok yang rapat dan kelompok
+yang renggang di ruang asal sama-sama tampil dengan ukuran serupa di peta. Dan karena KL ini menghukum keras tetangga
+dekat yang dipisahkan, tetapi hampir tidak peduli pada titik jauh yang didekatkan, jarak antar kelompok di peta tidak
+punya arti yang bisa diandalkan.
 
 Proyeksi juga bisa menunjukkan proses yang berjalan dalam waktu. Kalau setiap keadaan sebuah proses,
 misalnya setiap langkah algoritme, setiap posisi permainan catur, atau setiap epoch pelatihan
@@ -78,12 +87,41 @@ Sekelompok teknik menjelaskan model dengan melihat bagaimana keluarannya berubah
 \istilah{Partial dependence plot} menampilkan efek rata-rata satu fitur terhadap prediksi, dengan
 merata-ratakan atas nilai fitur-fitur lain. \istilah{Individual conditional expectation} menampilkan
 kurva yang sama untuk setiap contoh secara terpisah, sehingga interaksi antar fitur yang tersembunyi
-di balik rata-rata menjadi terlihat.
+di balik rata-rata menjadi terlihat. Ambil model $f(x_1,x_2)=x_1x_2$ dengan $x_2$ bernilai $+1$ atau $-1$ sama seringnya.
+Separuh kurva ICE untuk $x_1$ naik, separuh lagi turun, dan PDP, rata-ratanya, datar sempurna (\cref{fig:ice}). Kalau
+hanya melihat PDP, kita akan menyimpulkan bahwa $x_1$ tidak berpengaruh sama sekali, padahal ia berpengaruh, hanya
+arahnya bergantung pada $x_2$.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=0.6\linewidth,height=4.4cm,axis lines=left,xmin=-1,xmax=1,ymin=-1.15,ymax=1.15,
+  xlabel={\small $x_1$},ylabel={\small prediksi},xtick={-1,0,1},ytick={-1,0,1}]
+  \foreach \b in {0.6,0.8,1.0}{
+    \addplot[biru!60,domain=-1:1] {\b*x};
+    \addplot[oranye!70,domain=-1:1] {-\b*x};
+  }
+  \addplot[black,very thick,dashed,domain=-1:1] {0};
+  \node[label] at (axis cs:0.55,-0.3) {PDP};
+\end{axis}
+\end{tikzpicture}
+\caption{Kurva ICE (garis tipis) untuk model dengan interaksi. Kurva naik untuk sebagian contoh dan turun untuk
+sebagian lain, sehingga rata-ratanya, PDP (garis putus-putus), datar dan menyembunyikan pengaruh fitur itu.}
+\label{fig:ice}
+\end{figure}
 
 LIME \citep{ribeiro2016} menjelaskan satu prediksi dengan membangun model sederhana yang hanya berlaku
 di sekitar contoh itu. Contoh diganggu sedikit demi sedikit, misalnya dengan menyembunyikan
 potongan-potongan gambar (\istilah{superpixel}), model asli ditanya untuk setiap versi, lalu model
-linear dilatih untuk meniru jawabannya secara lokal. Bobot model linear itu menjadi penjelasan. Model
+linear dilatih untuk meniru jawabannya secara lokal. Secara formal, LIME mencari
+\begin{equation}
+g^*=\argmin_{g\in G}\ \sum_{z}\pi_x(z)\big(f(z)-g(z)\big)^2+\Omega(g),
+\end{equation}
+dengan $z$ contoh-contoh yang diganggu, $\pi_x(z)$ bobot yang makin kecil untuk $z$ yang makin jauh dari $x$, dan
+$\Omega(g)$ penalti kerumitan, misalnya batas jumlah fitur yang boleh dipakai. Ini regresi linear berbobot dengan
+regularisasi dari \cref{ch:data}. Bobot model linear itu menjadi penjelasan. Kelemahannya juga terlihat dari rumus
+ini: hasilnya bergantung pada cara mengganggu contoh dan pada lebar $\pi_x$, sehingga dua setelan yang sama-sama masuk
+akal bisa memberi penjelasan yang berbeda. Model
 surrogate global melakukan hal serupa untuk seluruh data, dengan risiko bahwa model sederhana itu
 tidak cukup setia.
 
@@ -93,9 +131,27 @@ rata-rata kontribusi marginal pemain itu atas semua urutan kedatangan pemain. Da
 adalah fitur dan keuntungannya adalah prediksi. Ambil contoh dua fitur, A dan B. Tanpa fitur apa pun,
 prediksi model 0. Dengan A saja 10, dengan B saja 20, dan dengan keduanya 40. Kalau A datang lebih
 dulu, kontribusinya 10, dan kalau datang setelah B, kontribusinya 20. Rata-ratanya 15. Dengan
-cara yang sama, B mendapat $(20+30)/2=25$. Jumlah keduanya tepat 40, prediksi penuh. SHAP
-\citep{lundberg2017} membuat perhitungan ini praktis untuk model dengan banyak fitur, karena jumlah
-urutan yang mungkin tumbuh secara faktorial.
+cara yang sama, B mendapat $(20+30)/2=25$. Jumlah keduanya tepat 40, prediksi penuh. Secara umum, untuk $n$ fitur dan fungsi nilai $v(S)$ yang memberi prediksi dengan hanya
+memakai himpunan fitur $S$,
+\begin{equation}
+\phi_i=\sum_{S\subseteq\{1,\dots,n\}\setminus\{i\}}\frac{|S|!\,(n-|S|-1)!}{n!}\big(v(S\cup\{i\})-v(S)\big).
+\end{equation}
+Bobotnya adalah peluang bahwa, dalam urutan kedatangan yang acak, tepat fitur-fitur di $S$ datang sebelum $i$: ada
+$|S|!$ cara menyusun yang datang lebih dulu, $(n-|S|-1)!$ cara menyusun yang datang belakangan, dari $n!$ urutan. Nilai
+Shapley adalah satu-satunya pembagian yang memenuhi empat sifat sekaligus: jumlahnya sama dengan prediksi penuh
+dikurangi prediksi kosong, fitur yang berperan identik mendapat bagian sama, fitur yang tidak pernah berpengaruh
+mendapat nol, dan untuk jumlah dua model, nilainya juga dijumlahkan. SHAP \citep{lundberg2017} membuat perhitungan ini
+praktis untuk model dengan banyak fitur, karena jumlah urutan yang mungkin tumbuh secara faktorial. Yang sering
+terlupa adalah bahwa $v(S)$ harus didefinisikan: apa artinya model ``tanpa'' sebuah fitur? Biasanya fitur yang hilang
+diganti nilai dari data latar, dan kalau fitur-fitur saling berkorelasi, penggantian itu bisa menciptakan contoh yang
+tidak realistis, seperti orang berusia sepuluh tahun dengan gelar doktor.
+
+Pertanyaan ``bagaimana kalau'' dijawab oleh \istilah{counterfactual explanation} \citep{wachter2017}: cari contoh $x'$
+yang sedekat mungkin dengan $x$ tetapi menghasilkan keputusan yang diinginkan, misalnya dengan meminimalkan
+$\lambda\big(f(x')-y'\big)^2+d(x,x')$. Jawabannya berbentuk kalimat yang langsung bisa dipakai: ``kredit Anda akan
+disetujui kalau pendapatan Anda 400 euro lebih tinggi per bulan''. Penjelasan seperti ini tidak membuka isi model sama
+sekali, sehingga cocok untuk hak atas penjelasan dalam GDPR (\cref{ch:manusia}). Tetapi ia harus dibatasi pada
+perubahan yang mungkin: menyarankan seseorang menjadi lebih muda bukan penjelasan yang berguna.
 
 \section{Menjelaskan lewat gradien}
 
@@ -103,9 +159,17 @@ Untuk jaringan saraf, gradien keluaran terhadap input memberi peta kepekaan lang
 paling mengubah skor kelas kalau digeser sedikit. \istilah{Saliency map} vanila \citep{simonyan2014}
 menampilkan besar gradien ini. Hasilnya sering berbintik dan berisik. Integrated gradients
 \citep{sundararajan2017} menjumlahkan gradien sepanjang jalur dari gambar acuan, misalnya gambar hitam,
-ke gambar asli, dan memenuhi sifat bahwa jumlah atribusinya sama dengan selisih keluaran. Grad-CAM
+ke gambar asli, dan memenuhi sifat bahwa jumlah atribusinya sama dengan selisih keluaran:
+\begin{equation}
+\mathrm{IG}_i(x)=(x_i-x_i')\int_0^1\frac{\partial f}{\partial x_i}\big(x'+\alpha(x-x')\big)\dd\alpha .
+\end{equation}
+Contoh kecil memperlihatkan mengapa sifat ini penting. Untuk $f(x_1,x_2)=x_1x_2$ di $x=(2,3)$ dengan acuan nol, di sepanjang
+jalur $\partial f/\partial x_1=3\alpha$, sehingga $\mathrm{IG}_1=2\int_0^13\alpha\dd\alpha=3$, dan dengan cara yang sama
+$\mathrm{IG}_2=3$. Jumlahnya 6, tepat $f(x)-f(0)$. Atribusi gradien kali input, yang memakai gradien di titik akhir saja,
+memberi $3\cdot2=6$ dan $2\cdot3=6$, dengan jumlah 12, dua kali lipat dari keluaran yang ingin dijelaskan. Grad-CAM
 \citep{selvaraju2017} memakai gradien terhadap peta fitur lapisan konvolusi terakhir untuk menimbang
-peta-peta itu, sehingga menghasilkan peta panas kasar yang menunjukkan daerah gambar yang dipakai
+peta-peta itu. Bobot peta ke-$k$ adalah rata-rata gradien skor kelas $y^c$ terhadap peta itu,
+$\alpha_k=\tfrac1Z\sum_{i,j}\partial y^c/\partial A^k_{ij}$, dan peta panasnya $\mathrm{ReLU}\big(\sum_k\alpha_kA^k\big)$, sehingga menghasilkan peta panas kasar yang menunjukkan daerah gambar yang dipakai
 model. Layer-wise relevance propagation \citep{bach2015} membagi skor keluaran mundur ke input
 lapisan demi lapisan dengan aturan kekekalan relevansi.
 
@@ -113,6 +177,13 @@ Kuliah memakai contoh dari sebuah studi klasifikasi jamur. Peta Grad-CAM kadang 
 melihat bagian yang memang penting secara biologis, seperti tudung dan bilah, tetapi kadang juga
 latar belakang, misalnya rumput atau tangan yang memegang jamur. Peta seperti ini tidak membuktikan
 bahwa model benar, tetapi amat berguna untuk menemukan jalan pintas yang tidak diinginkan.
+
+Sebaliknya, peta yang tampak masuk akal juga belum tentu setia pada model. \citet{adebayo2018} mengusulkan uji kewarasan
+yang sederhana: acak bobot jaringan lapisan demi lapisan, atau latih ulang dengan label acak, lalu lihat apakah peta
+penjelasannya ikut berubah. Beberapa metode populer menghasilkan peta yang hampir sama untuk jaringan terlatih dan
+jaringan acak. Metode seperti itu lebih banyak memperlihatkan tepi-tepi gambar daripada apa yang dipelajari model,
+seperti detektor tepi yang kebetulan rapi. Pelajarannya berlaku untuk semua XAI: penjelasan juga harus diuji, bukan
+hanya dinikmati.
 
 \section{Menjelaskan lewat contoh dan konsep}
 
@@ -149,6 +220,23 @@ tertanam, kita perlu tahu sensor mana yang paling menentukan sebuah keputusan. D
 keterjelasan bisa diambil sejauh-jauhnya: metode seperti SINDy (\cref{ch:penemuan}) tidak menjelaskan
 model kotak hitam, melainkan menghasilkan persamaan yang bisa dibaca langsung. Itu barangkali bentuk
 penjelasan yang paling disukai \citet{rudin2019}.
+
+\section{Perkembangan riset}
+
+Untuk model bahasa besar, riset keterjelasan bergeser ke \istilah{mechanistic interpretability}: mencoba membaca
+mekanisme di dalam jaringan, bukan hanya atribusi pada input. Masalah utamanya adalah \istilah{polysemanticity}. Satu
+neuron sering aktif untuk banyak konsep yang tidak berhubungan, karena jaringan diduga menyimpan lebih banyak fitur
+daripada jumlah neuronnya, sebagai arah-arah yang saling bertumpuk di ruang aktivasi (\istilah{superposition}).
+\citet{cunningham2023} melatih sparse autoencoder untuk merekonstruksi aktivasi internal model bahasa dari kombinasi
+jarang arah-arah yang jauh lebih banyak dari jumlah neuron. Fitur yang ditemukan lebih monosemantik, satu fitur untuk
+satu konsep, dan bisa dipakai untuk menunjuk fitur mana yang secara kausal bertanggung jawab atas sebuah perilaku.
+Gagasannya adalah analisis faktor jarang dari \cref{ch:unsup}, diterapkan pada aktivasi jaringan.
+
+Arah lain membangun keterjelasan ke dalam arsitektur, sejalan dengan saran \citet{rudin2019}. Concept bottleneck model
+\citep{koh2020} memaksa jaringan memprediksi dulu konsep-konsep yang bermakna bagi manusia, misalnya ``ada taji tulang''
+pada citra rontgen lutut, lalu memprediksi label akhir hanya dari konsep itu. Dokter bisa melihat konsep mana yang
+dipercaya model, dan bisa mengoreksinya saat model dipakai. Koreksi seperti itu dilaporkan meningkatkan akurasi secara
+nyata.
 
 \sumberbab{Bab ini mengikuti enam kuliah AI and Visualization beserta labnya: dasar visualisasi,
 menjelaskan algoritme, proyeksi, teknik penjelasan visual (PDP, ICE, LIME, Shapley, saliency, Grad-CAM,
